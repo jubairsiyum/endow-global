@@ -39,27 +39,18 @@ export async function POST(req: Request) {
     },
   })
 
-  chain
-    .call(
-      {
-        question: lastMessage,
-        chat_history: messages
-          .slice(0, -1)
-          .map((m: { role: string; content: string }) => `${m.role}: ${m.content}`)
-          .join('\n'),
-      },
-      [handlers]
-    )
-    .catch(console.error)
+  chain.call({
+    question: lastMessage,
+    chat_history: messages.slice(0, -1).map((m: { role: string; content: string }) => `${m.role}: ${m.content}`).join('\n'),
+  }, [handlers]).catch(console.error)
 
+  // Save chat history async
   if (sessionId) {
-    prisma.chatHistory
-      .upsert({
-        where: { sessionId },
-        update: { messages, updatedAt: new Date() },
-        create: { sessionId, userId: userId === 'anonymous' ? null : userId, messages },
-      })
-      .catch(console.error)
+    prisma.chatHistory.upsert({
+      where: { sessionId },
+      update: { messages, updatedAt: new Date() },
+      create: { sessionId, userId: userId === 'anonymous' ? null : userId, messages },
+    }).catch(console.error)
   }
 
   return new StreamingTextResponse(stream)

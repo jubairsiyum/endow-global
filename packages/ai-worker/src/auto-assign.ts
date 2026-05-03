@@ -10,7 +10,7 @@ export async function autoAssignCounselor(studentId: string): Promise<string | n
   // Find best-matching available counselor
   const counselors = await prisma.counselorProfile.findMany({
     where: { isAvailable: true },
-    orderBy: { totalStudents: 'asc' },
+    orderBy: { totalStudents: 'asc' }, // prefer lower load
   })
 
   const scored = counselors.map((c) => {
@@ -23,7 +23,7 @@ export async function autoAssignCounselor(studentId: string): Promise<string | n
     ).length
     score += countryOverlap * 3
     score += subjectOverlap * 2
-    score -= c.totalStudents * 0.1
+    score -= c.totalStudents * 0.1 // penalize overloaded counselors
     return { counselor: c, score }
   })
 

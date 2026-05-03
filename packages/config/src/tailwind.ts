@@ -55,9 +55,9 @@ const config: Partial<Config> = {
         bounceSubtle: { '0%, 100%': { transform: 'translateY(-4px)' }, '50%': { transform: 'translateY(0)' } },
       },
       boxShadow: {
-        brand: '0 4px 24px -4px rgba(196, 30, 58, 0.3)',
+        'brand': '0 4px 24px -4px rgba(196, 30, 58, 0.3)',
         'brand-lg': '0 8px 40px -4px rgba(196, 30, 58, 0.25)',
-        card: '0 2px 12px rgba(0, 0, 0, 0.08)',
+        'card': '0 2px 12px rgba(0, 0, 0, 0.08)',
         'card-hover': '0 8px 32px rgba(0, 0, 0, 0.12)',
       },
     },

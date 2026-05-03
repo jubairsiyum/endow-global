@@ -10,6 +10,7 @@ export async function POST() {
   const profile = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } })
   if (!profile) return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
 
+  // Rate limit: once per 24h
   if (profile.matchesUpdatedAt) {
     const hoursSince = (Date.now() - profile.matchesUpdatedAt.getTime()) / 3600000
     if (hoursSince < 24) {

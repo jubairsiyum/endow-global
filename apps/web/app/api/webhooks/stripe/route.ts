@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
   switch (event.type) {
     case 'payment_intent.succeeded': {
-      const pi: any = event.data.object
+      const pi = event.data.object
       if (pi.metadata?.type === 'session_payment') {
         await prisma.bookingSession.update({
           where: { id: pi.metadata.sessionId },

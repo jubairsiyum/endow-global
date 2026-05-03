@@ -27,13 +27,9 @@ export async function POST(req: Request) {
         },
       })
 
+      // FCM notification
       if (student.fcmToken) {
-        await sendPushNotification(
-          student.fcmToken,
-          'Session Booked!',
-          `Your session is scheduled for ${new Date(startTime).toLocaleDateString()}`,
-          { sessionId: session.id }
-        )
+        await sendPushNotification(student.fcmToken, 'Session Booked!', `Your session is scheduled for ${new Date(startTime).toLocaleDateString()}`, { sessionId: session.id })
       }
     }
   }

@@ -29,6 +29,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // Redirect authenticated users away from auth pages
   if ((pathname === '/login' || pathname === '/register') && token) {
     const redirectTo = token.role === 'COUNSELOR' ? '/counselor/dashboard' : token.role === 'ADMIN' ? '/admin/dashboard' : '/dashboard'
     return NextResponse.redirect(new URL(redirectTo, req.url))

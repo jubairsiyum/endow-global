@@ -42,6 +42,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
     async signIn({ user, account }) {
+      // Auto-create student profile on first sign in
       if (user.id && account?.provider) {
         const existing = await prisma.studentProfile.findUnique({
           where: { userId: user.id },
