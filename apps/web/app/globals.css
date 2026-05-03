@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --brand: 349 73% 44%;
+    --brand-foreground: 0 0% 100%;
+  }
+
+  * { @apply border-border; }
+  body { @apply bg-background text-foreground; }
+
+  h1, h2, h3, h4, h5, h6 { font-family: var(--font-quicksand), sans-serif; }
+}
+
+@layer components {
+  .btn-brand {
+    @apply bg-crimson-500 text-white hover:bg-crimson-600 active:bg-crimson-700 
+           px-6 py-3 rounded-lg font-heading font-semibold text-sm
+           transition-all duration-200 shadow-brand hover:shadow-brand-lg
+           focus:outline-none focus:ring-2 focus:ring-crimson-500 focus:ring-offset-2;
+  }
+
+  .btn-outline-brand {
+    @apply border-2 border-crimson-500 text-crimson-500 hover:bg-crimson-50
+           px-6 py-3 rounded-lg font-heading font-semibold text-sm
+           transition-all duration-200;
+  }
+
+  .card-default {
+    @apply bg-white border border-gray-100 rounded-xl shadow-card 
+           hover:shadow-card-hover transition-all duration-200;
+  }
+
+  .input-default {
+    @apply w-full rounded-lg border border-gray-200 px-4 py-3 text-sm
+           focus:outline-none focus:ring-2 focus:ring-crimson-500 focus:border-transparent
+           placeholder:text-gray-400 transition-all duration-200;
+  }
+
+  .badge-status-draft { @apply bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full font-medium; }
+  .badge-status-submitted { @apply bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full font-medium; }
+  .badge-status-accepted { @apply bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium; }
+  .badge-status-rejected { @apply bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full font-medium; }
+}
+
+.bg-pattern {
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C41E3A' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+
+html { scroll-behavior: smooth; }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f1f1; }
+::-webkit-scrollbar-thumb { background: #C41E3A40; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #C41E3A80; }

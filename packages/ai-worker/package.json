@@ -1,0 +1,19 @@
+{
+  "name": "@endow/ai-worker",
+  "version": "0.0.1",
+  "scripts": {
+    "embed-courses": "tsx src/embed-courses.ts",
+    "embed-profile": "tsx src/embed-profile.ts",
+    "auto-assign": "tsx src/auto-assign.ts"
+  },
+  "dependencies": {
+    "@endow/db": "workspace:*",
+    "@endow/types": "workspace:*",
+    "openai": "^4.50.0",
+    "@pinecone-database/pinecone": "^2.2.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0"
+  }
+}

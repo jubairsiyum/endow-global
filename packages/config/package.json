@@ -1,0 +1,9 @@
+{
+  "name": "@endow/config",
+  "version": "0.0.1",
+  "main": "./src/index.ts",
+  "exports": {
+    "./tailwind": "./src/tailwind.ts",
+    "./eslint": "./src/eslint.js"
+  }
+}
