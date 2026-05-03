@@ -1,16 +1,18 @@
 import admin from 'firebase-admin'
 
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID!,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, '\n'),
-    }),
-  })
+function initFirebase() {
+  if (!admin.apps.length) {
+    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }),
+      })
+    }
+  }
 }
-
-export const messaging = admin.messaging()
 
 export async function sendPushNotification(
   fcmToken: string,
@@ -18,8 +20,15 @@ export async function sendPushNotification(
   body: string,
   data?: Record<string, string>
 ) {
+  initFirebase()
+  
+  if (!admin.apps.length) {
+    console.warn('Firebase Admin not initialized. Skipping notification.')
+    return
+  }
+
   try {
-    await messaging.send({
+    await admin.messaging().send({
       token: fcmToken,
       notification: { title, body },
       data,

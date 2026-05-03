@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@endow/db', '@endow/types', '@endow/config'],
   experimental: {
-    typedRoutes: true,
+    typedRoutes: false,
   },
   images: {
     remotePatterns: [

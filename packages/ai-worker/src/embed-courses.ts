@@ -2,8 +2,8 @@ import { prisma } from '@endow/db'
 import OpenAI from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
-const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy' })
+const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || 'dummy' })
 
 async function embedCourses() {
   console.log('🤖 Starting course embedding job...')
