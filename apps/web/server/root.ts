@@ -1,4 +1,4 @@
-import { createTRPCRouter } from './trpc'
+import { createTRPCRouter } from '@/lib/trpc'
 import { userRouter } from './routers/user'
 import { courseRouter } from './routers/course'
 import { applicationRouter } from './routers/application'

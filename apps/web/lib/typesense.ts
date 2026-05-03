@@ -8,7 +8,7 @@ export const typesense = new Typesense.Client({
       protocol: 'http',
     },
   ],
-  apiKey: process.env.TYPESENSE_API_KEY!,
+  apiKey: process.env.TYPESENSE_API_KEY || 'dummy',
   connectionTimeoutSeconds: 2,
 })
 

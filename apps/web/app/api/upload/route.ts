@@ -1,9 +1,10 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next'
+import { createRouteHandler } from 'uploadthing/next'
 import { auth } from '@/lib/auth'
 
 const f = createUploadthing()
 
-export const uploadRouter = {
+const uploadRouter = {
   profileImage: f({ image: { maxFileSize: '4MB' } })
     .middleware(async () => {
       const session = await auth()
@@ -29,3 +30,7 @@ export const uploadRouter = {
 } satisfies FileRouter
 
 export type OurFileRouter = typeof uploadRouter
+
+export const { GET, POST } = createRouteHandler({
+  router: uploadRouter,
+})

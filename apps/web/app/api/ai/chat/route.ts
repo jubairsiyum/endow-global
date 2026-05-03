@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     openAIApiKey: process.env.OPENAI_API_KEY!,
   })
 
-  const chain = ConversationalRetrievalQAChain.fromLLM(model, retriever, {
+  const chain = ConversationalRetrievalQAChain.fromLLM(model as any, retriever as any, {
     returnSourceDocuments: false,
     qaChainOptions: {
       type: 'stuff',
@@ -46,10 +46,17 @@ export async function POST(req: Request) {
 
   // Save chat history async
   if (sessionId) {
-    prisma.chatHistory.upsert({
-      where: { sessionId },
-      update: { messages, updatedAt: new Date() },
-      create: { sessionId, userId: userId === 'anonymous' ? null : userId, messages },
+    prisma.chatHistory.findFirst({ where: { sessionId } }).then(existing => {
+      if (existing) {
+        return prisma.chatHistory.update({
+          where: { id: existing.id },
+          data: { messages, updatedAt: new Date() },
+        })
+      } else {
+        return prisma.chatHistory.create({
+          data: { sessionId, userId: userId === 'anonymous' ? null : userId, messages },
+        })
+      }
     }).catch(console.error)
   }
 

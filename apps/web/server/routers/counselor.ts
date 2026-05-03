@@ -1,4 +1,4 @@
-import { createTRPCRouter, counselorProcedure } from '../trpc'
+import { createTRPCRouter, counselorProcedure } from '@/lib/trpc'
 
 export const counselorRouter = createTRPCRouter({
   getAssignedStudents: counselorProcedure.query(({ ctx }) => {
