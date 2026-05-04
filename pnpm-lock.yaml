@@ -153,6 +153,9 @@ importers:
       framer-motion:
         specifier: ^12.38.0
         version: 12.38.0(react-dom@19.2.5(react@19.2.5))(react@19.2.5)
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       langchain:
         specifier: ^0.1.37
         version: 0.1.37(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1041.0)(@aws-sdk/credential-provider-node@3.972.39)(@google-cloud/storage@7.19.0(encoding@0.1.13))(@pinecone-database/pinecone@2.2.2)(@smithy/eventstream-codec@4.2.14)(@smithy/protocol-http@5.3.14)(@smithy/signature-v4@5.3.14)(@smithy/util-utf8@4.2.2)(@upstash/redis@1.37.0)(axios@1.16.0)(encoding@0.1.13)(fast-xml-parser@5.7.2)(firebase-admin@13.8.0(encoding@0.1.13))(google-auth-library@10.6.2)(html-to-text@9.0.5)(ignore@7.0.5)(ioredis@5.10.1)(jsonwebtoken@9.0.3)(openai@4.104.0(encoding@0.1.13)(ws@8.18.3)(zod@4.4.2))(typesense@3.0.6(@babel/runtime@7.29.2))(ws@8.18.3)
@@ -4103,6 +4106,9 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   gtoken@7.1.0:
     resolution: {integrity: sha512-pCcEwRi+TKpMlxAQObHDQ56KawURgyAf6jtIY046fJ5tIv3zDe/LEIubckAO8fj6JnAxLdmWkUfNyulQ2iKdEw==}
@@ -10371,6 +10377,8 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
+
+  gsap@3.15.0: {}
 
   gtoken@7.1.0(encoding@0.1.13):
     dependencies:
