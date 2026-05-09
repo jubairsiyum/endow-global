@@ -1,45 +1,210 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { AnimatePresence, motion } from 'framer-motion'
 
 const navItems = [
   { label: 'Home', href: '/' },
   { label: 'Universities', href: '/universities' },
   { label: 'Courses', href: '/courses' },
   { label: 'Blog', href: '/blog' },
-  { label: 'About', href: '/about' },
+  { label: 'About', href: '/about' }
 ] as const
 
-type NavbarProps = {
-  activeItem?: (typeof navItems)[number]['label']
+const transition = {
+  type: 'spring',
+  stiffness: 340,
+  damping: 28,
+  mass: 0.5
 }
 
-export function Navbar({ activeItem = 'Universities' }: NavbarProps) {
+export function Navbar() {
+  const pathname = usePathname()
+  const isHome = pathname === '/'
+  const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
+  const isHero = isHome && !isScrolled
+  const textPrimary = 'text-gray-900'
+  const textMuted = 'text-gray-700'
+  const textHover = 'hover:text-gray-900'
+  const navRailBg = isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.25)'
+  const pillActiveBg = 'bg-[#C41E3A]'
+  const pillActiveShadow = 'shadow-[0_10px_30px_rgba(196,30,58,0.25)]'
+  const navShadow = isHero
+    ? '0 0 0 rgba(0,0,0,0)'
+    : '0 24px 60px rgba(0,0,0,0.25)'
+  const navMotion = {
+    maxWidth: isHero ? 1140 : 880,
+    paddingLeft: isHero ? 28 : 20,
+    paddingRight: isHero ? 28 : 20,
+    paddingTop: isHero ? 16 : 10,
+    paddingBottom: isHero ? 16 : 10,
+    borderRadius: isHero ? 22 : 999,
+    y: isHero ? 0 : -8,
+    backgroundColor: isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.30)',
+    borderColor: isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.30)',
+    boxShadow: navShadow,
+    backdropFilter: isHero ? 'blur(0px)' : 'blur(22px)'
+  }
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 50)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    setIsMobileOpen(false)
+  }, [pathname])
+
   return (
     <div className="fixed left-0 right-0 top-4 z-50 flex justify-center px-4 sm:px-6">
-      <nav className="w-fit max-w-[calc(100vw-2rem)] rounded-full border border-gray-200 bg-gray-100 px-6 py-2 shadow-md shadow-gray-200/70">
-        <div className="overflow-x-auto">
-          <div className="flex min-w-max items-center gap-6 whitespace-nowrap font-sans text-sm font-medium">
-            {navItems.map((item) => {
-              const isActive = item.label === activeItem
+      <motion.nav
+        aria-label="Primary"
+        initial={false}
+        layout
+        animate={navMotion}
+        transition={transition}
+        className={[
+          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border`
+        ].join(' ')}
+      >
+        <Link
+          href="/"
+          className={`flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold transition ${textPrimary}`}
+        >
+          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#C41E3A] text-white shadow-[0_10px_30px_rgba(196,30,58,0.35)]">
+            E
+          </span>
+          <span className="hidden whitespace-nowrap text-base font-semibold tracking-tight sm:inline">Endow Global</span>
+        </Link>
 
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={[
-                    'rounded-full transition-all duration-200',
-                    isActive
-                      ? 'bg-red-500 px-4 py-1.5 font-semibold text-white hover:bg-red-600 hover:scale-[1.02]'
-                      : 'px-3 py-2 text-gray-600 hover:text-gray-900',
-                  ].join(' ')}
-                >
-                  {item.label}
-                </Link>
-              )
-            })}
-          </div>
+        <div className={`hidden items-center ${isHero ? 'gap-2' : 'gap-1'} md:flex`}>
+          <motion.div
+            className={`relative rounded-full ${isHero ? 'p-1' : 'p-0.5'}`}
+            animate={{ backgroundColor: navRailBg }}
+            transition={transition}
+          >
+            <div className={`flex items-center ${isHero ? 'gap-1' : 'gap-0.5'}`}>
+              {navItems.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={isActive ? 'page' : undefined}
+                    className={`relative rounded-full text-sm font-medium transition ${
+                      isActive ? 'text-white' : textMuted
+                    } ${isActive ? '' : textHover} ${
+                      isHero ? 'px-4 py-2' : 'px-3 py-1.5'
+                    }`}
+                  >
+                    {isActive ? (
+                      <motion.span
+                        layoutId="navbar-pill"
+                        className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
+                        transition={transition}
+                      />
+                    ) : null}
+                    <span className="relative z-10">{item.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          </motion.div>
         </div>
-      </nav>
+
+        <div className={`hidden items-center ${isHero ? 'gap-3' : 'gap-2'} md:flex`}>
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+            <Link
+              href="/apply"
+              className={`inline-flex items-center justify-center rounded-full bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
+                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+              }`}
+            >
+              Start Free
+            </Link>
+          </motion.div>
+        </div>
+
+        <button
+          className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 transition md:hidden ${textPrimary}`}
+          aria-label="Toggle menu"
+          onClick={() => setIsMobileOpen((prev) => !prev)}
+        >
+          <motion.span
+            animate={isMobileOpen ? { rotate: 45, y: 3 } : { rotate: 0, y: -3 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute h-[2px] w-5 rounded-full bg-current"
+          />
+          <motion.span
+            animate={isMobileOpen ? { rotate: -45, y: -3 } : { rotate: 0, y: 3 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute h-[2px] w-5 rounded-full bg-current"
+          />
+        </button>
+      </motion.nav>
+
+      <AnimatePresence>
+        {isMobileOpen ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 8 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute top-14 w-full max-w-[980px] px-4 sm:px-6 md:hidden"
+          >
+            <motion.div
+              animate={{
+                backgroundColor: isHero ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.30)',
+                borderColor: isHero ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.30)',
+                boxShadow: isHero
+                  ? '0 24px 60px rgba(0,0,0,0.08)'
+                  : '0 24px 60px rgba(0,0,0,0.12)',
+                backdropFilter: isHero ? 'blur(10px)' : 'blur(22px)'
+              }}
+              transition={transition}
+              className="rounded-3xl border p-4 backdrop-blur-2xl"
+            >
+              <div className="flex flex-col gap-2">
+                {navItems.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={[
+                        'rounded-2xl px-4 py-3 text-sm font-medium transition',
+                        isActive
+                          ? isHero
+                            ? 'bg-white/20 text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.12)]'
+                            : 'bg-[#C41E3A] text-white shadow-[0_12px_30px_rgba(196,30,58,0.25)]'
+                          : isHero
+                            ? 'text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                            : 'text-gray-700 hover:bg-neutral-100 hover:text-gray-900'
+                      ].join(' ')}
+                    >
+                      {item.label}
+                    </Link>
+                  )
+                })}
+              </div>
+              <div className="mt-4">
+                <Link
+                  href="/apply"
+                  className="flex items-center justify-center rounded-full bg-[#C41E3A] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)]"
+                >
+                  Start Free
+                </Link>
+              </div>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   )
 }
