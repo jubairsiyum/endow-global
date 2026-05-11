@@ -14,7 +14,7 @@ const navItems = [
 ] as const
 
 const transition = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 340,
   damping: 28,
   mass: 0.5
