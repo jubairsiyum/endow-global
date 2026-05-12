@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SocialButtons } from './SocialButtons'
-import { FeatureCards } from './FeatureCards'
 
 type AuthTab = 'login' | 'signup'
 
@@ -223,9 +222,6 @@ export function AuthPanel({ onSubmit, isLoading = false }: AuthPanelProps) {
           </motion.p>
         </motion.div>
       </AnimatePresence>
-
-      {/* Features (Compact) */}
-      <FeatureCards variant="compact" />
     </motion.div>
   )
 }
