@@ -10,9 +10,9 @@ export default function AuthLayout({
     <main
       className="
         relative
-        h-screen
+        min-h-screen
         overflow-hidden
-        bg-[#faf8f8]
+        bg-[#f8f6f6]
         flex
         items-center
         justify-center
@@ -23,6 +23,33 @@ export default function AuthLayout({
 
       {/* Background */}
       <BackgroundDecor />
+
+      {/* Blur Glow */}
+      <div
+        className="
+          absolute
+          top-[-200px]
+          right-[-100px]
+          w-[500px]
+          h-[500px]
+          rounded-full
+          bg-red-200/40
+          blur-3xl
+        "
+      />
+
+      <div
+        className="
+          absolute
+          bottom-[-250px]
+          left-[-150px]
+          w-[450px]
+          h-[450px]
+          rounded-full
+          bg-red-100/40
+          blur-3xl
+        "
+      />
 
       {/* Main Wrapper */}
       <div
@@ -47,44 +74,41 @@ export default function AuthLayout({
             w-full
             lg:w-[46%]
             relative
-            flex
-            items-center
-            justify-center
           "
         >
 
-          {/* Glow */}
-          <div
-            className="
-              absolute
-              inset-0
-              rounded-[42px]
-              bg-gradient-to-br
-              from-red-200
-              to-red-50
-              blur-xl
-              opacity-40
-            "
-          />
-
-          {/* Card */}
+          {/* Glass Card */}
           <div
             className="
               relative
-              w-full
               overflow-hidden
-              bg-white/90
-              backdrop-blur-2xl
-              rounded-[40px]
+              rounded-[36px]
               border
-              border-white/50
-              shadow-[0_20px_100px_rgba(0,0,0,0.08)]
-              p-8
-              sm:p-10
+              border-white/40
+              bg-white/65
+              backdrop-blur-2xl
+              shadow-[0_20px_80px_rgba(0,0,0,0.08)]
+              p-10
               lg:p-12
             "
           >
-            {children}
+
+            {/* Inner Glow */}
+            <div
+              className="
+                absolute
+                inset-0
+                bg-gradient-to-br
+                from-white/40
+                to-transparent
+                pointer-events-none
+              "
+            />
+
+            <div className="relative z-10">
+              {children}
+            </div>
+
           </div>
 
         </div>

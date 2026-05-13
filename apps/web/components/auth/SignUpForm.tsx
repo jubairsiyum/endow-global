@@ -17,6 +17,102 @@ export default function SignUpForm() {
   return (
     <div className="flex flex-col justify-center h-full">
 
+      {/* Top Switch */}
+      <div
+        className="
+          mb-10
+          flex
+          items-center
+          justify-center
+          border-b
+          border-white/60
+        "
+      >
+
+        {/* Sign In */}
+        <Link
+          href="/sign-in"
+          className="
+            relative
+            h-14
+            px-10
+            flex
+            items-center
+            justify-center
+            text-base
+            font-semibold
+            transition-all
+          "
+        >
+          <span
+            className={
+              pathname === "/sign-in"
+                ? "text-red-600"
+                : "text-gray-500 hover:text-gray-800"
+            }
+          >
+            Sign In
+          </span>
+
+          {pathname === "/sign-in" && (
+            <div
+              className="
+                absolute
+                bottom-0
+                left-0
+                w-full
+                h-[2px]
+                bg-red-600
+                rounded-full
+              "
+            />
+          )}
+
+        </Link>
+
+        {/* Sign Up */}
+        <Link
+          href="/sign-up"
+          className="
+            relative
+            h-14
+            px-10
+            flex
+            items-center
+            justify-center
+            text-base
+            font-semibold
+            transition-all
+          "
+        >
+          <span
+            className={
+              pathname === "/sign-up"
+                ? "text-red-600"
+                : "text-gray-500 hover:text-gray-800"
+            }
+          >
+            Sign Up
+          </span>
+
+          {pathname === "/sign-up" && (
+            <div
+              className="
+                absolute
+                bottom-0
+                left-0
+                w-full
+                h-[2px]
+                bg-red-600
+                rounded-full
+              "
+            />
+          )}
+
+        </Link>
+
+      </div>
+
       {/* Heading */}
       <div className="text-center">
 
@@ -33,70 +129,12 @@ export default function SignUpForm() {
 
       </div>
 
-      {/* Top Switch */}
-      <div
-        className="
-          mt-8
-          grid
-          grid-cols-2
-          rounded-2xl
-          bg-white
-          border
-          border-gray-200
-          p-1
-          shadow-sm
-        "
-      >
-
-        {/* Sign In */}
-        <Link href="/sign-in">
-          <button
-            className={`
-              h-14
-              rounded-xl
-              font-semibold
-              transition-all
-              w-full
-              ${
-                pathname === "/sign-in"
-                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
-                  : "text-gray-700 hover:bg-gray-50"
-              }
-            `}
-          >
-            Sign In
-          </button>
-        </Link>
-
-        {/* Sign Up */}
-        <Link href="/sign-up">
-          <button
-            className={`
-              h-14
-              rounded-xl
-              font-semibold
-              transition-all
-              w-full
-              ${
-                pathname === "/sign-up"
-                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
-                  : "text-gray-700 hover:bg-gray-50"
-              }
-            `}
-          >
-            Sign Up
-          </button>
-        </Link>
-
-      </div>
-
       {/* Form */}
       <div className="mt-8 space-y-4">
 
         {/* Name + Email */}
         <div className="grid grid-cols-2 gap-4">
 
-          {/* Full Name */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Full Name
@@ -110,8 +148,10 @@ export default function SignUpForm() {
                 h-14
                 rounded-2xl
                 border
-                border-gray-200
-                bg-white
+                border-white/60
+                bg-white/70
+                backdrop-blur-xl
+                shadow-sm
                 px-4
                 transition-all
                 focus-within:border-red-700
@@ -139,7 +179,6 @@ export default function SignUpForm() {
             </div>
           </div>
 
-          {/* Email */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Email Address
@@ -153,8 +192,10 @@ export default function SignUpForm() {
                 h-14
                 rounded-2xl
                 border
-                border-gray-200
-                bg-white
+                border-white/60
+                bg-white/70
+                backdrop-blur-xl
+                shadow-sm
                 px-4
                 transition-all
                 focus-within:border-red-700
@@ -187,7 +228,6 @@ export default function SignUpForm() {
         {/* Password + Confirm */}
         <div className="grid grid-cols-2 gap-4">
 
-          {/* Password */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Password
@@ -201,8 +241,10 @@ export default function SignUpForm() {
                 h-14
                 rounded-2xl
                 border
-                border-gray-200
-                bg-white
+                border-white/60
+                bg-white/70
+                backdrop-blur-xl
+                shadow-sm
                 px-4
                 transition-all
                 focus-within:border-red-700
@@ -230,7 +272,6 @@ export default function SignUpForm() {
             </div>
           </div>
 
-          {/* Confirm */}
           <div>
             <label className="text-sm font-medium text-gray-700">
               Confirm Password
@@ -244,8 +285,10 @@ export default function SignUpForm() {
                 h-14
                 rounded-2xl
                 border
-                border-gray-200
-                bg-white
+                border-white/60
+                bg-white/70
+                backdrop-blur-xl
+                shadow-sm
                 px-4
                 transition-all
                 focus-within:border-red-700
@@ -293,7 +336,7 @@ export default function SignUpForm() {
 
       </div>
 
-      {/* Submit */}
+      {/* Button */}
       <button
         className="
           mt-5
@@ -306,7 +349,7 @@ export default function SignUpForm() {
           text-white
           text-lg
           font-semibold
-          shadow-lg
+          shadow-[0_10px_30px_rgba(220,38,38,0.25)]
           hover:scale-[1.01]
           transition-all
         "
