@@ -10,6 +10,7 @@ import {
   Mail,
   LockKeyhole,
 } from "lucide-react";
+  import { ArrowRight } from "lucide-react";
 
 export default function SignUpForm() {
   const pathname = usePathname();
