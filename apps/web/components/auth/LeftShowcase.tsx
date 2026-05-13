@@ -1,63 +1,156 @@
+"use client";
+
+import { motion } from "framer-motion";
+
 import {
   Globe,
-  MessageCircle,
+  MessageCircleMore,
   BadgeCheck,
 } from "lucide-react";
 
+import FloatingPaperPlane from "./FloatingPaperPlane";
+
 export default function LeftShowcase() {
   return (
-    <div className="hidden lg:flex flex-col justify-between w-[45%] py-10 pr-20 relative z-10">
+    <div
+      className="
+        hidden
+        lg:flex
+        relative
+        w-[48%]
+        flex-col
+        justify-center
+        px-6
+      "
+    >
+
+      {/* Plane */}
+      <FloatingPaperPlane />
 
       {/* Logo */}
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+      >
+        <h1 className="text-5xl font-black tracking-tight text-black">
           ENDOW
         </h1>
 
-        <p className="text-gray-500 mt-1">
+        <p className="mt-2 text-gray-500 tracking-wide">
           GLOBAL EDUCATION
         </p>
-      </div>
+      </motion.div>
 
-      {/* Main Text */}
-      <div>
-        <h2 className="text-7xl font-bold leading-[1.1] tracking-tight text-black">
+      {/* Main Heading */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 1,
+          delay: 0.2,
+        }}
+        className="mt-10"
+      >
+
+        <h2
+          className="
+            text-7xl
+            leading-[1]
+            font-black
+            tracking-tight
+            text-black
+          "
+        >
           Your dream
-          <span className="block text-red-700">
-            university
-          </span>
+        </h2>
+
+        <h2
+          className="
+            text-7xl
+            leading-[1]
+            font-black
+            tracking-tight
+            text-red-700
+            mt-2
+          "
+        >
+          university
+        </h2>
+
+        <h2
+          className="
+            text-7xl
+            leading-[1]
+            font-black
+            tracking-tight
+            text-black
+            mt-2
+          "
+        >
           starts here.
         </h2>
 
-        <p className="mt-8 text-gray-500 text-xl leading-relaxed max-w-xl">
-          Get expert guidance, discover global
-          courses, and achieve your study abroad
-          goals.
-        </p>
-      </div>
+      </motion.div>
+
+      {/* Description */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{
+          duration: 1,
+          delay: 0.4,
+        }}
+        className="
+          mt-10
+          max-w-xl
+          text-xl
+          leading-9
+          text-gray-500
+        "
+      >
+        Get expert guidance, discover global
+        courses, and achieve your study
+        abroad goals.
+      </motion.p>
 
       {/* Features */}
-      <div className="flex gap-10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{
+          duration: 1,
+          delay: 0.6,
+        }}
+        className="
+          mt-12
+          flex
+          items-center
+          gap-8
+        "
+      >
 
+        {/* Item */}
         <Feature
-          icon={<Globe size={28} />}
+          icon={<Globe size={26} />}
           title="Global"
           subtitle="Opportunities"
         />
 
         <Feature
-          icon={<MessageCircle size={28} />}
+          icon={<MessageCircleMore size={26} />}
           title="Expert"
           subtitle="Counselors"
         />
 
         <Feature
-          icon={<BadgeCheck size={28} />}
+          icon={<BadgeCheck size={26} />}
           title="End-to-End"
           subtitle="Support"
         />
 
-      </div>
+      </motion.div>
+
     </div>
   );
 }
@@ -66,22 +159,46 @@ function Feature({
   icon,
   title,
   subtitle,
-}: any) {
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) {
   return (
-    <div className="flex flex-col items-center text-center">
+    <motion.div
+      whileHover={{
+        y: -6,
+      }}
+      className="flex flex-col items-center"
+    >
 
-      <div className="w-16 h-16 rounded-full bg-white shadow-xl border border-gray-100 flex items-center justify-center text-red-700">
+      <div
+        className="
+          w-16
+          h-16
+          rounded-2xl
+          bg-white/60
+          backdrop-blur-xl
+          border
+          border-white/40
+          shadow-[0_10px_30px_rgba(0,0,0,0.08)]
+          flex
+          items-center
+          justify-center
+          text-red-600
+        "
+      >
         {icon}
       </div>
 
-      <h3 className="mt-4 font-semibold">
+      <p className="mt-4 font-semibold text-gray-800">
         {title}
-      </h3>
+      </p>
 
       <p className="text-gray-500 text-sm">
         {subtitle}
       </p>
 
-    </div>
+    </motion.div>
   );
 }

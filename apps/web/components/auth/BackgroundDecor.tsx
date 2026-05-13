@@ -6,20 +6,14 @@ export default function BackgroundDecor() {
   return (
     <div className="absolute inset-0 overflow-hidden">
 
-      {/* Main Background */}
-      <div
-        className="
-          absolute
-          inset-0
-          bg-[#f7f4f3]
-        "
-      />
+      {/* Base */}
+      <div className="absolute inset-0 bg-[#f8f5f4]" />
 
-      {/* Cinematic Red Light */}
+      {/* Main Red Light */}
       <motion.div
         animate={{
-          scale: [1, 1.08, 1],
-          opacity: [0.55, 0.75, 0.55],
+          scale: [1, 1.12, 1],
+          opacity: [0.5, 0.75, 0.5],
         }}
         transition={{
           duration: 14,
@@ -28,21 +22,21 @@ export default function BackgroundDecor() {
         }}
         className="
           absolute
-          top-[-250px]
-          right-[-200px]
+          top-[-280px]
+          right-[-220px]
           w-[900px]
           h-[900px]
           rounded-full
-          bg-[radial-gradient(circle,rgba(220,38,38,0.22)_0%,rgba(220,38,38,0.08)_35%,transparent_70%)]
+          bg-[radial-gradient(circle,rgba(239,68,68,0.22)_0%,rgba(239,68,68,0.06)_45%,transparent_75%)]
           blur-3xl
         "
       />
 
-      {/* Bottom Glow */}
+      {/* Bottom Left Glow */}
       <motion.div
         animate={{
-          scale: [1, 1.12, 1],
-          x: [0, 40, 0],
+          scale: [1, 1.15, 1],
+          x: [0, 30, 0],
         }}
         transition={{
           duration: 18,
@@ -51,65 +45,83 @@ export default function BackgroundDecor() {
         }}
         className="
           absolute
-          bottom-[-350px]
+          bottom-[-320px]
           left-[-250px]
           w-[850px]
           h-[850px]
           rounded-full
-          bg-[radial-gradient(circle,rgba(239,68,68,0.12)_0%,rgba(239,68,68,0.04)_40%,transparent_75%)]
+          bg-[radial-gradient(circle,rgba(254,202,202,0.45)_0%,rgba(254,202,202,0.15)_45%,transparent_75%)]
           blur-3xl
         "
       />
 
-      {/* Ambient White Light */}
-      <div
+      {/* Light Beam */}
+      <motion.div
+        animate={{
+          opacity: [0.08, 0.18, 0.08],
+        }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+        }}
         className="
           absolute
-          inset-0
-          bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.95),transparent_45%)]
+          top-0
+          left-[18%]
+          w-[500px]
+          h-full
+          rotate-[12deg]
+          bg-gradient-to-b
+          from-white/80
+          via-white/20
+          to-transparent
+          blur-3xl
         "
       />
 
-      {/* Luxury Vignette */}
+      {/* Bottom Wave Glow */}
       <div
         className="
           absolute
-          inset-0
-          bg-[radial-gradient(circle_at_center,transparent_45%,rgba(0,0,0,0.05)_100%)]
+          bottom-0
+          left-0
+          w-full
+          h-[240px]
+          bg-[radial-gradient(circle_at_bottom_left,rgba(254,202,202,0.65),transparent_55%)]
         "
       />
 
-      {/* Floating Glass Light */}
+      {/* Floating Orb 1 */}
       <motion.div
         animate={{
           y: [0, -30, 0],
-          rotate: [0, 6, 0],
+          x: [0, 20, 0],
         }}
         transition={{
-          duration: 12,
+          duration: 10,
           repeat: Infinity,
           ease: "easeInOut",
         }}
         className="
           absolute
-          top-[12%]
-          right-[18%]
-          w-[260px]
-          h-[260px]
+          top-[15%]
+          right-[8%]
+          w-44
+          h-44
           rounded-full
+          bg-white/20
+          backdrop-blur-3xl
           border
           border-white/30
-          bg-white/10
-          backdrop-blur-3xl
-          shadow-[0_20px_80px_rgba(255,255,255,0.12)]
+          shadow-[0_20px_80px_rgba(255,255,255,0.15)]
         "
       />
 
-      {/* Small Floating Orb */}
+      {/* Floating Orb 2 */}
       <motion.div
         animate={{
           y: [0, 25, 0],
-          x: [0, -15, 0],
+          x: [0, -10, 0],
         }}
         transition={{
           duration: 9,
@@ -119,39 +131,23 @@ export default function BackgroundDecor() {
         className="
           absolute
           bottom-[12%]
-          left-[10%]
+          left-[6%]
           w-32
           h-32
           rounded-full
-          border
-          border-red-100/30
           bg-white/10
           backdrop-blur-2xl
+          border
+          border-white/20
         "
       />
 
-      {/* Cinematic Light Beam */}
-      <motion.div
-        animate={{
-          opacity: [0.08, 0.16, 0.08],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+      {/* Blur White Overlay */}
+      <div
         className="
           absolute
-          top-0
-          left-[20%]
-          w-[500px]
-          h-full
-          rotate-[12deg]
-          bg-gradient-to-b
-          from-white/60
-          via-white/10
-          to-transparent
-          blur-3xl
+          inset-0
+          bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.95),transparent_45%)]
         "
       />
 
@@ -160,21 +156,9 @@ export default function BackgroundDecor() {
         className="
           absolute
           inset-0
-          opacity-[0.025]
+          opacity-[0.02]
           mix-blend-overlay
           bg-[url('https://grainy-gradients.vercel.app/noise.svg')]
-        "
-      />
-
-      {/* Smooth Gradient Overlay */}
-      <div
-        className="
-          absolute
-          inset-0
-          bg-gradient-to-br
-          from-transparent
-          via-transparent
-          to-red-50/40
         "
       />
 
