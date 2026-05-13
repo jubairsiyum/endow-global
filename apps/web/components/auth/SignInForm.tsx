@@ -1,3 +1,8 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import SocialButtons from "./SocialButtons";
 
 import {
@@ -6,21 +11,79 @@ import {
 } from "lucide-react";
 
 export default function SignInForm() {
+  const pathname = usePathname();
+
   return (
     <div>
 
       {/* Heading */}
-      <div>
+      <div className="text-center">
+
         <h2 className="text-4xl font-bold tracking-tight text-black">
-          Welcome{" "}
-          <span className="text-red-700">
-            back
-          </span>
+          Welcome back
         </h2>
 
-        <p className="mt-3 text-gray-500 text-base">
-          Sign in to continue to your account
+        <p className="mt-3 text-gray-500 text-lg">
+          Sign in to continue your journey
         </p>
+
+      </div>
+
+      {/* Top Switch */}
+      <div
+        className="
+          mt-8
+          grid
+          grid-cols-2
+          rounded-2xl
+          bg-white
+          border
+          border-gray-200
+          p-1
+          shadow-sm
+        "
+      >
+
+        {/* Sign In */}
+        <Link href="/sign-in">
+          <button
+            className={`
+              h-14
+              rounded-xl
+              font-semibold
+              transition-all
+              w-full
+              ${
+                pathname === "/sign-in"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-50"
+              }
+            `}
+          >
+            Sign In
+          </button>
+        </Link>
+
+        {/* Sign Up */}
+        <Link href="/sign-up">
+          <button
+            className={`
+              h-14
+              rounded-xl
+              font-semibold
+              transition-all
+              w-full
+              ${
+                pathname === "/sign-up"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-50"
+              }
+            `}
+          >
+            Sign Up
+          </button>
+        </Link>
+
       </div>
 
       {/* Form */}
@@ -126,7 +189,7 @@ export default function SignInForm() {
 
       </div>
 
-      {/* Submit */}
+      {/* Button */}
       <button
         className="
           mt-6
@@ -134,8 +197,8 @@ export default function SignInForm() {
           h-14
           rounded-2xl
           bg-gradient-to-r
-          from-red-700
-          to-red-900
+          from-red-600
+          to-red-800
           text-white
           text-lg
           font-semibold
@@ -162,15 +225,6 @@ export default function SignInForm() {
 
       {/* Social */}
       <SocialButtons />
-
-      {/* Bottom */}
-      <p className="text-center text-gray-500 text-sm mt-6">
-        Don&apos;t have an account?{" "}
-
-        <span className="text-red-700 font-semibold cursor-pointer hover:underline">
-          Sign up
-        </span>
-      </p>
 
     </div>
   );

@@ -1,3 +1,8 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
 import SocialButtons from "./SocialButtons";
 
 import {
@@ -7,25 +12,86 @@ import {
 } from "lucide-react";
 
 export default function SignUpForm() {
+  const pathname = usePathname();
+
   return (
     <div className="flex flex-col justify-center h-full">
 
       {/* Heading */}
-      <div>
-        <h2 className="text-[42px] leading-tight font-bold tracking-tight text-black">
+      <div className="text-center">
+
+        <h2 className="text-4xl font-bold tracking-tight text-black">
           Create your{" "}
           <span className="text-red-700">
             account
           </span>
         </h2>
 
-        <p className="mt-2 text-gray-500 text-base">
+        <p className="mt-3 text-gray-500 text-lg">
           Join Endow Global Education
         </p>
+
+      </div>
+
+      {/* Top Switch */}
+      <div
+        className="
+          mt-8
+          grid
+          grid-cols-2
+          rounded-2xl
+          bg-white
+          border
+          border-gray-200
+          p-1
+          shadow-sm
+        "
+      >
+
+        {/* Sign In */}
+        <Link href="/sign-in">
+          <button
+            className={`
+              h-14
+              rounded-xl
+              font-semibold
+              transition-all
+              w-full
+              ${
+                pathname === "/sign-in"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-50"
+              }
+            `}
+          >
+            Sign In
+          </button>
+        </Link>
+
+        {/* Sign Up */}
+        <Link href="/sign-up">
+          <button
+            className={`
+              h-14
+              rounded-xl
+              font-semibold
+              transition-all
+              w-full
+              ${
+                pathname === "/sign-up"
+                  ? "bg-gradient-to-r from-red-600 to-red-700 text-white shadow-lg"
+                  : "text-gray-700 hover:bg-gray-50"
+              }
+            `}
+          >
+            Sign Up
+          </button>
+        </Link>
+
       </div>
 
       {/* Form */}
-      <div className="mt-7 space-y-4">
+      <div className="mt-8 space-y-4">
 
         {/* Name + Email */}
         <div className="grid grid-cols-2 gap-4">
@@ -76,7 +142,7 @@ export default function SignUpForm() {
           {/* Email */}
           <div>
             <label className="text-sm font-medium text-gray-700">
-              Email
+              Email Address
             </label>
 
             <div
@@ -167,7 +233,7 @@ export default function SignUpForm() {
           {/* Confirm */}
           <div>
             <label className="text-sm font-medium text-gray-700">
-              Confirm
+              Confirm Password
             </label>
 
             <div
@@ -235,8 +301,8 @@ export default function SignUpForm() {
           h-14
           rounded-2xl
           bg-gradient-to-r
-          from-red-700
-          to-red-900
+          from-red-600
+          to-red-800
           text-white
           text-lg
           font-semibold
@@ -263,15 +329,6 @@ export default function SignUpForm() {
 
       {/* Social */}
       <SocialButtons />
-
-      {/* Bottom */}
-      <p className="text-center text-gray-500 text-sm mt-5">
-        Already have an account?{" "}
-
-        <span className="text-red-700 font-semibold cursor-pointer hover:underline">
-          Sign in
-        </span>
-      </p>
 
     </div>
   );
