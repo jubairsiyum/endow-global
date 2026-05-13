@@ -85,9 +85,9 @@ export default function AuthLayout({
               rounded-[36px]
               border
               border-white/40
-              bg-white/65
-              backdrop-blur-2xl
-              shadow-[0_20px_80px_rgba(0,0,0,0.08)]
+              bg-white/55
+              backdrop-blur-[30px]
+              shadow-[0_30px_120px_rgba(0,0,0,0.12)]
               p-10
               lg:p-12
             "

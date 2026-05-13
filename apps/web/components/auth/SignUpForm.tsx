@@ -21,6 +21,7 @@ export default function SignUpForm() {
       <div
         className="
           mb-10
+          relative
           flex
           items-center
           justify-center
@@ -29,87 +30,83 @@ export default function SignUpForm() {
         "
       >
 
-        {/* Sign In */}
-        <Link
-          href="/sign-in"
-          className="
-            relative
-            h-14
-            px-10
-            flex
-            items-center
-            justify-center
-            text-base
-            font-semibold
-            transition-all
-          "
-        >
-          <span
-            className={
-              pathname === "/sign-in"
-                ? "text-red-600"
-                : "text-gray-500 hover:text-gray-800"
-            }
+        {/* Navigation Wrapper */}
+        <div className="relative flex items-center">
+
+          {/* Animated Underline */}
+          <div
+            className={`
+              absolute
+              bottom-0
+              left-0
+              h-[2px]
+              w-[96px]
+              rounded-full
+              bg-red-600
+              transition-transform
+              duration-300
+              ease-in-out
+              ${
+                pathname === "/sign-in"
+                  ? "translate-x-0"
+                  : "translate-x-[96px]"
+              }
+            `}
+          />
+
+          {/* Sign In */}
+          <Link
+            href="/sign-in"
+            className="
+              h-14
+              w-[96px]
+              flex
+              items-center
+              justify-center
+              text-base
+              font-semibold
+              transition-colors
+              duration-300
+            "
           >
-            Sign In
-          </span>
+            <span
+              className={
+                pathname === "/sign-in"
+                  ? "text-red-600"
+                  : "text-gray-500 hover:text-gray-800"
+              }
+            >
+              Sign In
+            </span>
+          </Link>
 
-          {pathname === "/sign-in" && (
-            <div
-              className="
-                absolute
-                bottom-0
-                left-0
-                w-full
-                h-[2px]
-                bg-red-600
-                rounded-full
-              "
-            />
-          )}
-
-        </Link>
-
-        {/* Sign Up */}
-        <Link
-          href="/sign-up"
-          className="
-            relative
-            h-14
-            px-10
-            flex
-            items-center
-            justify-center
-            text-base
-            font-semibold
-            transition-all
-          "
-        >
-          <span
-            className={
-              pathname === "/sign-up"
-                ? "text-red-600"
-                : "text-gray-500 hover:text-gray-800"
-            }
+          {/* Sign Up */}
+          <Link
+            href="/sign-up"
+            className="
+              h-14
+              w-[96px]
+              flex
+              items-center
+              justify-center
+              text-base
+              font-semibold
+              transition-colors
+              duration-300
+            "
           >
-            Sign Up
-          </span>
+            <span
+              className={
+                pathname === "/sign-up"
+                  ? "text-red-600"
+                  : "text-gray-500 hover:text-gray-800"
+              }
+            >
+              Sign Up
+            </span>
+          </Link>
 
-          {pathname === "/sign-up" && (
-            <div
-              className="
-                absolute
-                bottom-0
-                left-0
-                w-full
-                h-[2px]
-                bg-red-600
-                rounded-full
-              "
-            />
-          )}
-
-        </Link>
+        </div>
 
       </div>
 
