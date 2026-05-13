@@ -1,7 +1,10 @@
-'use client'
+import AuthLayout from "@/components/auth/AuthLayout";
+import SignUpForm from "@/components/auth/SignUpForm";
 
-import AuthPage from '@/components/auth/AuthPage'
-
-export default function SignUpPage() {
-  return <AuthPage mode="signup" />
+export default function Page() {
+  return (
+    <AuthLayout>
+      <SignUpForm />
+    </AuthLayout>
+  );
 }
