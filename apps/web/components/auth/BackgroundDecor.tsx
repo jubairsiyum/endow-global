@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export default function BackgroundDecor() {
@@ -13,36 +14,46 @@ export default function BackgroundDecor() {
 
   return (
     <div className="absolute inset-0 overflow-hidden">
-
-      {/* Background Image */}
-      <div
-        className="
-          absolute
-          inset-0
-          bg-center
-          bg-no-repeat
-        "
+      {/* Image Layer - Full Screen Sharp Cinematic Background */}
+      <Image
+        src={bgImage}
+        alt={isSignIn ? "Sign in background" : "Sign up background"}
+        fill
+        priority
+        quality={95}
+        sizes="100vw"
+        className="object-cover"
         style={{
-          backgroundImage: `url(${bgImage})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
           filter: isSignIn
             ? "contrast(1.08) saturate(1.05) brightness(1.02)"
             : "contrast(1.02) saturate(1.02)",
         }}
       />
 
-      {/* Dynamic Overlay */}
+      {/* Cinematic Overlay Layer - Light Gradient */}
       <div
-        className={`
+        className="
           absolute
           inset-0
-          ${
-            isSignIn
-              ? "bg-white/[0.02]"
-              : "bg-white/[0.05]"
-          }
-        `}
+          bg-gradient-to-b
+          from-black/5
+          via-transparent
+          to-black/10
+          pointer-events-none
+        "
+      />
+
+      {/* Soft Vignette Overlay - Premium Effect */}
+      <div
+        className="
+          absolute
+          inset-0
+          shadow-inner
+          pointer-events-none
+        "
+        style={{
+          boxShadow: "inset 0 0 120px rgba(0, 0, 0, 0.08)",
+        }}
       />
 
       {/* Left Cinematic Fade */}

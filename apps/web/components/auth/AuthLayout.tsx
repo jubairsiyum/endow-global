@@ -10,21 +10,20 @@ export default function AuthLayout({
     <main
       className="
         relative
-        min-h-screen
+        h-screen
+        w-full
         overflow-hidden
         bg-[#f8f6f6]
         flex
         items-center
         justify-center
-        px-6
-        lg:px-10
       "
     >
 
-      {/* Background */}
+      {/* Background - Full Viewport Coverage */}
       <BackgroundDecor />
 
-      {/* Blur Glow */}
+      {/* Blur Glow - Top Right */}
       <div
         className="
           absolute
@@ -35,9 +34,15 @@ export default function AuthLayout({
           rounded-full
           bg-red-200/40
           blur-3xl
+          pointer-events-none
+          sm:w-[400px]
+          sm:h-[400px]
+          lg:w-[500px]
+          lg:h-[500px]
         "
       />
 
+      {/* Blur Glow - Bottom Left */}
       <div
         className="
           absolute
@@ -48,48 +53,78 @@ export default function AuthLayout({
           rounded-full
           bg-red-100/40
           blur-3xl
+          pointer-events-none
+          sm:w-[350px]
+          sm:h-[350px]
+          lg:w-[450px]
+          lg:h-[450px]
         "
       />
 
-      {/* Main Wrapper */}
+      {/* Main Wrapper - Responsive with Padding */}
       <div
         className="
           relative
           z-10
           w-full
+          h-full
           max-w-7xl
           flex
+          flex-col
+          lg:flex-row
           items-center
           justify-between
-          gap-10
+          gap-6
+          sm:gap-8
+          lg:gap-10
+          px-4
+          sm:px-6
+          md:px-8
+          lg:px-10
+          xl:px-12
         "
       >
 
         {/* Left Side */}
         <LeftShowcase />
 
-        {/* Right Side */}
+        {/* Right Side - Responsive Form Container */}
         <div
           className="
             w-full
+            sm:w-full
+            md:w-full
             lg:w-[46%]
             relative
+            flex
+            items-center
+            justify-center
+            min-h-screen
+            lg:min-h-0
           "
         >
 
-          {/* Glass Card */}
+          {/* Glass Card - Responsive */}
           <div
             className="
               relative
               overflow-hidden
-              rounded-[36px]
+              rounded-2xl
+              sm:rounded-3xl
+              lg:rounded-[36px]
               border
               border-white/40
               bg-white/55
               backdrop-blur-[30px]
               shadow-[0_30px_120px_rgba(0,0,0,0.12)]
-              p-10
+              p-6
+              sm:p-8
+              md:p-10
               lg:p-12
+              w-full
+              max-w-sm
+              sm:max-w-md
+              lg:max-w-lg
             "
           >
 
