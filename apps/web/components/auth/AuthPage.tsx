@@ -1,110 +1,163 @@
-'use client'
+"use client";
 
-import { useState, Suspense } from 'react'
-import { motion } from 'framer-motion'
-import CinematicBranding from './CinematicBranding'
-import AuthPanel from './AuthPanel'
-import FloatingObjects from './FloatingObjects'
+import { useState, Suspense } from "react";
+import { motion } from "framer-motion";
+
+import CinematicBranding from "./CinematicBranding";
+import AuthPanel from "./AuthPanel";
 
 interface AuthPageProps {
-  mode?: 'login' | 'signup'
+  mode?: "login" | "signup";
 }
 
-function AuthPageContent({ mode = 'login' }: AuthPageProps) {
-  const [isLoading, setIsLoading] = useState(false)
+function AuthPageContent() {
+  const [isLoading, setIsLoading] =
+    useState(false);
 
-  const handleAuthSubmit = async (data: { email: string; password: string }) => {
-    setIsLoading(true)
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      console.log('Auth data:', data)
-      // Handle authentication here
-    } finally {
-      setIsLoading(false)
+  /*
+  ==================================================
+  REAL AUTH HANDLER (USE LATER)
+  ==================================================
+  */
+
+  /*
+  const handleAuthSubmit = async (
+    data: {
+      email: string;
+      password: string;
     }
-  }
+  ) => {
+    setIsLoading(true);
+
+    try {
+      await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+      });
+
+      router.push("/admin");
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  */
+
+  /*
+  ==================================================
+  TEMP LOGIN
+  ==================================================
+  */
+
+  const handleAuthSubmit = async (
+    data: {
+      email: string;
+      password: string;
+    }
+  ) => {
+    setIsLoading(true);
+
+    try {
+      await new Promise((resolve) =>
+        setTimeout(resolve, 1000)
+      );
+
+      console.log(
+        "Login Data:",
+        data
+      );
+
+      window.location.href =
+        "/admin";
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100">
-      <div className="flex h-screen overflow-hidden">
-        {/* Left Branding Section (Hidden on Mobile) */}
-        <motion.div
-          className="hidden lg:flex lg:w-1/2 relative"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
+    <div className="relative min-h-screen overflow-hidden bg-[#f6f7fb]">
+      
+      {/* LIGHT PREMIUM BACKGROUND */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.10),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(15,23,42,0.05),transparent_28%)]" />
+
+      {/* LIGHT GRID */}
+      <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:70px_70px]" />
+
+      {/* MAIN */}
+      <div className="relative z-10 flex min-h-screen">
+        
+        {/* LEFT SIDE */}
+        <div className="hidden lg:flex lg:w-[54%]">
           <CinematicBranding />
-        </motion.div>
+        </div>
 
-        {/* Right Auth Section */}
-        <motion.div
-          className="w-full lg:w-1/2 flex flex-col items-center justify-center relative overflow-hidden px-4 sm:px-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          {/* Premium floating background effects */}
-          <FloatingObjects />
+        {/* CENTER DIVIDER */}
+        <div className="hidden lg:block w-px bg-black/5" />
 
-          {/* Auth Panel */}
+        {/* RIGHT SIDE */}
+        <div className="relative flex w-full items-center justify-center px-6 lg:w-[46%]">
+          
+          {/* WHITE PREMIUM AREA */}
+          <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
+
+          {/* RED GLOW */}
+          <div className="absolute right-[8%] top-[10%] h-[320px] w-[320px] rounded-full bg-red-500/10 blur-3xl" />
+
+          {/* SOFT SHADOW GLOW */}
+          <div className="absolute bottom-[8%] left-[5%] h-[240px] w-[240px] rounded-full bg-slate-300/20 blur-3xl" />
+
+          {/* PANEL */}
           <motion.div
-            className="relative z-20 w-full max-w-md"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            initial={{
+              opacity: 0,
+              y: 40,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
+            transition={{
+              duration: 0.7,
+            }}
+            className="relative z-20 w-full max-w-[470px]"
           >
-            <AuthPanel onSubmit={handleAuthSubmit} isLoading={isLoading} />
+            <AuthPanel
+              onSubmit={
+                handleAuthSubmit
+              }
+              isLoading={isLoading}
+            />
           </motion.div>
-
-          {/* Premium curved divider SVG (Desktop Only) */}
-          <svg
-            className="hidden lg:block absolute left-0 top-0 h-full text-white/5"
-            viewBox="0 0 100 100"
-            preserveAspectRatio="none"
-            style={{ width: '120px', height: '100%' }}
-          >
-            <defs>
-              <linearGradient id="dividerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="rgba(196, 30, 58, 0.05)" />
-                <stop offset="100%" stopColor="rgba(255, 255, 255, 0.1)" />
-              </linearGradient>
-            </defs>
-            <path d="M0,0 Q50,50 0,100 L0,0" fill="url(#dividerGradient)" />
-          </svg>
-
-          {/* Additional decorative elements for premium feel */}
-          <motion.div
-            className="absolute top-20 left-20 w-1 h-1 bg-[#C41E3A]/20 rounded-full"
-            animate={{ scale: [1, 1.5, 1], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ duration: 4, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute bottom-40 right-40 w-1 h-1 bg-[#C41E3A]/10 rounded-full"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.3, 0.1] }}
-            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
-          />
-        </motion.div>
+        </div>
       </div>
     </div>
-  )
+  );
 }
 
-export default function AuthPage({ mode = 'login' }: AuthPageProps) {
+export default function AuthPage({
+  mode = "login",
+}: AuthPageProps) {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white via-gray-50 to-gray-100">
+        <div className="flex min-h-screen items-center justify-center bg-[#f6f7fb]">
+          
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-8 h-8 border-3 border-gray-200 border-t-[#C41E3A] rounded-full"
+            animate={{
+              rotate: 360,
+            }}
+            transition={{
+              duration: 1.5,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="h-10 w-10 rounded-full border-2 border-black/10 border-t-red-500"
           />
         </div>
       }
     >
-      <AuthPageContent mode={mode} />
+      <AuthPageContent />
     </Suspense>
-  )
+  );
 }
