@@ -8,39 +8,43 @@ datasource db {
   directUrl = env("DIRECT_DATABASE_URL")
 }
 
-// ─── Auth (NextAuth compatible) ──────────────────────────────────────────────
+// ─── Auth (Better Auth) ──────────────────────────────────────────────────────
 model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?   @db.Text
+  refreshToken          String?   @db.Text
+  idToken               String?   @db.Text
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 }
 
 model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model VerificationToken {
+model Verification {
+  id         String    @id @default(cuid())
   identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime? @default(now())
+  updatedAt  DateTime? @updatedAt
 }
 
 // ─── User ────────────────────────────────────────────────────────────────────
@@ -52,9 +56,9 @@ enum UserRole {
 
 model User {
   id            String    @id @default(cuid())
+  name          String
   email         String    @unique
-  emailVerified DateTime?
-  name          String?
+  emailVerified Boolean   @default(false)
   image         String?
   role          UserRole  @default(STUDENT)
   fcmToken      String?
