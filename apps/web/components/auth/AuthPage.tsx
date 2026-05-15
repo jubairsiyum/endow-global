@@ -18,9 +18,7 @@ function AuthPageContent() {
   ==================================================
   REAL AUTH HANDLER (USE LATER)
   ==================================================
-  */
 
-  /*
   const handleAuthSubmit = async (
     data: {
       email: string;
@@ -42,9 +40,7 @@ function AuthPageContent() {
       setIsLoading(false);
     }
   };
-  */
 
-  /*
   ==================================================
   TEMP LOGIN
   ==================================================
@@ -76,7 +72,7 @@ function AuthPageContent() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#f6f7fb]">
+    <div className="relative h-screen overflow-hidden bg-[#f6f7fb]">
       
       {/* LIGHT PREMIUM BACKGROUND */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(239,68,68,0.10),transparent_22%),radial-gradient(circle_at_bottom_left,rgba(15,23,42,0.05),transparent_28%)]" />
@@ -85,7 +81,7 @@ function AuthPageContent() {
       <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:70px_70px]" />
 
       {/* MAIN */}
-      <div className="relative z-10 flex min-h-screen">
+      <div className="relative z-10 flex h-screen overflow-hidden">
         
         {/* LEFT SIDE */}
         <div className="hidden lg:flex lg:w-[54%]">
@@ -96,7 +92,7 @@ function AuthPageContent() {
         <div className="hidden lg:block w-px bg-black/5" />
 
         {/* RIGHT SIDE */}
-        <div className="relative flex w-full items-center justify-center px-6 lg:w-[46%]">
+        <div className="relative flex h-screen w-full items-center justify-center overflow-hidden px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 lg:w-[46%] lg:px-8 lg:py-5">
           
           {/* WHITE PREMIUM AREA */}
           <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px]" />
@@ -120,14 +116,17 @@ function AuthPageContent() {
             transition={{
               duration: 0.7,
             }}
-            className="relative z-20 w-full max-w-[470px]"
+            className="relative z-20 flex w-full items-center justify-center"
           >
-            <AuthPanel
-              onSubmit={
-                handleAuthSubmit
-              }
-              isLoading={isLoading}
-            />
+            <div className="w-full max-w-[360px] scale-70 origin-center sm:scale-74 md:scale-[0.80] lg:scale-[0.85] xl:scale-90 2xl:scale-100">
+              
+              <AuthPanel
+                onSubmit={
+                  handleAuthSubmit
+                }
+                isLoading={isLoading}
+              />
+            </div>
           </motion.div>
         </div>
       </div>
@@ -141,7 +140,7 @@ export default function AuthPage({
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-[#f6f7fb]">
+        <div className="flex h-screen items-center justify-center bg-[#f6f7fb]">
           
           <motion.div
             animate={{

@@ -119,7 +119,7 @@ export default function AuthPanel({
       <div className="absolute inset-[1px] rounded-[42px] border border-white/[0.04]" />
 
       {/* CONTENT */}
-      <div className="relative z-10 px-10 py-10">
+      <div className="relative z-10 px-7 py-7">
         
         {/* PREMIUM LOGO */}
         <motion.div
@@ -134,7 +134,7 @@ export default function AuthPanel({
           transition={{
             duration: 0.7,
           }}
-          className="relative mx-auto flex h-[110px] w-[110px] items-center justify-center"
+          className="relative mx-auto flex h-[95px] w-[95px] items-center justify-center"
         >
           
           {/* GLOW */}
@@ -222,9 +222,9 @@ export default function AuthPanel({
         </motion.div>
 
         {/* HEADER */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           
-          <h2 className="text-[40px] font-bold tracking-[-2px] text-white">
+          <h2 className="text-[36px] font-bold tracking-[-1.5px] text-white">
             Admin Portal
           </h2>
 
@@ -247,7 +247,7 @@ export default function AuthPanel({
             transition={{
               duration: 0.4,
             }}
-            className="mt-9 space-y-5"
+            className="mt-5 space-y-3.5"
           >
             
             {/* EMAIL */}
@@ -429,15 +429,7 @@ export default function AuthPanel({
             </motion.button>
 
             {/* FOOTER */}
-            <div className="mt-8 flex items-center justify-center gap-3 text-sm text-white/35">
-              
-              <Lock size={14} />
-
-              <span>
-                Secure login · 256-bit
-                encryption
-              </span>
-            </div>
+            
           </motion.form>
         </AnimatePresence>
       </div>
