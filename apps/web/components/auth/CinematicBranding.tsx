@@ -53,11 +53,11 @@ export default function CinematicBranding() {
             duration: 0.7,
           }}
         >
-          <h1 className="text-[58px] font-bold leading-none tracking-[-3px] text-white">
+          <h1 className="text-[44px] font-bold leading-none tracking-[-3px] text-white">
             Endow
           </h1>
 
-          <p className="mt-3 text-[22px] font-medium text-white/80">
+          <p className="mt-3 text-[16px] font-medium text-white/80">
             Global Education
           </p>
         </motion.div>
@@ -81,7 +81,7 @@ export default function CinematicBranding() {
             className="max-w-[660px]"
           >
             
-            <h2 className="text-[82px] font-bold leading-[88px] tracking-[-4px] text-white">
+            <h2 className="text-[64px] font-bold leading-[68px] tracking-[-2px] text-white">
               Empowering
               <br />
               Student
@@ -92,7 +92,7 @@ export default function CinematicBranding() {
               </span>
             </h2>
 
-            <p className="mt-10 max-w-[560px] text-[24px] leading-[44px] text-white/80">
+            <p className="mt-7 max-w-[560px] text-[18px] leading-[34px] text-white/80">
               AI-powered ecosystem for
               global admissions,
               counselor collaboration and
