@@ -21,7 +21,7 @@ export default function SignUpForm() {
       {/* Top Switch */}
       <div
         className="
-          mb-10
+          mb-6
           relative
           flex
           items-center
@@ -59,12 +59,12 @@ export default function SignUpForm() {
           <Link
             href="/sign-in"
             className="
-              h-14
+              h-11
               w-[96px]
               flex
               items-center
               justify-center
-              text-base
+              text-xs
               font-semibold
               transition-colors
               duration-300
@@ -85,12 +85,12 @@ export default function SignUpForm() {
           <Link
             href="/sign-up"
             className="
-              h-14
+              h-11
               w-[96px]
               flex
               items-center
               justify-center
-              text-base
+              text-xs
               font-semibold
               transition-colors
               duration-300
@@ -114,46 +114,46 @@ export default function SignUpForm() {
       {/* Heading */}
       <div className="text-center">
 
-        <h2 className="text-4xl font-bold tracking-tight text-black">
+        <h2 className="text-2xl font-bold tracking-tight text-black">
           Create your{" "}
           <span className="text-red-700">
             account
           </span>
         </h2>
 
-        <p className="mt-3 text-gray-500 text-lg">
-          Join Endow Global Education
+        <p className="mt-1 text-gray-700 text-xs">
+          Join Endow Global Education today
         </p>
 
       </div>
 
       {/* Form */}
-      <div className="mt-8 space-y-4">
+      <div className="mt-5 space-y-2">
 
         {/* Name + Email */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Full Name
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              Name
             </label>
 
             <div
               className="
-                mt-2
+                mt-1
                 flex
                 items-center
-                h-14
-                rounded-2xl
+                h-11
+                rounded-xl
                 border
                 border-white/60
                 bg-white/70
                 backdrop-blur-xl
                 shadow-sm
-                px-4
+                px-3
                 transition-all
                 focus-within:border-red-700
-                focus-within:ring-4
+                focus-within:ring-2
                 focus-within:ring-red-100
               "
             >
@@ -178,26 +178,26 @@ export default function SignUpForm() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Email Address
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              Email
             </label>
 
             <div
               className="
-                mt-2
+                mt-1
                 flex
                 items-center
-                h-14
-                rounded-2xl
+                h-11
+                rounded-xl
                 border
                 border-white/60
                 bg-white/70
                 backdrop-blur-xl
                 shadow-sm
-                px-4
+                px-3
                 transition-all
                 focus-within:border-red-700
-                focus-within:ring-4
+                focus-within:ring-2
                 focus-within:ring-red-100
               "
             >
@@ -224,29 +224,29 @@ export default function SignUpForm() {
         </div>
 
         {/* Password + Confirm */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-2">
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
               Password
             </label>
 
             <div
               className="
-                mt-2
+                mt-1
                 flex
                 items-center
-                h-14
-                rounded-2xl
+                h-11
+                rounded-xl
                 border
                 border-white/60
                 bg-white/70
                 backdrop-blur-xl
                 shadow-sm
-                px-4
+                px-3
                 transition-all
                 focus-within:border-red-700
-                focus-within:ring-4
+                focus-within:ring-2
                 focus-within:ring-red-100
               "
             >
@@ -271,26 +271,26 @@ export default function SignUpForm() {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Confirm Password
+            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+              Confirm
             </label>
 
             <div
               className="
-                mt-2
+                mt-1
                 flex
                 items-center
-                h-14
-                rounded-2xl
+                h-11
+                rounded-xl
                 border
                 border-white/60
                 bg-white/70
                 backdrop-blur-xl
                 shadow-sm
-                px-4
+                px-3
                 transition-all
                 focus-within:border-red-700
-                focus-within:ring-4
+                focus-within:ring-2
                 focus-within:ring-red-100
               "
             >
@@ -319,14 +319,14 @@ export default function SignUpForm() {
       </div>
 
       {/* Terms */}
-      <div className="flex items-center gap-2 mt-5 text-gray-500 text-sm">
+      <div className="flex items-center gap-2 mt-3 text-gray-700 text-xs">
 
-        <input type="checkbox" />
+        <input type="checkbox" className="w-3 h-3 rounded" />
 
         <p>
           I agree to the{" "}
 
-          <span className="text-red-700 font-medium">
+          <span className="text-red-700 font-semibold">
             Terms & Conditions
           </span>
 
@@ -337,17 +337,17 @@ export default function SignUpForm() {
       {/* Button */}
       <button
         className="
-          mt-5
+          mt-3
           w-full
-          h-14
-          rounded-2xl
+          h-11
+          rounded-xl
           bg-gradient-to-r
           from-red-600
           to-red-800
           text-white
-          text-lg
+          text-sm
           font-semibold
-          shadow-[0_10px_30px_rgba(220,38,38,0.25)]
+          shadow-[0_8px_24px_rgba(220,38,38,0.2)]
           hover:scale-[1.01]
           transition-all
         "

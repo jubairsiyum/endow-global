@@ -17,10 +17,10 @@ export default function LeftShowcase() {
         hidden
         lg:flex
         relative
-        w-[48%]
+        w-[52%]
         flex-col
         justify-center
-        px-6
+        px-4
       "
     >
 
@@ -33,11 +33,11 @@ export default function LeftShowcase() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        <h1 className="text-5xl font-black tracking-tight text-black">
+        <h1 className="text-3xl font-black tracking-tight text-black">
           ENDOW
         </h1>
 
-        <p className="mt-2 text-gray-500 tracking-wide">
+        <p className="mt-1 text-xs text-gray-600 tracking-wide font-medium">
           GLOBAL EDUCATION
         </p>
       </motion.div>
@@ -50,13 +50,13 @@ export default function LeftShowcase() {
           duration: 1,
           delay: 0.2,
         }}
-        className="mt-10"
+        className="mt-5"
       >
 
         <h2
           className="
-            text-7xl
-            leading-[1]
+            text-4xl
+            leading-snug
             font-black
             tracking-tight
             text-black
@@ -67,12 +67,12 @@ export default function LeftShowcase() {
 
         <h2
           className="
-            text-7xl
-            leading-[1]
+            text-4xl
+            leading-snug
             font-black
             tracking-tight
             text-red-700
-            mt-2
+            mt-0
           "
         >
           university
@@ -80,12 +80,12 @@ export default function LeftShowcase() {
 
         <h2
           className="
-            text-7xl
-            leading-[1]
+            text-4xl
+            leading-snug
             font-black
             tracking-tight
             text-black
-            mt-2
+            mt-0
           "
         >
           starts here.
@@ -102,11 +102,11 @@ export default function LeftShowcase() {
           delay: 0.4,
         }}
         className="
-          mt-10
-          max-w-xl
-          text-xl
-          leading-9
-          text-gray-500
+          mt-4
+          max-w-sm
+          text-base
+          leading-relaxed
+          text-gray-700
         "
       >
         Get expert guidance, discover global
@@ -123,28 +123,28 @@ export default function LeftShowcase() {
           delay: 0.6,
         }}
         className="
-          mt-12
+          mt-6
           flex
           items-center
-          gap-8
+          gap-5
         "
       >
 
         {/* Item */}
         <Feature
-          icon={<Globe size={26} />}
+          icon={<Globe size={18} />}
           title="Global"
           subtitle="Opportunities"
         />
 
         <Feature
-          icon={<MessageCircleMore size={26} />}
+          icon={<MessageCircleMore size={18} />}
           title="Expert"
           subtitle="Counselors"
         />
 
         <Feature
-          icon={<BadgeCheck size={26} />}
+          icon={<BadgeCheck size={18} />}
           title="End-to-End"
           subtitle="Support"
         />

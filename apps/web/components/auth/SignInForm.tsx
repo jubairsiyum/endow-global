@@ -19,7 +19,7 @@ export default function SignInForm() {
       {/* Top Switch */}
       <div
         className="
-          mb-10
+          mb-6
           relative
           flex
           items-center
@@ -57,12 +57,12 @@ export default function SignInForm() {
           <Link
             href="/sign-in"
             className="
-              h-14
+              h-11
               w-[96px]
               flex
               items-center
               justify-center
-              text-base
+              text-xs
               font-semibold
               transition-colors
               duration-300
@@ -83,12 +83,12 @@ export default function SignInForm() {
           <Link
             href="/sign-up"
             className="
-              h-14
+              h-11
               w-[96px]
               flex
               items-center
               justify-center
-              text-base
+              text-xs
               font-semibold
               transition-colors
               duration-300
@@ -112,41 +112,41 @@ export default function SignInForm() {
       {/* Heading */}
       <div className="text-center">
 
-        <h2 className="text-4xl font-bold tracking-tight text-black">
+        <h2 className="text-2xl font-bold tracking-tight text-black">
           Welcome back
         </h2>
 
-        <p className="mt-3 text-gray-500 text-lg">
-          Sign in to continue your journey
+        <p className="mt-1 text-gray-700 text-xs">
+          Sign in to continue
         </p>
 
       </div>
 
       {/* Form */}
-      <div className="mt-8 space-y-5">
+      <div className="mt-5 space-y-2">
 
         {/* Email */}
         <div>
-          <label className="text-sm font-medium text-gray-700">
-            Email address
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            Email
           </label>
 
           <div
             className="
-              mt-2
+              mt-1
               flex
               items-center
-              h-14
-              rounded-2xl
+              h-11
+              rounded-xl
               border
               border-white/60
               bg-white/70
               backdrop-blur-xl
               shadow-sm
-              px-5
+              px-3
               transition-all
               focus-within:border-red-700
-              focus-within:ring-4
+              focus-within:ring-2
               focus-within:ring-red-100
             "
           >
@@ -171,26 +171,26 @@ export default function SignInForm() {
 
         {/* Password */}
         <div>
-          <label className="text-sm font-medium text-gray-700">
+          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
             Password
           </label>
 
           <div
             className="
-              mt-2
+              mt-1
               flex
               items-center
-              h-14
-              rounded-2xl
+              h-11
+              rounded-xl
               border
               border-white/60
               bg-white/70
               backdrop-blur-xl
               shadow-sm
-              px-5
+              px-3
               transition-all
               focus-within:border-red-700
-              focus-within:ring-4
+              focus-within:ring-2
               focus-within:ring-red-100
             "
           >
@@ -216,15 +216,15 @@ export default function SignInForm() {
       </div>
 
       {/* Options */}
-      <div className="flex items-center justify-between mt-5">
+      <div className="flex items-center justify-between mt-3">
 
-        <label className="flex items-center gap-2 text-gray-600 text-sm">
-          <input type="checkbox" />
-          Remember me
+        <label className="flex items-center gap-2 text-gray-700 text-xs">
+          <input type="checkbox" className="w-3 h-3 rounded" />
+          Remember
         </label>
 
-        <button className="text-red-700 text-sm font-medium hover:underline">
-          Forgot password?
+        <button className="text-red-700 text-xs font-semibold hover:underline">
+          Forgot?
         </button>
 
       </div>
@@ -232,17 +232,17 @@ export default function SignInForm() {
       {/* Button */}
       <button
         className="
-          mt-6
+          mt-3
           w-full
-          h-14
-          rounded-2xl
+          h-11
+          rounded-xl
           bg-gradient-to-r
           from-red-600
           to-red-800
           text-white
-          text-lg
+          text-sm
           font-semibold
-          shadow-[0_10px_30px_rgba(220,38,38,0.25)]
+          shadow-[0_8px_24px_rgba(220,38,38,0.2)]
           hover:scale-[1.01]
           transition-all
         "
@@ -251,15 +251,15 @@ export default function SignInForm() {
       </button>
 
       {/* Divider */}
-      <div className="flex items-center gap-4 mt-6">
+      <div className="flex items-center gap-3 mt-3">
 
-        <div className="h-[1px] flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-gray-300" />
 
-        <span className="text-gray-400 text-sm">
+        <span className="text-gray-500 text-xs font-medium">
           or
         </span>
 
-        <div className="h-[1px] flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-gray-300" />
 
       </div>
 

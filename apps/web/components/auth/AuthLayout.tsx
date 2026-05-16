@@ -68,20 +68,19 @@ export default function AuthLayout({
           z-10
           w-full
           h-full
-          max-w-7xl
+          max-w-6xl
           flex
           flex-col
           lg:flex-row
           items-center
           justify-between
-          gap-6
-          sm:gap-8
-          lg:gap-10
+          gap-3
+          sm:gap-4
+          lg:gap-6
           px-4
           sm:px-6
           md:px-8
-          lg:px-10
-          xl:px-12
+          lg:px-8
         "
       >
 
@@ -111,20 +110,20 @@ export default function AuthLayout({
               overflow-hidden
               rounded-2xl
               sm:rounded-3xl
-              lg:rounded-[36px]
+              lg:rounded-3xl
               border
               border-white/40
               bg-white/55
               backdrop-blur-[30px]
-              shadow-[0_30px_120px_rgba(0,0,0,0.12)]
-              p-6
-              sm:p-8
-              md:p-10
-              lg:p-12
+              shadow-[0_20px_80px_rgba(0,0,0,0.08)]
+              p-4
+              sm:p-5
+              md:p-6
+              lg:p-7
               w-full
               max-w-sm
-              sm:max-w-md
-              lg:max-w-lg
+              sm:max-w-sm
+              lg:max-w-sm
             "
           >
 
