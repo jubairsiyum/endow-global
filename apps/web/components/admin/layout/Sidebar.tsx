@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 import {
   LayoutDashboard,
@@ -19,51 +20,61 @@ const menuItems = [
   {
     name: "Dashboard",
     icon: LayoutDashboard,
-    active: true,
+    href: "/admin",
   },
 
   {
     name: "Students",
     icon: Users,
+    href: "/admin/students",
   },
 
   {
     name: "Applications",
     icon: FileText,
+    href: "/admin/applications",
   },
 
   {
     name: "Documents",
     icon: FolderOpen,
+    href: "/admin/documents",
   },
 
   {
     name: "Universities",
     icon: GraduationCap,
+    href: "/admin/universities",
   },
 
   {
     name: "Messages",
     icon: MessageSquare,
+    href: "/admin/messages",
   },
 
   {
     name: "Analytics",
     icon: BarChart3,
+    href: "/admin/analytics",
   },
 
   {
     name: "Notifications",
     icon: Bell,
+    href: "/admin/notifications",
   },
 
   {
     name: "Settings",
     icon: Settings,
+    href: "/admin/settings",
   },
 ];
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside
       className="
@@ -162,10 +173,13 @@ export function Sidebar() {
             {menuItems.map((item, index) => {
               const Icon = item.icon;
 
+              const isActive =
+                pathname === item.href;
+
               return (
                 <Link
                   key={index}
-                  href="#"
+                  href={item.href}
                   className={`
                     group
                     relative
@@ -180,7 +194,7 @@ export function Sidebar() {
                     duration-300
 
                     ${
-                      item.active
+                      isActive
                         ? `
                           bg-gradient-to-r
                           from-[#c3002f]
@@ -199,7 +213,7 @@ export function Sidebar() {
 
                   {/* ACTIVE SHINE */}
 
-                  {item.active && (
+                  {isActive && (
                     <div
                       className="
                         absolute
@@ -218,7 +232,7 @@ export function Sidebar() {
                       z-10
 
                       ${
-                        item.active
+                        isActive
                           ? "text-white"
                           : "text-white/65 group-hover:text-white"
                       }
