@@ -1,174 +1,358 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Image from "next/image";
 
 import {
   LayoutDashboard,
   Users,
   FileText,
   FolderOpen,
+  GraduationCap,
+  MessageSquare,
+  BarChart3,
   Bell,
   Settings,
-  GraduationCap,
-  BarChart3,
-  MessageSquare,
 } from "lucide-react";
 
 const menuItems = [
   {
-    title: "Dashboard",
-    href: "/admin",
+    name: "Dashboard",
     icon: LayoutDashboard,
+    active: true,
   },
+
   {
-    title: "Students",
-    href: "/admin/students",
+    name: "Students",
     icon: Users,
   },
+
   {
-    title: "Applications",
-    href: "/admin/applications",
+    name: "Applications",
     icon: FileText,
   },
+
   {
-    title: "Documents",
-    href: "/admin/documents",
+    name: "Documents",
     icon: FolderOpen,
   },
+
   {
-    title: "Universities",
-    href: "/admin/universities",
+    name: "Universities",
     icon: GraduationCap,
   },
+
   {
-    title: "Messages",
-    href: "/admin/messages",
+    name: "Messages",
     icon: MessageSquare,
   },
+
   {
-    title: "Analytics",
-    href: "/admin/analytics",
+    name: "Analytics",
     icon: BarChart3,
   },
+
   {
-    title: "Notifications",
-    href: "/admin/notifications",
+    name: "Notifications",
     icon: Bell,
   },
+
   {
-    title: "Settings",
-    href: "/admin/settings",
+    name: "Settings",
     icon: Settings,
   },
 ];
 
 export function Sidebar() {
-  const pathname = usePathname();
-
   return (
-    <aside className="h-screen w-[245px] border-r border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-[#11131a]">
-      
-      <div className="flex h-full flex-col">
-        
+    <aside
+      className="
+        relative
+        flex
+        h-screen
+        w-[205px]
+        flex-col
+        overflow-y-auto
+        overflow-x-hidden
+        border-r
+        border-white/[0.03]
+        bg-[#070709]
+        scrollbar-hide
+      "
+    >
+
+      {/* PREMIUM RED GLOW */}
+
+      <div
+        className="
+          absolute
+          left-[-140px]
+          top-[140px]
+          h-[260px]
+          w-[260px]
+          rounded-full
+          bg-red-600/10
+          blur-3xl
+        "
+      />
+
+      {/* TOP RED LIGHT */}
+
+      <div
+        className="
+          absolute
+          right-[-100px]
+          top-[-120px]
+          h-[180px]
+          w-[180px]
+          rounded-full
+          bg-red-500/10
+          blur-3xl
+        "
+      />
+
+      {/* CONTENT */}
+
+      <div className="relative z-10 flex min-h-full flex-col">
+
         {/* LOGO */}
-        <div className="border-b border-gray-200 px-4 py-4 dark:border-gray-800">
-          
-          <div className="flex items-center gap-2">
-            
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-xs font-bold text-white shadow-sm">
-              E
-            </div>
 
-            <div>
-              <h1 className="text-base font-bold tracking-tight text-gray-900 dark:text-white">
-                ENDOW
-              </h1>
+        <div className="px-3 pt-3">
 
-              <p className="text-[11px] text-gray-500 dark:text-gray-400">
-                Portal
-              </p>
-            </div>
+          <div
+            className="
+              flex
+              h-[54px]
+              items-center
+              justify-center
+              rounded-[14px]
+              border
+              border-white/[0.04]
+              bg-white
+              px-4
+              py-2
+              shadow-[0_10px_30px_rgba(255,255,255,0.04)]
+            "
+          >
+
+            <Image
+              src="/logo/endow-connect.png"
+              alt="logo"
+              width={120}
+              height={32}
+              priority
+              className="h-6 w-auto object-contain"
+            />
+
           </div>
         </div>
 
         {/* MENU */}
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
 
-            const isActive =
-              pathname === item.href ||
-              pathname.startsWith(
-                item.href + "/"
-              );
+        <div
+          className="
+            mt-5
+            flex-1
+            px-2.5
+          "
+        >
 
-            return (
-              <Link
-                key={item.title}
-                href={item.href}
-                className={`group flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-medium transition-all duration-200
-                  
-                  ${
-                    isActive
-                      ? "bg-red-50 text-primary shadow-sm dark:bg-[#2a1114]"
-                      : "text-gray-700 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-[#1a1d25] dark:hover:text-white"
-                  }
-                `}
-              >
-                <Icon
-                  size={15}
-                  className={`transition-all duration-200 shrink-0
+          <div className="space-y-1.5">
+
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+
+              return (
+                <Link
+                  key={index}
+                  href="#"
+                  className={`
+                    group
+                    relative
+                    flex
+                    items-center
+                    gap-2.5
+                    overflow-hidden
+                    rounded-[14px]
+                    px-3.5
+                    py-[8px]
+                    transition-all
+                    duration-300
+
                     ${
-                      isActive
-                        ? "text-primary"
-                        : "text-gray-500 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
+                      item.active
+                        ? `
+                          bg-gradient-to-r
+                          from-[#c3002f]
+                          to-[#ff174f]
+                          text-white
+                          shadow-[0_0_22px_rgba(255,0,76,0.22)]
+                        `
+                        : `
+                          text-white/70
+                          hover:bg-white/[0.03]
+                          hover:text-white
+                        `
                     }
                   `}
-                />
+                >
 
-                <span>{item.title}</span>
-              </Link>
-            );
-          })}
-        </nav>
+                  {/* ACTIVE SHINE */}
 
-        {/* BOTTOM PROFILE */}
-        <div className="border-t border-gray-200 p-2 dark:border-gray-800">
-          
-          <div className="rounded-lg bg-gradient-to-br from-red-50 to-white p-2 dark:from-[#1a1d25] dark:to-[#11131a]">
-            
-            <div className="flex items-center gap-2">
-              
-              <div className="flex h-8 w-8 items-center justify-center rounded-md bg-red-100 text-[10px] font-bold text-primary dark:bg-[#2a1114]">
+                  {item.active && (
+                    <div
+                      className="
+                        absolute
+                        inset-0
+                        bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.08),transparent)]
+                      "
+                    />
+                  )}
+
+                  {/* ICON */}
+
+                  <Icon
+                    size={16}
+                    className={`
+                      relative
+                      z-10
+
+                      ${
+                        item.active
+                          ? "text-white"
+                          : "text-white/65 group-hover:text-white"
+                      }
+                    `}
+                  />
+
+                  {/* TEXT */}
+
+                  <span
+                    className="
+                      relative
+                      z-10
+                      text-[12.5px]
+                      font-[500]
+                      tracking-[0.1px]
+                    "
+                  >
+                    {item.name}
+                  </span>
+
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* USER CARD */}
+
+        <div className="p-2.5">
+
+          <div
+            className="
+              rounded-[14px]
+              border
+              border-white/[0.04]
+              bg-white/[0.02]
+              p-[8px]
+              backdrop-blur-xl
+            "
+          >
+
+            {/* USER */}
+
+            <div className="flex items-center gap-2.5">
+
+              <div
+                className="
+                  flex
+                  h-8
+                  w-8
+                  items-center
+                  justify-center
+                  rounded-xl
+                  bg-gradient-to-br
+                  from-[#ff214f]
+                  to-[#93001f]
+                  text-[11px]
+                  font-bold
+                  text-white
+                "
+              >
                 SA
               </div>
 
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-gray-900 dark:text-white truncate">
-                  Super Admin
-                </p>
+              <div>
 
-                <p className="text-[9px] text-gray-500 dark:text-gray-400 truncate">
+                <h4
+                  className="
+                    text-[13px]
+                    font-semibold
+                    text-white
+                  "
+                >
+                  Super Admin
+                </h4>
+
+                <p
+                  className="
+                    mt-[2px]
+                    text-[11px]
+                    text-white/45
+                  "
+                >
                   Endow Global
                 </p>
+
               </div>
             </div>
 
-            {/* SYSTEM STATUS */}
-            <div className="mt-2 rounded-md bg-white px-2 py-1 shadow-sm dark:bg-[#1a1d25]">
-              
-              <p className="text-[9px] font-medium text-gray-500 dark:text-gray-400">
+            {/* STATUS */}
+
+            <div
+              className="
+                mt-3
+                rounded-[12px]
+                border
+                border-white/[0.04]
+                bg-black/20
+                px-3
+                py-2
+              "
+            >
+
+              <p
+                className="
+                  text-[10px]
+                  text-white/40
+                "
+              >
                 System Status
               </p>
 
-              <div className="mt-0.5 flex items-center gap-1">
-                
-                <div className="h-1 w-1 rounded-full bg-green-500" />
+              <div className="mt-1.5 flex items-center gap-1.5">
 
-                <span className="text-[8px] font-semibold text-green-600">
+                <div
+                  className="
+                    h-1.5
+                    w-1.5
+                    rounded-full
+                    bg-green-400
+                    shadow-[0_0_10px_rgba(74,222,128,0.9)]
+                  "
+                />
+
+                <span
+                  className="
+                    text-[10px]
+                    font-medium
+                    text-green-400
+                  "
+                >
                   All operational
                 </span>
+
               </div>
             </div>
           </div>
@@ -177,5 +361,3 @@ export function Sidebar() {
     </aside>
   );
 }
-
-
