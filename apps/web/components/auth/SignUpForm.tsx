@@ -172,6 +172,8 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
+                  text-gray-800
+                  placeholder:text-gray-400
                 "
               />
             </div>
@@ -216,6 +218,8 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
+                  text-gray-800
+                  placeholder:text-gray-400
                 "
               />
             </div>
@@ -265,6 +269,8 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
+                  text-gray-800
+                  placeholder:text-gray-400
                 "
               />
             </div>
@@ -309,6 +315,8 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
+                  text-gray-800
+                  placeholder:text-gray-400
                 "
               />
             </div>

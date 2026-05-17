@@ -164,6 +164,8 @@ export default function SignInForm() {
                 px-4
                 outline-none
                 bg-transparent
+                text-gray-800
+                placeholder:text-gray-400
               "
             />
           </div>
@@ -208,6 +210,8 @@ export default function SignInForm() {
                 px-4
                 outline-none
                 bg-transparent
+                text-gray-800
+                placeholder:text-gray-400
               "
             />
           </div>
