@@ -40,7 +40,6 @@ const PillNav = ({
   initialLoadAnimation = false
 }: PillNavProps) => {
   const pathname = usePathname();
-  const pathname = usePathname();
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const circleRefs = useRef<(HTMLElement | null)[]>([]);
@@ -237,7 +236,7 @@ const PillNav = ({
     href.startsWith('tel:') ||
     href.startsWith('#');
 
-  const isRouterLink = (href: string): boolean => href && !isExternalLink(href);
+  const isRouterLink = (href: string): boolean => !!(href && !isExternalLink(href));
 
   const cssVars = {
     ['--base' as any]: baseColor,

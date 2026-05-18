@@ -2,14 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================
+   BASE
+========================= */
+
 @layer base {
   html {
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-white text-gray-900;
-    font-family: system-ui, -apple-system, sans-serif;
+    @apply min-h-screen overflow-x-hidden bg-white text-gray-900 antialiased transition-colors duration-300 dark:bg-[#0f1117] dark:text-white;
+
+    font-family:
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
+  #__next {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
 
   h1,
@@ -18,59 +32,94 @@
   h4,
   h5,
   h6 {
-    font-family: var(--font-quicksand), sans-serif;
+    font-family:
+      var(--font-quicksand),
+      sans-serif;
+  }
+
+  * {
+    @apply border-gray-200 dark:border-gray-800;
   }
 }
 
+/* =========================
+   COMPONENTS
+========================= */
+
 @layer components {
-  /* Buttons */
+
+  /* PRIMARY BUTTON */
   .btn-primary {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-sm;
-    @apply bg-red-600 text-white hover:bg-red-700 active:bg-red-800;
-    @apply transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600;
+    @apply inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold;
+
+    @apply bg-primary text-white hover:bg-[#920715];
+
+    @apply transition-all duration-200;
+
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
 
+  /* OUTLINE BUTTON */
   .btn-outline {
-    @apply inline-flex items-center justify-center px-6 py-3 rounded-lg font-semibold text-sm;
-    @apply border-2 border-red-600 text-red-600 hover:bg-red-50;
-    @apply transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-600;
+    @apply inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold;
+
+    @apply border border-primary text-primary hover:bg-red-50 dark:hover:bg-[#2a1114];
+
+    @apply transition-all duration-200;
+
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
   }
 
-  /* Cards */
+  /* CARD */
   .card {
-    @apply bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow;
+    @apply rounded-[32px] border border-white/60 bg-white transition-all duration-300;
+
+    box-shadow:
+      0 10px 30px rgba(15, 23, 42, 0.04),
+      0 2px 6px rgba(15, 23, 42, 0.02);
+
+    @apply hover:shadow-[0_20px_60px_rgba(15,23,42,0.08)];
+
+    @apply dark:border-white/5 dark:bg-[#121826];
   }
 
-  /* Input */
+  /* INPUT */
   .input {
-    @apply w-full px-4 py-2 rounded-lg border border-gray-300;
-    @apply focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent;
-    @apply placeholder-gray-400 transition-colors;
+    @apply w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all;
+
+    @apply placeholder:text-gray-400;
+
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/10;
+
+    @apply dark:border-gray-800 dark:bg-[#11131a] dark:text-white;
   }
 
-  /* Badge */
+  /* BADGE */
   .badge {
-    @apply inline-block px-2 py-1 rounded-full text-xs font-medium;
+    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
   }
 
   .badge-success {
-    @apply bg-green-100 text-green-800;
+    @apply bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400;
   }
 
   .badge-warning {
-    @apply bg-yellow-100 text-yellow-800;
+    @apply bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400;
   }
 
   .badge-danger {
-    @apply bg-red-100 text-red-800;
+    @apply bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400;
   }
 
   .badge-info {
-    @apply bg-blue-100 text-blue-800;
+    @apply bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400;
   }
 }
 
-/* Custom scrollbar */
+/* =========================
+   SCROLLBAR
+========================= */
+
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -80,11 +129,90 @@
   background: #f1f5f9;
 }
 
+.dark ::-webkit-scrollbar-track {
+  background: #11131a;
+}
+
 ::-webkit-scrollbar-thumb {
   background: #cbd5e1;
-  border-radius: 4px;
+  border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #2d3340;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #3d4555;
+}
+
+/* =========================
+   SELECTION
+========================= */
+
+::selection {
+  background: rgba(173, 8, 25, 0.15);
+  color: inherit;
+}
+
+/* =========================
+   CHROME AUTOFILL FIX
+========================= */
+
+/* Default autofill for light backgrounds */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1f2937 !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.7) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+  caret-color: #1f2937 !important;
+}
+
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: #1f2937 !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.7) inset !important;
+  caret-color: #1f2937 !important;
+}
+
+/* Placeholder text in autofill */
+input:-webkit-autofill::placeholder {
+  -webkit-text-fill-color: #9ca3af !important;
+}
+
+/* First-line pseudo-element for autofill */
+input:-webkit-autofill::first-line {
+  font-size: 15px;
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+}
+
+/* Dark mode autofill override */
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus {
+  -webkit-text-fill-color: white !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
+  caret-color: white !important;
+}
+
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark select:-webkit-autofill {
+  -webkit-text-fill-color: white !important;
+  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
+  caret-color: white !important;
+}
+
+.dark input:-webkit-autofill::first-line {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
 }

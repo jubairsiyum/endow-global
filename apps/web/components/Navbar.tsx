@@ -14,10 +14,39 @@ const navItems = [
 ] as const
 
 const transition = {
-  type: 'spring',
+  type: 'spring' as const,
   stiffness: 340,
   damping: 28,
   mass: 0.5
+}
+
+const containerVariants = {
+  hero: {
+    maxWidth: 1140,
+    paddingLeft: 28,
+    paddingRight: 28,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderRadius: 22,
+    y: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0)',
+    borderColor: 'rgba(255, 255, 255, 0)',
+    boxShadow: '0 0 0 rgba(0,0,0,0)',
+    backdropFilter: 'blur(0px)'
+  },
+  scrolled: {
+    maxWidth: 880,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: 999,
+    y: -8,
+    backgroundColor: 'rgba(255, 255, 255, 0.30)',
+    borderColor: 'rgba(255, 255, 255, 0.30)',
+    boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+    backdropFilter: 'blur(22px)'
+  }
 }
 
 export function Navbar() {
@@ -32,22 +61,8 @@ export function Navbar() {
   const navRailBg = isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.25)'
   const pillActiveBg = 'bg-[#C41E3A]'
   const pillActiveShadow = 'shadow-[0_10px_30px_rgba(196,30,58,0.25)]'
-  const navShadow = isHero
-    ? '0 0 0 rgba(0,0,0,0)'
-    : '0 24px 60px rgba(0,0,0,0.25)'
-  const navMotion = {
-    maxWidth: isHero ? 1140 : 880,
-    paddingLeft: isHero ? 28 : 20,
-    paddingRight: isHero ? 28 : 20,
-    paddingTop: isHero ? 16 : 10,
-    paddingBottom: isHero ? 16 : 10,
-    borderRadius: isHero ? 22 : 999,
-    y: isHero ? 0 : -8,
-    backgroundColor: isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.30)',
-    borderColor: isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.30)',
-    boxShadow: navShadow,
-    backdropFilter: isHero ? 'blur(0px)' : 'blur(22px)'
-  }
+
+  const navMotion = isHero ? containerVariants.hero : containerVariants.scrolled
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 50)
@@ -118,14 +133,31 @@ export function Navbar() {
         </div>
 
         <div className={`hidden items-center ${isHero ? 'gap-3' : 'gap-2'} md:flex`}>
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+          <motion.div
+            layout
+            initial={{ opacity: 1 }}
+            animate={isHero ? { opacity: 1, x: 0 } : { opacity: 0, x: -10, pointerEvents: 'none' }}
+            transition={transition}
+            className={isHero ? '' : 'hidden'}
+          >
             <Link
-              href="/apply"
-              className={`inline-flex items-center justify-center rounded-full bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
+              href="/sign-in"
+              className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
                 isHero ? 'px-5 py-2' : 'px-4 py-1.5'
               }`}
             >
-              Start Free
+              Sign In
+            </Link>
+          </motion.div>
+
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
+            <Link
+              href="/sign-up"
+              className={`inline-flex items-center justify-center rounded-full bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] transition ${
+                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+              }`}
+            >
+              Sign Up
             </Link>
           </motion.div>
         </div>
@@ -193,12 +225,18 @@ export function Navbar() {
                   )
                 })}
               </div>
-              <div className="mt-4">
+              <div className="mt-4 flex flex-col gap-2">
                 <Link
-                  href="/apply"
+                  href="/sign-in"
+                  className="flex items-center justify-center rounded-full border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/sign-up"
                   className="flex items-center justify-center rounded-full bg-[#C41E3A] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)]"
                 >
-                  Start Free
+                  Sign Up
                 </Link>
               </div>
             </motion.div>

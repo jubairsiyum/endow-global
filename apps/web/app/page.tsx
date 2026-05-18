@@ -10,7 +10,7 @@ export default function HomePage() {
 
       <main className="flex-grow pt-20">
         {/* HERO SECTION */}
-        <section className="relative overflow-hidden bg-white py-20 lg:py-32">
+        <section className="relative overflow-x-hidden bg-white py-20 lg:py-32">
           {/* Abstract geometric background element */}
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] rounded-full bg-rose-50 blur-3xl opacity-60 pointer-events-none" />
           
