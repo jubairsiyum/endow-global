@@ -1,115 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 
 import SocialButtons from "./SocialButtons";
+import AuthTabToggle from "./AuthTabToggle";
 
 import {
   User,
   Mail,
   LockKeyhole,
 } from "lucide-react";
-  import { ArrowRight } from "lucide-react";
 
 export default function SignUpForm() {
-  const pathname = usePathname();
-
   return (
     <div className="flex flex-col justify-center h-full">
 
-      {/* Top Switch */}
-      <div
-        className="
-          mb-6
-          relative
-          flex
-          items-center
-          justify-center
-          border-b
-          border-white/60
-        "
-      >
-
-        {/* Navigation Wrapper */}
-        <div className="relative flex items-center">
-
-          {/* Animated Underline */}
-          <div
-            className={`
-              absolute
-              bottom-0
-              left-0
-              h-[2px]
-              w-[96px]
-              rounded-full
-              bg-red-600
-              transition-transform
-              duration-300
-              ease-in-out
-              ${
-                pathname === "/sign-in"
-                  ? "translate-x-0"
-                  : "translate-x-[96px]"
-              }
-            `}
-          />
-
-          {/* Sign In */}
-          <Link
-            href="/sign-in"
-            className="
-              h-11
-              w-[96px]
-              flex
-              items-center
-              justify-center
-              text-xs
-              font-semibold
-              transition-colors
-              duration-300
-            "
-          >
-            <span
-              className={
-                pathname === "/sign-in"
-                  ? "text-red-600"
-                  : "text-gray-500 hover:text-gray-800"
-              }
-            >
-              Sign In
-            </span>
-          </Link>
-
-          {/* Sign Up */}
-          <Link
-            href="/sign-up"
-            className="
-              h-11
-              w-[96px]
-              flex
-              items-center
-              justify-center
-              text-xs
-              font-semibold
-              transition-colors
-              duration-300
-            "
-          >
-            <span
-              className={
-                pathname === "/sign-up"
-                  ? "text-red-600"
-                  : "text-gray-500 hover:text-gray-800"
-              }
-            >
-              Sign Up
-            </span>
-          </Link>
-
-        </div>
-
-      </div>
+      {/* Premium Segmented Glass Toggle */}
+      <AuthTabToggle />
 
       {/* Heading */}
       <div className="text-center">
