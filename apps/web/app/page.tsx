@@ -51,7 +51,7 @@ export default function HomePage() {
                         <input 
                           type="text" 
                           placeholder="e.g. Computer Science, Business..." 
-                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C41E3A] focus:border-transparent transition-all"
+                          className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C41E3A] focus:border-transparent transition-all bg-white"
                         />
                       </div>
                     </div>
