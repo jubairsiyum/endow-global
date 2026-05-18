@@ -1,5 +1,6 @@
 import BackgroundDecor from "./BackgroundDecor";
 import LeftShowcase from "./LeftShowcase";
+import AnimatedFormWrapper from "./AnimatedFormWrapper";
 
 export default function AuthLayout({
   children,
@@ -140,7 +141,9 @@ export default function AuthLayout({
             />
 
             <div className="relative z-10">
-              {children}
+              <AnimatedFormWrapper>
+                {children}
+              </AnimatedFormWrapper>
             </div>
 
           </div>

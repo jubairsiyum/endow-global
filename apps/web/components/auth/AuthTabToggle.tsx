@@ -1,12 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
 export default function AuthTabToggle() {
   const pathname = usePathname();
+  const router = useRouter();
   const isSignIn = pathname === "/sign-in";
+
+  const handleSignInClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isSignIn) {
+      router.push("/sign-in");
+    }
+  };
+
+  const handleSignUpClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (isSignIn) {
+      router.push("/sign-up");
+    }
+  };
 
   return (
     <div className="flex justify-center w-full mb-8">
@@ -54,8 +68,8 @@ export default function AuthTabToggle() {
         </motion.div>
 
         {/* Sign In Button */}
-        <Link
-          href="/sign-in"
+        <button
+          onClick={handleSignInClick}
           className={`
             relative
             z-10
@@ -70,6 +84,9 @@ export default function AuthTabToggle() {
             transition-colors
             duration-300
             min-w-[96px]
+            cursor-pointer
+            bg-transparent
+            border-none
           `}
         >
           <span
@@ -85,11 +102,11 @@ export default function AuthTabToggle() {
           >
             Sign In
           </span>
-        </Link>
+        </button>
 
         {/* Sign Up Button */}
-        <Link
-          href="/sign-up"
+        <button
+          onClick={handleSignUpClick}
           className={`
             relative
             z-10
@@ -104,6 +121,9 @@ export default function AuthTabToggle() {
             transition-colors
             duration-300
             min-w-[96px]
+            cursor-pointer
+            bg-transparent
+            border-none
           `}
         >
           <span
@@ -119,7 +139,7 @@ export default function AuthTabToggle() {
           >
             Sign Up
           </span>
-        </Link>
+        </button>
       </motion.div>
     </div>
   );
