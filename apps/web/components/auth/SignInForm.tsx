@@ -228,7 +228,7 @@ export default function SignInForm() {
         </label>
 
         <button className="text-red-700 text-xs font-semibold hover:underline">
-          Forgot?
+          Forgot Password?
         </button>
 
       </div>
