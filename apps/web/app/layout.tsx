@@ -18,10 +18,18 @@ const quicksand = Quicksand({
   display: "swap",
 });
 
+const appUrlRaw = process.env.NEXT_PUBLIC_APP_URL;
+const appUrl = (() => {
+  if (!appUrlRaw) return new URL("http://localhost:3000");
+  try {
+    return new URL(appUrlRaw);
+  } catch {
+    return new URL("http://localhost:3000");
+  }
+})();
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL!
-  ),
+  metadataBase: appUrl,
 
   title: {
     default: "Endow Global Education",
@@ -89,7 +97,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={quicksand.variable}
     >
-      <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#0f1117] dark:text-white">
+      <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#ffffff] dark:text-white">
         
         <ThemeProvider>
           <SessionProvider>
