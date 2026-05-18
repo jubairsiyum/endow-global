@@ -89,12 +89,20 @@ export function Navbar() {
       >
         <Link
           href="/"
-          className={`flex items-center gap-2 rounded-full px-2 py-1 text-sm font-semibold transition ${textPrimary}`}
+          className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${textPrimary}`}
         >
-          <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#C41E3A] text-white shadow-[0_10px_30px_rgba(196,30,58,0.35)]">
-            E
+          {/* Wide logo mark */}
+          <span className="inline-flex h-9 items-center sm:h-10">
+            <img
+              src="/logo/endoedu.png"
+              alt="Endow Global Education"
+              className="h-full w-auto object-contain"
+            />
           </span>
-          <span className="hidden whitespace-nowrap text-base font-semibold tracking-tight sm:inline">Endow Global</span>
+
+          {/* <span className="hidden whitespace-nowrap text-base font-semibold tracking-tight sm:inline">
+            Endow Global
+          </span> */}
         </Link>
 
         <div className={`hidden items-center ${isHero ? 'gap-2' : 'gap-1'} md:flex`}>
