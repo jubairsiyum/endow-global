@@ -86,65 +86,111 @@ export function Sidebar() {
         overflow-y-auto
         overflow-x-hidden
         border-r
-        border-white/[0.03]
-        bg-[#070709]
+        border-white/[0.02]
         scrollbar-hide
       "
+      style={{
+        background: `linear-gradient(180deg, #0E0F14 0%, #11131A 50%, #151821 100%)`,
+      }}
     >
 
-      {/* PREMIUM RED GLOW */}
+      {/* LAYER 1: AMBIENT GRADIENT GLOWS */}
 
+      {/* TOP LEFT RED AMBIENT */}
       <div
         className="
           absolute
-          left-[-140px]
-          top-[140px]
+          left-[-120px]
+          top-[80px]
+          h-[280px]
+          w-[280px]
+          rounded-full
+          blur-3xl
+          pointer-events-none
+        "
+        style={{
+          background: `radial-gradient(circle, rgba(173, 8, 25, 0.08) 0%, transparent 70%)`,
+        }}
+      />
+
+      {/* CENTER RED GLOW */}
+      <div
+        className="
+          absolute
+          left-[-100px]
+          top-[240px]
+          h-[320px]
+          w-[320px]
+          rounded-full
+          blur-3xl
+          pointer-events-none
+        "
+        style={{
+          background: `radial-gradient(circle, rgba(173, 8, 25, 0.06) 0%, transparent 70%)`,
+        }}
+      />
+
+      {/* TOP RIGHT ACCENT */}
+      <div
+        className="
+          absolute
+          right-[-140px]
+          top-[-100px]
           h-[260px]
           w-[260px]
           rounded-full
-          bg-red-600/10
           blur-3xl
+          pointer-events-none
         "
+        style={{
+          background: `radial-gradient(circle, rgba(173, 8, 25, 0.04) 0%, transparent 70%)`,
+        }}
       />
 
-      {/* TOP RED LIGHT */}
-
+      {/* LAYER 2: SUBTLE MESH OVERLAY */}
       <div
         className="
           absolute
-          right-[-100px]
-          top-[-120px]
-          h-[180px]
-          w-[180px]
-          rounded-full
-          bg-red-500/10
-          blur-3xl
+          inset-0
+          pointer-events-none
         "
+        style={{
+          background: `radial-gradient(ellipse 800px 300px at 50% 0%, rgba(255, 255, 255, 0.02) 0%, transparent 50%)`,
+        }}
       />
 
       {/* CONTENT */}
 
       <div className="relative z-10 flex min-h-full flex-col">
 
-        {/* LOGO */}
+        {/* LOGO SECTION - PURE WHITE LUXURY GLASS */}
 
-        <div className="px-3 pt-3">
+        <div
+          className="
+            relative
+            mx-3
+            mt-2
+            mb-2
+            h-[72px]
+            rounded-[20px]
+            border
+            border-white/60
+            bg-white
+            shadow-[0_10px_30px_rgba(255,255,255,0.15)]
+            overflow-hidden
+            flex
+            items-center
+            justify-center
+          "
+        >
 
-          <div
-            className="
-              flex
-              h-[54px]
-              items-center
-              justify-center
-              rounded-[14px]
-              border
-              border-white/[0.04]
-              bg-white
-              px-4
-              py-2
-              shadow-[0_10px_30px_rgba(255,255,255,0.04)]
-            "
-          >
+          {/* GRADIENT GLASS REFLECTION */}
+
+          <div className="absolute inset-0 bg-gradient-to-br from-white via-[#fafafa] to-[#f1f1f1]" />
+
+          {/* LOGO CONTENT */}
+
+          <div className="relative z-10 scale-[0.92]">
 
             <Image
               src="/logo/endow-connect.png"
@@ -152,7 +198,12 @@ export function Sidebar() {
               width={120}
               height={32}
               priority
-              className="h-6 w-auto object-contain"
+              className="
+                h-auto
+                w-auto
+                object-contain
+                max-h-[52px]
+              "
             />
 
           </div>
@@ -162,13 +213,18 @@ export function Sidebar() {
 
         <div
           className="
-            mt-5
+            mt-2
             flex-1
-            px-2.5
+            px-2
+            overflow-y-auto
+            overflow-x-hidden
           "
+          style={{
+            scrollbarWidth: "none",
+          } as React.CSSProperties}
         >
 
-          <div className="space-y-1.5">
+          <div className="space-y-1">
 
             {menuItems.map((item, index) => {
               const Icon = item.icon;
@@ -187,68 +243,145 @@ export function Sidebar() {
                     items-center
                     gap-2.5
                     overflow-hidden
-                    rounded-[14px]
-                    px-3.5
-                    py-[8px]
+                    rounded-[18px]
+                    px-3
+                    py-2
                     transition-all
                     duration-300
+                    border
 
                     ${
                       isActive
                         ? `
-                          bg-gradient-to-r
-                          from-[#c3002f]
-                          to-[#ff174f]
                           text-white
-                          shadow-[0_0_22px_rgba(255,0,76,0.22)]
+                          border-white/[0.08]
+                          shadow-[0_0_28px_rgba(173,8,25,0.3)]
                         `
                         : `
                           text-white/70
-                          hover:bg-white/[0.03]
-                          hover:text-white
+                          border-white/[0.02]
+                          hover:text-white/90
+                          hover:border-white/[0.06]
+                          hover:shadow-[0_0_18px_rgba(255,255,255,0.05)]
                         `
                     }
                   `}
                 >
 
-                  {/* ACTIVE SHINE */}
+                  {/* ACTIVE LUXURY GRADIENT BACKGROUND */}
 
                   {isActive && (
                     <div
                       className="
                         absolute
                         inset-0
-                        bg-[linear-gradient(120deg,transparent,rgba(255,255,255,0.08),transparent)]
+                        rounded-[14px]
                       "
+                      style={{
+                        background: `linear-gradient(135deg, #AD0819 0%, #C41528 100%)`,
+                        backdropFilter: "blur(8px)",
+                      }}
                     />
                   )}
 
-                  {/* ICON */}
+                  {/* INACTIVE GLASS BACKGROUND */}
 
-                  <Icon
-                    size={16}
+                  {!isActive && (
+                    <div
+                      className="
+                        absolute
+                        inset-0
+                        rounded-[14px]
+                        opacity-0
+                        group-hover:opacity-100
+                        transition-opacity
+                        duration-300
+                      "
+                      style={{
+                        background: `rgba(255, 255, 255, 0.02)`,
+                        backdropFilter: "blur(6px)",
+                      }}
+                    />
+                  )}
+
+                  {/* PREMIUM SHINE OVERLAY */}
+
+                  <div
+                    className="
+                      absolute
+                      inset-0
+                      rounded-[14px]
+                      opacity-0
+                      group-hover:opacity-100
+                      transition-opacity
+                      duration-500
+                      pointer-events-none
+                    "
+                    style={{
+                      background: isActive
+                        ? `linear-gradient(120deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05), transparent)`
+                        : `linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.08), transparent)`,
+                    }}
+                  />
+
+                  {/* ICON CONTAINER - MINI LUXURY GLASS */}
+
+                  <div
                     className={`
                       relative
                       z-10
-
+                      flex
+                      items-center
+                      justify-center
+                      h-8
+                      w-8
+                      rounded-[9px]
+                      border
+                      transition-all
+                      duration-300
                       ${
                         isActive
-                          ? "text-white"
-                          : "text-white/65 group-hover:text-white"
+                          ? "border-white/[0.15]"
+                          : "border-white/[0.04] group-hover:border-white/[0.08]"
                       }
                     `}
-                  />
+                    style={{
+                      background: isActive
+                        ? `rgba(173, 8, 25, 0.28)`
+                        : `rgba(255, 255, 255, 0.03)`,
+                      backdropFilter: "blur(8px)",
+                      boxShadow: isActive
+                        ? `inset 0 1px 3px rgba(255, 255, 255, 0.08), 0 0 14px rgba(173, 8, 25, 0.24)`
+                        : "none",
+                    }}
+                  >
+                    <Icon
+                      size={12}
+                      className={`
+                        transition-all
+                        duration-300
+                        ${
+                          isActive
+                            ? "text-white drop-shadow-[0_0_8px_rgba(173,8,25,0.4)]"
+                            : "text-white/60 group-hover:text-white/80"
+                        }
+                      `}
+                    />
+                  </div>
 
-                  {/* TEXT */}
+                  {/* TEXT - IMPROVED HIERARCHY */}
 
                   <span
-                    className="
+                    className={`
                       relative
                       z-10
-                      text-[12.5px]
-                      font-[500]
-                      tracking-[0.1px]
-                    "
+                      text-[13px]
+                      font-medium
+                      tracking-[0.01em]
+                      transition-all
+                      duration-300
+                      ${isActive ? "font-semibold" : ""}
+                    `}
                   >
                     {item.name}
                   </span>
@@ -259,51 +392,109 @@ export function Sidebar() {
           </div>
         </div>
 
-        {/* USER CARD */}
+        {/* USER CARD - FLOATING PREMIUM WIDGET */}
 
-        <div className="p-2.5">
+        <div className="p-2 pb-2">
 
           <div
             className="
+              relative
               rounded-[14px]
               border
-              border-white/[0.04]
-              bg-white/[0.02]
-              p-[8px]
-              backdrop-blur-xl
+              border-white/[0.06]
+              overflow-hidden
+              p-2
+              transition-all
+              duration-500
+              group
+              hover:border-white/[0.1]
+              hover:shadow-[0_10_32px_rgba(173,8,25,0.15)]
             "
+            style={{
+              background: `linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)`,
+              backdropFilter: "blur(12px)",
+            }}
           >
 
-            {/* USER */}
+            {/* AMBIENT GLOW */}
 
-            <div className="flex items-center gap-2.5">
+            <div
+              className="
+                absolute
+                inset-0
+                rounded-[14px]
+                opacity-0
+                group-hover:opacity-100
+                transition-opacity
+                duration-500
+                pointer-events-none
+              "
+              style={{
+                background: `radial-gradient(ellipse 100px 60px at 50% 0%, rgba(173, 8, 25, 0.08) 0%, transparent 70%)`,
+              }}
+            />
+
+            {/* USER SECTION */}
+
+            <div className="relative z-10 flex items-center gap-2.5">
+
+              {/* AVATAR - PREMIUM GRADIENT CIRCLE */}
 
               <div
                 className="
+                  relative
                   flex
                   h-8
                   w-8
                   items-center
                   justify-center
-                  rounded-xl
-                  bg-gradient-to-br
-                  from-[#ff214f]
-                  to-[#93001f]
-                  text-[11px]
+                  rounded-full
+                  text-[9px]
                   font-bold
                   text-white
+                  border
+                  border-white/[0.15]
+                  flex-shrink-0
+                  shadow-[inset_0_2px_8px_rgba(0,0,0,0.3)]
+                  transition-all
+                  duration-300
+                  group-hover:shadow-[0_0_16px_rgba(173,8,25,0.35),inset_0_2px_8px_rgba(0,0,0,0.3)]
                 "
+                style={{
+                  background: `linear-gradient(135deg, rgba(173, 8, 25, 0.7) 0%, rgba(196, 21, 40, 0.7) 100%)`,
+                }}
               >
+
+                {/* ONLINE PULSE - SUBTLE */}
+
+                <div
+                  className="
+                    absolute
+                    h-2
+                    w-2
+                    rounded-full
+                    bottom-0
+                    right-0
+                    border
+                    border-white/[0.4]
+                    shadow-[0_0_6px_rgba(34,197,94,0.7)]
+                  "
+                  style={{
+                    background: `#22c55e`,
+                  }}
+                />
+
                 SA
               </div>
 
-              <div>
+              <div className="flex-1 min-w-0">
 
                 <h4
                   className="
-                    text-[13px]
+                    text-sm
                     font-semibold
                     text-white
+                    truncate
                   "
                 >
                   Super Admin
@@ -312,8 +503,9 @@ export function Sidebar() {
                 <p
                   className="
                     mt-[2px]
-                    text-[11px]
+                    text-[12px]
                     text-white/45
+                    truncate
                   "
                 >
                   Endow Global
@@ -322,49 +514,49 @@ export function Sidebar() {
               </div>
             </div>
 
-            {/* STATUS */}
+            {/* STATUS INDICATOR */}
 
             <div
               className="
-                mt-3
-                rounded-[12px]
+                relative
+                z-10
+                mt-2
+                rounded-[11px]
                 border
                 border-white/[0.04]
-                bg-black/20
-                px-3
-                py-2
+                px-2.5
+                py-1.5
+                transition-all
+                duration-300
               "
+              style={{
+                background: `rgba(34, 197, 94, 0.06)`,
+              }}
             >
 
-              <p
-                className="
-                  text-[10px]
-                  text-white/40
-                "
-              >
-                System Status
-              </p>
-
-              <div className="mt-1.5 flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5">
 
                 <div
                   className="
                     h-1.5
                     w-1.5
                     rounded-full
-                    bg-green-400
-                    shadow-[0_0_10px_rgba(74,222,128,0.9)]
+                    flex-shrink-0
+                    shadow-[0_0_8px_rgba(34,197,94,0.8)]
                   "
+                  style={{
+                    background: `#22c55e`,
+                  }}
                 />
 
                 <span
                   className="
                     text-[10px]
-                    font-medium
-                    text-green-400
+                    font-[500]
+                    text-green-400/85
                   "
                 >
-                  All operational
+                  Active Now
                 </span>
 
               </div>
@@ -372,6 +564,15 @@ export function Sidebar() {
           </div>
         </div>
       </div>
+
+      <style jsx>{`
+        aside {
+          scrollbar-width: none;
+        }
+        aside::-webkit-scrollbar {
+          width: 0px;
+        }
+      `}</style>
     </aside>
   );
 }
