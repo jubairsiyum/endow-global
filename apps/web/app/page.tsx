@@ -6,16 +6,21 @@ import { Search, Globe2, BookOpen, GraduationCap, ArrowRight, ShieldCheck, Spark
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col font-sans">
-      <Navbar />
-
-      <main className="flex-grow pt-20">
-        {/* HERO SECTION */}
-        <section className="relative overflow-x-hidden bg-white py-20 lg:py-32">
+      <main className="flex-grow">
+        {/* UNIFIED HERO SECTION WITH NAVBAR */}
+        <section className="relative overflow-x-hidden bg-white">
           {/* Abstract geometric background element */}
           <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] rounded-full bg-rose-50 blur-3xl opacity-60 pointer-events-none" />
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            {/* Navbar inside section */}
+            <div className="pt-4 pb-8 lg:pb-12">
+              <Navbar />
+            </div>
+
+            {/* Hero content */}
+            <div className="py-20 lg:py-32">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="max-w-2xl">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-[#C41E3A] text-sm font-semibold mb-6">
                   <Sparkles size={16} />
@@ -82,6 +87,7 @@ export default function HomePage() {
                 
                 {/* Decorative dots behind the card */}
                 <div className="absolute -bottom-6 -right-6 w-64 h-64 bg-pattern -z-10 rounded-2xl opacity-50" />
+              </div>
               </div>
             </div>
           </div>
