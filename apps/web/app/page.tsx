@@ -150,15 +150,15 @@ export default function HomePage() {
         </section>
 
         {/* CTA SECTION */}
-        <section className="bg-[#C41E3A] py-20 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-full bg-pattern opacity-10 pointer-events-none" />
-          <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-            <GraduationCap size={64} className="mx-auto text-white/80 mb-6" />
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Ready to shape your future?</h2>
-            <p className="text-rose-100 text-lg mb-10 max-w-2xl mx-auto">
+        <section className="relative isolate overflow-hidden bg-[#C41E3A] py-20 z-0">
+          <div className="absolute inset-0 z-0 bg-pattern opacity-10 pointer-events-none" />
+          <div className="relative z-[1] max-w-4xl mx-auto px-4 text-center">
+            <GraduationCap size={64} className="relative z-[1] mx-auto text-white/80 mb-6" />
+            <h2 className="relative z-[1] text-3xl md:text-5xl font-bold text-white mb-6">Ready to shape your future?</h2>
+            <p className="relative z-[1] text-rose-100 text-lg mb-10 max-w-2xl mx-auto">
               Join thousands of students who have successfully placed into their dream universities through Endow Global Education.
             </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <div className="relative z-[1] flex flex-col sm:flex-row justify-center gap-4">
               <Button size="lg" variant="white" className="font-bold">
                 Create Free Account
               </Button>
