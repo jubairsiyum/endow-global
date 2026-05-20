@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowUpRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -173,34 +173,19 @@ export function Navbar() {
                   <span>Get Started</span>
                   <motion.div
                     animate={{
-                      y: [0, -2, 0],
-                      opacity: [0.9, 1, 0.9]
+                      x: [0, 1.5, 0],
+                      opacity: [0.95, 1, 0.95]
                     }}
                     transition={{
-                      duration: 3,
+                      duration: 2.5,
                       repeat: Infinity,
                       ease: 'easeInOut'
                     }}
-                    className="relative inline-flex items-center justify-center"
+                    className="group/arrow relative inline-flex items-center justify-center"
                   >
-                    <ArrowUpRight
-                      strokeWidth={2.5}
-                      className="h-4 w-4 text-white/95 transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-[1px]"
-                      style={{
-                        filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.35)) drop-shadow(0 0 18px rgba(225,29,72,0.25))'
-                      }}
-                    />
-                    <motion.div
-                      animate={{
-                        opacity: [0.4, 0.6, 0.4],
-                        scale: [1, 1.2, 1]
-                      }}
-                      transition={{
-                        duration: 3,
-                        repeat: Infinity,
-                        ease: 'easeInOut'
-                      }}
-                      className="absolute -inset-1.5 rounded-full bg-gradient-to-br from-white/20 to-red-500/10 blur-md pointer-events-none"
+                    <ArrowRight
+                      strokeWidth={1.5}
+                      className="h-5 w-5 text-white transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-[1px]"
                     />
                   </motion.div>
                 </>
