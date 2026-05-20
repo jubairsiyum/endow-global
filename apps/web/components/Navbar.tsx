@@ -36,12 +36,12 @@ const containerVariants = {
     backdropFilter: 'blur(0px)'
   },
   scrolled: {
-    maxWidth: 880,
-    paddingLeft: 20,
-    paddingRight: 20,
+    maxWidth: 1000,
+    paddingLeft: 28,
+    paddingRight: 28,
     paddingTop: 10,
     paddingBottom: 10,
-    borderRadius: 999,
+    borderRadius: 10,
     y: -8,
     backgroundColor: 'rgba(255, 255, 255, 0.30)',
     borderColor: 'rgba(255, 255, 255, 0.30)',
@@ -85,7 +85,7 @@ export function Navbar() {
         animate={navMotion}
         transition={transition}
         className={[
-          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border`
+          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border ${isScrolled ? 'rounded-[10px]' : ''}`
         ].join(' ')}
       >
         <Link
