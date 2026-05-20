@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowUpRight } from 'lucide-react'
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -159,11 +160,53 @@ export function Navbar() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/sign-up"
-              className={`inline-flex items-center justify-center rounded-full bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] transition ${
-                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+              className={`inline-flex items-center justify-center group rounded-full transition ${
+                isScrolled
+                  ? 'gap-2.5 px-6 py-3 font-semibold tracking-tight text-white bg-gradient-to-r from-[#AD0819] to-[#E11D48] shadow-[0_10px_30px_rgba(225,29,72,0.35)] hover:shadow-[0_20px_40px_rgba(225,29,72,0.45)] hover:-translate-y-0.5 transition-all duration-300'
+                  : `text-sm font-semibold text-white bg-[#C41E3A] shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
+                      isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+                    }`
               }`}
             >
-              Sign Up
+              {isScrolled ? (
+                <>
+                  <span>Get Started</span>
+                  <motion.div
+                    animate={{
+                      y: [0, -2, 0],
+                      opacity: [0.9, 1, 0.9]
+                    }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      ease: 'easeInOut'
+                    }}
+                    className="relative inline-flex items-center justify-center"
+                  >
+                    <ArrowUpRight
+                      strokeWidth={2.5}
+                      className="h-4 w-4 text-white/95 transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-[1px]"
+                      style={{
+                        filter: 'drop-shadow(0 0 10px rgba(255,255,255,0.35)) drop-shadow(0 0 18px rgba(225,29,72,0.25))'
+                      }}
+                    />
+                    <motion.div
+                      animate={{
+                        opacity: [0.4, 0.6, 0.4],
+                        scale: [1, 1.2, 1]
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: 'easeInOut'
+                      }}
+                      className="absolute -inset-1.5 rounded-full bg-gradient-to-br from-white/20 to-red-500/10 blur-md pointer-events-none"
+                    />
+                  </motion.div>
+                </>
+              ) : (
+                'Sign Up'
+              )}
             </Link>
           </motion.div>
         </div>
