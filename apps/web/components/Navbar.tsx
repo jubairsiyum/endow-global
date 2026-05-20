@@ -22,30 +22,30 @@ const transition = {
 
 const containerVariants = {
   hero: {
-    maxWidth: '100%',
-    paddingLeft: 24,
-    paddingRight: 24,
-    paddingTop: 14,
-    paddingBottom: 14,
-    borderRadius: 9999,
+    maxWidth: 1140,
+    paddingLeft: 28,
+    paddingRight: 28,
+    paddingTop: 16,
+    paddingBottom: 16,
+    borderRadius: 22,
     y: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
-    backdropFilter: 'blur(12px)'
+    backgroundColor: 'rgba(255, 255, 255, 0)',
+    borderColor: 'rgba(255, 255, 255, 0)',
+    boxShadow: '0 0 0 rgba(0,0,0,0)',
+    backdropFilter: 'blur(0px)'
   },
   scrolled: {
-    maxWidth: 900,
-    paddingLeft: 24,
-    paddingRight: 24,
-    paddingTop: 14,
-    paddingBottom: 14,
-    borderRadius: 9999,
+    maxWidth: 880,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: 999,
     y: -8,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderColor: 'rgba(255, 255, 255, 0.20)',
-    boxShadow: '0 10px 40px rgba(0,0,0,0.18)',
-    backdropFilter: 'blur(16px)'
+    backgroundColor: 'rgba(255, 255, 255, 0.30)',
+    borderColor: 'rgba(255, 255, 255, 0.30)',
+    boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+    backdropFilter: 'blur(22px)'
   }
 }
 
@@ -58,8 +58,9 @@ export function Navbar() {
   const textPrimary = 'text-gray-900'
   const textMuted = 'text-gray-700'
   const textHover = 'hover:text-gray-900'
-  const pillActiveBg = 'bg-gradient-to-r from-[#C41E3A] to-[#E63D55]'
-  const pillActiveShadow = 'shadow-[0_12px_32px_rgba(196,30,58,0.28)]'
+  const navRailBg = isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.25)'
+  const pillActiveBg = 'bg-[#C41E3A]'
+  const pillActiveShadow = 'shadow-[0_10px_30px_rgba(196,30,58,0.25)]'
 
   const navMotion = isHero ? containerVariants.hero : containerVariants.scrolled
 
@@ -82,52 +83,62 @@ export function Navbar() {
         layout
         animate={navMotion}
         transition={transition}
-        className={`relative flex w-full items-center gap-1 border rounded-full md:inline-flex md:w-auto`}
+        className={[
+          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border`
+        ].join(' ')}
       >
-        {/* Logo */}
         <Link
           href="/"
-          className={`flex flex-shrink-0 items-center gap-2 rounded-full text-sm font-semibold transition ${textPrimary} ${
-            isHero ? 'px-3 py-2' : 'px-3 py-2'
-          }`}
+          className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${textPrimary}`}
         >
-          <span className="inline-flex h-8 items-center sm:h-9">
+          {/* Wide logo mark */}
+          <span className="inline-flex h-9 items-center sm:h-10">
             <img
               src="/logo/endoedu.png"
               alt="Endow Global Education"
               className="h-full w-auto object-contain"
             />
           </span>
+
+          {/* <span className="hidden whitespace-nowrap text-base font-semibold tracking-tight sm:inline">
+            Endow Global
+          </span> */}
         </Link>
 
-        {/* Navigation Links - Desktop Only */}
-        <div className={`hidden items-center gap-0.5 md:flex`}>
-          {navItems.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? 'page' : undefined}
-                className={`relative rounded-full text-sm font-medium transition ${
-                  isActive ? 'text-white' : textMuted
-                } ${isActive ? '' : textHover} px-4 py-2`}
-              >
-                {isActive ? (
-                  <motion.span
-                    layoutId="navbar-pill"
-                    className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
-                    transition={transition}
-                  />
-                ) : null}
-                <span className="relative z-10">{item.label}</span>
-              </Link>
-            )
-          })}
-        </div>
+        <motion.div
+          className={`relative hidden items-center md:flex ${isHero ? 'rounded-full gap-2 p-1' : 'gap-1 p-0'}`}
+          animate={{ backgroundColor: isHero ? navRailBg : 'transparent' }}
+          transition={transition}
+        >
+          <div className={`flex items-center ${isHero ? 'gap-1' : 'gap-0.5'}`}>
+            {navItems.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`relative rounded-full text-sm font-medium transition ${
+                    isActive ? 'text-white' : textMuted
+                  } ${isActive ? '' : textHover} ${
+                    isHero ? 'px-4 py-2' : 'px-3 py-1.5'
+                  }`}
+                >
+                  {isActive ? (
+                    <motion.span
+                      layoutId="navbar-pill"
+                      className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
+                      transition={transition}
+                    />
+                  ) : null}
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </motion.div>
 
-        {/* Auth Links - Desktop Only */}
-        <div className={`hidden items-center gap-2 md:flex`}>
+        <div className={`hidden items-center ${isHero ? 'gap-3' : 'gap-2'} md:flex`}>
           <motion.div
             layout
             initial={{ opacity: 1 }}
@@ -137,7 +148,9 @@ export function Navbar() {
           >
             <Link
               href="/sign-in"
-              className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} px-4 py-2`}
+              className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
+                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+              }`}
             >
               Sign In
             </Link>
@@ -146,16 +159,17 @@ export function Navbar() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/sign-up"
-              className={`inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E63D55] text-sm font-semibold text-white shadow-[0_12px_32px_rgba(196,30,58,0.28)] transition px-5 py-2`}
+              className={`inline-flex items-center justify-center rounded-full bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] transition ${
+                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+              }`}
             >
               Sign Up
             </Link>
           </motion.div>
         </div>
 
-        {/* Mobile Menu Button */}
         <button
-          className={`relative ml-auto flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 transition md:hidden ${textPrimary}`}
+          className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 transition md:hidden ${textPrimary}`}
           aria-label="Toggle menu"
           onClick={() => setIsMobileOpen((prev) => !prev)}
         >
@@ -175,25 +189,25 @@ export function Navbar() {
       <AnimatePresence>
         {isMobileOpen ? (
           <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 12 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="absolute top-16 w-full max-w-sm px-4 sm:px-6 md:hidden"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 8 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute top-14 w-full max-w-[980px] px-4 sm:px-6 md:hidden"
           >
             <motion.div
               animate={{
-                backgroundColor: isHero ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.18)',
-                borderColor: 'rgba(255, 255, 255, 0.20)',
+                backgroundColor: isHero ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.30)',
+                borderColor: isHero ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.30)',
                 boxShadow: isHero
-                  ? '0 10px 40px rgba(0,0,0,0.12)'
-                  : '0 10px 40px rgba(0,0,0,0.18)',
-                backdropFilter: 'blur(16px)'
+                  ? '0 24px 60px rgba(0,0,0,0.08)'
+                  : '0 24px 60px rgba(0,0,0,0.12)',
+                backdropFilter: isHero ? 'blur(10px)' : 'blur(22px)'
               }}
               transition={transition}
-              className="rounded-2xl border p-4"
+              className="rounded-3xl border p-4 backdrop-blur-2xl"
             >
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-2">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href
                   return (
@@ -202,10 +216,14 @@ export function Navbar() {
                       href={item.href}
                       aria-current={isActive ? 'page' : undefined}
                       className={[
-                        'relative rounded-full px-4 py-3 text-sm font-medium transition',
+                        'rounded-2xl px-4 py-3 text-sm font-medium transition',
                         isActive
-                          ? `${pillActiveBg} text-white ${pillActiveShadow}`
-                          : `${textMuted} ${textHover}`
+                          ? isHero
+                            ? 'bg-white/20 text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.12)]'
+                            : 'bg-[#C41E3A] text-white shadow-[0_12px_30px_rgba(196,30,58,0.25)]'
+                          : isHero
+                            ? 'text-gray-700 hover:bg-white/20 hover:text-gray-900'
+                            : 'text-gray-700 hover:bg-neutral-100 hover:text-gray-900'
                       ].join(' ')}
                     >
                       {item.label}
@@ -213,16 +231,16 @@ export function Navbar() {
                   )
                 })}
               </div>
-              <div className="mt-3 flex flex-col gap-2">
+              <div className="mt-4 flex flex-col gap-2">
                 <Link
                   href="/sign-in"
-                  className={`flex items-center justify-center rounded-full border border-gray-300 px-5 py-2.5 text-sm font-semibold transition ${textPrimary} ${textHover}`}
+                  className="flex items-center justify-center rounded-full border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/sign-up"
-                  className={`flex items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E63D55] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_32px_rgba(196,30,58,0.28)] transition`}
+                  className="flex items-center justify-center rounded-full bg-[#C41E3A] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)]"
                 >
                   Sign Up
                 </Link>

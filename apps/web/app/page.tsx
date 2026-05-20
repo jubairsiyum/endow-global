@@ -22,10 +22,7 @@ export default function HomePage() {
             <div className="py-20 lg:py-32">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 text-[#C41E3A] text-sm font-semibold mb-6">
-                  <Sparkles size={16} />
-                  <span>AI-Powered University Matching</span>
-                </div>
+
                 <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 tracking-tight leading-[1.1] mb-6">
                   Your journey to <span className="text-[#C41E3A]">global education</span> starts here.
                 </h1>
