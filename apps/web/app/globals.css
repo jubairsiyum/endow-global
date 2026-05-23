@@ -44,6 +44,7 @@ body {
     #dc143c,
     #c41e3a
   );
+
   border-radius: 999px;
 }
 
@@ -70,8 +71,7 @@ body {
 
 button,
 a {
-  transition:
-    all 0.3s ease;
+  transition: all 0.3s ease;
 }
 
 /* =========================
@@ -81,24 +81,31 @@ a {
 input,
 select,
 textarea {
-  transition:
-    all 0.25s ease;
+  transition: all 0.25s ease;
 }
 
 /* =========================
-   PREMIUM UNIVERSITY MARQUEE
+   UNIVERSITY MARQUEE
 ========================= */
 
 .university-marquee {
+
   width: max-content;
+
   display: flex;
   align-items: center;
-  animation: universityScroll 28s linear infinite;
-  will-change: transform;
+
+  animation:
+    universityScroll 28s linear infinite;
+
+  will-change:
+    transform;
 }
 
 .university-marquee:hover {
-  animation-play-state: paused;
+
+  animation-play-state:
+    paused;
 }
 
 /* =========================
@@ -108,13 +115,14 @@ textarea {
 @keyframes universityScroll {
 
   from {
-    transform: translateX(0%);
+    transform:
+      translateX(0%);
   }
 
   to {
-    transform: translateX(-50%);
+    transform:
+      translateX(-50%);
   }
-
 }
 
 /* =========================
@@ -122,21 +130,208 @@ textarea {
 ========================= */
 
 .marquee-fade {
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    white 10%,
-    white 90%,
-    transparent
-  );
 
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    white 10%,
-    white 90%,
-    transparent
-  );
+  mask-image:
+    linear-gradient(
+      to right,
+      transparent,
+      white 8%,
+      white 92%,
+      transparent
+    );
+
+  -webkit-mask-image:
+    linear-gradient(
+      to right,
+      transparent,
+      white 8%,
+      white 92%,
+      transparent
+    );
+}
+
+/* =========================
+   GLASS STRIP
+========================= */
+
+.glass-strip {
+
+  position: relative;
+
+  background:
+    rgba(255,255,255,0.24);
+
+  backdrop-filter:
+    blur(24px);
+
+  -webkit-backdrop-filter:
+    blur(24px);
+
+  border:
+    1px solid rgba(255,255,255,0.42);
+
+  box-shadow:
+    0 10px 40px rgba(255,255,255,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.55);
+
+  overflow: hidden;
+}
+
+/* =========================
+   UNIVERSITY ITEM
+========================= */
+
+.university-item {
+
+  position: relative;
+
+  z-index: 2;
+
+  display: flex;
+  align-items: center;
+
+  opacity: 0.82;
+
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+.university-item:hover {
+
+  transform:
+    scale(1.03);
+
+  opacity:
+    1;
+}
+
+/* =========================
+   UNIVERSITY IMAGE
+========================= */
+
+.university-item img {
+
+  transition:
+    transform 0.4s ease;
+
+  object-fit:
+    contain;
+}
+
+.university-item:hover img {
+
+  transform:
+    scale(1.06);
+}
+
+/* =========================
+   FLOATING GLASS ORB
+========================= */
+
+.top-university-orb {
+
+  position: absolute;
+
+  width: 240px;
+  height: 240px;
+
+  border-radius: 9999px;
+
+  background:
+    rgba(255,255,255,0.16);
+
+  backdrop-filter:
+    blur(20px);
+
+  -webkit-backdrop-filter:
+    blur(20px);
+
+  border:
+    1.5px solid rgba(255,255,255,0.85);
+
+  box-shadow:
+    inset 0 2px 14px rgba(255,255,255,0.95),
+    0 20px 60px rgba(255,255,255,0.18),
+    0 10px 30px rgba(0,0,0,0.04);
+
+  overflow: hidden;
+
+  pointer-events: none;
+
+  z-index: 50;
+}
+
+/* =========================
+   ORB REFLECTION
+========================= */
+
+.orb-reflection {
+
+  position: absolute;
+
+  top: 28px;
+  left: 32px;
+
+  width: 95px;
+  height: 24px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255,255,255,0.94);
+
+  transform:
+    rotate(-24deg);
+
+  filter:
+    blur(6px);
+}
+
+.orb-reflection::after {
+
+  content: "";
+
+  position: absolute;
+
+  top: 32px;
+  left: 16px;
+
+  width: 38px;
+  height: 12px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255,255,255,0.72);
+
+  filter:
+    blur(5px);
+}
+
+/* =========================
+   PINK GLOW
+========================= */
+
+.orb-pink-glow {
+
+  position: absolute;
+
+  right: -10px;
+  bottom: -10px;
+
+  width: 120px;
+  height: 120px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(255, 90, 150, 0.34);
+
+  filter:
+    blur(36px);
+
+  opacity: 0.92;
 }
 
 /* =========================
@@ -144,11 +339,18 @@ textarea {
 ========================= */
 
 .glass-effect {
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
 
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background:
+    rgba(255, 255, 255, 0.45);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.35);
 
   box-shadow:
     0 10px 40px rgba(255, 255, 255, 0.25),
@@ -160,6 +362,7 @@ textarea {
 ========================= */
 
 .red-glow {
+
   box-shadow:
     0 0 20px rgba(220, 20, 60, 0.25),
     0 0 50px rgba(220, 20, 60, 0.12);
@@ -170,13 +373,16 @@ textarea {
 ========================= */
 
 .hover-float {
+
   transition:
     transform 0.35s ease,
     box-shadow 0.35s ease;
 }
 
 .hover-float:hover {
-  transform: translateY(-6px);
+
+  transform:
+    translateY(-6px);
 
   box-shadow:
     0 15px 35px rgba(0, 0, 0, 0.08);
@@ -187,14 +393,19 @@ textarea {
 ========================= */
 
 .text-gradient {
-  background: linear-gradient(
-    90deg,
-    #dc143c,
-    #ff4d6d
-  );
 
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  background:
+    linear-gradient(
+      90deg,
+      #dc143c,
+      #ff4d6d
+    );
+
+  -webkit-background-clip:
+    text;
+
+  -webkit-text-fill-color:
+    transparent;
 }
 
 /* =========================
@@ -202,9 +413,15 @@ textarea {
 ========================= */
 
 .soft-bg-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
+
+  position:
+    absolute;
+
+  inset:
+    0;
+
+  pointer-events:
+    none;
 
   background:
     radial-gradient(
