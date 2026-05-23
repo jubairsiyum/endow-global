@@ -3,151 +3,56 @@
 @tailwind utilities;
 
 /* =========================
-   BASE
+   ROOT VARIABLES
 ========================= */
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-  }
-
-  body {
-    @apply min-h-screen overflow-x-hidden bg-white text-gray-900 antialiased transition-colors duration-300 dark:bg-[#0f1117] dark:text-white;
-
-    font-family:
-      system-ui,
-      -apple-system,
-      sans-serif;
-  }
-
-  #__next {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family:
-      var(--font-quicksand),
-      sans-serif;
-  }
-
-  * {
-    @apply border-gray-200 dark:border-gray-800;
-  }
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
 }
 
 /* =========================
-   COMPONENTS
+   BODY
 ========================= */
 
-@layer components {
+html {
+  scroll-behavior: smooth;
+}
 
-  /* PRIMARY BUTTON */
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold;
-
-    @apply bg-primary text-white hover:bg-[#920715];
-
-    @apply transition-all duration-200;
-
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
-  }
-
-  /* OUTLINE BUTTON */
-  .btn-outline {
-    @apply inline-flex items-center justify-center rounded-2xl px-6 py-3 text-sm font-semibold;
-
-    @apply border border-primary text-primary hover:bg-red-50 dark:hover:bg-[#2a1114];
-
-    @apply transition-all duration-200;
-
-    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
-  }
-
-  /* CARD */
-  .card {
-    @apply rounded-[32px] border border-white/60 bg-white transition-all duration-300;
-
-    box-shadow:
-      0 10px 30px rgba(15, 23, 42, 0.04),
-      0 2px 6px rgba(15, 23, 42, 0.02);
-
-    @apply hover:shadow-[0_20px_60px_rgba(15,23,42,0.08)];
-
-    @apply dark:border-white/5 dark:bg-[#121826];
-  }
-
-  /* INPUT */
-  .input {
-    @apply w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-all;
-
-    @apply placeholder:text-gray-400;
-
-    @apply focus:border-primary focus:ring-2 focus:ring-primary/10;
-
-    @apply dark:border-gray-800 dark:bg-[#11131a] dark:text-white;
-  }
-
-  /* BADGE */
-  .badge {
-    @apply inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold;
-  }
-
-  .badge-success {
-    @apply bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400;
-  }
-
-  .badge-warning {
-    @apply bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400;
-  }
-
-  .badge-danger {
-    @apply bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400;
-  }
-
-  .badge-info {
-    @apply bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400;
-  }
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Inter, sans-serif;
+  overflow-x: hidden;
 }
 
 /* =========================
-   SCROLLBAR
+   PREMIUM SCROLLBAR
 ========================= */
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #11131a;
+  background: #f3f4f6;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: linear-gradient(
+    to bottom,
+    #dc143c,
+    #c41e3a
+  );
   border-radius: 999px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #2d3340;
-}
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #3d4555;
+  background: linear-gradient(
+    to bottom,
+    #b91c1c,
+    #9f1239
+  );
 }
 
 /* =========================
@@ -155,64 +60,164 @@
 ========================= */
 
 ::selection {
-  background: rgba(173, 8, 25, 0.15);
-  color: inherit;
+  background: rgba(196, 30, 58, 0.18);
+  color: #111827;
 }
 
 /* =========================
-   CHROME AUTOFILL FIX
+   BUTTON TRANSITIONS
 ========================= */
 
-/* Default autofill for light backgrounds */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: #1f2937 !important;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.7) inset !important;
-  transition: background-color 9999s ease-in-out 0s;
-  caret-color: #1f2937 !important;
+button,
+a {
+  transition:
+    all 0.3s ease;
 }
 
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill {
-  -webkit-text-fill-color: #1f2937 !important;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(255, 255, 255, 0.7) inset !important;
-  caret-color: #1f2937 !important;
+/* =========================
+   INPUT STYLES
+========================= */
+
+input,
+select,
+textarea {
+  transition:
+    all 0.25s ease;
 }
 
-/* Placeholder text in autofill */
-input:-webkit-autofill::placeholder {
-  -webkit-text-fill-color: #9ca3af !important;
+/* =========================
+   PREMIUM UNIVERSITY MARQUEE
+========================= */
+
+.university-marquee {
+  width: max-content;
+  display: flex;
+  align-items: center;
+  animation: universityScroll 28s linear infinite;
+  will-change: transform;
 }
 
-/* First-line pseudo-element for autofill */
-input:-webkit-autofill::first-line {
-  font-size: 15px;
-  color: #1f2937 !important;
-  -webkit-text-fill-color: #1f2937 !important;
+.university-marquee:hover {
+  animation-play-state: paused;
 }
 
-/* Dark mode autofill override */
-.dark input:-webkit-autofill,
-.dark input:-webkit-autofill:hover,
-.dark input:-webkit-autofill:focus {
-  -webkit-text-fill-color: white !important;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
-  caret-color: white !important;
+/* =========================
+   MARQUEE ANIMATION
+========================= */
+
+@keyframes universityScroll {
+
+  from {
+    transform: translateX(0%);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+
 }
 
-.dark textarea:-webkit-autofill,
-.dark textarea:-webkit-autofill:hover,
-.dark textarea:-webkit-autofill:focus,
-.dark select:-webkit-autofill {
-  -webkit-text-fill-color: white !important;
-  -webkit-box-shadow: 0 0 0px 1000px rgba(0, 0, 0, 0.5) inset !important;
-  caret-color: white !important;
+/* =========================
+   PREMIUM FADE MASK
+========================= */
+
+.marquee-fade {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    white 10%,
+    white 90%,
+    transparent
+  );
+
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    white 10%,
+    white 90%,
+    transparent
+  );
 }
 
-.dark input:-webkit-autofill::first-line {
-  color: white !important;
-  -webkit-text-fill-color: white !important;
+/* =========================
+   PREMIUM GLASS EFFECT
+========================= */
+
+.glass-effect {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  box-shadow:
+    0 10px 40px rgba(255, 255, 255, 0.25),
+    0 10px 60px rgba(0, 0, 0, 0.04);
+}
+
+/* =========================
+   PREMIUM GLOW
+========================= */
+
+.red-glow {
+  box-shadow:
+    0 0 20px rgba(220, 20, 60, 0.25),
+    0 0 50px rgba(220, 20, 60, 0.12);
+}
+
+/* =========================
+   HOVER FLOAT
+========================= */
+
+.hover-float {
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+.hover-float:hover {
+  transform: translateY(-6px);
+
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================
+   PREMIUM TEXT GRADIENT
+========================= */
+
+.text-gradient {
+  background: linear-gradient(
+    90deg,
+    #dc143c,
+    #ff4d6d
+  );
+
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* =========================
+   SOFT BACKGROUND GLOW
+========================= */
+
+.soft-bg-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(255, 0, 80, 0.08),
+      transparent 35%
+    );
+}
+
+/* =========================
+   IMAGE QUALITY
+========================= */
+
+img {
+  image-rendering: auto;
 }
