@@ -1,13 +1,18 @@
 import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
+import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import Google from 'next-auth/providers/google'
 import Facebook from 'next-auth/providers/facebook'
 import Resend from 'next-auth/providers/resend'
-import { prisma } from './db'
+import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: DrizzleAdapter(db, {
+    usersTable: schema.users,
+    accountsTable: schema.accounts,
+    sessionsTable: schema.sessions,
+    verificationTokensTable: schema.verificationTokens,
+  }),
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -42,15 +47,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
     async signIn({ user, account }) {
-      // Auto-create student profile on first sign in
       if (user.id && account?.provider) {
-        const existing = await prisma.studentProfile.findUnique({
-          where: { userId: user.id },
+        const existing = await db.query.studentProfiles.findFirst({
+          where: (sp, { eq }) => eq(sp.userId, user.id!),
         })
         if (!existing) {
-          await prisma.studentProfile.create({
-            data: { userId: user.id },
-          })
+          await db.insert(schema.studentProfiles).values({ userId: user.id })
         }
       }
       return true
