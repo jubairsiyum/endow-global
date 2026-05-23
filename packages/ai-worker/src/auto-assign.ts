@@ -1,5 +1,6 @@
 import { db, schema } from '@endow/db'
 import { eq, asc } from 'drizzle-orm'
+import { normalizeCountryList } from './utils/country'
 
 export async function autoAssignCounselor(studentId: string): Promise<string | null> {
   const student = await db.query.studentProfiles.findFirst({
@@ -13,16 +14,14 @@ export async function autoAssignCounselor(studentId: string): Promise<string | n
     orderBy: (cp, { asc }) => asc(cp.totalStudents),
   })
 
-  const targetCountries = student.targetCountries as string[]
-  const targetSubjects = student.targetSubjects as string[]
+  const targetCountries = normalizeCountryList(student.targetCountries)
+  const targetSubjects = (student.targetSubjects as string[]) || []
 
   const scored = counselors.map((c) => {
     let score = 0
-    const expertiseCountries = c.expertiseCountries as string[]
+    const expertiseCountries = normalizeCountryList(c.expertiseCountries)
     const expertiseSubjects = c.expertiseSubjects as string[]
-    const countryOverlap = targetCountries.filter((co) =>
-      expertiseCountries.includes(co)
-    ).length
+    const countryOverlap = targetCountries.filter((co) => expertiseCountries.includes(co)).length
     const subjectOverlap = targetSubjects.filter((s) =>
       expertiseSubjects.includes(s)
     ).length
