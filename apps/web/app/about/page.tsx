@@ -20,6 +20,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { Navbar } from '@/components/layout/Navbar';
 
 // Animation variants
 const fadeUpVariants = {
@@ -38,19 +39,29 @@ const staggerContainer = {
 const floatingVariants = {
   animate: {
     y: [0, -20, 0],
-    transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' },
+    transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' as any },
   },
 };
 
 // Hero Section
 const HeroSection = () => {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white pt-24 pb-12">
+    <section className="relative overflow-x-hidden bg-white">
       {/* Background glow elements */}
       <div className="absolute top-20 right-0 w-96 h-96 bg-red-400/20 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl -z-10" />
 
-      <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+        {/* NAVBAR */}
+        <div className="pt-4 pb-8 lg:pb-12">
+          <Navbar />
+        </div>
+
+        {/* HERO CONTENT */}
+        <div className="py-20 lg:py-32">
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Side */}
         <motion.div
           initial="hidden"
@@ -156,7 +167,12 @@ const HeroSection = () => {
             </div>
           </motion.div>
         </motion.div>
+        </div>
+
+        </div>
+
       </div>
+
     </section>
   );
 };

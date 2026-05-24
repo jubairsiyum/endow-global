@@ -55,7 +55,7 @@ export function Navbar() {
   const isHome = pathname === '/'
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const isHero = isHome && !isScrolled
+  const isHero = !isScrolled
   const textPrimary = 'text-gray-900'
   const textMuted = 'text-gray-700'
   const textHover = 'hover:text-gray-900'
