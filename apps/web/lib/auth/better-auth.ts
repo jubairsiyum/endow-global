@@ -1,23 +1,13 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { mysqlTable, timestamp, varchar } from 'drizzle-orm/mysql-core'
 import { db, schema } from '@endow/db'
-
-const verificationAuthTable = mysqlTable('verification_token', {
-  id: varchar('id', { length: 255 }).notNull().unique().$defaultFn(() => crypto.randomUUID()),
-  identifier: varchar('identifier', { length: 255 }).notNull(),
-  value: varchar('token', { length: 255 }).notNull(),
-  expiresAt: timestamp('expires', { mode: 'date' }).notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
-})
 
 const authSchema = {
   users: schema.users,
   accounts: schema.accounts,
   sessions: schema.sessions,
-  verification: verificationAuthTable,
-  verifications: verificationAuthTable,
+  verification: schema.verificationTokens,
+  verifications: schema.verificationTokens,
 }
 
 export const auth = betterAuth({
@@ -41,6 +31,11 @@ export const auth = betterAuth({
     },
   },
 
+  // Force server-side OAuth state storage to avoid cookie-related losses
+  account: {
+    storeStateStrategy: 'database',
+  },
+
   // ── ID generation ──────────────────────────────────────────
   advanced: {
     database: {
@@ -50,8 +45,8 @@ export const auth = betterAuth({
 
   // ── Pages ──────────────────────────────────────────────────
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: '/sign-in',
+    error: '/sign-in',
   },
 
   // ── Database hooks: auto-create studentProfile on signup ──

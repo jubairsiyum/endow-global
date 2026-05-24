@@ -10,9 +10,44 @@ import {
   LockKeyhole,
 } from "lucide-react";
 
-export default function SignInForm() {
+interface SignInFormProps {
+  authError?: string;
+}
+
+function getAuthErrorMessage(authError?: string) {
+  if (!authError) {
+    return null;
+  }
+
+  if (authError === 'please_restart_the_process') {
+    return 'We could not recover the OAuth state from your previous Google sign-in. Start a new sign-in attempt to continue.';
+  }
+
+  return 'Sign-in could not be completed. Please try again.';
+}
+
+export default function SignInForm({ authError }: SignInFormProps) {
+  const errorMessage = getAuthErrorMessage(authError);
+
   return (
     <div>
+
+      {errorMessage && (
+        <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-xs leading-5 text-red-900">
+          <div className="font-semibold text-red-950">
+            Sign-in needs to be restarted
+          </div>
+
+          <p className="mt-1">{errorMessage}</p>
+
+          <Link
+            href="/sign-in"
+            className="mt-3 inline-flex items-center rounded-full bg-red-700 px-3 py-1.5 text-[11px] font-semibold text-white transition hover:bg-red-800"
+          >
+            Restart sign-in
+          </Link>
+        </div>
+      )}
 
       {/* Premium Segmented Glass Toggle */}
       <AuthTabToggle />

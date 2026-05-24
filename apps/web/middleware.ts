@@ -18,7 +18,7 @@ export async function middleware(req: NextRequest) {
 
   if (isStudentPath || isCounselorPath || isAdminPath) {
     if (!sessionCookie) {
-      const url = new URL('/login', req.url)
+      const url = new URL('/sign-in', req.url)
       url.searchParams.set('callbackUrl', pathname)
       return NextResponse.redirect(url)
     }
@@ -32,7 +32,7 @@ export async function middleware(req: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages
-  if ((pathname === '/login' || pathname === '/register') && sessionCookie) {
+  if ((pathname === '/sign-in' || pathname === '/sign-up' || pathname === '/signup' || pathname === '/login' || pathname === '/register') && sessionCookie) {
     // Without a full session fetch we can't determine role in middleware.
     // Default redirect to /dashboard; role-based landing is handled client-side.
     return NextResponse.redirect(new URL('/dashboard', req.url))
