@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import {
   MapPin,
   Zap,
@@ -14,7 +14,7 @@ import AIMatcher from "./ai-matcher";
 export default function HeroSection() {
   const [showMatcher, setShowMatcher] = useState(false);
 
-  const containerVariants = {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
@@ -22,7 +22,7 @@ export default function HeroSection() {
     },
   };
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
@@ -32,34 +32,34 @@ export default function HeroSection() {
   };
 
   return (
-    <div className="relative w-full py-20 lg:py-28 overflow-x-hidden">
+    <div className="relative w-full py-16 lg:py-20 overflow-x-hidden">
       {/* Animated background elements - positioned behind content */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-1/3 h-96 w-96 rounded-full bg-red-200 opacity-8 blur-3xl"></div>
+        <div className="absolute top-0 right-1/3 h-72 w-72 rounded-full bg-red-200 opacity-10 blur-3xl"></div>
       </div>
 
       <div className="relative z-10">
-        <div className="grid gap-12 lg:grid-cols-2 lg:gap-20 items-center">
+        <div className="grid gap-10 lg:grid-cols-2 lg:gap-14 items-center">
           {/* Left Content */}
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate="visible"
-            className="space-y-8"
+            className="space-y-6"
           >
             {/* Badge */}
             <motion.div variants={itemVariants}>
-              <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2">
-                <Zap className="h-4 w-4 text-[#C41E3A]" />
-                <span className="text-sm font-medium text-[#C41E3A]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
+                <Zap className="h-3.5 w-3.5 text-[#C41E3A]" />
+                <span className="text-xs font-medium text-[#C41E3A]">
                   AI-Powered University Matching
                 </span>
               </div>
             </motion.div>
 
             {/* Main Heading */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
+            <motion.div variants={itemVariants} className="space-y-3">
+              <h1 className="text-5xl lg:text-6xl font-bold tracking-tight text-gray-900">
                 Discover Your{" "}
                 <span className="bg-gradient-to-r from-[#C41E3A] to-[#E11D48] bg-clip-text text-transparent">
                   Perfect
@@ -72,7 +72,7 @@ export default function HeroSection() {
             {/* Description */}
             <motion.p
               variants={itemVariants}
-              className="max-w-xl text-lg text-gray-600 leading-relaxed"
+              className="max-w-xl text-base lg:text-lg text-gray-600 leading-relaxed"
             >
               Leverage AI-powered intelligence to find universities that match
               your academic profile, budget, and career aspirations. Access
@@ -83,22 +83,22 @@ export default function HeroSection() {
             {/* Stats */}
             <motion.div
               variants={itemVariants}
-              className="grid grid-cols-3 gap-4 py-4"
+              className="grid grid-cols-3 gap-4 py-2"
             >
-              <div className="space-y-2">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div className="space-y-1.5">
+                <p className="text-2xl font-bold text-gray-900">
                   250+
                 </p>
                 <p className="text-sm text-gray-600">Partner Universities</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div className="space-y-1.5">
+                <p className="text-2xl font-bold text-gray-900">
                   45
                 </p>
                 <p className="text-sm text-gray-600">Countries</p>
               </div>
-              <div className="space-y-2">
-                <p className="text-2xl sm:text-3xl font-bold text-gray-900">
+              <div className="space-y-1.5">
+                <p className="text-2xl font-bold text-gray-900">
                   98%
                 </p>
                 <p className="text-sm text-gray-600">Visa Success</p>
@@ -106,16 +106,16 @@ export default function HeroSection() {
             </motion.div>
 
             {/* CTA Buttons */}
-            <motion.div variants={itemVariants} className="flex gap-4 pt-4">
+            <motion.div variants={itemVariants} className="flex flex-wrap gap-3 pt-2">
               <button
                 onClick={() => setShowMatcher(true)}
-                className="group inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E11D48] px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(196,30,58,0.25)] hover:shadow-[0_20px_40px_rgba(196,30,58,0.35)] transition-all duration-300 hover:scale-105"
+                className="group inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E11D48] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(196,30,58,0.22)] hover:shadow-[0_16px_32px_rgba(196,30,58,0.28)] transition-all duration-300 hover:scale-[1.02]"
               >
-                <GraduationCap className="h-5 w-5" />
+                <GraduationCap className="h-4 w-4" />
                 Start AI Matching
                 <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
               </button>
-              <button className="inline-flex items-center gap-2 rounded-full border-2 border-gray-900 px-8 py-4 font-semibold text-gray-900 hover:bg-gray-900 hover:text-white transition-colors">
+              <button className="inline-flex h-12 items-center gap-2 rounded-full border border-gray-900 px-6 text-sm font-semibold text-gray-900 hover:bg-gray-900 hover:text-white transition-colors">
                 Explore Universities
                 <ArrowRight className="h-4 w-4" />
               </button>
@@ -129,7 +129,7 @@ export default function HeroSection() {
             transition={{ duration: 0.8, delay: 0.3 }}
             className="relative z-20"
           >
-            <div className="rounded-3xl bg-white/80 backdrop-blur-xl border border-white/50 p-8 shadow-2xl">
+            <div className="rounded-2xl bg-white/85 backdrop-blur-md border border-white/60 p-5 shadow-xl lg:p-6">
               <AIMatcher onClose={() => setShowMatcher(false)} />
             </div>
           </motion.div>

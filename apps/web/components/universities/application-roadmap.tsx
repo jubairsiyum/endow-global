@@ -66,31 +66,31 @@ const roadmapSteps = [
 
 export default function ApplicationRoadmap() {
   return (
-    <section className="relative py-24 bg-gradient-to-br from-white via-slate-50 to-white overflow-x-hidden">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none\">
-        <div className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-blue-200 opacity-10 blur-3xl\"></div>
-        <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-purple-200 opacity-10 blur-3xl\"></div>
+    <section className="relative py-16 lg:py-20 bg-gradient-to-br from-white via-slate-50 to-white overflow-x-hidden">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 h-72 w-72 rounded-full bg-blue-200 opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 h-64 w-64 rounded-full bg-purple-200 opacity-10 blur-3xl"></div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-16 space-y-4 text-center"
+          className="mb-12 space-y-3 text-center"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-4 py-2">
-            <CheckCircle2 className="h-4 w-4 text-indigo-600" />
-            <span className="text-sm font-medium text-indigo-600">
+          <div className="inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1.5">
+            <CheckCircle2 className="h-3.5 w-3.5 text-indigo-600" />
+            <span className="text-xs font-medium text-indigo-600">
               Your Journey
             </span>
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
             Your Application Roadmap
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600">
+          <p className="mx-auto max-w-2xl text-base lg:text-lg text-gray-600">
             We guide you through every step of your international education
             journey
           </p>
@@ -100,7 +100,7 @@ export default function ApplicationRoadmap() {
         <div className="hidden lg:block">
           <div className="relative">
             {/* Connecting line */}
-            <div className="absolute top-24 left-0 right-0 h-1 bg-gradient-to-r from-[#C41E3A] via-[#E11D48] to-[#C41E3A] transform -translate-y-1/2"></div>
+            <div className="absolute top-20 left-0 right-0 h-px bg-gradient-to-r from-[#C41E3A] via-[#E11D48] to-[#C41E3A] transform -translate-y-1/2"></div>
 
             {/* Steps */}
             <motion.div
@@ -108,7 +108,7 @@ export default function ApplicationRoadmap() {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="relative grid gap-12 lg:grid-cols-7"
+              className="relative grid gap-8 lg:grid-cols-7"
             >
               {roadmapSteps.map((step, idx) => {
                 const Icon = step.icon;
@@ -124,19 +124,19 @@ export default function ApplicationRoadmap() {
                     {/* Circle with icon */}
                     <motion.div
                       whileHover={{ scale: 1.1 }}
-                      className={`relative mb-8 h-24 w-24 rounded-full bg-gradient-to-br ${step.color} p-1 shadow-lg`}
+                      className={`relative mb-6 h-20 w-20 rounded-full bg-gradient-to-br ${step.color} p-1 shadow-lg`}
                     >
                       <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
-                        <Icon className="h-12 w-12 text-white" />
+                        <Icon className="h-9 w-9 text-gray-900" />
                       </div>
-                      <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-white flex items-center justify-center font-bold text-gray-900 shadow-lg">
+                      <div className="absolute -top-1.5 -right-1.5 h-7 w-7 rounded-full bg-white flex items-center justify-center text-sm font-bold text-gray-900 shadow-lg">
                         {step.number}
                       </div>
                     </motion.div>
 
                     {/* Content */}
                     <div className="text-center space-y-2">
-                      <h3 className="font-bold text-gray-900 text-lg">
+                      <h3 className="font-bold text-gray-900">
                         {step.title}
                       </h3>
                       <p className="text-sm text-gray-600">
@@ -156,7 +156,7 @@ export default function ApplicationRoadmap() {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="lg:hidden space-y-8"
+          className="lg:hidden space-y-6"
         >
           {roadmapSteps.map((step, idx) => {
             const Icon = step.icon;
@@ -171,22 +171,22 @@ export default function ApplicationRoadmap() {
               >
                 {/* Vertical line connector */}
                 {idx < roadmapSteps.length - 1 && (
-                  <div className="absolute left-11 top-24 w-1 h-20 bg-gradient-to-b from-[#C41E3A] to-[#E11D48]"></div>
+                  <div className="absolute left-9 top-20 h-16 w-px bg-gradient-to-b from-[#C41E3A] to-[#E11D48]"></div>
                 )}
 
                 {/* Circle */}
-                <div className={`relative flex-shrink-0 h-24 w-24 rounded-full bg-gradient-to-br ${step.color} p-1 shadow-lg`}>
+                <div className={`relative flex-shrink-0 h-20 w-20 rounded-full bg-gradient-to-br ${step.color} p-1 shadow-lg`}>
                   <div className="flex h-full w-full items-center justify-center rounded-full bg-white">
-                    <Icon className="h-10 w-10 text-white" />
+                    <Icon className="h-8 w-8 text-gray-900" />
                   </div>
-                  <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-white flex items-center justify-center font-bold text-gray-900 shadow-lg">
+                  <div className="absolute -top-1.5 -right-1.5 h-7 w-7 rounded-full bg-white flex items-center justify-center text-sm font-bold text-gray-900 shadow-lg">
                     {step.number}
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 pt-2">
-                  <h3 className="font-bold text-gray-900 text-lg">
+                  <h3 className="font-bold text-gray-900">
                     {step.title}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">
@@ -204,16 +204,16 @@ export default function ApplicationRoadmap() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
           viewport={{ once: true }}
-          className="mt-20 text-center space-y-6"
+          className="mt-12 text-center space-y-4"
         >
-          <h3 className="text-2xl font-bold text-gray-900">
+          <h3 className="text-xl font-bold text-gray-900">
             Estimated Timeline: 4-6 Months
           </h3>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Our streamlined process ensures you're ready to start your
             international education journey on time, every time.
           </p>
-          <button className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E11D48] px-8 py-4 font-semibold text-white shadow-[0_10px_30px_rgba(196,30,58,0.25)] hover:shadow-[0_20px_40px_rgba(196,30,58,0.35)] transition-all hover:scale-105">
+          <button className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E11D48] px-6 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(196,30,58,0.22)] hover:shadow-[0_16px_32px_rgba(196,30,58,0.28)] transition-all hover:scale-[1.02]">
             Schedule Your Consultation
           </button>
         </motion.div>

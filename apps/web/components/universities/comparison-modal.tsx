@@ -52,21 +52,21 @@ export default function UniversityComparisonModal({
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white shadow-2xl">
+            <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
               {/* Header */}
-              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-8">
-                <h2 className="text-3xl font-bold text-gray-900">
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-5 lg:p-6">
+                <h2 className="text-2xl font-bold text-gray-900">
                   Compare Universities
                 </h2>
                 <button
                   onClick={onClose}
                   className="rounded-full p-2 hover:bg-gray-100"
                 >
-                  <X className="h-6 w-6" />
+                  <X className="h-5 w-5" />
                 </button>
               </div>
 
-              <div className="p-8 space-y-8">
+              <div className="space-y-6 p-5 lg:p-6">
                 {/* Selector */}
                 <div className="space-y-4">
                   <h3 className="font-bold text-gray-900">
@@ -83,7 +83,7 @@ export default function UniversityComparisonModal({
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-sm font-semibold text-gray-900">
                           {uni.name}
                         </p>
                         <p className="text-xs text-gray-600">{uni.city}</p>
@@ -97,13 +97,13 @@ export default function UniversityComparisonModal({
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-200">
-                        <th className="px-4 py-4 text-left font-bold text-gray-900">
+                        <th className="px-3 py-3 text-left font-bold text-gray-900">
                           Criteria
                         </th>
                         {selectedUniversities.map((uni) => (
                           <th
                             key={uni.id}
-                            className="px-4 py-4 text-left font-bold text-gray-900"
+                            className="px-3 py-3 text-left font-bold text-gray-900"
                           >
                             {uni.name}
                           </th>
@@ -113,13 +113,13 @@ export default function UniversityComparisonModal({
                     <tbody>
                       {/* Ranking */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Ranking
                         </td>
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-4 py-4 text-gray-600 flex items-center gap-2"
+                            className="px-3 py-3 text-gray-600 flex items-center gap-2"
                           >
                             <TrendingUp className="h-4 w-4 text-blue-600" />#{" "}
                             {uni.ranking}
@@ -129,11 +129,11 @@ export default function UniversityComparisonModal({
 
                       {/* Tuition */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Annual Tuition
                         </td>
                         {selectedUniversities.map((uni) => (
-                          <td key={uni.id} className="px-4 py-4 text-gray-600">
+                          <td key={uni.id} className="px-3 py-3 text-gray-600">
                             {formatCurrency(uni.tuition.min)} -{" "}
                             {formatCurrency(uni.tuition.max)}
                           </td>
@@ -142,13 +142,13 @@ export default function UniversityComparisonModal({
 
                       {/* Scholarship */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Scholarship Available
                         </td>
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-4 py-4 font-bold text-green-600"
+                            className="px-3 py-3 font-bold text-green-600"
                           >
                             {uni.scholarship}%
                           </td>
@@ -157,13 +157,13 @@ export default function UniversityComparisonModal({
 
                       {/* Visa Success */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Visa Success Rate
                         </td>
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-4 py-4 font-bold text-blue-600"
+                            className="px-3 py-3 font-bold text-blue-600"
                           >
                             {uni.visaSuccessRate}%
                           </td>
@@ -172,13 +172,13 @@ export default function UniversityComparisonModal({
 
                       {/* Employment */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Employment Rate
                         </td>
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-4 py-4 font-bold text-purple-600"
+                            className="px-3 py-3 font-bold text-purple-600"
                           >
                             {uni.employmentRate}%
                           </td>
@@ -187,11 +187,11 @@ export default function UniversityComparisonModal({
 
                       {/* Dormitory */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Dormitory Fee
                         </td>
                         {selectedUniversities.map((uni) => (
-                          <td key={uni.id} className="px-4 py-4 text-gray-600">
+                          <td key={uni.id} className="px-3 py-3 text-gray-600">
                             {formatCurrency(uni.dormitoryFee)}/year
                           </td>
                         ))}
@@ -199,11 +199,11 @@ export default function UniversityComparisonModal({
 
                       {/* Living Cost */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           Living Cost
                         </td>
                         {selectedUniversities.map((uni) => (
-                          <td key={uni.id} className="px-4 py-4 text-gray-600">
+                          <td key={uni.id} className="px-3 py-3 text-gray-600">
                             {formatCurrency(uni.livingCost)}/month
                           </td>
                         ))}
@@ -211,11 +211,11 @@ export default function UniversityComparisonModal({
 
                       {/* IELTS Requirement */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           IELTS Requirement
                         </td>
                         {selectedUniversities.map((uni) => (
-                          <td key={uni.id} className="px-4 py-4 text-gray-600">
+                          <td key={uni.id} className="px-3 py-3 text-gray-600">
                             {uni.ieltsRequirement}+
                           </td>
                         ))}
@@ -223,11 +223,11 @@ export default function UniversityComparisonModal({
 
                       {/* GPA Requirement */}
                       <tr>
-                        <td className="px-4 py-4 font-semibold text-gray-700">
+                        <td className="px-3 py-3 font-semibold text-gray-700">
                           GPA Requirement
                         </td>
                         {selectedUniversities.map((uni) => (
-                          <td key={uni.id} className="px-4 py-4 text-gray-600">
+                          <td key={uni.id} className="px-3 py-3 text-gray-600">
                             {uni.gpaRequirement}+
                           </td>
                         ))}
@@ -237,14 +237,14 @@ export default function UniversityComparisonModal({
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-4">
+                <div className="flex gap-3">
                   <button
                     onClick={onClose}
-                    className="flex-1 rounded-xl border-2 border-gray-300 py-3 font-semibold text-gray-900 hover:bg-gray-50"
+                    className="flex-1 h-12 rounded-xl border border-gray-300 px-6 text-sm font-semibold text-gray-900 hover:bg-gray-50"
                   >
                     Close
                   </button>
-                  <button className="flex-1 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 py-3 font-semibold text-white hover:shadow-lg">
+                  <button className="flex-1 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 text-sm font-semibold text-white hover:shadow-lg">
                     Apply to Selected
                   </button>
                 </div>

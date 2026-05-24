@@ -40,11 +40,11 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
+        className="space-y-5"
       >
-        <div className="space-y-2">
-          <h3 className="text-2xl font-bold text-gray-900">Your Top Matches</h3>
-          <p className="text-gray-600">
+        <div className="space-y-1.5">
+          <h3 className="text-xl font-bold text-gray-900">Your Top Matches</h3>
+          <p className="text-sm text-gray-600">
             Based on your profile: GPA {profile.gpa}, IELTS {profile.ielts}
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="rounded-2xl bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 p-4 hover:border-blue-300 transition-colors"
+              className="rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 p-3.5 hover:border-blue-300 transition-colors"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -68,7 +68,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-blue-600">
+                  <p className="text-base font-bold text-blue-600">
                     {match.matchPercentage}%
                   </p>
                   <p className="text-xs text-gray-600">Match Score</p>
@@ -93,14 +93,14 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
           ))}
         </div>
 
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 pt-2">
           <button
             onClick={() => setStep("input")}
-            className="flex-1 rounded-xl border border-gray-300 py-3 font-semibold text-gray-900 hover:bg-gray-50 transition-colors"
+            className="flex-1 h-11 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors"
           >
             Adjust Profile
           </button>
-          <button className="flex-1 rounded-xl bg-blue-600 py-3 font-semibold text-white hover:bg-blue-700 transition-colors">
+          <button className="flex-1 h-11 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
             Compare Details
           </button>
         </div>
@@ -112,14 +112,14 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
+      className="space-y-5"
     >
       <div className="flex items-center gap-2">
-        <MessageCircle className="h-6 w-6 text-blue-600" />
-        <h3 className="text-2xl font-bold text-gray-900">Smart Finder</h3>
+        <MessageCircle className="h-5 w-5 text-blue-600" />
+        <h3 className="text-xl font-bold text-gray-900">Smart Finder</h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {/* GPA Input */}
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-gray-700">
@@ -182,7 +182,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
             onChange={(e) =>
               handleInputChange("preferredCountry", e.target.value)
             }
-            className="w-full rounded-lg border border-gray-300 px-4 py-2 text-gray-900"
+            className="h-10 w-full rounded-lg border border-gray-300 px-3 text-sm text-gray-900"
           >
             <option>South Korea</option>
             <option>USA</option>
@@ -205,7 +205,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
                 onClick={() =>
                   handleInputChange("studyLevel", level as any)
                 }
-                className={`rounded-lg py-2 text-sm font-semibold transition-colors ${
+                className={`h-10 rounded-lg px-3 text-sm font-semibold transition-colors ${
                   profile.studyLevel === level
                     ? "bg-blue-600 text-white"
                     : "bg-gray-100 text-gray-900 hover:bg-gray-200"
@@ -223,9 +223,9 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={handleMatch}
-        className="w-full rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 py-3 font-semibold text-white shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center gap-2"
+        className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-shadow flex items-center justify-center gap-2"
       >
-        <CheckCircle2 className="h-5 w-5" />
+        <CheckCircle2 className="h-4 w-4" />
         Get AI Recommendations
       </motion.button>
 

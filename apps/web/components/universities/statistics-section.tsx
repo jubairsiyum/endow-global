@@ -45,28 +45,28 @@ export default function StatisticsSection() {
       value: 5000,
       suffix: "+",
       label: "Students Abroad",
-      icon: <Users className="h-8 w-8" />,
+      icon: <Users className="h-6 w-6" />,
       color: "from-blue-600 to-cyan-600",
     },
     {
       value: 250,
       suffix: "+",
       label: "Partner Universities",
-      icon: <Award className="h-8 w-8" />,
+      icon: <Award className="h-6 w-6" />,
       color: "from-purple-600 to-pink-600",
     },
     {
       value: 45,
       suffix: "",
       label: "Countries Covered",
-      icon: <Globe className="h-8 w-8" />,
+      icon: <Globe className="h-6 w-6" />,
       color: "from-green-600 to-emerald-600",
     },
     {
       value: 98,
       suffix: "%",
       label: "Visa Success Rate",
-      icon: <TrendingUp className="h-8 w-8" />,
+      icon: <TrendingUp className="h-6 w-6" />,
       color: "from-red-600 to-orange-600",
     },
   ];
@@ -89,26 +89,26 @@ export default function StatisticsSection() {
   };
 
   return (
-    <section className="relative py-24 bg-gradient-to-br from-white via-slate-50 to-white overflow-x-hidden">
+    <section className="relative py-16 lg:py-20 bg-gradient-to-br from-white via-slate-50 to-white overflow-x-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-red-200 opacity-8 blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-red-100 opacity-6 blur-3xl"></div>
+        <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-red-200 opacity-10 blur-3xl"></div>
+        <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-red-100 opacity-10 blur-3xl"></div>
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-20 space-y-4 text-center"
+          className="mb-12 space-y-3 text-center"
         >
-          <h2 className="text-4xl sm:text-5xl font-bold text-gray-900">
+          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
             Global Success by Numbers
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600">
+          <p className="mx-auto max-w-2xl text-base lg:text-lg text-gray-600">
             Join thousands of students who have successfully pursued their
             education dreams globally
           </p>
@@ -120,41 +120,41 @@ export default function StatisticsSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
         >
           {stats.map((stat, idx) => (
             <motion.div
               key={idx}
               variants={itemVariants}
-              whileHover={{ scale: 1.05, transition: { duration: 0.3 } }}
-              className="group relative rounded-3xl overflow-hidden bg-white/80 backdrop-blur-sm border border-white/40 p-8 shadow-[0_10px_30px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_rgba(196,30,58,0.12)] transition-all duration-300 hover:border-red-200">
+              whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
+              className="group relative rounded-2xl overflow-hidden bg-white/85 backdrop-blur-sm border border-white/50 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_16px_36px_rgba(196,30,58,0.1)] transition-all duration-300 hover:border-red-200 lg:p-6"
             >
               {/* Glow effect */}
               <div
-                className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-r ${stat.color} blur-2xl`}
+                className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-r ${stat.color} blur-3xl`}
               ></div>
 
-              <div className="relative space-y-6">
+              <div className="relative space-y-4">
                 {/* Icon */}
                 <motion.div
                   initial={{ rotate: 0 }}
                   whileHover={{ rotate: 10 }}
                   transition={{ duration: 0.3 }}
-                  className={`inline-flex rounded-2xl bg-gradient-to-br ${stat.color} p-4 text-white`}
+                  className={`inline-flex rounded-xl bg-gradient-to-br ${stat.color} p-3 text-white`}
                 >
                   {stat.icon}
                 </motion.div>
 
                 {/* Counter */}
                 <div>
-                  <div className="text-5xl sm:text-6xl font-bold bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                  <div className="text-4xl font-bold text-gray-900">
                     <AnimatedCounter value={stat.value} />
-                    <span className="text-4xl">{stat.suffix}</span>
+                    <span>{stat.suffix}</span>
                   </div>
                 </div>
 
                 {/* Label */}
-                <p className="text-gray-400">{stat.label}</p>
+                <p className="text-sm text-gray-600">{stat.label}</p>
               </div>
             </motion.div>
           ))}
@@ -166,10 +166,10 @@ export default function StatisticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
-          className="mt-20 text-center"
+          className="mt-12 text-center"
         >
-          <p className="text-sm font-semibold text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text">
-            ✨ Trusted by leading education consultants worldwide
+          <p className="text-sm font-semibold text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text">
+            Trusted by leading education consultants worldwide
           </p>
         </motion.div>
       </div>

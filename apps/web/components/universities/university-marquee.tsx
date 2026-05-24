@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { universities } from "@/lib/universities/data";
 import Image from "next/image";
 
 export default function UniversityMarquee() {
-  const marqueeVariants = {
+  const marqueeVariants: Variants = {
     animate: {
       x: [0, -1000],
       transition: {
@@ -20,9 +20,9 @@ export default function UniversityMarquee() {
   };
 
   return (
-    <section className="relative py-16 overflow-hidden bg-gradient-to-r from-white via-gray-50 to-white border-y border-gray-200">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <p className="mb-8 text-center text-sm font-semibold text-gray-600">
+    <section className="relative py-10 lg:py-12 overflow-hidden bg-gradient-to-r from-white via-gray-50 to-white border-y border-gray-200">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <p className="mb-6 text-center text-xs font-semibold tracking-wide text-gray-600">
           TRUSTED BY 5000+ STUDENTS ACROSS
         </p>
 
@@ -31,15 +31,15 @@ export default function UniversityMarquee() {
           <motion.div
             variants={marqueeVariants}
             animate="animate"
-            className="flex gap-12 min-w-max"
+            className="flex gap-8 min-w-max"
           >
             {[...universities, ...universities].map((uni, idx) => (
               <motion.div
                 key={`${uni.id}-${idx}`}
                 whileHover={{ scale: 1.1 }}
-                className="group flex flex-col items-center gap-3 px-6 py-4 rounded-xl hover:bg-white/50 transition-colors cursor-pointer"
+                className="group flex flex-col items-center gap-2 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors cursor-pointer"
               >
-                <div className="relative h-16 w-16 rounded-lg overflow-hidden bg-white shadow-md group-hover:shadow-lg transition-shadow border border-gray-200">
+                <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-white shadow-sm group-hover:shadow-md transition-shadow border border-gray-200">
                   <Image
                     src={uni.logo}
                     alt={uni.name}
