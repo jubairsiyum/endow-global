@@ -2,7 +2,8 @@ import { StreamingTextResponse, LangChainStream } from 'ai'
 import { ChatOpenAI } from '@langchain/openai'
 import { ConversationalRetrievalQAChain } from 'langchain/chains'
 import { getVectorStore, CHATBOT_SYSTEM_PROMPT } from '@/lib/openai'
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/auth'
+import { headers } from 'next/headers'
 import { rateLimit } from '@/lib/redis'
 import { db, schema } from '@/lib/db'
 import { eq } from 'drizzle-orm'
@@ -10,7 +11,7 @@ import { eq } from 'drizzle-orm'
 export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await getSession(await headers())
   const userId = session?.user?.id || 'anonymous'
 
   const allowed = await rateLimit(`chat:${userId}`, 20, 60)
