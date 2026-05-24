@@ -3,11 +3,9 @@
 import { motion } from "framer-motion";
 import {
   Search,
-  MapPin,
   DollarSign,
   Sparkles,
   Filter,
-  BookOpen,
   Globe,
 } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -38,32 +36,32 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
     >
       <motion.div
         layout
-        className="pointer-events-auto mx-4 rounded-full border border-white/30 bg-white/80 backdrop-blur-md shadow-xl overflow-hidden"
+        className="pointer-events-auto mx-4 overflow-hidden rounded-full border border-white/70 bg-white/85 shadow-[0_16px_50px_rgba(15,23,42,0.14)] backdrop-blur-md"
       >
         <div className="flex h-14 items-center gap-3 px-5">
           {/* Search Input */}
           <div className="flex flex-1 items-center gap-2 min-w-0">
-            <Search className="h-4 w-4 text-gray-600 shrink-0" />
+            <Search className="h-4 w-4 shrink-0 text-[#C41E3A]" />
             <input
               type="text"
               placeholder="Search universities..."
               onChange={(e) => onSearch?.(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-gray-900 placeholder-gray-500 outline-none"
+              className="flex-1 bg-transparent text-sm text-gray-950 placeholder-gray-500 outline-none"
             />
           </div>
 
           {/* Quick Filters */}
           {!isExpanded && (
             <div className="hidden sm:flex items-center gap-2">
-              <button className="rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors flex items-center gap-1">
+              <button className="flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-[#C41E3A] transition-colors hover:bg-red-100">
                 <Globe className="h-3 w-3" />
                 Country
               </button>
-              <button className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-200 transition-colors flex items-center gap-1">
+              <button className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 transition-colors hover:bg-red-50 hover:text-[#C41E3A]">
                 <DollarSign className="h-3 w-3" />
                 Budget
               </button>
-              <button className="rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-200 transition-colors flex items-center gap-1">
+              <button className="flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 transition-colors hover:bg-red-50 hover:text-[#C41E3A]">
                 <Sparkles className="h-3 w-3" />
                 Scholarship
               </button>
@@ -73,7 +71,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
           {/* Expand Button */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="rounded-full bg-blue-600 p-2 text-white hover:bg-blue-700 transition-colors hover:scale-105"
+            className="rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E11D48] p-2 text-white shadow-[0_8px_22px_rgba(196,30,58,0.24)] transition-transform hover:scale-105"
           >
             <Filter className="h-4 w-4" />
           </button>
@@ -85,11 +83,11 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="border-t border-white/40 p-5 space-y-4 bg-white/90"
+            className="space-y-4 border-t border-red-100 bg-white/95 p-5"
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {/* Country Filter */}
-              <select className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
+              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Countries</option>
                 <option>South Korea</option>
                 <option>USA</option>
@@ -99,7 +97,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               </select>
 
               {/* Budget Filter */}
-              <select className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
+              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Budgets</option>
                 <option>Under $20k</option>
                 <option>$20k - $40k</option>
@@ -108,7 +106,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               </select>
 
               {/* Scholarship Filter */}
-              <select className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
+              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Scholarships</option>
                 <option>50%+</option>
                 <option>75%+</option>
@@ -116,7 +114,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               </select>
 
               {/* Degree Level */}
-              <select className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:border-blue-500">
+              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Levels</option>
                 <option>Bachelor</option>
                 <option>Master</option>
@@ -128,11 +126,11 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() => setIsExpanded(false)}
-                className="flex-1 h-10 rounded-lg border border-gray-300 px-4 text-sm font-semibold text-gray-900 hover:bg-gray-50 transition-colors"
+                className="h-10 flex-1 rounded-lg border border-gray-200 px-4 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"
               >
                 Close
               </button>
-              <button className="flex-1 h-10 rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 transition-colors">
+              <button className="h-10 flex-1 rounded-lg bg-gradient-to-r from-[#C41E3A] to-[#E11D48] px-4 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(196,30,58,0.2)] transition-shadow hover:shadow-[0_12px_28px_rgba(196,30,58,0.26)]">
                 Apply Filters
               </button>
             </div>
