@@ -1,65 +1,33 @@
 import { betterAuth } from 'better-auth'
-import { createPool } from 'mysql2/promise'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { mysqlTable, timestamp, varchar } from 'drizzle-orm/mysql-core'
 import { db, schema } from '@endow/db'
 
-const pool = createPool({
-  uri: process.env.DATABASE_URL,
-  timezone: 'Z',
+const verificationAuthTable = mysqlTable('verification_token', {
+  id: varchar('id', { length: 255 }).notNull().unique().$defaultFn(() => crypto.randomUUID()),
+  identifier: varchar('identifier', { length: 255 }).notNull(),
+  value: varchar('token', { length: 255 }).notNull(),
+  expiresAt: timestamp('expires', { mode: 'date' }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
+
+const authSchema = {
+  users: schema.users,
+  accounts: schema.accounts,
+  sessions: schema.sessions,
+  verification: verificationAuthTable,
+  verifications: verificationAuthTable,
+}
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL ?? process.env.NEXT_PUBLIC_APP_URL,
   secret: process.env.BETTER_AUTH_SECRET,
-  database: pool,
-
-  // ── Map to existing table/column names ──────────────────────
-  // The existing DB uses @auth/drizzle-adapter shaped tables.
-  // We remap BetterAuth's internal model names → actual DB names.
-  user: {
-    modelName: 'user', // actual table name
-    fields: {
-      emailVerified: 'email_verified',
-      createdAt: 'created_at',
-      updatedAt: 'updated_at',
-    },
-    additionalFields: {
-      role: {
-        type: 'string',
-        required: false,
-        defaultValue: 'STUDENT',
-        input: false,
-      },
-      fcmToken: {
-        type: 'string',
-        required: false,
-        fieldName: 'fcm_token',
-      },
-    },
-  },
-
-  session: {
-    modelName: 'session', // actual table name
-    fields: {
-      token: 'session_token',
-      userId: 'user_id',
-      expiresAt: 'expires',
-    },
-    expiresIn: 30 * 24 * 60 * 60, // 30 days
-    updateAge: 24 * 60 * 60, // 24 hours
-  },
-
-  account: {
-    modelName: 'account', // actual table name
-    fields: {
-      userId: 'user_id',
-      accountId: 'provider_account_id',
-      providerId: 'provider',
-      accessToken: 'access_token',
-      refreshToken: 'refresh_token',
-      accessTokenExpiresAt: 'expires_at',
-      idToken: 'id_token',
-    },
-  },
+  database: drizzleAdapter(db, {
+    provider: 'mysql',
+    schema: authSchema,
+    usePlural: true,
+  }),
 
   // ── Social providers ────────────────────────────────────────
   socialProviders: {

@@ -44,9 +44,12 @@ export const sessions = mysqlTable('session', {
 })
 
 export const verificationTokens = mysqlTable('verification_token', {
+  id: varchar('id', { length: 255 }).notNull().unique().$defaultFn(genId),
   identifier: varchar('identifier', { length: 255 }).notNull(),
   token: varchar('token', { length: 255 }).notNull(),
   expires: timestamp('expires', { mode: 'date' }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
   compositePk: primaryKey({ columns: [table.identifier, table.token] }),
 }))
