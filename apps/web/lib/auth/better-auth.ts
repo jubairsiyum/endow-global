@@ -31,6 +31,28 @@ export const auth = betterAuth({
     },
   },
 
+  // Allow cross-origin requests from common dev ports
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+  ],
+
+  // Custom fields stored on the user table
+  user: {
+    additionalFields: {
+      role: {
+        type: 'string',
+        defaultValue: 'STUDENT',
+        fieldName: 'role',
+      },
+      fcmToken: {
+        type: 'string',
+        fieldName: 'fcmToken',
+      },
+    },
+  },
+
   // Force server-side OAuth state storage to avoid cookie-related losses
   account: {
     storeStateStrategy: 'database',
