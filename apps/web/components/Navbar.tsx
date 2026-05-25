@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowRight } from 'lucide-react'
 
 const navItems = [
   { label: 'Home', href: '/' },
@@ -35,12 +36,12 @@ const containerVariants = {
     backdropFilter: 'blur(0px)'
   },
   scrolled: {
-    maxWidth: 880,
-    paddingLeft: 20,
-    paddingRight: 20,
+    maxWidth: 1000,
+    paddingLeft: 28,
+    paddingRight: 28,
     paddingTop: 10,
     paddingBottom: 10,
-    borderRadius: 999,
+    borderRadius: 10,
     y: -8,
     backgroundColor: 'rgba(255, 255, 255, 0.30)',
     borderColor: 'rgba(255, 255, 255, 0.30)',
@@ -54,7 +55,7 @@ export function Navbar() {
   const isHome = pathname === '/'
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const isHero = isHome && !isScrolled
+  const isHero = !isScrolled
   const textPrimary = 'text-gray-900'
   const textMuted = 'text-gray-700'
   const textHover = 'hover:text-gray-900'
@@ -84,7 +85,7 @@ export function Navbar() {
         animate={navMotion}
         transition={transition}
         className={[
-          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border`
+          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border ${isScrolled ? 'rounded-[10px]' : ''}`
         ].join(' ')}
       >
         <Link
@@ -105,40 +106,38 @@ export function Navbar() {
           </span> */}
         </Link>
 
-        <div className={`hidden items-center ${isHero ? 'gap-2' : 'gap-1'} md:flex`}>
-          <motion.div
-            className={`relative rounded-full ${isHero ? 'p-1' : 'p-0.5'}`}
-            animate={{ backgroundColor: navRailBg }}
-            transition={transition}
-          >
-            <div className={`flex items-center ${isHero ? 'gap-1' : 'gap-0.5'}`}>
-              {navItems.map((item) => {
-                const isActive = pathname === item.href
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`relative rounded-full text-sm font-medium transition ${
-                      isActive ? 'text-white' : textMuted
-                    } ${isActive ? '' : textHover} ${
-                      isHero ? 'px-4 py-2' : 'px-3 py-1.5'
-                    }`}
-                  >
-                    {isActive ? (
-                      <motion.span
-                        layoutId="navbar-pill"
-                        className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
-                        transition={transition}
-                      />
-                    ) : null}
-                    <span className="relative z-10">{item.label}</span>
-                  </Link>
-                )
-              })}
-            </div>
-          </motion.div>
-        </div>
+        <motion.div
+          className={`relative hidden items-center md:flex ${isHero ? 'rounded-full gap-2 p-1' : 'gap-1 p-0'}`}
+          animate={{ backgroundColor: isHero ? navRailBg : 'transparent' }}
+          transition={transition}
+        >
+          <div className={`flex items-center ${isHero ? 'gap-1' : 'gap-0.5'}`}>
+            {navItems.map((item) => {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`relative rounded-full text-sm font-medium transition ${
+                    isActive ? 'text-white' : textMuted
+                  } ${isActive ? '' : textHover} ${
+                    isHero ? 'px-4 py-2' : 'px-3 py-1.5'
+                  }`}
+                >
+                  {isActive ? (
+                    <motion.span
+                      layoutId="navbar-pill"
+                      className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
+                      transition={transition}
+                    />
+                  ) : null}
+                  <span className="relative z-10">{item.label}</span>
+                </Link>
+              )
+            })}
+          </div>
+        </motion.div>
 
         <div className={`hidden items-center ${isHero ? 'gap-3' : 'gap-2'} md:flex`}>
           <motion.div
@@ -161,11 +160,38 @@ export function Navbar() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/sign-up"
-              className={`inline-flex items-center justify-center rounded-full bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] transition ${
-                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+              className={`inline-flex items-center justify-center group rounded-full transition ${
+                isScrolled
+                  ? 'gap-2.5 px-6 py-3 font-semibold tracking-tight text-white bg-gradient-to-r from-[#AD0819] to-[#E11D48] shadow-[0_10px_30px_rgba(225,29,72,0.35)] hover:shadow-[0_20px_40px_rgba(225,29,72,0.45)] hover:-translate-y-0.5 transition-all duration-300'
+                  : `text-sm font-semibold text-white bg-[#C41E3A] shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
+                      isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+                    }`
               }`}
             >
-              Sign Up
+              {isScrolled ? (
+                <>
+                  <span>Get Started</span>
+                  <motion.div
+                    animate={{
+                      x: [0, 1.5, 0],
+                      opacity: [0.95, 1, 0.95]
+                    }}
+                    transition={{
+                      duration: 2.5,
+                      repeat: Infinity,
+                      ease: 'easeInOut'
+                    }}
+                    className="group/arrow relative inline-flex items-center justify-center"
+                  >
+                    <ArrowRight
+                      strokeWidth={1.5}
+                      className="h-5 w-5 text-white transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-[1px]"
+                    />
+                  </motion.div>
+                </>
+              ) : (
+                'Sign Up'
+              )}
             </Link>
           </motion.div>
         </div>

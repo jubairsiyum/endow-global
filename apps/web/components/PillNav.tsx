@@ -236,7 +236,7 @@ const PillNav = ({
     href.startsWith('tel:') ||
     href.startsWith('#');
 
-  const isRouterLink = (href: string): boolean => !!(href && !isExternalLink(href));
+  const isRouterLink = (href: string): boolean => !!href && !isExternalLink(href);
 
   const cssVars = {
     ['--base' as any]: baseColor,

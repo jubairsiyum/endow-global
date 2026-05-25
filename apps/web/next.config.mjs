@@ -5,6 +5,7 @@ const nextConfig = {
       "www.google.com",
       "github.githubassets.com",
       "upload.wikimedia.org",
+      "images.unsplash.com",
     ],
   },
 };

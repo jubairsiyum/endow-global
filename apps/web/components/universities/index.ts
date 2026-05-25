@@ -1,0 +1,13 @@
+export { default as HeroSection } from "./hero-section";
+export { default as FeaturedUniversities } from "./featured-universities";
+export { default as StatisticsSection } from "./statistics-section";
+export { default as CountryExplorer } from "./country-explorer";
+export { default as ScholarshipSpotlight } from "./scholarship-spotlight";
+export { default as StudentSuccessStories } from "./student-success-stories";
+export { default as ApplicationRoadmap } from "./application-roadmap";
+export { default as PremiumConsultationCTA } from "./premium-consultation-cta";
+export { default as UniversitiesFooter } from "./footer";
+export { default as UniversityMarquee } from "./university-marquee";
+export { default as StickyFilterBar } from "./sticky-filter-bar";
+export { default as UniversityComparisonModal } from "./comparison-modal";
+export { default as AIMatcher } from "./ai-matcher";

@@ -1,36 +1,35 @@
 "use client";
 
-import { usePathname, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { useAuthMode } from "./AuthContext";
 
 export default function AuthTabToggle() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const isSignIn = pathname === "/sign-in";
+  const { mode, setMode } = useAuthMode();
+  const isSignIn = mode === "signin";
 
   const handleSignInClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isSignIn) {
-      router.push("/sign-in");
+      setMode("signin");
     }
   };
 
   const handleSignUpClick = (e: React.MouseEvent) => {
     e.preventDefault();
     if (isSignIn) {
-      router.push("/sign-up");
+      setMode("signup");
     }
   };
 
   return (
     <div className="flex justify-center w-full mb-8">
-      <motion.div
+      <div
         className="
           relative
           flex
           items-center
           gap-0
-          p-[4px]
+          p-1
           h-[52px]
           w-fit
           rounded-full
@@ -39,108 +38,125 @@ export default function AuthTabToggle() {
           border
           border-white/20
           shadow-[0_10px_30px_rgba(0,0,0,0.12)]
+          overflow-hidden
         "
-        initial={false}
       >
-        {/* Animated Active Background */}
-        <motion.div
-          className="
-            absolute
-            inset-y-[4px]
-            w-[calc(50%-2px)]
-            rounded-full
-            bg-gradient-to-r
-            from-red-500
-            to-rose-600
-            shadow-[0_8px_24px_rgba(255,0,80,0.35)]
-          "
-          animate={{
-            x: isSignIn ? 0 : "calc(100% + 4px)",
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 28,
-          }}
-        >
-          {/* Subtle Glass Overlay */}
-          <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
-        </motion.div>
-
-        {/* Sign In Button */}
+        {/* Sign In Button Container */}
         <button
           onClick={handleSignInClick}
-          className={`
+          className="
             relative
-            z-10
             flex
+            flex-1
             items-center
             justify-center
             h-full
-            px-8
+            px-7
             py-3
             text-sm
             font-medium
-            transition-colors
-            duration-300
-            min-w-[96px]
             cursor-pointer
             bg-transparent
             border-none
-          `}
+            min-w-[100px]
+          "
         >
+          {/* Active Pill - Only renders when Sign In is active */}
+          {isSignIn && (
+            <motion.div
+              layoutId="activePill"
+              className="
+                absolute
+                inset-1
+                rounded-full
+                bg-gradient-to-r
+                from-red-500
+                to-rose-600
+                shadow-[0_8px_24px_rgba(255,0,80,0.35)]
+              "
+            >
+              {/* Subtle Glass Overlay */}
+              <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
+            </motion.div>
+          )}
+
+          {/* Sign In Text - Always on top */}
           <span
             className={`
+              relative
+              z-10
+              whitespace-nowrap
+              transition-colors
+              duration-300
               ${
                 isSignIn
                   ? "text-white"
                   : "text-gray-500 hover:text-gray-900"
               }
-              transition-colors
-              duration-300
             `}
           >
             Sign In
           </span>
         </button>
 
-        {/* Sign Up Button */}
+        {/* Sign Up Button Container */}
         <button
           onClick={handleSignUpClick}
-          className={`
+          className="
             relative
-            z-10
             flex
+            flex-1
             items-center
             justify-center
             h-full
-            px-8
+            px-7
             py-3
             text-sm
             font-medium
-            transition-colors
-            duration-300
-            min-w-[96px]
             cursor-pointer
             bg-transparent
             border-none
-          `}
+            min-w-[100px]
+          "
         >
+          {/* Active Pill - Only renders when Sign Up is active */}
+          {!isSignIn && (
+            <motion.div
+              layoutId="activePill"
+              className="
+                absolute
+                inset-1
+                rounded-full
+                bg-gradient-to-r
+                from-red-500
+                to-rose-600
+                shadow-[0_8px_24px_rgba(255,0,80,0.35)]
+              "
+            >
+              {/* Subtle Glass Overlay */}
+              <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
+            </motion.div>
+          )}
+
+          {/* Sign Up Text - Always on top */}
           <span
             className={`
+              relative
+              z-10
+              whitespace-nowrap
+              transition-colors
+              duration-300
               ${
                 !isSignIn
                   ? "text-white"
                   : "text-gray-500 hover:text-gray-900"
               }
-              transition-colors
-              duration-300
             `}
           >
             Sign Up
           </span>
         </button>
-      </motion.div>
+      </div>
     </div>
   );
 }
