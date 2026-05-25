@@ -1,1 +1,1 @@
-export { prisma } from '@endow/db'
+export { db, schema } from '@endow/db'

@@ -1,16 +1,24 @@
-import { PrismaClient } from '@prisma/client'
+import { drizzle } from 'drizzle-orm/mysql2'
+import mysql from 'mysql2/promise'
+import type { MySql2Database } from 'drizzle-orm/mysql2'
+import * as schema from './schema'
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined
+type DrizzleDb = MySql2Database<typeof schema>
+
+const globalForDb = globalThis as unknown as {
+  db: DrizzleDb | undefined
 }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+function createDb(): DrizzleDb {
+  const pool = mysql.createPool({
+    uri: process.env.DATABASE_URL,
   })
+  return drizzle(pool, { schema, mode: 'default' }) as DrizzleDb
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+export const db = globalForDb.db ?? createDb()
 
-export * from '@prisma/client'
-export type { Prisma } from '@prisma/client'
+if (process.env.NODE_ENV !== 'production') globalForDb.db = db
+
+export { schema }
+export * from './schema'

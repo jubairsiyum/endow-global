@@ -4,7 +4,8 @@ import { ConversationalRetrievalQAChain } from 'langchain/chains'
 import { getVectorStore, CHATBOT_SYSTEM_PROMPT } from '@/lib/openai'
 import { auth } from '@/lib/auth'
 import { rateLimit } from '@/lib/redis'
-import { prisma } from '@/lib/db'
+import { db, schema } from '@/lib/db'
+import { eq } from 'drizzle-orm'
 
 export const runtime = 'nodejs'
 
@@ -46,15 +47,16 @@ export async function POST(req: Request) {
 
   // Save chat history async
   if (sessionId) {
-    prisma.chatHistory.findFirst({ where: { sessionId } }).then(existing => {
+    db.query.chatHistory.findFirst({ where: (ch, { eq }) => eq(ch.sessionId, sessionId) }).then(existing => {
       if (existing) {
-        return prisma.chatHistory.update({
-          where: { id: existing.id },
-          data: { messages, updatedAt: new Date() },
-        })
+        return db.update(schema.chatHistory)
+          .set({ messages, updatedAt: new Date() })
+          .where(eq(schema.chatHistory.id, existing.id))
       } else {
-        return prisma.chatHistory.create({
-          data: { sessionId, userId: userId === 'anonymous' ? null : userId, messages },
+        return db.insert(schema.chatHistory).values({
+          sessionId,
+          userId: userId === 'anonymous' ? null : userId,
+          messages,
         })
       }
     }).catch(console.error)

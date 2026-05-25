@@ -1,48 +1,50 @@
-import { PrismaClient, UserRole, CourseLevel, EducationLevel } from '@prisma/client'
+import { db, schema } from '../..'
+import { eq } from 'drizzle-orm'
 import { hash } from 'bcryptjs'
-
-const prisma = new PrismaClient()
 
 async function main() {
   console.log('🌱 Seeding database...')
 
-  // ── Admin user
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@endowglobal.com' },
-    update: {},
-    create: {
+  const existingAdmin = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.email, 'admin@endowglobal.com'),
+  })
+  if (!existingAdmin) {
+    await db.insert(schema.users).values({
       email: 'admin@endowglobal.com',
       name: 'Endow Admin',
-      role: UserRole.ADMIN,
+      role: 'ADMIN',
       emailVerified: new Date(),
-    },
-  })
-  console.log('✅ Admin user created:', adminUser.email)
+    })
+    console.log('✅ Admin user created')
+  }
 
-  // ── Counselor user
-  const counselorUser = await prisma.user.upsert({
-    where: { email: 'sarah@endowglobal.com' },
-    update: {},
-    create: {
+  const existingCounselor = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.email, 'sarah@endowglobal.com'),
+  })
+  if (!existingCounselor) {
+    await db.insert(schema.users).values({
       email: 'sarah@endowglobal.com',
       name: 'Sarah Thompson',
-      role: UserRole.COUNSELOR,
+      role: 'COUNSELOR',
       emailVerified: new Date(),
-      counselorProfile: {
-        create: {
-          bio: 'Senior education counselor with 8 years of experience helping students achieve their UK and Australia study goals.',
-          expertiseCountries: ['United Kingdom', 'Australia', 'Canada'],
-          expertiseSubjects: ['Computer Science', 'Business', 'Engineering'],
-          languages: ['English', 'Bengali'],
-          sessionRate: 2500,
-          isAvailable: true,
-        },
-      },
-    },
-  })
-  console.log('✅ Counselor user created:', counselorUser.email)
+    })
+    const counselorUser = await db.query.users.findFirst({
+      where: (u, { eq }) => eq(u.email, 'sarah@endowglobal.com'),
+    })
+    if (counselorUser) {
+      await db.insert(schema.counselorProfiles).values({
+        userId: counselorUser.id,
+        bio: 'Senior education counselor with 8 years of experience helping students achieve their UK and Australia study goals.',
+        expertiseCountries: JSON.stringify(['United Kingdom', 'Australia', 'Canada']),
+        expertiseSubjects: JSON.stringify(['Computer Science', 'Business', 'Engineering']),
+        languages: JSON.stringify(['English', 'Bengali']),
+        sessionRate: 2500,
+        isAvailable: true,
+      })
+    }
+    console.log('✅ Counselor user created')
+  }
 
-  // ── Universities
   const universities = [
     {
       name: 'University of Manchester',
@@ -83,59 +85,73 @@ async function main() {
   ]
 
   for (const uni of universities) {
-    const created = await prisma.university.upsert({
-      where: { slug: uni.slug },
-      update: {},
-      create: {
+    const existing = await db.query.universities.findFirst({
+      where: (u, { eq }) => eq(u.slug, uni.slug),
+    })
+    if (!existing) {
+      await db.insert(schema.universities).values({
         ...uni,
         isActive: true,
-        courses: {
-          create: [
-            {
-              name: `MSc Computer Science`,
-              slug: `${uni.slug}-msc-cs`,
-              subject: 'Computer Science',
-              level: CourseLevel.POSTGRADUATE,
-              duration: 1,
-              durationUnit: 'YEARS',
-              tuitionFee: 28000,
-              currency: 'GBP',
-              applicationDeadline: new Date('2025-06-30'),
-              startDate: new Date('2025-09-15'),
-              language: 'English',
-              requirements: ['Bachelors in CS or related', 'IELTS 6.5+', 'References x2'],
-              hasScholarship: true,
-              scholarshipDetails: 'Merit-based scholarship up to 30% tuition reduction',
-              description: `Study Computer Science at ${uni.name} with world-class faculty and cutting-edge research facilities.`,
-              isActive: true,
-            },
-            {
-              name: `MBA Business Administration`,
-              slug: `${uni.slug}-mba`,
-              subject: 'Business',
-              level: CourseLevel.POSTGRADUATE,
-              duration: 2,
-              durationUnit: 'YEARS',
-              tuitionFee: 35000,
-              currency: 'GBP',
-              applicationDeadline: new Date('2025-05-31'),
-              startDate: new Date('2025-09-15'),
-              language: 'English',
-              requirements: ['Bachelors degree', '3 years work experience', 'GMAT 600+', 'IELTS 7.0+'],
-              hasScholarship: false,
-              description: `Transform your career with an MBA from ${uni.name}.`,
-              isActive: true,
-            },
-          ],
-        },
-      },
-    })
-    console.log('✅ University seeded:', created.name)
+      })
+      const created = await db.query.universities.findFirst({
+        where: (u, { eq }) => eq(u.slug, uni.slug),
+      })
+      if (created) {
+        const csSlug = `${uni.slug}-msc-cs`
+        const existingCs = await db.query.courses.findFirst({
+          where: (c, { eq }) => eq(c.slug, csSlug),
+        })
+        if (!existingCs) {
+          await db.insert(schema.courses).values({
+            universityId: created.id,
+            name: 'MSc Computer Science',
+            slug: csSlug,
+            subject: 'Computer Science',
+            level: 'POSTGRADUATE',
+            duration: 1,
+            durationUnit: 'YEARS',
+            tuitionFee: 28000,
+            currency: 'GBP',
+            applicationDeadline: new Date('2025-06-30'),
+            startDate: new Date('2025-09-15'),
+            language: 'English',
+            requirements: JSON.stringify(['Bachelors in CS or related', 'IELTS 6.5+', 'References x2']),
+            hasScholarship: true,
+            scholarshipDetails: 'Merit-based scholarship up to 30% tuition reduction',
+            description: `Study Computer Science at ${uni.name} with world-class faculty and cutting-edge research facilities.`,
+            isActive: true,
+          })
+        }
+        const mbaSlug = `${uni.slug}-mba`
+        const existingMba = await db.query.courses.findFirst({
+          where: (c, { eq }) => eq(c.slug, mbaSlug),
+        })
+        if (!existingMba) {
+          await db.insert(schema.courses).values({
+            universityId: created.id,
+            name: 'MBA Business Administration',
+            slug: mbaSlug,
+            subject: 'Business',
+            level: 'POSTGRADUATE',
+            duration: 2,
+            durationUnit: 'YEARS',
+            tuitionFee: 35000,
+            currency: 'GBP',
+            applicationDeadline: new Date('2025-05-31'),
+            startDate: new Date('2025-09-15'),
+            language: 'English',
+            requirements: JSON.stringify(['Bachelors degree', '3 years work experience', 'GMAT 600+', 'IELTS 7.0+']),
+            hasScholarship: false,
+            description: `Transform your career with an MBA from ${uni.name}.`,
+            isActive: true,
+          })
+        }
+      }
+      console.log('✅ University seeded:', uni.name)
+    }
   }
 
   console.log('🎉 Seeding complete!')
 }
 
-main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect())
+main().catch(console.error)

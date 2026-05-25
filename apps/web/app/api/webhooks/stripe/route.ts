@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { prisma } from '@/lib/db'
+import { db, schema } from '@/lib/db'
+import { eq, sql } from 'drizzle-orm'
 
 export async function POST(req: Request) {
   const body = await req.text()
@@ -17,16 +18,14 @@ export async function POST(req: Request) {
     case 'payment_intent.succeeded': {
       const pi = event.data.object
       if (pi.metadata?.type === 'session_payment') {
-        await prisma.bookingSession.update({
-          where: { id: pi.metadata.sessionId },
-          data: { stripePaymentId: pi.id, amountPaid: pi.amount / 100 },
-        })
+        await db.update(schema.bookingSessions)
+          .set({ stripePaymentId: pi.id, amountPaid: pi.amount / 100 })
+          .where(eq(schema.bookingSessions.id, pi.metadata.sessionId))
       }
       if (pi.metadata?.type === 'referral_redeem') {
-        await prisma.studentProfile.update({
-          where: { id: pi.metadata.studentProfileId },
-          data: { referralBalance: { decrement: parseInt(pi.metadata.creditsUsed) } },
-        })
+        await db.update(schema.studentProfiles)
+          .set({ referralBalance: sql`referral_balance - ${parseInt(pi.metadata.creditsUsed)}` })
+          .where(eq(schema.studentProfiles.id, pi.metadata.studentProfileId))
       }
       break
     }
