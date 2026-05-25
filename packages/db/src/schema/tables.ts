@@ -5,13 +5,13 @@ function genId() {
   return globalThis.crypto.randomUUID()
 }
 
-// ─── Auth (shaped for @auth/drizzle-adapter compatibility) ──
+// ─── Auth (BetterAuth-compatible schema) ──────────────────────
 
 export const users = mysqlTable('user', {
   id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
   name: varchar('name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  emailVerified: timestamp('email_verified', { mode: 'date', fsp: 3 }),
+  emailVerified: boolean('email_verified').default(false).notNull(),
   image: varchar('image', { length: 255 }),
   role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN']).default('STUDENT').notNull(),
   fcmToken: varchar('fcm_token', { length: 255 }),
@@ -21,34 +21,44 @@ export const users = mysqlTable('user', {
   emailIdx: uniqueIndex('email_idx').on(table.email),
 }))
 
-export const accounts = mysqlTable('account', {
-  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar('type', { length: 255 }).notNull(),
-  provider: varchar('provider', { length: 255 }).notNull(),
-  providerAccountId: varchar('provider_account_id', { length: 255 }).notNull(),
-  refresh_token: varchar('refresh_token', { length: 255 }),
-  access_token: varchar('access_token', { length: 255 }),
-  expires_at: int('expires_at'),
-  token_type: varchar('token_type', { length: 255 }),
-  scope: varchar('scope', { length: 255 }),
-  id_token: varchar('id_token', { length: 2048 }),
-  session_state: varchar('session_state', { length: 255 }),
-}, (table) => ({
-  compositePk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
-}))
-
 export const sessions = mysqlTable('session', {
-  sessionToken: varchar('session_token', { length: 255 }).primaryKey(),
+  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
+  token: varchar('session_token', { length: 255 }).notNull().unique(),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  expires: timestamp('expires', { mode: 'date' }).notNull(),
+  expiresAt: timestamp('expires', { mode: 'date' }).notNull(),
+  ipAddress: varchar('ip_address', { length: 255 }),
+  userAgent: varchar('user_agent', { length: 255 }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
-export const verificationTokens = mysqlTable('verification_token', {
-  identifier: varchar('identifier', { length: 255 }).notNull(),
-  token: varchar('token', { length: 255 }).notNull(),
-  expires: timestamp('expires', { mode: 'date' }).notNull(),
+export const accounts = mysqlTable('account', {
+  id: varchar('id', { length: 255 }).notNull().unique().$defaultFn(genId),
+  accountId: varchar('provider_account_id', { length: 255 }).notNull(),
+  providerId: varchar('provider', { length: 255 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('expires_at', { mode: 'date' }),
+  refreshTokenExpiresAt: timestamp('refresh_expires_at', { mode: 'date' }),
+  scope: varchar('scope', { length: 255 }),
+  password: varchar('password', { length: 255 }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
-  compositePk: primaryKey({ columns: [table.identifier, table.token] }),
+  compositePk: primaryKey({ columns: [table.providerId, table.accountId] }),
+}))
+
+export const verificationTokens = mysqlTable('verification_token', {
+  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
+  identifier: varchar('identifier', { length: 255 }).notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+}, (table) => ({
+  identifierIdx: uniqueIndex('identifier_idx').on(table.identifier),
 }))
 
 // ─── User & Profile ────────────────────────────────────────

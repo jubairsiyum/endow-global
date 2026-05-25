@@ -10,9 +10,14 @@ const globalForDb = globalThis as unknown as {
 }
 
 function createDb(): DrizzleDb {
-  const pool = mysql.createPool({
-    uri: process.env.DATABASE_URL,
-  })
+  const databaseUrl = process.env.DATABASE_URL
+
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required')
+  }
+
+  const pool = mysql.createPool(databaseUrl)
+
   return drizzle(pool, { schema, mode: 'default' }) as DrizzleDb
 }
 

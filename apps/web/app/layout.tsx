@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Quicksand } from "next/font/google";
 
-import { SessionProvider } from "next-auth/react";
+
 import { TRPCReactProvider } from "@/lib/trpc-client";
 
 import { Toaster } from "sonner";
@@ -100,7 +100,7 @@ export default function RootLayout({
       <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#ffffff] dark:text-white">
         
         <ThemeProvider>
-          <SessionProvider>
+          <>
             
             <TRPCReactProvider>
               {children}
@@ -112,7 +112,7 @@ export default function RootLayout({
               />
             </TRPCReactProvider>
 
-          </SessionProvider>
+          </>
         </ThemeProvider>
 
       </body>
