@@ -8,6 +8,14 @@ const nextConfig = {
       "images.unsplash.com",
     ],
   },
+  experimental: {
+    serverComponentsExternalPackages: [
+      "better-auth",
+      "@better-auth/kysely-adapter",
+      "@better-auth/drizzle-adapter",
+      "kysely",
+    ],
+  },
 };
 
 export default nextConfig;

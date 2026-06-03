@@ -24,33 +24,33 @@ export const users = mysqlTable('user', {
 export const accounts = mysqlTable('account', {
   id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  providerId: varchar('provider', { length: 255 }).notNull(),
-  accountId: varchar('provider_account_id', { length: 255 }).notNull(),
+  providerId: varchar('provider_id', { length: 255 }).notNull(),
+  accountId: varchar('account_id', { length: 255 }).notNull(),
   accessToken: text('access_token'),
   refreshToken: text('refresh_token'),
   idToken: text('id_token'),
-  accessTokenExpiresAt: timestamp('expires_at', { mode: 'date' }),
-  refreshTokenExpiresAt: timestamp('refresh_expires_at', { mode: 'date' }),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }),
   scope: varchar('scope', { length: 255 }),
   password: varchar('password', { length: 255 }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
-  providerAccountIdIdx: uniqueIndex('provider_account_idx').on(table.providerId, table.accountId),
+  providerAccountIdIdx: uniqueIndex('provider_account_idx').on(table.providerId, table.accountId),  
 }))
 
 export const sessions = mysqlTable('session', {
   id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
-  token: varchar('session_token', { length: 255 }).notNull().unique(),
+  token: varchar('token', { length: 255 }).notNull().unique(),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  expiresAt: timestamp('expires', { mode: 'date' }).notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
   ipAddress: varchar('ip_address', { length: 255 }),
   userAgent: varchar('user_agent', { length: 255 }),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
-export const verificationTokens = mysqlTable('verification_token', {
+export const verificationTokens = mysqlTable('verification', {
   id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
   identifier: varchar('identifier', { length: 255 }).notNull().unique(),
   value: text('value').notNull(),
