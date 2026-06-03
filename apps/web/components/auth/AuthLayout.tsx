@@ -4,9 +4,7 @@ import BackgroundDecor from "./BackgroundDecor";
 import LeftShowcase from "./LeftShowcase";
 import UnifiedAuthForm from "./UnifiedAuthForm";
 import { AuthProvider } from "./AuthContext";
-import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
-import { useMemo } from "react";
 
 export default function AuthLayout({
   initialMode = "signin",
@@ -14,25 +12,24 @@ export default function AuthLayout({
   initialMode?: "signin" | "signup";
 } = {}) {
   const pathname = usePathname();
-  
-  // Determine mode based on current pathname
-  const currentMode = useMemo(() => {
-    if (pathname?.includes("/sign-up")) return "signup";
-    return "signin";
-  }, [pathname]);
+  const currentMode = pathname?.includes("/sign-up") ? "signup" : initialMode;
 
   return (
     <AuthProvider initialMode={currentMode}>
       <main
         className="
           relative
-          h-screen
+          min-h-screen
           w-full
-          overflow-hidden
-          bg-[#f8f6f6]
+          overflow-x-hidden
+          bg-[#f7f2ec]
           flex
           items-center
           justify-center
+          px-4
+          py-6
+          sm:px-6
+          lg:px-8
         "
       >
 
@@ -43,18 +40,14 @@ export default function AuthLayout({
         <div
           className="
             absolute
-            top-[-200px]
-            right-[-100px]
-            w-[500px]
-            h-[500px]
+            top-[-220px]
+            right-[-140px]
+            h-[520px]
+            w-[520px]
             rounded-full
-            bg-red-200/40
+            bg-red-200/45
             blur-3xl
             pointer-events-none
-            sm:w-[400px]
-            sm:h-[400px]
-            lg:w-[500px]
-            lg:h-[500px]
           "
         />
 
@@ -62,94 +55,83 @@ export default function AuthLayout({
         <div
           className="
             absolute
-            bottom-[-250px]
-            left-[-150px]
-            w-[450px]
-            h-[450px]
+            bottom-[-260px]
+            left-[-180px]
+            h-[500px]
+            w-[500px]
             rounded-full
-            bg-red-100/40
+            bg-amber-200/35
             blur-3xl
             pointer-events-none
-            sm:w-[350px]
-            sm:h-[350px]
-            lg:w-[450px]
-            lg:h-[450px]
           "
         />
 
-        {/* Main Wrapper - Responsive with Padding */}
         <div
           className="
             relative
             z-10
             w-full
-            h-full
-            max-w-6xl
+            max-w-7xl
+            min-h-[calc(100vh-3rem)]
             flex
             flex-col
             lg:flex-row
             items-center
-            justify-between
-            gap-3
-            sm:gap-4
-            lg:gap-6
-            px-4
-            sm:px-6
-            md:px-8
-            lg:px-8
+            justify-center
+            gap-8
+            lg:gap-12
           "
         >
 
-          {/* Left Side */}
           <LeftShowcase />
 
-          {/* Right Side - Responsive Form Container */}
           <div
             className="
               w-full
-              sm:w-full
-              md:w-full
-              lg:w-[46%]
+              lg:w-[45%]
               relative
               flex
               items-center
               justify-center
-              min-h-screen
-              lg:min-h-0
             "
           >
 
-            {/* Glass Card - Responsive */}
             <div
               className="
                 relative
                 overflow-hidden
-                rounded-2xl
-                sm:rounded-3xl
-                lg:rounded-3xl
+                rounded-[2rem]
                 border
-                border-white/40
-                bg-white/55
-                backdrop-blur-[30px]
-                shadow-[0_20px_80px_rgba(0,0,0,0.08)]
-                p-4
-                sm:p-5
-                md:p-6
-                lg:p-7
+                border-white/70
+                bg-white/88
+                backdrop-blur-2xl
+                shadow-[0_28px_90px_rgba(62,35,24,0.16)]
+                p-5
+                sm:p-7
+                lg:p-8
                 w-full
-                max-w-sm
-                sm:max-w-sm
-                lg:max-w-sm
+                max-w-[460px]
               "
             >
 
-              {/* Inner Glow */}
               <div
                 className="
                   absolute
                   inset-0
-                  bg-gradient-to-br
-                  from-white/40
+                  bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.92),transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.48),transparent)]
+                  pointer-events-none
+                "
+              />
+
+              <div
+                className="
+                  absolute
+                  inset-x-8
+                  top-0
+                  h-px
+                  bg-gradient-to-r
+                  from-transparent
+                  via-red-300/80
                   to-transparent
                   pointer-events-none
                 "

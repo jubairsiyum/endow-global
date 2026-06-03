@@ -1,7 +1,5 @@
-'use client'
-
-import AuthPage from '@/components/auth/AuthPage'
+import AuthLayout from "@/components/auth/AuthLayout";
 
 export default function LoginPage() {
-  return <AuthPage mode="login" />
+  return <AuthLayout initialMode="signin" />;
 }

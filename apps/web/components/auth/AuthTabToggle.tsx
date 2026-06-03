@@ -22,7 +22,7 @@ export default function AuthTabToggle() {
   };
 
   return (
-    <div className="flex justify-center w-full mb-8">
+    <div className="mb-7 flex w-full justify-center">
       <div
         className="
           relative
@@ -30,18 +30,17 @@ export default function AuthTabToggle() {
           items-center
           gap-0
           p-1
-          h-[52px]
-          w-fit
-          rounded-full
-          bg-white/10
+          h-12
+          w-full
+          rounded-2xl
+          bg-slate-100/90
           backdrop-blur-xl
           border
-          border-white/20
-          shadow-[0_10px_30px_rgba(0,0,0,0.12)]
+          border-slate-200/80
+          shadow-inner
           overflow-hidden
         "
       >
-        {/* Sign In Button Container */}
         <button
           onClick={handleSignInClick}
           className="
@@ -51,36 +50,32 @@ export default function AuthTabToggle() {
             items-center
             justify-center
             h-full
-            px-7
+            px-5
             py-3
             text-sm
-            font-medium
+            font-bold
             cursor-pointer
             bg-transparent
             border-none
-            min-w-[100px]
           "
         >
-          {/* Active Pill - Only renders when Sign In is active */}
           {isSignIn && (
             <motion.div
               layoutId="activePill"
               className="
                 absolute
                 inset-1
-                rounded-full
+                rounded-[0.85rem]
                 bg-gradient-to-r
-                from-red-500
-                to-rose-600
-                shadow-[0_8px_24px_rgba(255,0,80,0.35)]
+                from-slate-950
+                to-red-900
+                shadow-[0_12px_26px_rgba(127,29,29,0.24)]
               "
             >
-              {/* Subtle Glass Overlay */}
               <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
             </motion.div>
           )}
 
-          {/* Sign In Text - Always on top */}
           <span
             className={`
               relative
@@ -91,7 +86,7 @@ export default function AuthTabToggle() {
               ${
                 isSignIn
                   ? "text-white"
-                  : "text-gray-500 hover:text-gray-900"
+                  : "text-slate-500 hover:text-slate-950"
               }
             `}
           >
@@ -109,36 +104,32 @@ export default function AuthTabToggle() {
             items-center
             justify-center
             h-full
-            px-7
+            px-5
             py-3
             text-sm
-            font-medium
+            font-bold
             cursor-pointer
             bg-transparent
             border-none
-            min-w-[100px]
           "
         >
-          {/* Active Pill - Only renders when Sign Up is active */}
           {!isSignIn && (
             <motion.div
               layoutId="activePill"
               className="
                 absolute
                 inset-1
-                rounded-full
+                rounded-[0.85rem]
                 bg-gradient-to-r
-                from-red-500
-                to-rose-600
-                shadow-[0_8px_24px_rgba(255,0,80,0.35)]
+                from-slate-950
+                to-red-900
+                shadow-[0_12px_26px_rgba(127,29,29,0.24)]
               "
             >
-              {/* Subtle Glass Overlay */}
               <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
             </motion.div>
           )}
 
-          {/* Sign Up Text - Always on top */}
           <span
             className={`
               relative
@@ -149,7 +140,7 @@ export default function AuthTabToggle() {
               ${
                 !isSignIn
                   ? "text-white"
-                  : "text-gray-500 hover:text-gray-900"
+                  : "text-slate-500 hover:text-slate-950"
               }
             `}
           >

@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import SocialButtons from "./SocialButtons";
 import AuthTabToggle from "./AuthTabToggle";
 
@@ -15,33 +13,33 @@ export default function SignUpForm() {
   return (
     <div className="flex flex-col justify-center h-full">
 
-      {/* Premium Segmented Glass Toggle */}
       <AuthTabToggle />
 
-      {/* Heading */}
-      <div className="text-center">
+      <div className="text-left">
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-700">
+          Start your journey
+        </p>
 
-        <h2 className="text-2xl font-bold tracking-tight text-black">
+        <h2 className="text-3xl font-black tracking-[-0.04em] text-slate-950">
           Create your{" "}
           <span className="text-red-700">
             account
           </span>
         </h2>
 
-        <p className="mt-1 text-gray-700 text-xs">
-          Join Endow Global Education today
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Build your profile and let our counselors help map your best-fit
+          university options.
         </p>
 
       </div>
 
-      {/* Form */}
-      <div className="mt-5 space-y-2">
+      <div className="mt-7 space-y-4">
 
-        {/* Name + Email */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-4 sm:grid-cols-2">
 
           <div>
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
               Name
             </label>
 
@@ -50,22 +48,22 @@ export default function SignUpForm() {
                 mt-1
                 flex
                 items-center
-                h-11
-                rounded-xl
+                min-h-[52px]
+                rounded-2xl
                 border
-                border-white/60
-                bg-white/70
+                border-slate-200
+                bg-white
                 backdrop-blur-xl
-                shadow-sm
-                px-3
+                shadow-[0_10px_24px_rgba(15,23,42,0.05)]
+                px-4
                 transition-all
-                focus-within:border-red-700
-                focus-within:ring-2
-                focus-within:ring-red-100
+                focus-within:border-red-400
+                focus-within:ring-4
+                focus-within:ring-red-100/80
               "
             >
               <User
-                className="text-gray-400"
+                className="text-slate-400"
                 size={18}
               />
 
@@ -79,15 +77,16 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
-                  text-gray-800
-                  placeholder:text-gray-400
+                  font-medium
+                  text-slate-900
+                  placeholder:text-slate-400
                 "
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
               Email
             </label>
 
@@ -96,22 +95,22 @@ export default function SignUpForm() {
                 mt-1
                 flex
                 items-center
-                h-11
-                rounded-xl
+                min-h-[52px]
+                rounded-2xl
                 border
-                border-white/60
-                bg-white/70
+                border-slate-200
+                bg-white
                 backdrop-blur-xl
-                shadow-sm
-                px-3
+                shadow-[0_10px_24px_rgba(15,23,42,0.05)]
+                px-4
                 transition-all
-                focus-within:border-red-700
-                focus-within:ring-2
-                focus-within:ring-red-100
+                focus-within:border-red-400
+                focus-within:ring-4
+                focus-within:ring-red-100/80
               "
             >
               <Mail
-                className="text-gray-400"
+                className="text-slate-400"
                 size={18}
               />
 
@@ -125,8 +124,9 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
-                  text-gray-800
-                  placeholder:text-gray-400
+                  font-medium
+                  text-slate-900
+                  placeholder:text-slate-400
                 "
               />
             </div>
@@ -134,11 +134,10 @@ export default function SignUpForm() {
 
         </div>
 
-        {/* Password + Confirm */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid gap-4 sm:grid-cols-2">
 
           <div>
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
               Password
             </label>
 
@@ -147,22 +146,22 @@ export default function SignUpForm() {
                 mt-1
                 flex
                 items-center
-                h-11
-                rounded-xl
+                min-h-[52px]
+                rounded-2xl
                 border
-                border-white/60
-                bg-white/70
+                border-slate-200
+                bg-white
                 backdrop-blur-xl
-                shadow-sm
-                px-3
+                shadow-[0_10px_24px_rgba(15,23,42,0.05)]
+                px-4
                 transition-all
-                focus-within:border-red-700
-                focus-within:ring-2
-                focus-within:ring-red-100
+                focus-within:border-red-400
+                focus-within:ring-4
+                focus-within:ring-red-100/80
               "
             >
               <LockKeyhole
-                className="text-gray-400"
+                className="text-slate-400"
                 size={18}
               />
 
@@ -176,15 +175,16 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
-                  text-gray-800
-                  placeholder:text-gray-400
+                  font-medium
+                  text-slate-900
+                  placeholder:text-slate-400
                 "
               />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+            <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
               Confirm
             </label>
 
@@ -193,22 +193,22 @@ export default function SignUpForm() {
                 mt-1
                 flex
                 items-center
-                h-11
-                rounded-xl
+                min-h-[52px]
+                rounded-2xl
                 border
-                border-white/60
-                bg-white/70
+                border-slate-200
+                bg-white
                 backdrop-blur-xl
-                shadow-sm
-                px-3
+                shadow-[0_10px_24px_rgba(15,23,42,0.05)]
+                px-4
                 transition-all
-                focus-within:border-red-700
-                focus-within:ring-2
-                focus-within:ring-red-100
+                focus-within:border-red-400
+                focus-within:ring-4
+                focus-within:ring-red-100/80
               "
             >
               <LockKeyhole
-                className="text-gray-400"
+                className="text-slate-400"
                 size={18}
               />
 
@@ -222,8 +222,9 @@ export default function SignUpForm() {
                   outline-none
                   bg-transparent
                   text-sm
-                  text-gray-800
-                  placeholder:text-gray-400
+                  font-medium
+                  text-slate-900
+                  placeholder:text-slate-400
                 "
               />
             </div>
@@ -233,15 +234,14 @@ export default function SignUpForm() {
 
       </div>
 
-      {/* Terms */}
-      <div className="flex items-center gap-2 mt-3 text-gray-700 text-xs">
+      <div className="mt-4 flex items-start gap-3 text-sm leading-5 text-slate-600">
 
-        <input type="checkbox" className="w-3 h-3 rounded" />
+        <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-red-700" />
 
         <p>
           I agree to the{" "}
 
-          <span className="text-red-700 font-semibold">
+          <span className="font-bold text-red-700">
             Terms & Conditions
           </span>
 
@@ -249,41 +249,42 @@ export default function SignUpForm() {
 
       </div>
 
-      {/* Button */}
       <button
+        type="button"
         className="
-          mt-3
+          mt-6
           w-full
-          h-11
-          rounded-xl
+          min-h-[52px]
+          rounded-2xl
           bg-gradient-to-r
-          from-red-600
+          from-slate-950
+          via-red-950
           to-red-800
           text-white
           text-sm
-          font-semibold
-          shadow-[0_8px_24px_rgba(220,38,38,0.2)]
-          hover:scale-[1.01]
+          font-black
+          tracking-wide
+          shadow-[0_18px_36px_rgba(127,29,29,0.24)]
+          hover:-translate-y-0.5
+          hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]
           transition-all
         "
       >
         Sign Up
       </button>
 
-      {/* Divider */}
-      <div className="flex items-center gap-4 mt-5">
+      <div className="mt-6 flex items-center gap-4">
 
-        <div className="h-[1px] flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-slate-200" />
 
-        <span className="text-gray-400 text-sm">
+        <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">
           or
         </span>
 
-        <div className="h-[1px] flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-slate-200" />
 
       </div>
 
-      {/* Social */}
       <SocialButtons />
 
     </div>
