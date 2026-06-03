@@ -1,34 +1,13 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
-import {
-  Globe,
-  MessageCircleMore,
-  BadgeCheck,
-  Sparkles,
-} from "lucide-react";
-import type { ReactNode } from "react";
-
-import FloatingPaperPlane from "./FloatingPaperPlane";
+import { Globe, MessageCircleMore, BadgeCheck, Sparkles } from 'lucide-react'
+import type { ReactNode } from 'react'
 
 export default function LeftShowcase() {
   return (
-    <div
-      className="
-        hidden
-        lg:flex
-        relative
-        w-[55%]
-        flex-col
-        justify-center
-        px-4
-      "
-    >
-
-      {/* Plane */}
-      <FloatingPaperPlane />
-
+    <div className="relative hidden w-[55%] flex-col justify-center px-4 lg:flex">
       {/* Logo */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -41,13 +20,9 @@ export default function LeftShowcase() {
         </div>
 
         <div>
-          <h1 className="text-xl font-black tracking-tight text-slate-950">
-            ENDOW
-          </h1>
+          <h1 className="text-xl font-black tracking-tight text-slate-950">ENDOW</h1>
 
-          <p className="text-[10px] font-bold tracking-[0.26em] text-slate-500">
-            GLOBAL EDUCATION
-          </p>
+          <p className="text-[10px] font-bold tracking-[0.26em] text-slate-500">GLOBAL EDUCATION</p>
         </div>
       </motion.div>
 
@@ -65,19 +40,9 @@ export default function LeftShowcase() {
           Study abroad command center
         </div>
 
-        <h2
-          className="
-            max-w-xl
-            text-5xl
-            leading-[1.02]
-            font-black
-            tracking-[-0.055em]
-            text-slate-950
-          "
-        >
+        <h2 className="max-w-xl text-5xl font-black leading-[1.02] tracking-[-0.055em] text-slate-950">
           Plan your global education with a team that knows the path.
         </h2>
-
       </motion.div>
 
       {/* Description */}
@@ -88,16 +53,10 @@ export default function LeftShowcase() {
           duration: 1,
           delay: 0.4,
         }}
-        className="
-          mt-5
-          max-w-lg
-          text-lg
-          leading-8
-          text-slate-700
-        "
+        className="mt-5 max-w-lg text-lg leading-8 text-slate-700"
       >
-        Sign in to manage applications, documents, counselor sessions, and
-        university shortlists from one polished workspace.
+        Sign in to manage applications, documents, counselor sessions, and university shortlists
+        from one polished workspace.
       </motion.p>
 
       <motion.div
@@ -107,32 +66,13 @@ export default function LeftShowcase() {
           duration: 1,
           delay: 0.6,
         }}
-        className="
-          mt-8
-          grid
-          max-w-xl
-          grid-cols-3
-          gap-3
-        "
+        className="mt-8 grid max-w-xl grid-cols-3 gap-3"
       >
-        <Feature
-          icon={<Globe size={18} />}
-          title="Global"
-          subtitle="Opportunities"
-        />
+        <Feature icon={<Globe size={18} />} title="Global" subtitle="Opportunities" />
 
-        <Feature
-          icon={<MessageCircleMore size={18} />}
-          title="Expert"
-          subtitle="Counselors"
-        />
+        <Feature icon={<MessageCircleMore size={18} />} title="Expert" subtitle="Counselors" />
 
-        <Feature
-          icon={<BadgeCheck size={18} />}
-          title="End-to-End"
-          subtitle="Support"
-        />
-
+        <Feature icon={<BadgeCheck size={18} />} title="End-to-End" subtitle="Support" />
       </motion.div>
 
       <motion.div
@@ -145,7 +85,7 @@ export default function LeftShowcase() {
         className="mt-8 flex w-fit items-center gap-3 rounded-3xl border border-white/65 bg-white/55 p-3 pr-5 shadow-[0_18px_48px_rgba(62,35,24,0.10)] backdrop-blur-xl"
       >
         <div className="flex -space-x-3">
-          {["UK", "AU", "CA"].map((label) => (
+          {['UK', 'AU', 'CA'].map((label) => (
             <div
               key={label}
               className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-white bg-slate-950 text-[10px] font-black text-white"
@@ -158,20 +98,11 @@ export default function LeftShowcase() {
           Trusted guidance for applications across leading study destinations.
         </p>
       </motion.div>
-
     </div>
-  );
+  )
 }
 
-function Feature({
-  icon,
-  title,
-  subtitle,
-}: {
-  icon: ReactNode;
-  title: string;
-  subtitle: string;
-}) {
+function Feature({ icon, title, subtitle }: { icon: ReactNode; title: string; subtitle: string }) {
   return (
     <motion.div
       whileHover={{
@@ -179,34 +110,13 @@ function Feature({
       }}
       className="flex flex-col items-center"
     >
-
-      <div
-        className="
-          w-14
-          h-14
-          rounded-[1.25rem]
-          bg-white/72
-          backdrop-blur-xl
-          border
-          border-white/70
-          shadow-[0_14px_34px_rgba(62,35,24,0.10)]
-          flex
-          items-center
-          justify-center
-          text-red-700
-        "
-      >
+      <div className="bg-white/72 flex h-14 w-14 items-center justify-center rounded-[1.25rem] border border-white/70 text-red-700 shadow-[0_14px_34px_rgba(62,35,24,0.10)] backdrop-blur-xl">
         {icon}
       </div>
 
-      <p className="mt-3 text-sm font-bold text-slate-900">
-        {title}
-      </p>
+      <p className="mt-3 text-sm font-bold text-slate-900">{title}</p>
 
-      <p className="text-center text-xs font-medium text-slate-500">
-        {subtitle}
-      </p>
-
+      <p className="text-center text-xs font-medium text-slate-500">{subtitle}</p>
     </motion.div>
-  );
+  )
 }

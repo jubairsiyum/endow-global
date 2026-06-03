@@ -148,7 +148,7 @@ export function Navbar() {
             className={isHero ? '' : 'hidden'}
           >
             <Link
-              href="/sign-in"
+              href="/login"
               className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
                 isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
               }`}
@@ -261,7 +261,7 @@ export function Navbar() {
               </div>
               <div className="mt-4 flex flex-col gap-2">
                 <Link
-                  href="/sign-in"
+                  href="/login"
                   className="flex items-center justify-center rounded-full border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   Sign In
