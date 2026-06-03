@@ -1,3 +1,4 @@
+import '../../env-loader.cjs'
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {

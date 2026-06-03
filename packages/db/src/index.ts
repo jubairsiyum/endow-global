@@ -1,3 +1,4 @@
+import '../../../env-loader.cjs'
 import { drizzle } from 'drizzle-orm/mysql2'
 import mysql from 'mysql2/promise'
 import type { MySql2Database } from 'drizzle-orm/mysql2'

@@ -1,3 +1,4 @@
+import '../../../env-loader.cjs'
 import { db, schema } from '@endow/db'
 import { eq, asc } from 'drizzle-orm'
 import { normalizeCountryList } from './utils/country'
