@@ -28,22 +28,14 @@ export default function LeftShowcase({ mode }: { mode: 'signin' | 'signup' }) {
   return (
     <div className="relative hidden w-[55%] flex-col justify-center px-4 lg:flex">
       {/* Logo */}
-      <motion.div
+      {/* <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
         className="inline-flex w-fit items-center gap-3 rounded-full border border-white/60 bg-white/55 px-4 py-2 shadow-[0_14px_40px_rgba(127,29,29,0.08)] backdrop-blur-xl"
       >
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-700 text-sm font-black text-white shadow-[0_10px_26px_rgba(185,28,28,0.26)]">
-          EG
-        </div>
 
-        <div>
-          <h1 className="text-xl font-black tracking-tight text-slate-950">ENDOW</h1>
-
-          <p className="text-[10px] font-bold tracking-[0.26em] text-slate-500">GLOBAL EDUCATION</p>
-        </div>
-      </motion.div>
+      </motion.div> */}
 
       <motion.div
         initial={{ opacity: 0, y: 30 }}
