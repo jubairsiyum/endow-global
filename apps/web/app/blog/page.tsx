@@ -3,7 +3,6 @@
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { BlogHero } from '@/components/blog/BlogHero'
-import { SearchFilterSection } from '@/components/blog/SearchFilterSection'
 import { ArticlesGrid } from '@/components/blog/ArticlesGrid'
 import { Sidebar } from '@/components/blog/Sidebar'
 import { UniversitySpotlight } from '@/components/blog/UniversitySpotlight'
@@ -14,13 +13,10 @@ import { IntakeCountdown } from '@/components/blog/IntakeCountdown'
 import { OpportunityHub } from '@/components/blog/OpportunityHub'
 import { SuccessStories } from '@/components/blog/SuccessStories'
 import { NewsletterSection } from '@/components/blog/NewsletterSection'
-import { useState } from 'react'
 
 export default function BlogPage() {
-  const [activeCategory, setActiveCategory] = useState('All Articles')
-
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans text-[#111827]">
+    <div className="flex flex-col bg-white font-sans text-[#111827]">
       {/* NAVBAR */}
       <div className="sticky top-0 z-40">
         <Navbar />
@@ -30,16 +26,13 @@ export default function BlogPage() {
         {/* HERO SECTION */}
         <BlogHero />
 
-        {/* SEARCH & FILTER */}
-        <SearchFilterSection activeCategory={activeCategory} setActiveCategory={setActiveCategory} />
-
         {/* MAIN CONTENT */}
-        <section className="relative bg-white py-24 lg:py-32">
+        <section className="relative bg-gradient-to-b from-white via-white to-[#F8FAFC] py-12 lg:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
               {/* ARTICLES */}
               <div className="lg:col-span-2">
-                <ArticlesGrid category={activeCategory} />
+                <ArticlesGrid category="All Articles" />
               </div>
 
               {/* SIDEBAR */}
