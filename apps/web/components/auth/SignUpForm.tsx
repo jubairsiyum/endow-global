@@ -24,13 +24,13 @@ export default function SignUpForm() {
         </p>
       </div>
 
-      <div className="mt-7 space-y-4">
+      <div className="mt-6 space-y-3.5">
         <div>
           <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
             Name
           </label>
 
-          <div className="mt-1 flex min-h-[52px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+          <div className="mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
             <User className="text-slate-400" size={18} />
 
             <input
@@ -46,7 +46,7 @@ export default function SignUpForm() {
             Email
           </label>
 
-          <div className="mt-1 flex min-h-[52px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+          <div className="mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
             <Mail className="text-slate-400" size={18} />
 
             <input
@@ -62,7 +62,7 @@ export default function SignUpForm() {
             Password
           </label>
 
-          <div className="mt-1 flex min-h-[52px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+          <div className="mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
             <LockKeyhole className="text-slate-400" size={18} />
 
             <input
@@ -78,7 +78,7 @@ export default function SignUpForm() {
             Confirm
           </label>
 
-          <div className="mt-1 flex min-h-[52px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+          <div className="mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
             <LockKeyhole className="text-slate-400" size={18} />
 
             <input
@@ -100,12 +100,12 @@ export default function SignUpForm() {
 
       <button
         type="button"
-        className="mt-6 min-h-[52px] w-full rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]"
+        className="mt-5 min-h-[50px] w-full rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]"
       >
         Sign Up
       </button>
 
-      <div className="mt-6 flex items-center gap-4">
+      <div className="mt-5 flex items-center gap-4">
         <div className="h-px flex-1 bg-slate-200" />
 
         <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">or</span>

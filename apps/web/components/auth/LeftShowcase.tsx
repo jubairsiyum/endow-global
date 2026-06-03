@@ -5,7 +5,26 @@ import { motion } from 'framer-motion'
 import { Globe, MessageCircleMore, BadgeCheck, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-export default function LeftShowcase() {
+const showcaseCopy = {
+  signin: {
+    eyebrow: 'Student portal',
+    title: 'Pick up your study plan exactly where you left it.',
+    description:
+      'Sign in to manage applications, documents, counselor sessions, and university shortlists from one polished workspace.',
+    trust: 'Your applications, sessions, and next steps stay organized in one place.',
+  },
+  signup: {
+    eyebrow: 'Start your journey',
+    title: 'Build your global education profile with expert guidance.',
+    description:
+      'Register to create your profile, compare suitable universities, and get support from counselors who know the application path.',
+    trust: 'Trusted guidance for applications across leading study destinations.',
+  },
+} as const
+
+export default function LeftShowcase({ mode }: { mode: 'signin' | 'signup' }) {
+  const copy = showcaseCopy[mode]
+
   return (
     <div className="relative hidden w-[55%] flex-col justify-center px-4 lg:flex">
       {/* Logo */}
@@ -37,11 +56,11 @@ export default function LeftShowcase() {
       >
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-red-100 bg-white/65 px-3 py-1 text-xs font-bold uppercase tracking-[0.18em] text-red-800 shadow-sm backdrop-blur">
           <Sparkles size={14} />
-          Study abroad command center
+          {copy.eyebrow}
         </div>
 
         <h2 className="max-w-xl text-5xl font-black leading-[1.02] tracking-[-0.055em] text-slate-950">
-          Plan your global education with a team that knows the path.
+          {copy.title}
         </h2>
       </motion.div>
 
@@ -55,8 +74,7 @@ export default function LeftShowcase() {
         }}
         className="mt-5 max-w-lg text-lg leading-8 text-slate-700"
       >
-        Sign in to manage applications, documents, counselor sessions, and university shortlists
-        from one polished workspace.
+        {copy.description}
       </motion.p>
 
       <motion.div
@@ -94,9 +112,7 @@ export default function LeftShowcase() {
             </div>
           ))}
         </div>
-        <p className="max-w-[230px] text-sm font-semibold leading-5 text-slate-700">
-          Trusted guidance for applications across leading study destinations.
-        </p>
+        <p className="max-w-[230px] text-sm font-semibold leading-5 text-slate-700">{copy.trust}</p>
       </motion.div>
     </div>
   )
