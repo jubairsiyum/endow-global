@@ -9,7 +9,6 @@ interface StatConfig {
   suffix: string;
   label: string;
   icon: React.ReactNode;
-  color: string;
 }
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
@@ -46,28 +45,24 @@ export default function StatisticsSection() {
       suffix: "+",
       label: "Students Abroad",
       icon: <Users className="h-6 w-6" />,
-      color: "from-blue-600 to-cyan-600",
     },
     {
       value: 250,
       suffix: "+",
       label: "Partner Universities",
       icon: <Award className="h-6 w-6" />,
-      color: "from-purple-600 to-pink-600",
     },
     {
       value: 45,
       suffix: "",
       label: "Countries Covered",
       icon: <Globe className="h-6 w-6" />,
-      color: "from-green-600 to-emerald-600",
     },
     {
       value: 98,
       suffix: "%",
       label: "Visa Success Rate",
       icon: <TrendingUp className="h-6 w-6" />,
-      color: "from-red-600 to-orange-600",
     },
   ];
 
@@ -89,11 +84,9 @@ export default function StatisticsSection() {
   };
 
   return (
-    <section className="relative py-16 lg:py-20 bg-gradient-to-br from-white via-slate-50 to-white overflow-x-hidden">
-      {/* Animated background */}
+    <section className="relative overflow-x-hidden bg-[#F8FAFC] py-16 lg:py-20">
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 h-72 w-72 rounded-full bg-red-200 opacity-10 blur-3xl"></div>
-        <div className="absolute bottom-1/4 right-1/4 h-64 w-64 rounded-full bg-red-100 opacity-10 blur-3xl"></div>
+        <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
@@ -105,10 +98,10 @@ export default function StatisticsSection() {
           viewport={{ once: true }}
           className="mb-12 space-y-3 text-center"
         >
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Global Success by Numbers
           </h2>
-          <p className="mx-auto max-w-2xl text-base lg:text-lg text-gray-600">
+          <p className="mx-auto max-w-2xl text-base text-gray-600">
             Join thousands of students who have successfully pursued their
             education dreams globally
           </p>
@@ -126,28 +119,21 @@ export default function StatisticsSection() {
             <motion.div
               key={idx}
               variants={itemVariants}
-              whileHover={{ scale: 1.02, transition: { duration: 0.3 } }}
-              className="group relative rounded-2xl overflow-hidden bg-white/85 backdrop-blur-sm border border-white/50 p-5 shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_16px_36px_rgba(196,30,58,0.1)] transition-all duration-300 hover:border-red-200 lg:p-6"
+              whileHover={{ y: -4, transition: { duration: 0.25 } }}
+              className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
-              {/* Glow effect */}
-              <div
-                className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-r ${stat.color} blur-3xl`}
-              ></div>
-
               <div className="relative space-y-4">
-                {/* Icon */}
                 <motion.div
                   initial={{ rotate: 0 }}
-                  whileHover={{ rotate: 10 }}
+                  whileHover={{ rotate: 6 }}
                   transition={{ duration: 0.3 }}
-                  className={`inline-flex rounded-xl bg-gradient-to-br ${stat.color} p-3 text-white`}
+                  className="inline-flex rounded-2xl border border-red-100 bg-red-50 p-3 text-[#C41E3A]"
                 >
                   {stat.icon}
                 </motion.div>
 
-                {/* Counter */}
                 <div>
-                  <div className="text-4xl font-bold text-gray-900">
+                  <div className="text-3xl font-bold text-gray-900">
                     <AnimatedCounter value={stat.value} />
                     <span>{stat.suffix}</span>
                   </div>
@@ -160,15 +146,14 @@ export default function StatisticsSection() {
           ))}
         </motion.div>
 
-        {/* Bottom accent */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
-          className="mt-12 text-center"
+          className="mt-10 text-center"
         >
-          <p className="text-sm font-semibold text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text">
+          <p className="text-sm font-semibold text-[#C41E3A]">
             Trusted by leading education consultants worldwide
           </p>
         </motion.div>

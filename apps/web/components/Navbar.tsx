@@ -24,11 +24,11 @@ const transition = {
 const containerVariants = {
   hero: {
     maxWidth: 1140,
-    paddingLeft: 28,
-    paddingRight: 28,
-    paddingTop: 16,
-    paddingBottom: 16,
-    borderRadius: 22,
+    paddingLeft: 22,
+    paddingRight: 22,
+    paddingTop: 10,
+    paddingBottom: 10,
+    borderRadius: 18,
     y: 0,
     backgroundColor: 'rgba(255, 255, 255, 0)',
     borderColor: 'rgba(255, 255, 255, 0)',
@@ -36,16 +36,16 @@ const containerVariants = {
     backdropFilter: 'blur(0px)'
   },
   scrolled: {
-    maxWidth: 1000,
-    paddingLeft: 28,
-    paddingRight: 28,
-    paddingTop: 10,
-    paddingBottom: 10,
-    borderRadius: 10,
+    maxWidth: 980,
+    paddingLeft: 22,
+    paddingRight: 22,
+    paddingTop: 8,
+    paddingBottom: 8,
+    borderRadius: 12,
     y: -8,
-    backgroundColor: 'rgba(255, 255, 255, 0.30)',
-    borderColor: 'rgba(255, 255, 255, 0.30)',
-    boxShadow: '0 24px 60px rgba(0,0,0,0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
+    borderColor: 'rgba(229, 231, 235, 0.86)',
+    boxShadow: '0 16px 42px rgba(15,23,42,0.12)',
     backdropFilter: 'blur(22px)'
   }
 }
@@ -59,7 +59,7 @@ export function Navbar() {
   const textPrimary = 'text-gray-900'
   const textMuted = 'text-gray-700'
   const textHover = 'hover:text-gray-900'
-  const navRailBg = isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.25)'
+  const navRailBg = isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.65)'
   const pillActiveBg = 'bg-[#C41E3A]'
   const pillActiveShadow = 'shadow-[0_10px_30px_rgba(196,30,58,0.25)]'
 
@@ -90,10 +90,10 @@ export function Navbar() {
       >
         <Link
           href="/"
-          className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold transition ${textPrimary}`}
+          className={`flex items-center gap-2 rounded-full px-2.5 py-1.5 text-sm font-semibold transition ${textPrimary}`}
         >
           {/* Wide logo mark */}
-          <span className="inline-flex h-9 items-center sm:h-10">
+          <span className="inline-flex h-8 items-center sm:h-9">
             <img
               src="/logo/endoedu.png"
               alt="Endow Global Education"
@@ -107,7 +107,7 @@ export function Navbar() {
         </Link>
 
         <motion.div
-          className={`relative hidden items-center md:flex ${isHero ? 'rounded-full gap-2 p-1' : 'gap-1 p-0'}`}
+          className={`relative hidden items-center md:flex ${isHero ? 'rounded-full gap-1.5 p-1' : 'gap-1 p-0'}`}
           animate={{ backgroundColor: isHero ? navRailBg : 'transparent' }}
           transition={transition}
         >
@@ -122,7 +122,7 @@ export function Navbar() {
                   className={`relative rounded-full text-sm font-medium transition ${
                     isActive ? 'text-white' : textMuted
                   } ${isActive ? '' : textHover} ${
-                    isHero ? 'px-4 py-2' : 'px-3 py-1.5'
+                    isHero ? 'px-3.5 py-1.5' : 'px-3 py-1.5'
                   }`}
                 >
                   {isActive ? (
@@ -139,7 +139,7 @@ export function Navbar() {
           </div>
         </motion.div>
 
-        <div className={`hidden items-center ${isHero ? 'gap-3' : 'gap-2'} md:flex`}>
+        <div className={`hidden items-center ${isHero ? 'gap-2' : 'gap-2'} md:flex`}>
           <motion.div
             layout
             initial={{ opacity: 1 }}
@@ -150,7 +150,7 @@ export function Navbar() {
             <Link
               href="/sign-in"
               className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
-                isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+                isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
               }`}
             >
               Sign In
@@ -162,9 +162,9 @@ export function Navbar() {
               href="/sign-up"
               className={`inline-flex items-center justify-center group rounded-full transition ${
                 isScrolled
-                  ? 'gap-2.5 px-6 py-3 font-semibold tracking-tight text-white bg-gradient-to-r from-[#AD0819] to-[#E11D48] shadow-[0_10px_30px_rgba(225,29,72,0.35)] hover:shadow-[0_20px_40px_rgba(225,29,72,0.45)] hover:-translate-y-0.5 transition-all duration-300'
+                  ? 'gap-2 px-5 py-2.5 font-semibold tracking-tight text-white bg-gradient-to-r from-red-600 to-rose-500 shadow-[0_10px_24px_rgba(196,30,58,0.20)] hover:shadow-red-200 hover:-translate-y-0.5 transition-all duration-300'
                   : `text-sm font-semibold text-white bg-[#C41E3A] shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
-                      isHero ? 'px-5 py-2' : 'px-4 py-1.5'
+                      isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
                     }`
               }`}
             >

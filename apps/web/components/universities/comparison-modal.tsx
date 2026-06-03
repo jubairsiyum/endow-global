@@ -52,7 +52,7 @@ export default function UniversityComparisonModal({
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="relative w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white shadow-xl">
+            <div className="relative max-h-[90vh] w-full max-w-6xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.10)]">
               {/* Header */}
               <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white p-5 lg:p-6">
                 <h2 className="text-2xl font-bold text-gray-900">
@@ -79,7 +79,7 @@ export default function UniversityComparisonModal({
                         onClick={() => handleToggleSelect(uni.id)}
                         className={`rounded-xl border-2 p-3 text-left transition-colors ${
                           selected.includes(uni.id)
-                            ? "border-blue-600 bg-blue-50"
+                            ? "border-[#C41E3A] bg-red-50"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
@@ -121,7 +121,7 @@ export default function UniversityComparisonModal({
                             key={uni.id}
                             className="px-3 py-3 text-gray-600 flex items-center gap-2"
                           >
-                            <TrendingUp className="h-4 w-4 text-blue-600" />#{" "}
+                            <TrendingUp className="h-4 w-4 text-[#C41E3A]" />#{" "}
                             {uni.ranking}
                           </td>
                         ))}
@@ -148,7 +148,7 @@ export default function UniversityComparisonModal({
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-3 py-3 font-bold text-green-600"
+                            className="px-3 py-3 font-bold text-[#C41E3A]"
                           >
                             {uni.scholarship}%
                           </td>
@@ -163,7 +163,7 @@ export default function UniversityComparisonModal({
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-3 py-3 font-bold text-blue-600"
+                            className="px-3 py-3 font-bold text-[#C41E3A]"
                           >
                             {uni.visaSuccessRate}%
                           </td>
@@ -178,7 +178,7 @@ export default function UniversityComparisonModal({
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
-                            className="px-3 py-3 font-bold text-purple-600"
+                            className="px-3 py-3 font-bold text-[#C41E3A]"
                           >
                             {uni.employmentRate}%
                           </td>
@@ -240,11 +240,11 @@ export default function UniversityComparisonModal({
                 <div className="flex gap-3">
                   <button
                     onClick={onClose}
-                    className="flex-1 h-12 rounded-xl border border-gray-300 px-6 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+                    className="h-11 flex-1 rounded-xl border border-gray-300 px-5 text-sm font-semibold text-gray-900 hover:bg-gray-50"
                   >
                     Close
                   </button>
-                  <button className="flex-1 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 text-sm font-semibold text-white hover:shadow-lg">
+                  <button className="h-11 flex-1 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
                     Apply to Selected
                   </button>
                 </div>

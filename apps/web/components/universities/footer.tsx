@@ -40,7 +40,7 @@ const footerLinks = [
 
 export default function UniversitiesFooter() {
   return (
-    <footer className="relative bg-gradient-to-b from-gray-900 to-black text-white">
+    <footer className="relative bg-gradient-to-b from-gray-950 to-black text-white">
       {/* Newsletter Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -49,7 +49,7 @@ export default function UniversitiesFooter() {
         viewport={{ once: true }}
         className="border-b border-gray-800"
       >
-        <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-14">
+        <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-14">
           <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
             {/* Newsletter Form */}
             <div className="space-y-4">
@@ -62,9 +62,9 @@ export default function UniversitiesFooter() {
                 <input
                   type="email"
                   placeholder="Enter your email"
-                  className="h-12 flex-1 rounded-full border border-gray-700 bg-gray-800/50 px-5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                  className="h-11 flex-1 rounded-full border border-gray-700 bg-white/5 px-5 text-sm text-white placeholder-gray-500 outline-none transition-colors focus:border-[#C41E3A]"
                 />
-                <button className="h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-6 font-semibold hover:shadow-lg transition-shadow">
+                <button className="h-11 rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-5 font-semibold shadow-[0_8px_22px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-900/30">
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -74,10 +74,10 @@ export default function UniversitiesFooter() {
             <div className="space-y-4">
               <h3 className="text-2xl font-bold">Resources</h3>
               <div className="space-y-3">
-                <button className="block h-12 w-full rounded-xl border border-gray-700 bg-gray-800/50 px-5 text-left text-sm hover:border-blue-500 transition-colors sm:w-auto">
+                <button className="block h-11 w-full rounded-xl border border-gray-700 bg-white/5 px-5 text-left text-sm transition-colors hover:border-[#C41E3A] sm:w-auto">
                   Download Study Guide
                 </button>
-                <button className="block h-12 w-full rounded-xl border border-gray-700 bg-gray-800/50 px-5 text-left text-sm hover:border-blue-500 transition-colors sm:w-auto">
+                <button className="block h-11 w-full rounded-xl border border-gray-700 bg-white/5 px-5 text-left text-sm transition-colors hover:border-[#C41E3A] sm:w-auto">
                   Download Visa Checklist
                 </button>
               </div>
@@ -103,9 +103,10 @@ export default function UniversitiesFooter() {
             className="space-y-5"
           >
             <div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+              <h2 className="text-2xl font-bold text-white">
                 Endow
               </h2>
+              <div className="mt-3 h-px w-12 bg-[#C41E3A]" />
               <p className="mt-2 text-sm text-gray-400">
                 Your gateway to global education excellence
               </p>
@@ -114,7 +115,7 @@ export default function UniversitiesFooter() {
             {/* Contact Info */}
             <div className="space-y-3">
               <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-blue-400" />
+                <Mail className="h-4 w-4 text-[#C41E3A]" />
                 <a
                   href="mailto:info@endow.edu"
                   className="text-sm text-gray-400 hover:text-white transition-colors"
@@ -123,7 +124,7 @@ export default function UniversitiesFooter() {
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="h-4 w-4 text-blue-400" />
+                <Phone className="h-4 w-4 text-[#C41E3A]" />
                 <a
                   href="tel:+18001234567"
                   className="text-sm text-gray-400 hover:text-white transition-colors"
@@ -132,7 +133,7 @@ export default function UniversitiesFooter() {
                 </a>
               </div>
               <div className="flex items-start gap-3">
-                <MapPin className="h-4 w-4 text-blue-400 mt-1 shrink-0" />
+                <MapPin className="mt-1 h-4 w-4 shrink-0 text-[#C41E3A]" />
                 <div className="text-sm text-gray-400">
                   <p>123 Education Lane</p>
                   <p>New York, NY 10001</p>
@@ -156,7 +157,7 @@ export default function UniversitiesFooter() {
                   <li key={linkIdx}>
                     <a
                       href="#"
-                      className="text-sm text-gray-400 hover:text-blue-400 transition-colors"
+                      className="text-sm text-gray-400 transition-colors hover:text-[#C41E3A]"
                     >
                       {link}
                     </a>
@@ -176,10 +177,10 @@ export default function UniversitiesFooter() {
         >
           {/* Social Links - Text only for now */}
           <div className="flex items-center justify-center gap-4">
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 text-sm text-gray-400 hover:bg-blue-600 hover:text-white transition-colors">f</a>
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 text-sm text-gray-400 hover:bg-blue-600 hover:text-white transition-colors">x</a>
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 text-sm text-gray-400 hover:bg-blue-600 hover:text-white transition-colors">in</a>
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-800 text-sm text-gray-400 hover:bg-blue-600 hover:text-white transition-colors">ig</a>
+            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">f</a>
+            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">x</a>
+            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">in</a>
+            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">ig</a>
           </div>
 
           {/* Copyright */}

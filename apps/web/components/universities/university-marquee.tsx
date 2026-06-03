@@ -20,9 +20,9 @@ export default function UniversityMarquee() {
   };
 
   return (
-    <section className="relative py-10 lg:py-12 overflow-hidden bg-gradient-to-r from-white via-gray-50 to-white border-y border-gray-200">
+    <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-8 lg:py-10">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <p className="mb-6 text-center text-xs font-semibold tracking-wide text-gray-600">
+        <p className="mb-5 text-center text-xs font-semibold tracking-wide text-gray-600">
           TRUSTED BY 5000+ STUDENTS ACROSS
         </p>
 
@@ -36,10 +36,10 @@ export default function UniversityMarquee() {
             {[...universities, ...universities].map((uni, idx) => (
               <motion.div
                 key={`${uni.id}-${idx}`}
-                whileHover={{ scale: 1.1 }}
-                className="group flex flex-col items-center gap-2 px-4 py-3 rounded-xl hover:bg-white/50 transition-colors cursor-pointer"
+                whileHover={{ y: -2 }}
+                className="group flex cursor-pointer flex-col items-center gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-white"
               >
-                <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-white shadow-sm group-hover:shadow-md transition-shadow border border-gray-200">
+                <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-[0_8px_18px_rgba(196,30,58,0.10)]">
                   <Image
                     src={uni.logo}
                     alt={uni.name}
@@ -48,7 +48,7 @@ export default function UniversityMarquee() {
                     className="h-full w-full object-contain p-2"
                   />
                 </div>
-                <div className="text-center hidden group-hover:block text-xs text-gray-700 max-w-xs">
+                <div className="hidden max-w-xs text-center text-xs text-gray-700 group-hover:block">
                   <p className="font-semibold">{uni.name}</p>
                   <p className="text-gray-600">{uni.city}</p>
                 </div>

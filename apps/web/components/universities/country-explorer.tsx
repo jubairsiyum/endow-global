@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ArrowRight, MapPin, DollarSign, Zap } from "lucide-react";
+import { ArrowRight, MapPin, DollarSign, Zap, ShieldCheck } from "lucide-react";
 import { countries } from "@/lib/universities/data";
 import { formatCurrency } from "@/lib/universities/utils";
 
@@ -24,9 +24,9 @@ export default function CountryExplorer() {
   };
 
   return (
-    <section className="relative py-16 lg:py-20 bg-white overflow-x-hidden">
+    <section className="relative overflow-x-hidden bg-white py-16 lg:py-20">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-32 right-0 h-72 w-72 rounded-full bg-blue-100 opacity-10 blur-3xl"></div>
+        <div className="absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
@@ -44,10 +44,10 @@ export default function CountryExplorer() {
               Explore Destinations
             </span>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Study Destinations Worldwide
           </h2>
-          <p className="mx-auto max-w-2xl text-base lg:text-lg text-gray-600">
+          <p className="mx-auto max-w-2xl text-base text-gray-600">
             Compare countries, universities, costs, and opportunities at a
             glance
           </p>
@@ -65,23 +65,24 @@ export default function CountryExplorer() {
             <motion.div
               key={idx}
               variants={itemVariants}
-              whileHover={{ y: -6, transition: { duration: 0.3 } }}
-              className="group relative rounded-2xl overflow-hidden bg-white/85 backdrop-blur-sm border border-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_16px_36px_rgba(196,30,58,0.1)] transition-all duration-300 hover:border-red-200/50"
+              whileHover={{ y: -4, transition: { duration: 0.25 } }}
+              className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
-              {/* Background gradient */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-purple-100/50 to-blue-100/50"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(196,30,58,0.08),transparent_48%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-              <div className="relative space-y-4 p-5 lg:p-6">
+              <div className="relative space-y-4 p-5">
                 {/* Header */}
                 <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="text-4xl">{country.flag}</div>
+                  <div className="space-y-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-sm font-bold text-[#C41E3A]">
+                      {country.code}
+                    </div>
                     <h3 className="text-xl font-bold text-gray-900">
                       {country.name}
                     </h3>
                   </div>
-                  <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-[#C41E3A]">
-                    {country.code}
+                  <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">
+                    {country.universities}+ universities
                   </span>
                 </div>
 
@@ -91,35 +92,36 @@ export default function CountryExplorer() {
                 {/* Stats Grid */}
                 <div className="space-y-3">
                   {/* Universities */}
-                  <div className="flex items-center justify-between rounded-xl bg-blue-50 p-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-3">
                     <div>
                       <p className="text-xs text-gray-600">Universities</p>
-                      <p className="text-base font-bold text-blue-600">
+                      <p className="text-base font-bold text-gray-900">
                         {country.universities}+
                       </p>
                     </div>
-                    <Zap className="h-5 w-5 text-blue-600" />
+                    <Zap className="h-5 w-5 text-[#C41E3A]" />
                   </div>
 
                   {/* Average Tuition */}
-                  <div className="flex items-center justify-between rounded-xl bg-green-50 p-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-3">
                     <div>
                       <p className="text-xs text-gray-600">Annual Tuition</p>
-                      <p className="text-base font-bold text-green-600">
+                      <p className="text-base font-bold text-gray-900">
                         {formatCurrency(country.avgTuition)}
                       </p>
                     </div>
-                    <DollarSign className="h-5 w-5 text-green-600" />
+                    <DollarSign className="h-5 w-5 text-[#C41E3A]" />
                   </div>
 
                   {/* Visa Success */}
-                  <div className="flex items-center justify-between rounded-xl bg-purple-50 p-3">
+                  <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-3">
                     <div>
                       <p className="text-xs text-gray-600">Visa Success</p>
-                      <p className="text-base font-bold text-purple-600">
+                      <p className="text-base font-bold text-gray-900">
                         {country.visaSuccessRate}%
                       </p>
                     </div>
+                    <ShieldCheck className="h-5 w-5 text-[#C41E3A]" />
                   </div>
                 </div>
 
@@ -146,15 +148,16 @@ export default function CountryExplorer() {
                   </p>
                   <div className="space-y-2">
                     {country.topUniversities.map((uni, i) => (
-                      <p key={i} className="text-xs text-gray-600">
-                        - {uni}
+                      <p key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
+                        {uni}
                       </p>
                     ))}
                   </div>
                 </div>
 
                 {/* CTA Button */}
-                <button className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 px-6 text-sm font-semibold text-white hover:shadow-lg transition-shadow flex items-center justify-center gap-2 group-hover:from-purple-700 group-hover:to-blue-700">
+                <button className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
                   Explore {country.name}
                   <ArrowRight className="h-4 w-4" />
                 </button>

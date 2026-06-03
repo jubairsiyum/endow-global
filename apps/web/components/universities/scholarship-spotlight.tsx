@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Award, Clock, Check, ArrowRight } from "lucide-react";
 import { scholarships } from "@/lib/universities/data";
-import { calculateDaysRemaining, getDayColor } from "@/lib/universities/utils";
+import { calculateDaysRemaining } from "@/lib/universities/utils";
 
 export default function ScholarshipSpotlight() {
   const containerVariants = {
@@ -24,9 +24,9 @@ export default function ScholarshipSpotlight() {
   };
 
   return (
-    <section className="relative py-16 lg:py-20 bg-gradient-to-br from-blue-50 via-white to-purple-50 overflow-x-hidden">
+    <section className="relative overflow-x-hidden bg-white py-16 lg:py-20">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 h-72 w-72 rounded-full bg-yellow-100 opacity-10 blur-3xl"></div>
+        <div className="absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
@@ -44,10 +44,10 @@ export default function ScholarshipSpotlight() {
               Financial Aid
             </span>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Exclusive Scholarship Opportunities
           </h2>
-          <p className="mx-auto max-w-2xl text-base lg:text-lg text-gray-600">
+          <p className="mx-auto max-w-2xl text-base text-gray-600">
             Reduce your tuition burden with our partner universities' exclusive
             scholarships and financial aid programs
           </p>
@@ -69,28 +69,12 @@ export default function ScholarshipSpotlight() {
               <motion.div
                 key={scholarship.id}
                 variants={itemVariants}
-              whileHover={{ scale: 1.01, transition: { duration: 0.3 } }}
-              className={`group relative rounded-2xl overflow-hidden border p-5 shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_16px_36px_rgba(196,30,58,0.1)] transition-all duration-300 lg:p-6 ${
-                  isUrgent
-                    ? "bg-gradient-to-br from-red-50 to-red-100 border-red-200"
-                    : "bg-white/80 backdrop-blur-sm border-white/40"
-                }`}
+                whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
               >
-                {/* Glow effect for urgent */}
                 {isUrgent && (
-                  <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-r from-red-500 to-pink-500 blur-3xl"></div>
+                  <div className="absolute inset-0 bg-red-50/70" />
                 )}
-
-                {/* Animated border glow */}
-                <div
-                  className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl`}
-                  style={{
-                    background: `linear-gradient(90deg, transparent, ${
-                      isUrgent ? "rgba(244, 63, 94, 0.3)" : "rgba(59, 130, 246, 0.3)"
-                    }, transparent)`,
-                    pointerEvents: "none",
-                  }}
-                ></div>
 
                 <div className="relative space-y-4">
                   {/* Header */}
@@ -99,18 +83,19 @@ export default function ScholarshipSpotlight() {
                       <h3 className="text-xl font-bold text-gray-900">
                         {scholarship.universityName}
                       </h3>
-                      <p className="text-gray-600">{scholarship.description}</p>
+                      <p className="text-sm leading-relaxed text-gray-600">
+                        {scholarship.description}
+                      </p>
                     </div>
 
-                    {/* Scholarship Badge */}
                     <motion.div
                       whileHover={{ scale: 1.04 }}
-                      className="ml-4 shrink-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-500 px-4 py-2 text-center"
+                      className="ml-4 shrink-0 rounded-2xl border border-red-100 bg-white px-4 py-2 text-center shadow-sm"
                     >
-                      <p className="text-xl font-bold text-white">
+                      <p className="text-xl font-bold text-[#C41E3A]">
                         {scholarship.percentage}%
                       </p>
-                      <p className="text-xs text-white/90">Scholarship</p>
+                      <p className="text-xs text-gray-500">Scholarship</p>
                     </motion.div>
                   </div>
 
@@ -121,13 +106,13 @@ export default function ScholarshipSpotlight() {
                     </p>
                     <div className="space-y-2">
                       <div className="flex items-start gap-3">
-                        <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C41E3A]" />
                         <span className="text-gray-700">
                           {scholarship.requirements}
                         </span>
                       </div>
                       <div className="flex items-start gap-3">
-                        <Check className="h-4 w-4 text-green-600 shrink-0 mt-0.5" />
+                        <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C41E3A]" />
                         <span className="text-gray-700">
                           IELTS: {scholarship.ieltsRequirement}+ required
                         </span>
@@ -136,54 +121,26 @@ export default function ScholarshipSpotlight() {
                   </div>
 
                   {/* Deadline */}
-                  <div
-                    className={`rounded-xl p-3 flex items-center justify-between ${
-                      isUrgent
-                        ? "bg-red-100 border-2 border-red-300"
-                        : "bg-blue-100 border border-blue-200"
-                    }`}
-                  >
+                  <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-3">
                     <div className="flex items-center gap-3">
-                      <Clock
-                        className={`h-4 w-4 ${
-                          isUrgent ? "text-red-600" : "text-blue-600"
-                        }`}
-                      />
+                      <Clock className="h-4 w-4 text-[#C41E3A]" />
                       <div>
-                        <p
-                          className={`text-xs font-semibold ${
-                            isUrgent
-                              ? "text-red-700"
-                              : "text-blue-700"
-                          }`}
-                        >
+                        <p className="text-xs font-semibold text-gray-600">
                           Application Deadline
                         </p>
-                        <p
-                          className={`text-sm font-bold ${
-                            isUrgent
-                              ? "text-red-900"
-                              : "text-blue-900"
-                          }`}
-                        >
+                        <p className="text-sm font-bold text-gray-900">
                           {daysLeft} days left
                         </p>
                       </div>
                     </div>
-                    <p
-                      className={`text-xs font-semibold ${
-                        isUrgent
-                          ? "text-red-700"
-                          : "text-blue-700"
-                      }`}
-                    >
+                    <p className="text-xs font-semibold text-[#C41E3A]">
                       {new Date(scholarship.deadline).toLocaleDateString()}
                     </p>
                   </div>
 
                   {/* Alert for urgent */}
                   {isUrgent && (
-                    <div className="rounded-xl bg-red-50 border border-red-200 p-3">
+                    <div className="rounded-2xl border border-red-200 bg-white p-3">
                       <p className="text-xs text-red-700 font-semibold">
                         Hurry! Application closing soon
                       </p>
@@ -191,7 +148,7 @@ export default function ScholarshipSpotlight() {
                   )}
 
                   {/* Apply Button */}
-                  <button className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 px-6 text-sm font-semibold text-white hover:shadow-lg transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+                  <button className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
                     Apply for Scholarship
                     <ArrowRight className="h-4 w-4" />
                   </button>

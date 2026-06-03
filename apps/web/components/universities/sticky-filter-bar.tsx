@@ -32,13 +32,13 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
       transition={{ duration: 0.3 }}
-      className="fixed bottom-6 left-1/2 z-40 w-full max-w-2xl -translate-x-1/2 pointer-events-none"
+      className="pointer-events-none fixed bottom-6 left-1/2 z-40 w-full max-w-2xl -translate-x-1/2"
     >
       <motion.div
         layout
-        className="pointer-events-auto mx-4 overflow-hidden rounded-full border border-white/70 bg-white/85 shadow-[0_16px_50px_rgba(15,23,42,0.14)] backdrop-blur-md"
+        className="pointer-events-auto mx-4 overflow-hidden rounded-full border border-gray-200 bg-white/90 shadow-[0_14px_44px_rgba(15,23,42,0.12)] backdrop-blur-md"
       >
-        <div className="flex h-14 items-center gap-3 px-5">
+        <div className="flex h-14 items-center gap-3 px-4">
           {/* Search Input */}
           <div className="flex flex-1 items-center gap-2 min-w-0">
             <Search className="h-4 w-4 shrink-0 text-[#C41E3A]" />
@@ -71,7 +71,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
           {/* Expand Button */}
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E11D48] p-2 text-white shadow-[0_8px_22px_rgba(196,30,58,0.24)] transition-transform hover:scale-105"
+            className="rounded-full bg-gradient-to-r from-red-600 to-rose-500 p-2 text-white shadow-[0_8px_22px_rgba(196,30,58,0.20)] transition-transform hover:scale-105"
           >
             <Filter className="h-4 w-4" />
           </button>
@@ -130,7 +130,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               >
                 Close
               </button>
-              <button className="h-10 flex-1 rounded-lg bg-gradient-to-r from-[#C41E3A] to-[#E11D48] px-4 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(196,30,58,0.2)] transition-shadow hover:shadow-[0_12px_28px_rgba(196,30,58,0.26)]">
+              <button className="h-10 flex-1 rounded-lg bg-gradient-to-r from-red-600 to-rose-500 px-4 text-sm font-semibold text-white shadow-[0_8px_22px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
                 Apply Filters
               </button>
             </div>

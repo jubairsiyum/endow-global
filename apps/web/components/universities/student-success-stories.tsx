@@ -24,9 +24,9 @@ export default function StudentSuccessStories() {
   };
 
   return (
-    <section className="relative py-16 lg:py-20 bg-white overflow-x-hidden">
+    <section className="relative overflow-x-hidden bg-white py-16 lg:py-20">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/2 -left-32 h-72 w-72 rounded-full bg-green-100 opacity-10 blur-3xl"></div>
+        <div className="absolute -left-20 top-1/2 h-[400px] w-[400px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
@@ -44,10 +44,10 @@ export default function StudentSuccessStories() {
               Student Success
             </span>
           </div>
-          <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Success Stories from Our Students
           </h2>
-          <p className="mx-auto max-w-2xl text-base lg:text-lg text-gray-600">
+          <p className="mx-auto max-w-2xl text-base text-gray-600">
             Real stories of transformation from students who achieved their
             dreams through our platform
           </p>
@@ -65,16 +65,15 @@ export default function StudentSuccessStories() {
             <motion.div
               key={story.id}
               variants={itemVariants}
-              whileHover={{ y: -6, transition: { duration: 0.3 } }}
-              className="group relative rounded-2xl overflow-hidden bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-[0_8px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.1)] transition-all duration-300"
+              whileHover={{ y: -4, transition: { duration: 0.25 } }}
+              className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
-              {/* Background glow */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-br from-green-500 to-emerald-500 blur-3xl"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(196,30,58,0.06),transparent_50%)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-              <div className="relative space-y-4 p-5 lg:p-6">
+              <div className="relative space-y-4 p-5">
                 {/* Student Avatar */}
                 <div className="flex items-center gap-4">
-                  <div className="relative h-12 w-12 rounded-full overflow-hidden ring-2 ring-green-200">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-full ring-2 ring-red-100">
                     <Image
                       src={story.image}
                       alt={story.name}
@@ -88,8 +87,8 @@ export default function StudentSuccessStories() {
                     <p className="text-sm text-gray-600">{story.university}</p>
                   </div>
                   {story.visaApproval && (
-                    <div className="rounded-full bg-green-100 px-2.5 py-1">
-                      <p className="text-xs font-bold text-green-700">Visa</p>
+                    <div className="rounded-full border border-red-100 bg-red-50 px-2.5 py-1">
+                      <p className="text-xs font-bold text-[#C41E3A]">Visa</p>
                     </div>
                   )}
                 </div>
@@ -104,7 +103,7 @@ export default function StudentSuccessStories() {
                   {Array.from({ length: story.rating }).map((_, i) => (
                     <Star
                       key={i}
-                      className="h-4 w-4 fill-yellow-400 text-yellow-400"
+                      className="h-4 w-4 fill-[#C41E3A] text-[#C41E3A]"
                     />
                   ))}
                 </div>
@@ -113,7 +112,7 @@ export default function StudentSuccessStories() {
                 <div className="space-y-2.5 border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Scholarship</span>
-                    <span className="font-bold text-green-600">
+                    <span className="font-bold text-[#C41E3A]">
                       {story.scholarship}%
                     </span>
                   </div>
@@ -126,7 +125,7 @@ export default function StudentSuccessStories() {
                 </div>
 
                 {/* CTA */}
-                <button className="w-full h-10 rounded-xl bg-green-100 px-4 text-sm font-semibold text-green-700 hover:bg-green-200 transition-colors">
+                <button className="h-10 w-full rounded-xl border border-red-100 bg-red-50 px-4 text-sm font-semibold text-[#C41E3A] transition-colors hover:bg-red-100">
                   Read Full Story
                 </button>
               </div>
@@ -140,12 +139,12 @@ export default function StudentSuccessStories() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.4 }}
           viewport={{ once: true }}
-          className="mt-12 text-center"
+          className="mt-10 text-center"
         >
-          <p className="mb-4 text-base lg:text-lg text-gray-600">
+          <p className="mb-4 text-base text-gray-600">
             Ready to write your own success story?
           </p>
-          <button className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 px-6 text-sm font-semibold text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]">
+          <button className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
             Start Your Journey Today
           </button>
         </motion.div>

@@ -28,17 +28,16 @@ export default function PremiumConsultationCTA() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-red-50 via-white to-rose-100 py-20 lg:py-24">
+    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white py-16 lg:py-20">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute left-1/2 top-0 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-red-500/15 opacity-30 blur-3xl" />
-        <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-rose-400/10 opacity-20 blur-3xl" />
+        <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-red-200/80 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-red-100 to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.78),transparent_48%)]" />
 
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-1/2 h-[620px] w-[920px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60 bg-white/20 blur-2xl" />
+        <div className="absolute left-1/2 top-1/2 h-[480px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/70 bg-white/20 blur-2xl" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
@@ -47,7 +46,7 @@ export default function PremiumConsultationCTA() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="space-y-8 text-center"
+          className="space-y-7 text-center"
         >
           {/* Badge */}
           <motion.div variants={itemVariants}>
@@ -61,14 +60,14 @@ export default function PremiumConsultationCTA() {
 
           {/* Main Heading */}
           <motion.div variants={itemVariants} className="space-y-4">
-            <h2 className="text-4xl font-bold tracking-tight text-gray-950 lg:text-5xl">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-950 lg:text-4xl">
               Ready to Transform Your
               <br />
-              <span className="bg-gradient-to-r from-[#C41E3A] to-[#E11D48] bg-clip-text text-transparent">
+              <span className="text-[#C41E3A]">
                 Educational Future?
               </span>
             </h2>
-            <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 lg:text-lg">
+            <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600">
               Get a free profile evaluation from our education experts. Receive
               personalized university recommendations and exclusive scholarship
               opportunities.
@@ -78,15 +77,15 @@ export default function PremiumConsultationCTA() {
           {/* CTA Buttons Grid */}
           <motion.div
             variants={containerVariants}
-            className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 max-w-3xl mx-auto pt-2"
+            className="mx-auto grid max-w-3xl gap-5 pt-1 sm:grid-cols-2 lg:grid-cols-3"
           >
             {/* WhatsApp */}
             <motion.a
               href="#"
               variants={itemVariants}
-              whileHover={{ scale: 1.02, y: -4 }}
+              whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}
-              className="group rounded-2xl border border-white/40 bg-white/80 p-5 shadow-xl backdrop-blur-xl transition-all hover:border-red-200 hover:shadow-red-100 lg:p-6"
+              className="group rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
               <motion.div
                 whileHover={{ scale: 1.08, rotate: 6 }}
@@ -107,9 +106,9 @@ export default function PremiumConsultationCTA() {
             <motion.a
               href="#"
               variants={itemVariants}
-              whileHover={{ scale: 1.02, y: -4 }}
+              whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}
-              className="group rounded-2xl border border-white/40 bg-white/80 p-5 shadow-xl backdrop-blur-xl transition-all hover:border-red-200 hover:shadow-red-100 lg:p-6"
+              className="group rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
               <motion.div
                 whileHover={{ scale: 1.08, rotate: 6 }}
@@ -130,9 +129,9 @@ export default function PremiumConsultationCTA() {
             <motion.a
               href="#"
               variants={itemVariants}
-              whileHover={{ scale: 1.02, y: -4 }}
+              whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}
-              className="group rounded-2xl border border-white/40 bg-white/80 p-5 shadow-xl backdrop-blur-xl transition-all hover:border-red-200 hover:shadow-red-100 lg:p-6"
+              className="group rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
               <motion.div
                 whileHover={{ scale: 1.08, rotate: 6 }}
@@ -170,7 +169,7 @@ export default function PremiumConsultationCTA() {
                   initial={{ opacity: 0, x: -10 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   transition={{ delay: idx * 0.1 }}
-                  className="flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white/70 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm backdrop-blur-md"
+                  className="flex items-center justify-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm"
                 >
                   <CheckCircle2 className="h-4 w-4 text-[#C41E3A]" />
                   {benefit}
@@ -182,7 +181,7 @@ export default function PremiumConsultationCTA() {
           {/* Guarantee */}
           <motion.div
             variants={itemVariants}
-            className="mx-auto max-w-2xl rounded-2xl border border-red-100 bg-white/85 p-5 shadow-[0_8px_28px_rgba(15,23,42,0.06)] backdrop-blur-md"
+            className="mx-auto max-w-2xl rounded-3xl border border-red-100 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
           >
             <p className="text-sm leading-relaxed text-gray-600">
               <span className="font-bold">100% Money-Back Guarantee</span> - If you're
