@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 export default function BackgroundDecor() {
   const pathname = usePathname();
 
-  const isSignIn = pathname === "/sign-in";
+  const isSignIn = pathname === "/login" || pathname === "/sign-in";
 
   const bgImage = isSignIn
     ? "/images/signin-bg.png"

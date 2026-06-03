@@ -1,5 +1,5 @@
-import AuthLayout from "@/components/auth/AuthLayout";
+import { redirect } from "next/navigation";
 
 export default function Page() {
-  return <AuthLayout initialMode="signup" />;
+  redirect("/register");
 }
