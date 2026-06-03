@@ -6,7 +6,9 @@ import { ZodError } from 'zod'
 import { UserRole } from '@endow/types'
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await auth()
+  const session = await auth.api.getSession({
+    headers: opts.headers,
+  })
   return {
     db,
     session,
@@ -38,14 +40,16 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 })
 
 export const counselorProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.session!.user.role !== UserRole.COUNSELOR && ctx.session!.user.role !== UserRole.ADMIN) {
+  const role = (ctx.session as any).user?.role
+  if (role !== UserRole.COUNSELOR && role !== UserRole.ADMIN) {
     throw new TRPCError({ code: 'FORBIDDEN' })
   }
   return next({ ctx })
 })
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.session!.user.role !== UserRole.ADMIN) {
+  const role = (ctx.session as any).user?.role
+  if (role !== UserRole.ADMIN) {
     throw new TRPCError({ code: 'FORBIDDEN' })
   }
   return next({ ctx })

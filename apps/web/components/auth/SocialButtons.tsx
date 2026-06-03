@@ -1,10 +1,21 @@
-import Image from "next/image";
+"use client"
+
+import Image from "next/image"
+import { authClient } from "@/lib/auth-client"
 
 export default function SocialButtons() {
+  const handleGoogleSignIn = async () => {
+    await authClient.signIn.social({
+      provider: "google",
+      callbackURL: "/dashboard",
+    })
+  }
+
   return (
     <div className="mt-2">
 
       <button
+        onClick={handleGoogleSignIn}
         className="
           w-full
           h-11
@@ -36,5 +47,5 @@ export default function SocialButtons() {
       </button>
 
     </div>
-  );
+  )
 }

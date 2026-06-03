@@ -55,5 +55,5 @@ jobs:
         run: pnpm build
         env:
           DATABASE_URL: postgresql://endow:test_password@localhost:5432/endow_test
-          NEXTAUTH_SECRET: test_secret_for_ci
-          NEXTAUTH_URL: http://localhost:3000
+          BETTER_AUTH_SECRET: test_secret_for_ci
+          BETTER_AUTH_URL: http://localhost:3000
