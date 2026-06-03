@@ -1,4 +1,5 @@
-import { prisma } from '@endow/db'
+import { db, schema } from '@endow/db'
+import { eq } from 'drizzle-orm'
 import OpenAI from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
 
@@ -6,9 +7,9 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy' })
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || 'dummy' })
 
 export async function embedStudentProfile(studentId: string) {
-  const profile = await prisma.studentProfile.findUnique({
-    where: { id: studentId },
-    include: { user: true },
+  const profile = await db.query.studentProfiles.findFirst({
+    where: (sp, { eq }) => eq(sp.id, studentId),
+    with: { user: true },
   })
 
   if (!profile || profile.completionPercent < 50) {
@@ -16,10 +17,13 @@ export async function embedStudentProfile(studentId: string) {
     return
   }
 
+  const targetCountries = profile.targetCountries as string[]
+  const targetSubjects = profile.targetSubjects as string[]
+
   const profileText =
     `Student profile. Education: ${profile.highestEducation}. ` +
-    `Target countries: ${profile.targetCountries.join(', ')}. ` +
-    `Target subjects: ${profile.targetSubjects.join(', ')}. ` +
+    `Target countries: ${targetCountries.join(', ')}. ` +
+    `Target subjects: ${targetSubjects.join(', ')}. ` +
     `Budget: ${profile.budgetMin || 0} - ${profile.budgetMax || 50000} USD. ` +
     `GPA: ${profile.gpa || 'not provided'}. ` +
     `IELTS: ${profile.ieltsScore || 'not provided'}. ` +
@@ -33,15 +37,13 @@ export async function embedStudentProfile(studentId: string) {
 
   const embedding = embeddingResponse.data[0].embedding
 
-  await prisma.studentProfile.update({
-    where: { id: studentId },
-    data: {
+  await db.update(schema.studentProfiles)
+    .set({
       profileEmbedding: embedding,
       matchesUpdatedAt: new Date(),
-    },
-  })
+    })
+    .where(eq(schema.studentProfiles.id, studentId))
 
-  // Query Pinecone for top matches
   const index = pinecone.index(process.env.PINECONE_INDEX_NAME || 'endow-courses')
   const queryResponse = await index.query({
     vector: embedding,
@@ -49,23 +51,29 @@ export async function embedStudentProfile(studentId: string) {
     includeMetadata: true,
   })
 
-  // Save match results to DB
-  await prisma.matchResult.deleteMany({ where: { studentId } })
-  await prisma.matchResult.createMany({
-    data: queryResponse.matches.map((match) => ({
-      studentId,
-      courseId: match.id,
-      score: match.score || 0,
-      matchReasons: generateMatchReasons(profile, match.metadata as Record<string, unknown>),
-    })),
-    skipDuplicates: true,
-  })
+  await db.delete(schema.matchResults)
+    .where(eq(schema.matchResults.studentId, studentId))
+
+  if (queryResponse.matches.length > 0) {
+    await db.insert(schema.matchResults).values(
+      queryResponse.matches.map((match) => ({
+        studentId,
+        courseId: match.id,
+        score: match.score || 0,
+        matchReasons: generateMatchReasons({
+        targetCountries: profile.targetCountries as string[],
+        targetSubjects: profile.targetSubjects as string[],
+        budgetMax: profile.budgetMax,
+      }, match.metadata as Record<string, unknown>),
+      }))
+    )
+  }
 
   console.log(`✅ Profile embedded and ${queryResponse.matches.length} matches saved`)
 }
 
 function generateMatchReasons(
-  profile: { targetCountries: string[]; targetSubjects: string[]; budgetMax?: number | null; hasScholarship?: boolean },
+  profile: { targetCountries: string[]; targetSubjects: string[]; budgetMax?: number | null },
   metadata: Record<string, unknown>
 ): string[] {
   const reasons: string[] = []

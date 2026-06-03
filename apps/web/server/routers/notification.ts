@@ -1,9 +1,11 @@
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
+import { schema } from '@endow/db'
+import { eq } from 'drizzle-orm'
 
 export const notificationRouter = createTRPCRouter({
   getAll: protectedProcedure.query(({ ctx }) => {
-    return ctx.prisma.notification.findMany({
-      where: { userId: ctx.session.user.id }
+    return ctx.db.query.notifications.findMany({
+      where: (n, { eq }) => eq(n.userId, ctx.session.user.id),
     })
   }),
 })

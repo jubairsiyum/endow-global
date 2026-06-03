@@ -1,7 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 
 export const messageRouter = createTRPCRouter({
-  getConversations: protectedProcedure.query(({ ctx }) => {
+  getConversations: protectedProcedure.query(() => {
     return []
   }),
 })

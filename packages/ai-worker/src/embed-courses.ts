@@ -1,4 +1,5 @@
-import { prisma } from '@endow/db'
+import { db, schema } from '@endow/db'
+import { eq } from 'drizzle-orm'
 import OpenAI from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
 
@@ -9,9 +10,9 @@ async function embedCourses() {
   console.log('🤖 Starting course embedding job...')
   const index = pinecone.index(process.env.PINECONE_INDEX_NAME || 'endow-courses')
 
-  const courses = await prisma.course.findMany({
-    where: { isActive: true },
-    include: { university: true },
+  const courses = await db.query.courses.findMany({
+    where: (c, { eq }) => eq(c.isActive, true),
+    with: { university: true },
   })
 
   console.log(`📚 Embedding ${courses.length} courses...`)
@@ -25,7 +26,7 @@ async function embedCourses() {
         `Course: ${c.name}. Subject: ${c.subject}. Level: ${c.level}. ` +
         `University: ${c.university.name}. Country: ${c.university.country}. ` +
         `Duration: ${c.duration} ${c.durationUnit}. Tuition: ${c.tuitionFee} ${c.currency}. ` +
-        `Requirements: ${c.requirements.join(', ')}. ` +
+        `Requirements: ${(c.requirements as string[]).join(', ')}. ` +
         `Scholarship: ${c.hasScholarship ? 'Yes - ' + c.scholarshipDetails : 'No'}. ` +
         `Description: ${c.description}`
     )
@@ -54,13 +55,11 @@ async function embedCourses() {
 
     await index.upsert(vectors)
 
-    // Update vectorId in DB
     await Promise.all(
       batch.map((course) =>
-        prisma.course.update({
-          where: { id: course.id },
-          data: { vectorId: course.id },
-        })
+        db.update(schema.courses)
+          .set({ vectorId: course.id })
+          .where(eq(schema.courses.id, course.id))
       )
     )
 
@@ -68,7 +67,6 @@ async function embedCourses() {
   }
 
   console.log('🎉 Course embedding complete!')
-  await prisma.$disconnect()
 }
 
 embedCourses().catch(console.error)
