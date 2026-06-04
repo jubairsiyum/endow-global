@@ -96,14 +96,15 @@ export function Navbar() {
           className={`flex h-14 shrink-0 items-center rounded-full pr-2 text-sm font-semibold transition sm:h-16 md:pr-4 ${textPrimary}`}
         >
           {/* Wide logo mark */}
-          <span className="relative flex h-10 w-[168px] min-w-[168px] shrink-0 items-center overflow-hidden sm:h-12 sm:w-[202px] sm:min-w-[202px] md:h-[52px] md:w-[220px] md:min-w-[220px]">
+          <span className="flex h-10 shrink-0 items-center sm:h-12 md:h-14">
             <Image
-              src="/logo/endoedu.png"
+              src="/logo/endoedu.svg"
               alt="Endow Global Education"
-              fill
+              width={616}
+              height={504}
               priority
-              sizes="(max-width: 640px) 168px, (max-width: 768px) 202px, 220px"
-              className="object-cover object-center"
+              sizes="(max-width: 640px) 49px, (max-width: 768px) 59px, 69px"
+              className="h-10 w-auto shrink-0 object-contain object-center sm:h-12 md:h-14"
             />
           </span>
 
