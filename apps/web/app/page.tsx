@@ -49,6 +49,46 @@ const universities = [
     name: 'Daejin University',
     logo: '/universities/Daejin University.png',
   },
+  {
+    name: 'Chungwoon University',
+    logo: '/universities/Chungwoon University.png',
+  },
+  {
+    name: 'Yeungjin University',
+    logo: '/universities/Yeungjin University.png',
+  },
+  {
+    name: 'Sahmyook University',
+    logo: '/universities/Sahmyook University.png',
+  },
+  {
+    name: 'Sejong University',
+    logo: '/universities/Sejong University.png',
+  },
+  {
+    name: 'Kyung Hee University',
+    logo: '/universities/Kyung Hee University.png',
+  },
+  {
+    name: 'Sun Moon University',
+    logo: '/universities/Sun Moon University.png',
+  },
+  {
+    name: 'Turku University',
+    logo: '/universities/Turku University.png',
+  },
+  {
+    name: 'Helsinki University',
+    logo: '/universities/Helsinki University.png',
+  },
+  {
+    name: 'Aalto University',
+    logo: '/universities/Aalto University.png',
+  },
+  {
+    name: 'Dong-Eui University',
+    logo: '/universities/Dong-Eui University.png',
+  },
 ] as const
 
 const features = [
