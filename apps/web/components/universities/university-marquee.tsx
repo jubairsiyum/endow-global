@@ -3,8 +3,45 @@
 import { motion } from "framer-motion";
 import { universities } from "@/lib/universities/data";
 import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 export default function UniversityMarquee() {
+  const marqueeContentRef = useRef<HTMLDivElement>(null);
+  const [trackWidth, setTrackWidth] = useState<number>(0);
+  const [animationDuration, setAnimationDuration] = useState<number>(60);
+
+  useEffect(() => {
+    const measureWidth = () => {
+      if (marqueeContentRef.current) {
+        const firstTrack = marqueeContentRef.current.querySelector(".marquee-track");
+        if (firstTrack) {
+          const width = (firstTrack as HTMLElement).offsetWidth;
+          setTrackWidth(width);
+          // Calculate animation duration: 60px per second is a smooth speed
+          setAnimationDuration(Math.max(30, width / 60));
+        }
+      }
+    };
+
+    // Measure on mount
+    measureWidth();
+
+    // Measure on window resize
+    const resizeObserver = new ResizeObserver(measureWidth);
+    const container = marqueeContentRef.current?.parentElement;
+    if (container) {
+      resizeObserver.observe(container);
+    }
+
+    // Fallback resize listener
+    window.addEventListener("resize", measureWidth);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", measureWidth);
+    };
+  }, []);
+
   return (
     <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-8 lg:py-10">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -13,8 +50,15 @@ export default function UniversityMarquee() {
         </p>
 
         <div className="marquee-container">
-          <div className="marquee-content">
-            {/* Track 1 */}
+          <div
+            className="marquee-content"
+            ref={marqueeContentRef}
+            style={{
+              "--marquee-track-width": `${trackWidth}px`,
+              "--marquee-animation-duration": `${animationDuration}s`,
+            } as React.CSSProperties & { "--marquee-track-width": string; "--marquee-animation-duration": string }}
+          >
+            {/* Track 1 - Original */}
             <div className="marquee-track">
               {universities.map((uni) => (
                 <motion.div
@@ -29,6 +73,7 @@ export default function UniversityMarquee() {
                       width={64}
                       height={64}
                       className="h-full w-full object-contain p-2"
+                      priority={false}
                     />
                   </div>
 
@@ -40,7 +85,7 @@ export default function UniversityMarquee() {
               ))}
             </div>
 
-            {/* Track 2 */}
+            {/* Track 2 - Duplicate for seamless loop */}
             <div className="marquee-track">
               {universities.map((uni) => (
                 <motion.div
@@ -55,6 +100,7 @@ export default function UniversityMarquee() {
                       width={64}
                       height={64}
                       className="h-full w-full object-contain p-2"
+                      priority={false}
                     />
                   </div>
 
@@ -65,7 +111,8 @@ export default function UniversityMarquee() {
                 </motion.div>
               ))}
             </div>
-            {/* Track 3 */}
+
+            {/* Track 3 - Duplicate for seamless loop edge case */}
             <div className="marquee-track">
               {universities.map((uni) => (
                 <motion.div
@@ -80,6 +127,7 @@ export default function UniversityMarquee() {
                       width={64}
                       height={64}
                       className="h-full w-full object-contain p-2"
+                      priority={false}
                     />
                   </div>
 

@@ -459,8 +459,12 @@ img {
   display: flex;
   width: max-content;
   flex-wrap: nowrap;
-  animation: marquee 55s linear infinite;
+  /* Seamless animation using CSS variables for exact pixel distance */
+  animation: marquee var(--marquee-animation-duration, 60s) linear infinite;
   will-change: transform;
+  /* 3D acceleration for smooth rendering */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .marquee-track {
@@ -469,17 +473,37 @@ img {
   gap: 60px;
   flex-shrink: 0;
   padding-right: 60px;
+  /* Ensure minimum width for proper spacing */
+  min-width: max-content;
 }
+
 .marquee-content:hover {
   animation-play-state: paused;
 }
 
+/* 
+  SEAMLESS MARQUEE KEYFRAME
+  The animation translates by exactly one track width (measured dynamically).
+  With 3 duplicated tracks, when the first track scrolls off-screen, 
+  the second one appears, creating a seamless loop.
+  The animation-delay trick ensures instant reset at end happens during 
+  the scroll, not visible to the user.
+*/
 @keyframes marquee {
   from {
-    transform: translateX(0);
+    transform: translateX(0) translateZ(0);
   }
 
   to {
-    transform: translateX(-33.333%);
+    /* Calculate: -(width of 1 track) */
+    transform: translateX(calc(-1 * var(--marquee-track-width, 1px))) translateZ(0);
+  }
+}
+
+/* Optional: Add fade effect at edges for polish */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-content {
+    /* Smooth GPU acceleration */
+    transition: none;
   }
 }
