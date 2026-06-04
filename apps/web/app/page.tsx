@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -14,6 +13,7 @@ import {
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/button'
+import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUniversityMarquee'
 
 const heroVideos = [
   {
@@ -287,36 +287,6 @@ function HeroSection() {
 //   )
 // }
 
-function UniversityMarquee() {
-  const marqueeItems = [...universities, ...universities]
-
-  return (
-    <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
-          <div className="university-marquee flex items-center gap-20 whitespace-nowrap">
-            {marqueeItems.map((university, index) => (
-              <div
-                key={`${university.name}-${index}`}
-                className="flex-shrink-0 flex items-center justify-center opacity-80 transition-all duration-300 hover:opacity-100"
-              >
-                <Image
-                  src={university.logo}
-                  alt={university.name}
-                  width={72}
-                  height={72}
-                  className="h-16 w-16 object-contain transition-all duration-300 hover:scale-110"
-                />
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-
 function FeaturesSection() {
   return (
     <section className="bg-[#f7f8fb] py-16">
@@ -378,7 +348,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col font-sans">
       <main className="flex-grow">
         <HeroSection />
-        <UniversityMarquee />
+        <DiagnosticUniversityMarquee universities={universities} />
         <FeaturesSection />
       </main>
 
