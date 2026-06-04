@@ -1,11 +1,18 @@
 import { Redis } from '@upstash/redis'
+import { lazyClient } from './lazy-client'
 
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
+export const redis = lazyClient<Redis>(
+  () => {
+    const url = process.env.UPSTASH_REDIS_REST_URL
+    const token = process.env.UPSTASH_REDIS_REST_TOKEN
+    if (!url || !token) {
+      throw new Error('UPSTASH_REDIS_REST_URL / UPSTASH_REDIS_REST_TOKEN are not set')
+    }
+    return new Redis({ url, token })
+  },
+  'Upstash Redis',
+)
 
-// Rate limiter helper
 export async function rateLimit(identifier: string, limit = 10, window = 60): Promise<boolean> {
   const key = `rate_limit:${identifier}`
   const current = await redis.incr(key)
@@ -13,7 +20,6 @@ export async function rateLimit(identifier: string, limit = 10, window = 60): Pr
   return current <= limit
 }
 
-// Cache helper
 export async function getOrSet<T>(
   key: string,
   fn: () => Promise<T>,
