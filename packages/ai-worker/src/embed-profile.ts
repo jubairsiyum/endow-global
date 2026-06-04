@@ -4,8 +4,8 @@ import { eq } from 'drizzle-orm'
 import OpenAI from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy' })
-const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || 'dummy' })
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
 
 export async function embedStudentProfile(studentId: string) {
   const profile = await db.query.studentProfiles.findFirst({
