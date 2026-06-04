@@ -63,7 +63,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
     <aside
       aria-label="Student dashboard navigation"
       className={cn(
-        'relative flex h-screen flex-col overflow-y-auto border-r border-gray-200 bg-white',
+        'relative flex h-screen flex-col overflow-hidden border-r border-gray-200 bg-white',
         isFull ? 'w-[260px]' : 'w-[72px]',
       )}
     >
@@ -95,7 +95,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
       {/* NAV */}
       <nav
         className={cn(
-          'mt-3 flex-1 space-y-1 overflow-y-auto',
+          'mt-3 flex-1 space-y-1 overflow-hidden',
           isFull ? 'px-3' : 'px-2',
         )}
         aria-label="Primary"
