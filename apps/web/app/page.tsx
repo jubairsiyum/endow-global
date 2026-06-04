@@ -218,6 +218,35 @@ function HeroSection() {
   )
 }
 
+// function UniversityMarquee() {
+//   const marqueeItems = [...universities, ...universities, ...universities] // Repeat to create a seamless loop
+
+//   return (
+//     // <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
+//     //   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+//     //     <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+//     //       <div className="university-marquee flex items-center gap-20 whitespace-nowrap">
+//     //         {marqueeItems.map((university, index) => (
+//     //           <div
+//     //             key={`${university.name}-${index}`}
+//     //             className="flex items-center justify-center opacity-80 transition-all duration-300 hover:opacity-100"
+//     //           >
+//     //             <Image
+//     //               src={university.logo}
+//     //               alt={university.name}
+//     //               width={72}
+//     //               height={72}
+//     //               className="h-16 w-16 object-contain transition-all duration-300 hover:scale-110"
+//     //             />
+//     //           </div>
+//     //         ))}
+//     //       </div>
+//     //     </div>
+//     //   </div>
+//     // </section>
+//   )
+// }
+
 function UniversityMarquee() {
   const marqueeItems = [...universities, ...universities]
 
@@ -225,22 +254,19 @@ function UniversityMarquee() {
     <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
-          <div className="university-marquee flex items-center gap-14 whitespace-nowrap">
+          <div className="university-marquee flex items-center gap-20 whitespace-nowrap">
             {marqueeItems.map((university, index) => (
               <div
                 key={`${university.name}-${index}`}
-                className="flex items-center gap-3 opacity-80 transition hover:opacity-100"
+                className="flex-shrink-0 flex items-center justify-center opacity-80 transition-all duration-300 hover:opacity-100"
               >
                 <Image
                   src={university.logo}
                   alt={university.name}
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 object-contain"
+                  width={72}
+                  height={72}
+                  className="h-16 w-16 object-contain transition-all duration-300 hover:scale-110"
                 />
-                <span className="text-xl font-bold text-gray-600 sm:text-2xl">
-                  {university.name}
-                </span>
               </div>
             ))}
           </div>
@@ -249,6 +275,7 @@ function UniversityMarquee() {
     </section>
   )
 }
+
 
 function FeaturesSection() {
   return (

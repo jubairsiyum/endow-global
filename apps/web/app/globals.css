@@ -444,3 +444,46 @@ textarea {
 img {
   image-rendering: auto;
 }
+
+/* =========================
+   IMAGE uniVERSITY MARQUEE
+========================= */
+
+.university-marquee {
+  position: relative;
+  width: 100%;
+  height: 80px;
+}
+
+.logo-item {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  animation: moveLogo 12s linear infinite;
+}
+
+.logo-item:nth-child(1) {
+  animation-delay: 0s;
+}
+
+.logo-item:nth-child(2) {
+  animation-delay: 3s;
+}
+
+.logo-item:nth-child(3) {
+  animation-delay: 6s;
+}
+
+.logo-item:nth-child(4) {
+  animation-delay: 9s;
+}
+
+@keyframes moveLogo {
+  from {
+    left: -100px;
+  }
+
+  to {
+    left: calc(100% + 100px);
+  }
+}
