@@ -25,24 +25,7 @@ export function SearchFilterSection({ activeCategory, setActiveCategory }: Searc
   return (
     <section className="relative bg-[#F8FAFC] py-20 lg:py-24 border-y border-[#E5E7EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* SEARCH BAR */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="mb-12"
-        >
-          <div className="relative max-w-2xl mx-auto">
-            <div className="relative flex items-center bg-white rounded-xl border border-[#E5E7EB] shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition-shadow">
-              <Search className="absolute left-4 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search articles..."
-                className="w-full pl-12 pr-4 py-4 bg-transparent border-0 outline-none text-[#111827] placeholder-[#6B7280] text-lg"
-              />
-            </div>
-          </div>
-        </motion.div>
+
 
         {/* CATEGORY PILLS */}
         <motion.div

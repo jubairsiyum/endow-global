@@ -95,23 +95,52 @@ textarea {
 ========================= */
 
 .university-marquee {
-
-  width: max-content;
-
   display: flex;
   align-items: center;
-
-  animation:
-    universityScroll 28s linear infinite;
-
-  will-change:
-    transform;
+  width: max-content;
+  animation: universityScroll 28s linear infinite;
+  backface-visibility: hidden;
+  contain: layout paint;
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .university-marquee:hover {
+  animation-play-state: paused;
+}
 
-  animation-play-state:
-    paused;
+.university-marquee[data-animation="off"] {
+  animation: none;
+}
+
+.university-marquee-half {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 80px;
+  padding-right: 80px;
+  backface-visibility: hidden;
+  transform: translate3d(0, 0, 0);
+}
+
+.university-logo-cell {
+  display: flex;
+  flex: 0 0 72px;
+  width: 72px;
+  height: 72px;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.82;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+  backface-visibility: hidden;
+}
+
+.university-logo-cell:hover {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1.08);
 }
 
 /* =========================
@@ -121,13 +150,11 @@ textarea {
 @keyframes universityScroll {
 
   from {
-    transform:
-      translateX(0%);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    transform:
-      translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 
@@ -443,4 +470,67 @@ textarea {
 
 img {
   image-rendering: auto;
+}
+
+/* =========================
+   IMAGE uniVERSITY MARQUEE
+========================= */
+
+.marquee-container {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+
+.marquee-content {
+  display: flex;
+  width: max-content;
+  flex-wrap: nowrap;
+  /* Seamless animation using CSS variables for exact pixel distance */
+  animation: marquee var(--marquee-animation-duration, 60s) linear infinite;
+  will-change: transform;
+  /* 3D acceleration for smooth rendering */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  flex-shrink: 0;
+  padding-right: 60px;
+  /* Ensure minimum width for proper spacing */
+  min-width: max-content;
+}
+
+.marquee-content:hover {
+  animation-play-state: paused;
+}
+
+/* 
+  SEAMLESS MARQUEE KEYFRAME
+  The animation translates by exactly one track width (measured dynamically).
+  With 3 duplicated tracks, when the first track scrolls off-screen, 
+  the second one appears, creating a seamless loop.
+  The animation-delay trick ensures instant reset at end happens during 
+  the scroll, not visible to the user.
+*/
+@keyframes marquee {
+  from {
+    transform: translateX(0) translateZ(0);
+  }
+
+  to {
+    /* Calculate: -(width of 1 track) */
+    transform: translateX(calc(-1 * var(--marquee-track-width, 1px))) translateZ(0);
+  }
+}
+
+/* Optional: Add fade effect at edges for polish */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee-content {
+    /* Smooth GPU acceleration */
+    transition: none;
+  }
 }

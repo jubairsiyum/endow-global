@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -24,6 +25,7 @@ const transition = {
 const containerVariants = {
   hero: {
     maxWidth: 1140,
+    minHeight: 80,
     paddingLeft: 22,
     paddingRight: 22,
     paddingTop: 10,
@@ -37,6 +39,7 @@ const containerVariants = {
   },
   scrolled: {
     maxWidth: 980,
+    minHeight: 80,
     paddingLeft: 22,
     paddingRight: 22,
     paddingTop: 8,
@@ -85,19 +88,22 @@ export function Navbar() {
         animate={navMotion}
         transition={transition}
         className={[
-          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-3' : 'gap-5'} border ${isScrolled ? 'rounded-[10px]' : ''}`
+          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-5 md:gap-8' : 'gap-6'} border ${isScrolled ? 'rounded-[10px]' : ''}`
         ].join(' ')}
       >
         <Link
           href="/"
-          className={`flex items-center gap-2 rounded-full px-2.5 py-1.5 text-sm font-semibold transition ${textPrimary}`}
+          className={`flex h-14 shrink-0 items-center rounded-full pr-2 text-sm font-semibold transition sm:h-16 md:pr-4 ${textPrimary}`}
         >
           {/* Wide logo mark */}
-          <span className="inline-flex h-8 items-center sm:h-9">
-            <img
+          <span className="relative flex h-10 w-[168px] min-w-[168px] shrink-0 items-center overflow-hidden sm:h-12 sm:w-[202px] sm:min-w-[202px] md:h-[52px] md:w-[220px] md:min-w-[220px]">
+            <Image
               src="/logo/endoedu.png"
               alt="Endow Global Education"
-              className="h-full w-auto object-contain"
+              fill
+              priority
+              sizes="(max-width: 640px) 168px, (max-width: 768px) 202px, 220px"
+              className="object-cover object-center"
             />
           </span>
 

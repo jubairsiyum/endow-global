@@ -30,7 +30,7 @@ export function BlogHero() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8 xl:gap-12 items-center min-h-[calc(100vh-280px)]"
+          className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8 xl:gap-12 items-center"
         >
           {/* LEFT CONTENT */}
           <div>

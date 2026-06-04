@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -14,6 +13,7 @@ import {
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/button'
+import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUniversityMarquee'
 
 const heroVideos = [
   {
@@ -48,6 +48,46 @@ const universities = [
   {
     name: 'Daejin University',
     logo: '/universities/Daejin University.png',
+  },
+  {
+    name: 'Chungwoon University',
+    logo: '/universities/Chungwoon University.png',
+  },
+  {
+    name: 'Yeungjin University',
+    logo: '/universities/Yeungjin University.png',
+  },
+  {
+    name: 'Sahmyook University',
+    logo: '/universities/Sahmyook University.png',
+  },
+  {
+    name: 'Sejong University',
+    logo: '/universities/Sejong University.png',
+  },
+  {
+    name: 'Kyung Hee University',
+    logo: '/universities/Kyung Hee University.png',
+  },
+  {
+    name: 'Sun Moon University',
+    logo: '/universities/Sun Moon University.png',
+  },
+  {
+    name: 'Turku University',
+    logo: '/universities/Turku University.png',
+  },
+  {
+    name: 'Helsinki University',
+    logo: '/universities/Helsinki University.png',
+  },
+  {
+    name: 'Aalto University',
+    logo: '/universities/Aalto University.png',
+  },
+  {
+    name: 'Dong-Eui University',
+    logo: '/universities/Dong-Eui University.png',
   },
 ] as const
 
@@ -218,37 +258,34 @@ function HeroSection() {
   )
 }
 
-function UniversityMarquee() {
-  const marqueeItems = [...universities, ...universities]
+// function UniversityMarquee() {
+//   const marqueeItems = [...universities, ...universities, ...universities] // Repeat to create a seamless loop
 
-  return (
-    <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
-          <div className="university-marquee flex items-center gap-14 whitespace-nowrap">
-            {marqueeItems.map((university, index) => (
-              <div
-                key={`${university.name}-${index}`}
-                className="flex items-center gap-3 opacity-80 transition hover:opacity-100"
-              >
-                <Image
-                  src={university.logo}
-                  alt={university.name}
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 object-contain"
-                />
-                <span className="text-xl font-bold text-gray-600 sm:text-2xl">
-                  {university.name}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
+//   return (
+//     // <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
+//     //   <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+//     //     <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+//     //       <div className="university-marquee flex items-center gap-20 whitespace-nowrap">
+//     //         {marqueeItems.map((university, index) => (
+//     //           <div
+//     //             key={`${university.name}-${index}`}
+//     //             className="flex items-center justify-center opacity-80 transition-all duration-300 hover:opacity-100"
+//     //           >
+//     //             <Image
+//     //               src={university.logo}
+//     //               alt={university.name}
+//     //               width={72}
+//     //               height={72}
+//     //               className="h-16 w-16 object-contain transition-all duration-300 hover:scale-110"
+//     //             />
+//     //           </div>
+//     //         ))}
+//     //       </div>
+//     //     </div>
+//     //   </div>
+//     // </section>
+//   )
+// }
 
 function FeaturesSection() {
   return (
@@ -311,7 +348,7 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col font-sans">
       <main className="flex-grow">
         <HeroSection />
-        <UniversityMarquee />
+        <DiagnosticUniversityMarquee universities={universities} />
         <FeaturesSection />
       </main>
 
