@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db, schema } from '@/lib/db'
-import { embedStudentProfile } from '@endow/ai-worker/src/embed-profile'
 import { headers } from 'next/headers'
+import { embedStudentProfile } from '@endow/ai-worker/embed-profile'
 
 export async function POST() {
   const session = await auth.api.getSession({

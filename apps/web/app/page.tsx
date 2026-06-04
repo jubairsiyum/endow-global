@@ -1,343 +1,321 @@
-import { Navbar } from '@/components/layout/Navbar'
-import { Footer } from '@/components/layout/Footer'
-import { Button } from '@/components/ui/button'
-
+import Image from 'next/image'
+import Link from 'next/link'
 import {
-  Search,
-  Globe2,
- BookOpen,
-  GraduationCap,
   ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Globe2,
+  GraduationCap,
+  Search,
   ShieldCheck,
+  Sparkles,
 } from 'lucide-react'
 
-import Image from 'next/image'
+import { Footer } from '@/components/layout/Footer'
+import { Navbar } from '@/components/layout/Navbar'
+import { Button } from '@/components/ui/button'
 
-export default function HomePage() {
+const heroVideos = [
+  {
+    label: 'Campus study',
+    src: 'https://videos.pexels.com/video-files/7969378/7969378-uhd_1440_2732_25fps.mp4',
+  },
+  {
+    label: 'Students walking',
+    src: 'https://videos.pexels.com/video-files/7969427/7969427-uhd_1440_2732_25fps.mp4',
+  },
+  {
+    label: 'Outdoor collaboration',
+    src: 'https://videos.pexels.com/video-files/6145420/6145420-uhd_1440_2732_25fps.mp4',
+  },
+] as const
+
+const heroStats = [
+  { value: '40+', label: 'Partner universities' },
+  { value: '12', label: 'Study destinations' },
+  { value: '1:1', label: 'Counselor guidance' },
+] as const
+
+const universities = [
+  {
+    name: 'Busan University',
+    logo: '/universities/Busan University.png',
+  },
+  {
+    name: 'Hanseo University',
+    logo: '/universities/Hanseo University.png',
+  },
+  {
+    name: 'Daejin University',
+    logo: '/universities/Daejin University.png',
+  },
+] as const
+
+const features = [
+  {
+    icon: Globe2,
+    title: 'Matched destinations',
+    copy: 'Compare countries, universities, scholarships, and intake timelines from one focused view.',
+  },
+  {
+    icon: BookOpen,
+    title: 'Course clarity',
+    copy: 'Shortlist programs by level, subject, eligibility, and long-term career fit.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Application control',
+    copy: 'Track documents, counselor notes, deadlines, and next steps without losing momentum.',
+  },
+] as const
+
+function VideoBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden">
+      <video
+        aria-label="Students exploring study options on campus"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        className="h-full w-full object-cover"
+      >
+        {heroVideos.map((video) => (
+          <source key={video.src} src={video.src} type="video/mp4" />
+        ))}
+      </video>
+      <div className="bg-white/88 absolute inset-0" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(196,30,58,0.12),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.74)_0%,rgba(255,255,255,0.94)_82%)]" />
+    </div>
+  )
+}
+
+function HeroSearchPanel() {
+  return (
+    <div className="bg-white/82 mx-auto w-full max-w-3xl rounded-lg border border-gray-200/80 p-4 shadow-[0_16px_45px_rgba(15,23,42,0.08)] backdrop-blur-xl sm:p-5">
+      <div className="mb-4 flex items-center justify-between gap-3 text-left">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C41E3A]">
+            Smart search
+          </p>
+          <h2 className="mt-1 text-xl font-bold text-gray-950">Find your dream course</h2>
+        </div>
+        <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-[#C41E3A]">
+          <Search size={20} />
+        </span>
+      </div>
+
+      <div className="space-y-3">
+        <label className="block">
+          <span className="mb-1 block text-sm font-medium text-gray-700">
+            What do you want to study?
+          </span>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <input
+              type="text"
+              placeholder="Computer Science, Business..."
+              className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20"
+            />
+          </div>
+        </label>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-gray-700">Destination</span>
+            <select className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20">
+              <option>Any Country</option>
+              <option>United Kingdom</option>
+              <option>United States</option>
+              <option>Australia</option>
+              <option>Canada</option>
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-gray-700">Level</span>
+            <select className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20">
+              <option>Undergraduate</option>
+              <option>Postgraduate</option>
+            </select>
+          </label>
+        </div>
+
+        <Button className="h-11 w-full rounded-lg" size="default">
+          Search Courses
+        </Button>
+      </div>
+    </div>
+  )
+}
+
+function HeroSection() {
+  return (
+    <section className="relative min-h-[760px] overflow-hidden">
+      <VideoBackground />
+
+      <div className="relative z-10 mx-auto flex min-h-[760px] max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
+        <div className="pb-8 pt-4">
+          <Navbar />
+        </div>
+
+        <div className="flex flex-1 items-center justify-center py-24 lg:py-20">
+          <div className="mx-auto w-full max-w-4xl text-center">
+            <div className="bg-white/72 mb-5 inline-flex items-center gap-2 rounded-full border border-gray-200/80 px-3 py-1.5 text-sm font-semibold text-gray-800 shadow-sm backdrop-blur">
+              <Sparkles size={16} className="text-[#C41E3A]" />
+              Global Vision, Guided Path
+            </div>
+
+            <h1 className="mx-auto max-w-4xl text-4xl font-bold leading-[1.06] tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
+              Your journey to <span className="text-[#C41E3A]">global education</span> starts here.
+            </h1>
+
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-700 sm:text-lg">
+              Discover universities, compare courses, and move through every application step with
+              expert counseling in one compact platform.
+            </p>
+
+            <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-12 gap-2 px-6">
+                <Link href="/register">
+                  Start Your Application
+                  <ArrowRight size={18} />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="white"
+                className="h-12 gap-2 border border-white/70 px-6 shadow-sm"
+              >
+                <Link href="/universities">
+                  Explore Universities
+                  <Globe2 size={18} />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="mt-8">
+              <HeroSearchPanel />
+            </div>
+
+            <div className="mx-auto mt-6 grid max-w-2xl grid-cols-1 gap-2 sm:grid-cols-3">
+              {/* {heroStats.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="bg-white/56 rounded-lg border border-gray-200/70 px-4 py-3 backdrop-blur"
+                >
+                  <p className="text-2xl font-bold text-gray-950">{stat.value}</p>
+                  <p className="mt-1 text-xs font-medium leading-4 text-gray-600">{stat.label}</p>
+                </div>
+              ))} */}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function UniversityMarquee() {
+  const marqueeItems = [...universities, ...universities]
 
   return (
+    <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+          <div className="university-marquee flex items-center gap-14 whitespace-nowrap">
+            {marqueeItems.map((university, index) => (
+              <div
+                key={`${university.name}-${index}`}
+                className="flex items-center gap-3 opacity-80 transition hover:opacity-100"
+              >
+                <Image
+                  src={university.logo}
+                  alt={university.name}
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 object-contain"
+                />
+                <span className="text-xl font-bold text-gray-600 sm:text-2xl">
+                  {university.name}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
 
-    <div className="min-h-screen flex flex-col font-sans">
+function FeaturesSection() {
+  return (
+    <section className="bg-[#f7f8fb] py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#C41E3A] shadow-sm">
+              <GraduationCap size={16} />
+              Built for study abroad decisions
+            </div>
+            <h2 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+              Everything you need to move with confidence
+            </h2>
+          </div>
+          <p className="max-w-2xl text-base leading-7 text-gray-600">
+            We turn the complex application process into a clear sequence: discover the right fit,
+            prepare the strongest application, and stay aligned with counselors from first shortlist
+            to submission.
+          </p>
+        </div>
 
+        <div className="mt-9 grid gap-4 md:grid-cols-3">
+          {features.map((feature) => {
+            const Icon = feature.icon
+
+            return (
+              <article
+                key={feature.title}
+                className="rounded-lg border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]"
+              >
+                <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-[#C41E3A]">
+                  <Icon size={20} />
+                </span>
+                <h3 className="text-lg font-bold text-gray-950">{feature.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-gray-600">{feature.copy}</p>
+              </article>
+            )
+          })}
+        </div>
+
+        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+          {['Eligibility checks', 'Document reminders', 'Counselor updates'].map((item) => (
+            <span
+              key={item}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700"
+            >
+              <CheckCircle2 size={17} className="text-[#C41E3A]" />
+              {item}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <div className="flex min-h-screen flex-col font-sans">
       <main className="flex-grow">
-
-        {/* =======================================================
-            HERO SECTION
-        ======================================================= */}
-
-        <section className="relative overflow-x-hidden bg-white">
-
-          {/* BACKGROUND GLOW */}
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] rounded-full bg-rose-50 blur-3xl opacity-60 pointer-events-none" />
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-
-            {/* NAVBAR */}
-            <div className="pt-4 pb-8 lg:pb-12">
-              <Navbar />
-            </div>
-
-            {/* HERO CONTENT */}
-            <div className="py-20 lg:py-32">
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-
-                {/* LEFT */}
-                <div className="max-w-2xl">
-
-                  <h1 className="text-5xl lg:text-7xl font-bold text-gray-900 tracking-tight leading-[1.1] mb-6">
-
-                    Your journey to{' '}
-
-                    <span className="text-[#C41E3A]">
-                      global education
-                    </span>{' '}
-
-                    starts here.
-
-                  </h1>
-
-                  <p className="text-lg text-gray-600 mb-8 leading-relaxed max-w-xl">
-
-                    Discover top universities, apply to the best
-                    courses, and get expert counseling — all in one
-                    intelligent platform.
-
-                  </p>
-
-                  <div className="flex flex-col sm:flex-row gap-4">
-
-                    <Button
-                      size="lg"
-                      className="gap-2 rounded-full bg-[#C41E3A] hover:bg-[#a71930]"
-                    >
-
-                      Start Your Application
-
-                      <ArrowRight size={18} />
-
-                    </Button>
-
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="rounded-full"
-                    >
-                      Explore Universities
-                    </Button>
-
-                  </div>
-
-                </div>
-
-                {/* RIGHT CARD */}
-                <div className="relative">
-
-                  <div className="bg-white p-8 rounded-3xl shadow-2xl border border-gray-100 relative z-20">
-
-                    <h3 className="text-xl font-bold text-gray-900 mb-6">
-                      Find your dream course
-                    </h3>
-
-                    <div className="space-y-4">
-
-                      {/* SEARCH */}
-                      <div>
-
-                        <label className="text-sm font-medium text-gray-700 mb-1 block">
-                          What do you want to study?
-                        </label>
-
-                        <div className="relative">
-
-                          <Search
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            size={20}
-                          />
-
-                          <input
-                            type="text"
-                            placeholder="e.g. Computer Science, Business..."
-                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C41E3A] bg-white"
-                          />
-
-                        </div>
-
-                      </div>
-
-                      {/* SELECTS */}
-                      <div className="grid grid-cols-2 gap-4">
-
-                        <div>
-
-                          <label className="text-sm font-medium text-gray-700 mb-1 block">
-                            Destination
-                          </label>
-
-                          <select className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C41E3A] bg-white">
-
-                            <option>Any Country</option>
-                            <option>United Kingdom</option>
-                            <option>United States</option>
-                            <option>Australia</option>
-                            <option>Canada</option>
-
-                          </select>
-
-                        </div>
-
-                        <div>
-
-                          <label className="text-sm font-medium text-gray-700 mb-1 block">
-                            Level
-                          </label>
-
-                          <select className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#C41E3A] bg-white">
-
-                            <option>Undergraduate</option>
-                            <option>Postgraduate</option>
-
-                          </select>
-
-                        </div>
-
-                      </div>
-
-                      {/* BUTTON */}
-                      <Button
-                        className="w-full mt-2 rounded-xl bg-[#C41E3A] hover:bg-[#a71930]"
-                        size="lg"
-                      >
-                        Search Courses
-                      </Button>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =======================================================
-            PREMIUM MOVING UNIVERSITIES SECTION
-        ======================================================= */}
-
-        <section className="border-y border-gray-100 bg-gray-50 py-10 overflow-hidden">
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
-
-              {/* MOVING MARQUEE */}
-              <div className="university-marquee flex items-center gap-24 whitespace-nowrap">
-
-                {/* BUSAN */}
-                <div className="flex items-center gap-4 opacity-90 hover:opacity-100 transition-all duration-300">
-
-                  <Image
-                    src="/universities/Busan University.png"
-                    alt="Busan University"
-                    width={88}
-                    height={88}
-                    className="object-contain"
-                  />
-
-                  <span className="text-[32px] font-bold font-serif text-gray-600">
-                    Busan University
-                  </span>
-
-                </div>
-
-                {/* HANSEO */}
-                <div className="flex items-center gap-4 opacity-90 hover:opacity-100 transition-all duration-300">
-
-                  <Image
-                    src="/universities/Hanseo University.png"
-                    alt="Hanseo University"
-                    width={88}
-                    height={88}
-                    className="object-contain"
-                  />
-
-                  <span className="text-[32px] font-bold font-serif text-gray-600">
-                    Hanseo University
-                  </span>
-
-                </div>
-
-                {/* DAEJIN */}
-                <div className="flex items-center gap-4 opacity-90 hover:opacity-100 transition-all duration-300">
-
-                  <Image
-                    src="/universities/Daejin University.png"
-                    alt="Daejin University"
-                    width={88}
-                    height={88}
-                    className="object-contain"
-                  />
-
-                  <span className="text-[32px] font-bold font-serif text-gray-600">
-                    Daejin University
-                  </span>
-
-                </div>
-
-                {/* DUPLICATE LOOP */}
-
-                <div className="flex items-center gap-4 opacity-90 hover:opacity-100 transition-all duration-300">
-
-                  <Image
-                    src="/universities/Busan University.png"
-                    alt="Busan University"
-                    width={88}
-                    height={88}
-                    className="object-contain"
-                  />
-
-                  <span className="text-[32px] font-bold font-serif text-gray-600">
-                    Busan University
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-4 opacity-90 hover:opacity-100 transition-all duration-300">
-
-                  <Image
-                    src="/universities/Hanseo University.png"
-                    alt="Hanseo University"
-                    width={88}
-                    height={88}
-                    className="object-contain"
-                  />
-
-                  <span className="text-[32px] font-bold font-serif text-gray-600">
-                    Hanseo University
-                  </span>
-
-                </div>
-
-                <div className="flex items-center gap-4 opacity-90 hover:opacity-100 transition-all duration-300">
-
-                  <Image
-                    src="/universities/Daejin University.png"
-                    alt="Daejin University"
-                    width={88}
-                    height={88}
-                    className="object-contain"
-                  />
-
-                  <span className="text-[32px] font-bold font-serif text-gray-600">
-                    Daejin University
-                  </span>
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-        </section>
-
-        {/* =======================================================
-            FEATURES
-        ======================================================= */}
-
-        <section className="py-24 bg-white">
-
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-            <div className="text-center max-w-3xl mx-auto mb-16">
-
-              <h2 className="text-3xl md:text-5xl font-bold text-gray-900 mb-6">
-                Everything you need to succeed
-              </h2>
-
-              <p className="text-lg text-gray-600 leading-relaxed">
-                We streamline the complex application process into
-                three simple, guided steps using intelligent
-                automation.
-              </p>
-
-            </div>
-
-          </div>
-
-        </section>
-
+        <HeroSection />
+        <UniversityMarquee />
+        <FeaturesSection />
       </main>
 
       <Footer />
-
     </div>
-
   )
 }

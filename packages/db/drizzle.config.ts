@@ -1,3 +1,4 @@
+import '../../env-loader.cjs'
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({

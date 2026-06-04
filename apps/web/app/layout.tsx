@@ -6,6 +6,7 @@ import { TRPCReactProvider } from "@/lib/trpc-client";
 import { Toaster } from "sonner";
 
 import ThemeProvider from "@/components/providers/ThemeProvider";
+import ClickSpark from "@/components/effects/ClickSpark";
 
 import "@fontsource/inter";
 
@@ -97,6 +98,7 @@ export default function RootLayout({
       className={quicksand.variable}
     >
       <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#ffffff] dark:text-white">
+        <ClickSpark />
         
         <ThemeProvider>
           

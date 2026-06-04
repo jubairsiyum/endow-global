@@ -1,183 +1,88 @@
-"use client";
+'use client'
 
-import Link from "next/link";
+import SocialButtons from './SocialButtons'
+import AuthTabToggle from './AuthTabToggle'
 
-import SocialButtons from "./SocialButtons";
-import AuthTabToggle from "./AuthTabToggle";
-
-import {
-  Mail,
-  LockKeyhole,
-} from "lucide-react";
+import { Mail, LockKeyhole } from 'lucide-react'
 
 export default function SignInForm() {
   return (
     <div>
-
-      {/* Premium Segmented Glass Toggle */}
       <AuthTabToggle />
 
-      {/* Heading */}
-      <div className="text-center">
-
-        <h2 className="text-2xl font-bold tracking-tight text-black">
-          Welcome back
-        </h2>
-
-        <p className="mt-1 text-gray-700 text-xs">
-          Sign in to continue
+      <div className="text-left">
+        <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-700">
+          Student portal
         </p>
 
+        <h2 className="text-3xl font-black tracking-[-0.04em] text-slate-950">Welcome back</h2>
+
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Access your applications, documents, counselor messages, and next steps in one place.
+        </p>
       </div>
 
-      {/* Form */}
-      <div className="mt-5 space-y-2">
-
-        {/* Email */}
+      <div className="mt-6 space-y-4">
         <div>
-          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+          <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
             Email
           </label>
 
-          <div
-            className="
-              mt-1
-              flex
-              items-center
-              h-11
-              rounded-xl
-              border
-              border-white/60
-              bg-white/70
-              backdrop-blur-xl
-              shadow-sm
-              px-3
-              transition-all
-              focus-within:border-red-700
-              focus-within:ring-2
-              focus-within:ring-red-100
-            "
-          >
-            <Mail
-              className="text-gray-400"
-              size={20}
-            />
+          <div className="h-13 mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+            <Mail className="text-slate-400" size={19} />
 
             <input
               type="email"
               placeholder="Enter your email"
-              className="
-                w-full
-                h-full
-                px-4
-                outline-none
-                bg-transparent
-                text-gray-800
-                placeholder:text-gray-400
-              "
+              className="h-full w-full bg-transparent px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
             />
           </div>
         </div>
 
-        {/* Password */}
         <div>
-          <label className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+          <label className="text-xs font-bold uppercase tracking-[0.16em] text-slate-600">
             Password
           </label>
 
-          <div
-            className="
-              mt-1
-              flex
-              items-center
-              h-11
-              rounded-xl
-              border
-              border-white/60
-              bg-white/70
-              backdrop-blur-xl
-              shadow-sm
-              px-3
-              transition-all
-              focus-within:border-red-700
-              focus-within:ring-2
-              focus-within:ring-red-100
-            "
-          >
-            <LockKeyhole
-              className="text-gray-400"
-              size={20}
-            />
+          <div className="h-13 mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+            <LockKeyhole className="text-slate-400" size={19} />
 
             <input
               type="password"
               placeholder="Enter your password"
-              className="
-                w-full
-                h-full
-                px-4
-                outline-none
-                bg-transparent
-                text-gray-800
-                placeholder:text-gray-400
-              "
+              className="h-full w-full bg-transparent px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
             />
           </div>
         </div>
-
       </div>
 
-      {/* Options */}
-      <div className="flex items-center justify-between mt-3">
-
-        <label className="flex items-center gap-2 text-gray-700 text-xs">
-          <input type="checkbox" className="w-3 h-3 rounded" />
-          Remember
+      <div className="mt-4 flex items-center justify-between">
+        <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
+          <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-red-700" />
+          Remember me
         </label>
 
-        <button className="text-red-700 text-xs font-semibold hover:underline">
+        <button type="button" className="text-sm font-bold text-red-700 hover:text-red-800">
           Forgot Password?
         </button>
-
       </div>
 
-      {/* Button */}
       <button
-        className="
-          mt-3
-          w-full
-          h-11
-          rounded-xl
-          bg-gradient-to-r
-          from-red-600
-          to-red-800
-          text-white
-          text-sm
-          font-semibold
-          shadow-[0_8px_24px_rgba(220,38,38,0.2)]
-          hover:scale-[1.01]
-          transition-all
-        "
+        type="button"
+        className="h-13 mt-5 min-h-[50px] w-full rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]"
       >
         Sign In
       </button>
 
-      {/* Divider */}
-      <div className="flex items-center gap-3 mt-3">
+      <div className="mt-5 flex items-center gap-3">
+        <div className="h-px flex-1 bg-slate-200" />
 
-        <div className="h-px flex-1 bg-gray-300" />
+        <span className="text-xs font-bold uppercase tracking-[0.18em] text-slate-400">or</span>
 
-        <span className="text-gray-500 text-xs font-medium">
-          or
-        </span>
-
-        <div className="h-px flex-1 bg-gray-300" />
-
+        <div className="h-px flex-1 bg-slate-200" />
       </div>
 
-      {/* Social */}
       <SocialButtons />
-
     </div>
-  );
+  )
 }

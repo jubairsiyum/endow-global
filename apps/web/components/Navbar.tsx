@@ -148,7 +148,7 @@ export function Navbar() {
             className={isHero ? '' : 'hidden'}
           >
             <Link
-              href="/sign-in"
+              href="/login"
               className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
                 isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
               }`}
@@ -159,7 +159,7 @@ export function Navbar() {
 
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
-              href="/sign-up"
+              href="/register"
               className={`inline-flex items-center justify-center group rounded-full transition ${
                 isScrolled
                   ? 'gap-2 px-5 py-2.5 font-semibold tracking-tight text-white bg-gradient-to-r from-red-600 to-rose-500 shadow-[0_10px_24px_rgba(196,30,58,0.20)] hover:shadow-red-200 hover:-translate-y-0.5 transition-all duration-300'
@@ -261,13 +261,13 @@ export function Navbar() {
               </div>
               <div className="mt-4 flex flex-col gap-2">
                 <Link
-                  href="/sign-in"
+                  href="/login"
                   className="flex items-center justify-center rounded-full border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   Sign In
                 </Link>
                 <Link
-                  href="/sign-up"
+                  href="/register"
                   className="flex items-center justify-center rounded-full bg-[#C41E3A] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)]"
                 >
                   Sign Up

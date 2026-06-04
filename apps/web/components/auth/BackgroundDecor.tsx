@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 export default function BackgroundDecor() {
   const pathname = usePathname();
 
-  const isSignIn = pathname === "/sign-in";
+  const isSignIn = pathname === "/login" || pathname === "/sign-in";
 
   const bgImage = isSignIn
     ? "/images/signin-bg.png"
@@ -14,7 +14,6 @@ export default function BackgroundDecor() {
 
   return (
     <div className="absolute inset-0 overflow-hidden">
-      {/* Image Layer - Full Screen Sharp Cinematic Background */}
       <Image
         src={bgImage}
         alt={isSignIn ? "Sign in background" : "Sign up background"}
@@ -22,66 +21,56 @@ export default function BackgroundDecor() {
         priority
         quality={95}
         sizes="100vw"
-        className="object-cover"
+        className="object-cover opacity-65"
         style={{
           filter: isSignIn
-            ? "contrast(1.08) saturate(1.05) brightness(1.02)"
-            : "contrast(1.02) saturate(1.02)",
+            ? "contrast(1.04) saturate(0.92) brightness(1.08)"
+            : "contrast(1.02) saturate(0.9) brightness(1.06)",
         }}
       />
 
-      {/* Cinematic Overlay Layer - Light Gradient */}
       <div
         className="
           absolute
           inset-0
-          bg-gradient-to-b
-          from-black/5
-          via-transparent
-          to-black/10
+          bg-[linear-gradient(115deg,rgba(255,250,245,0.94)_0%,rgba(255,247,241,0.86)_42%,rgba(255,255,255,0.72)_100%)]
           pointer-events-none
         "
       />
 
-      {/* Soft Vignette Overlay - Premium Effect */}
       <div
         className="
           absolute
           inset-0
-          shadow-inner
+          opacity-[0.08]
+          bg-[linear-gradient(to_right,#7f1d1d_1px,transparent_1px),linear-gradient(to_bottom,#7f1d1d_1px,transparent_1px)]
+          bg-[size:64px_64px]
           pointer-events-none
         "
-        style={{
-          boxShadow: "inset 0 0 120px rgba(0, 0, 0, 0.08)",
-        }}
       />
 
-      {/* Left Cinematic Fade */}
       <div
         className="
           absolute
           inset-0
-          bg-gradient-to-r
-          from-white/10
-          via-white/5
-          to-transparent
+          bg-[radial-gradient(circle_at_18%_20%,rgba(185,28,28,0.12),transparent_30%),radial-gradient(circle_at_80%_72%,rgba(251,191,36,0.15),transparent_28%)]
         "
       />
 
-      {/* Right Form Overlay */}
       <div
         className="
           absolute
           top-0
           right-0
           h-full
-          w-[45%]
-          bg-white/10
-          backdrop-blur-[2px]
+          hidden
+          w-[48%]
+          bg-white/45
+          backdrop-blur-[3px]
+          lg:block
         "
       />
 
-      {/* Top Right Glow */}
       <div
         className="
           absolute
@@ -90,12 +79,11 @@ export default function BackgroundDecor() {
           w-[500px]
           h-[500px]
           rounded-full
-          bg-red-200/15
+          bg-red-200/35
           blur-3xl
         "
       />
 
-      {/* Bottom Left Glow */}
       <div
         className="
           absolute
@@ -104,26 +92,24 @@ export default function BackgroundDecor() {
           w-[500px]
           h-[500px]
           rounded-full
-          bg-red-100/15
+          bg-amber-100/45
           blur-3xl
         "
       />
 
-      {/* Cinematic Top Light */}
       <div
         className="
           absolute
           inset-0
-          bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),transparent_55%)]
+          bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.42),transparent_58%)]
         "
       />
 
-      {/* Luxury Vignette */}
       <div
         className="
           absolute
           inset-0
-          bg-[radial-gradient(circle_at_center,transparent_65%,rgba(0,0,0,0.03)_100%)]
+          bg-[radial-gradient(circle_at_center,transparent_62%,rgba(65,28,20,0.08)_100%)]
         "
       />
 
