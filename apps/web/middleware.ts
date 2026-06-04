@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getSessionCookie } from 'better-auth/cookies'
+
+function getSessionCookie(request: NextRequest) {
+  return (
+    request.cookies.get('better-auth.session_token')?.value ??
+    request.cookies.get('__Secure-better-auth.session_token')?.value
+  )
+}
 
 const PROTECTED_STUDENT_PATHS = ['/dashboard', '/explore', '/match', '/shortlist', '/applications', '/sessions', '/messages', '/profile', '/refer', '/notifications', '/tutorial']
 const PROTECTED_COUNSELOR_PATHS = ['/counselor']
