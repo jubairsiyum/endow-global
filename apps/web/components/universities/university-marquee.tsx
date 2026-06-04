@@ -7,12 +7,12 @@ import Image from "next/image";
 export default function UniversityMarquee() {
   const marqueeVariants: Variants = {
     animate: {
-      x: [0, -1000],
+      x: ["0%", "-50%"],
       transition: {
         x: {
           repeat: Infinity,
           repeatType: "loop" as const,
-          duration: 30,
+          duration: 25,
           ease: "linear",
         },
       },
@@ -31,7 +31,7 @@ export default function UniversityMarquee() {
           <motion.div
             variants={marqueeVariants}
             animate="animate"
-            className="flex gap-8 min-w-max"
+            className="flex items-center gap-16 min-w-max"
           >
             {[...universities, ...universities].map((uni, idx) => (
               <motion.div
