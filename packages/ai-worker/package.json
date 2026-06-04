@@ -1,6 +1,12 @@
 {
   "name": "@endow/ai-worker",
   "version": "0.0.1",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./embed-profile": "./src/embed-profile.ts"
+  },
   "scripts": {
     "embed-courses": "tsx src/embed-courses.ts",
     "embed-profile": "tsx src/embed-profile.ts",

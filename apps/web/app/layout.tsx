@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Quicksand } from "next/font/google";
 
-import { SessionProvider } from "next-auth/react";
 import { TRPCReactProvider } from "@/lib/trpc-client";
 
 import { Toaster } from "sonner";
@@ -102,8 +101,7 @@ export default function RootLayout({
         <ClickSpark />
         
         <ThemeProvider>
-          <SessionProvider>
-            
+          
             <TRPCReactProvider>
               {children}
 
@@ -114,7 +112,6 @@ export default function RootLayout({
               />
             </TRPCReactProvider>
 
-          </SessionProvider>
         </ThemeProvider>
 
       </body>

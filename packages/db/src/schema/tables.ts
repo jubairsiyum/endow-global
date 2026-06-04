@@ -5,13 +5,13 @@ function genId() {
   return globalThis.crypto.randomUUID()
 }
 
-// ─── Auth (shaped for @auth/drizzle-adapter compatibility) ──
+// ─── Auth (Better Auth compatible) ──
 
 export const users = mysqlTable('user', {
   id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
   name: varchar('name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull().unique(),
-  emailVerified: timestamp('email_verified', { mode: 'date', fsp: 3 }),
+  emailVerified: boolean('email_verified').default(false).notNull(),
   image: varchar('image', { length: 255 }),
   role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN']).default('STUDENT').notNull(),
   fcmToken: varchar('fcm_token', { length: 255 }),
@@ -22,34 +22,42 @@ export const users = mysqlTable('user', {
 }))
 
 export const accounts = mysqlTable('account', {
+  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar('type', { length: 255 }).notNull(),
-  provider: varchar('provider', { length: 255 }).notNull(),
-  providerAccountId: varchar('provider_account_id', { length: 255 }).notNull(),
-  refresh_token: varchar('refresh_token', { length: 255 }),
-  access_token: varchar('access_token', { length: 255 }),
-  expires_at: int('expires_at'),
-  token_type: varchar('token_type', { length: 255 }),
+  providerId: varchar('provider_id', { length: 255 }).notNull(),
+  accountId: varchar('account_id', { length: 255 }).notNull(),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }),
   scope: varchar('scope', { length: 255 }),
-  id_token: varchar('id_token', { length: 2048 }),
-  session_state: varchar('session_state', { length: 255 }),
+  password: varchar('password', { length: 255 }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 }, (table) => ({
-  compositePk: primaryKey({ columns: [table.provider, table.providerAccountId] }),
+  providerAccountIdIdx: uniqueIndex('provider_account_idx').on(table.providerId, table.accountId),  
 }))
 
 export const sessions = mysqlTable('session', {
-  sessionToken: varchar('session_token', { length: 255 }).primaryKey(),
+  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
+  token: varchar('token', { length: 255 }).notNull().unique(),
   userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  expires: timestamp('expires', { mode: 'date' }).notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  ipAddress: varchar('ip_address', { length: 255 }),
+  userAgent: varchar('user_agent', { length: 255 }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
-export const verificationTokens = mysqlTable('verification_token', {
-  identifier: varchar('identifier', { length: 255 }).notNull(),
-  token: varchar('token', { length: 255 }).notNull(),
-  expires: timestamp('expires', { mode: 'date' }).notNull(),
-}, (table) => ({
-  compositePk: primaryKey({ columns: [table.identifier, table.token] }),
-}))
+export const verificationTokens = mysqlTable('verification', {
+  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
+  identifier: varchar('identifier', { length: 255 }).notNull().unique(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+})
 
 // ─── User & Profile ────────────────────────────────────────
 

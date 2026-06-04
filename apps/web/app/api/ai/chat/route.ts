@@ -6,11 +6,14 @@ import { auth } from '@/lib/auth'
 import { rateLimit } from '@/lib/redis'
 import { db, schema } from '@/lib/db'
 import { eq } from 'drizzle-orm'
+import { headers } from 'next/headers'
 
 export const runtime = 'nodejs'
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  })
   const userId = session?.user?.id || 'anonymous'
 
   const allowed = await rateLimit(`chat:${userId}`, 20, 60)

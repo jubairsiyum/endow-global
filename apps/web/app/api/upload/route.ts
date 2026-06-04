@@ -1,13 +1,16 @@
 import { createUploadthing, type FileRouter } from 'uploadthing/next'
 import { createRouteHandler } from 'uploadthing/next'
 import { auth } from '@/lib/auth'
+import { headers } from 'next/headers'
 
 const f = createUploadthing()
 
 const uploadRouter = {
   profileImage: f({ image: { maxFileSize: '4MB' } })
     .middleware(async () => {
-      const session = await auth()
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      })
       if (!session) throw new Error('Unauthorized')
       return { userId: session.user.id }
     })
@@ -20,7 +23,9 @@ const uploadRouter = {
     image: { maxFileSize: '4MB' },
   })
     .middleware(async () => {
-      const session = await auth()
+      const session = await auth.api.getSession({
+        headers: await headers(),
+      })
       if (!session) throw new Error('Unauthorized')
       return { userId: session.user.id }
     })

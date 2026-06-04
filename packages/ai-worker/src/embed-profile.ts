@@ -3,9 +3,25 @@ import { db, schema } from '@endow/db'
 import { eq } from 'drizzle-orm'
 import OpenAI from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
+import { lazyClient } from './utils/lazy-client'
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY || 'dummy' })
-const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || 'dummy' })
+const openai = lazyClient<OpenAI>(
+  () => {
+    const key = process.env.OPENAI_API_KEY
+    if (!key) throw new Error('OPENAI_API_KEY is not set')
+    return new OpenAI({ apiKey: key })
+  },
+  'OpenAI',
+)
+
+const pinecone = lazyClient<Pinecone>(
+  () => {
+    const key = process.env.PINECONE_API_KEY
+    if (!key) throw new Error('PINECONE_API_KEY is not set')
+    return new Pinecone({ apiKey: key })
+  },
+  'Pinecone',
+)
 
 export async function embedStudentProfile(studentId: string) {
   const profile = await db.query.studentProfiles.findFirst({

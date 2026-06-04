@@ -1,6 +1,14 @@
 import { Resend } from 'resend'
+import { lazyClient } from './lazy-client'
 
-export const resend = new Resend(process.env.RESEND_API_KEY!)
+export const resend = lazyClient<Resend>(
+  () => {
+    const key = process.env.RESEND_API_KEY
+    if (!key) throw new Error('RESEND_API_KEY is not set')
+    return new Resend(key)
+  },
+  'Resend',
+)
 
 export async function sendEmail({
   to,
@@ -13,8 +21,10 @@ export async function sendEmail({
   react?: React.ReactElement
   text?: string
 }) {
+  const from = process.env.EMAIL_FROM
+  if (!from) throw new Error('EMAIL_FROM is not set')
   return resend.emails.send({
-    from: process.env.EMAIL_FROM!,
+    from,
     to,
     subject,
     react,
