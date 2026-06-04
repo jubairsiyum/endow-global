@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db, schema } from '@/lib/db'
-import { embedStudentProfile } from '@endow/ai-worker/src/embed-profile'
+import { embedStudentProfile } from '@endow/ai-worker/embed-profile'
 import { eq } from 'drizzle-orm'
 
 export async function POST() {
