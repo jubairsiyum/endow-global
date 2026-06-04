@@ -1,17 +1,28 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { lazyClient } from './lazy-client'
 
-export const s3 = new S3Client({
-  region: process.env.AWS_REGION!,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+export const s3 = lazyClient<S3Client>(
+  () => {
+    const region = process.env.AWS_REGION
+    const accessKeyId = process.env.AWS_ACCESS_KEY_ID
+    const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY
+    if (!region || !accessKeyId || !secretAccessKey) {
+      throw new Error('AWS_REGION / AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are not set')
+    }
+    return new S3Client({
+      region,
+      credentials: { accessKeyId, secretAccessKey },
+    })
   },
-})
+  'S3Client',
+)
 
 export async function getUploadUrl(key: string, contentType: string): Promise<string> {
+  const bucket = process.env.AWS_S3_BUCKET
+  if (!bucket) throw new Error('AWS_S3_BUCKET is not set')
   const command = new PutObjectCommand({
-    Bucket: process.env.AWS_S3_BUCKET!,
+    Bucket: bucket,
     Key: key,
     ContentType: contentType,
   })
@@ -23,5 +34,7 @@ export function getCDNUrl(key: string): string {
 }
 
 export async function deleteFile(key: string) {
-  await s3.send(new DeleteObjectCommand({ Bucket: process.env.AWS_S3_BUCKET!, Key: key }))
+  const bucket = process.env.AWS_S3_BUCKET
+  if (!bucket) throw new Error('AWS_S3_BUCKET is not set')
+  await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
 }

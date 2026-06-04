@@ -2,28 +2,50 @@ import OpenAI from 'openai'
 import { ChatOpenAI, OpenAIEmbeddings } from '@langchain/openai'
 import { PineconeStore } from '@langchain/pinecone'
 import { Pinecone } from '@pinecone-database/pinecone'
-import { ConversationalRetrievalQAChain } from 'langchain/chains'
-import { BufferWindowMemory } from 'langchain/memory'
+import { lazyClient } from './lazy-client'
 
-export const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+export const openai = lazyClient<OpenAI>(
+  () => {
+    const key = process.env.OPENAI_API_KEY
+    if (!key) throw new Error('OPENAI_API_KEY is not set')
+    return new OpenAI({ apiKey: key })
+  },
+  'OpenAI',
+)
 
-export const chatModel = new ChatOpenAI({
-  modelName: 'gpt-4o',
-  temperature: 0.3,
-  streaming: true,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-})
+export const chatModel = lazyClient<ChatOpenAI>(
+  () => {
+    const key = process.env.OPENAI_API_KEY
+    if (!key) throw new Error('OPENAI_API_KEY is not set')
+    return new ChatOpenAI({
+      modelName: 'gpt-4o',
+      temperature: 0.3,
+      streaming: true,
+      openAIApiKey: key,
+    })
+  },
+  'ChatOpenAI',
+)
 
-export const embeddings = new OpenAIEmbeddings({
-  modelName: 'text-embedding-3-small',
-  openAIApiKey: process.env.OPENAI_API_KEY,
-})
+export const embeddings = lazyClient<OpenAIEmbeddings>(
+  () => {
+    const key = process.env.OPENAI_API_KEY
+    if (!key) throw new Error('OPENAI_API_KEY is not set')
+    return new OpenAIEmbeddings({
+      modelName: 'text-embedding-3-small',
+      openAIApiKey: key,
+    })
+  },
+  'OpenAIEmbeddings',
+)
 
 let vectorStore: PineconeStore | null = null
 
 export async function getVectorStore() {
   if (vectorStore) return vectorStore
-  const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! })
+  const key = process.env.PINECONE_API_KEY
+  if (!key) throw new Error('PINECONE_API_KEY is not set')
+  const pinecone = new Pinecone({ apiKey: key })
   const index = pinecone.index(process.env.PINECONE_INDEX_NAME || 'endow-courses')
   vectorStore = await PineconeStore.fromExistingIndex(embeddings, { pineconeIndex: index })
   return vectorStore
