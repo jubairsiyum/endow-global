@@ -82,6 +82,13 @@ body {
   color: #C41E3A;
 }
 
+.scroll-title-highlight-worldwide .word:nth-child(n + 20):nth-child(-n + 28) {
+  background: linear-gradient(90deg, #7A0713 0%, #C41E3A 52%, #E05266 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* =========================
    BUTTON TRANSITIONS
 ========================= */
