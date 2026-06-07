@@ -1,14 +1,12 @@
 'use client'
 
 import SocialButtons from './SocialButtons'
-import AuthTabToggle from './AuthTabToggle'
 
 import { Mail, LockKeyhole } from 'lucide-react'
 
 export default function SignInForm() {
   return (
     <div className="flex h-full flex-col justify-center">
-      <AuthTabToggle />
 
       <div className="text-left">
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-700">
