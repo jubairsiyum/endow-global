@@ -1,70 +1,70 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { useState } from "react";
-import { TrendingUp, Users, Globe, Award } from "lucide-react";
+import { motion } from 'framer-motion'
+import { useState } from 'react'
+import { TrendingUp, Users, Globe, Award } from 'lucide-react'
 
 interface StatConfig {
-  value: number;
-  suffix: string;
-  label: string;
-  icon: React.ReactNode;
+  value: number
+  suffix: string
+  label: string
+  icon: React.ReactNode
 }
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
-  const [displayValue, setDisplayValue] = useState(0);
+  const [displayValue, setDisplayValue] = useState(0)
 
   return (
     <motion.span
       initial={{ opacity: 0 }}
       whileInView={{ opacity: 1 }}
       onViewportEnter={() => {
-        const increment = value / (duration * 60);
-        let current = 0;
+        const increment = value / (duration * 60)
+        let current = 0
         const timer = setInterval(() => {
-          current += increment;
+          current += increment
           if (current >= value) {
-            setDisplayValue(value);
-            clearInterval(timer);
+            setDisplayValue(value)
+            clearInterval(timer)
           } else {
-            setDisplayValue(Math.floor(current));
+            setDisplayValue(Math.floor(current))
           }
-        }, 16);
+        }, 16)
       }}
       viewport={{ once: true }}
     >
       {Math.floor(displayValue).toLocaleString()}
     </motion.span>
-  );
-};
+  )
+}
 
 export default function StatisticsSection() {
   const stats: StatConfig[] = [
     {
       value: 5000,
-      suffix: "+",
-      label: "Students Abroad",
+      suffix: '+',
+      label: 'Students Abroad',
       icon: <Users className="h-6 w-6" />,
     },
     {
       value: 250,
-      suffix: "+",
-      label: "Partner Universities",
+      suffix: '+',
+      label: 'Partner Universities',
       icon: <Award className="h-6 w-6" />,
     },
     {
       value: 45,
-      suffix: "",
-      label: "Countries Covered",
+      suffix: '',
+      label: 'Countries Covered',
       icon: <Globe className="h-6 w-6" />,
     },
     {
       value: 98,
-      suffix: "%",
-      label: "Visa Success Rate",
+      suffix: '%',
+      label: 'Visa Success Rate',
       icon: <TrendingUp className="h-6 w-6" />,
     },
-  ];
+  ]
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -72,7 +72,7 @@ export default function StatisticsSection() {
       opacity: 1,
       transition: { staggerChildren: 0.15, delayChildren: 0.1 },
     },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -81,11 +81,11 @@ export default function StatisticsSection() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  };
+  }
 
   return (
     <section className="relative overflow-x-hidden bg-[#F8FAFC] py-16 lg:py-20">
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
@@ -102,8 +102,7 @@ export default function StatisticsSection() {
             Global Success by Numbers
           </h2>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
-            Join thousands of students who have successfully pursued their
-            education dreams globally
+            Join thousands of students who have successfully pursued their education dreams globally
           </p>
         </motion.div>
 
@@ -159,5 +158,5 @@ export default function StatisticsSection() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

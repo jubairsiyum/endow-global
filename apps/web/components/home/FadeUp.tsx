@@ -1,8 +1,8 @@
-"use client";
+'use client'
 
-import { motion, useReducedMotion } from "framer-motion";
-import type { HTMLMotionProps, Variants } from "framer-motion";
-import type { ReactNode } from "react";
+import { motion, useReducedMotion } from 'framer-motion'
+import type { HTMLMotionProps, Variants } from 'framer-motion'
+import type { ReactNode } from 'react'
 
 function buildFadeUpVariants(reducedMotion: boolean): Variants {
   return {
@@ -10,15 +10,15 @@ function buildFadeUpVariants(reducedMotion: boolean): Variants {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
+      transition: { duration: 0.6, ease: 'easeOut' },
     },
-  };
+  }
 }
 
 type DivMotionProps = Omit<
-  HTMLMotionProps<"div">,
-  "variants" | "initial" | "whileInView" | "viewport" | "transition"
->;
+  HTMLMotionProps<'div'>,
+  'variants' | 'initial' | 'whileInView' | 'viewport' | 'transition'
+>
 
 export function FadeUp({
   children,
@@ -26,8 +26,8 @@ export function FadeUp({
   className,
   ...rest
 }: DivMotionProps & { children: ReactNode; amount?: number }) {
-  const prefersReducedMotion = useReducedMotion();
-  const variants = buildFadeUpVariants(!!prefersReducedMotion);
+  const prefersReducedMotion = useReducedMotion()
+  const variants = buildFadeUpVariants(!!prefersReducedMotion)
 
   return (
     <motion.div
@@ -40,7 +40,7 @@ export function FadeUp({
     >
       {children}
     </motion.div>
-  );
+  )
 }
 
 export function FadeUpStagger({
@@ -50,11 +50,11 @@ export function FadeUpStagger({
   className,
   ...rest
 }: DivMotionProps & {
-  children: ReactNode;
-  amount?: number;
-  staggerChildren?: number;
+  children: ReactNode
+  amount?: number
+  staggerChildren?: number
 }) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion()
   const variants: Variants = {
     hidden: {},
     visible: {
@@ -63,7 +63,7 @@ export function FadeUpStagger({
         delayChildren: 0,
       },
     },
-  };
+  }
 
   return (
     <motion.div
@@ -76,7 +76,7 @@ export function FadeUpStagger({
     >
       {children}
     </motion.div>
-  );
+  )
 }
 
 export function FadeUpItem({
@@ -84,12 +84,12 @@ export function FadeUpItem({
   className,
   ...rest
 }: DivMotionProps & { children: ReactNode }) {
-  const prefersReducedMotion = useReducedMotion();
-  const variants = buildFadeUpVariants(!!prefersReducedMotion);
+  const prefersReducedMotion = useReducedMotion()
+  const variants = buildFadeUpVariants(!!prefersReducedMotion)
 
   return (
     <motion.div variants={variants} className={className} {...rest}>
       {children}
     </motion.div>
-  );
+  )
 }

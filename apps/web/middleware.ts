@@ -7,7 +7,19 @@ function getSessionCookie(request: NextRequest) {
   )
 }
 
-const PROTECTED_STUDENT_PATHS = ['/dashboard', '/explore', '/match', '/shortlist', '/applications', '/sessions', '/messages', '/profile', '/refer', '/notifications', '/tutorial']
+const PROTECTED_STUDENT_PATHS = [
+  '/dashboard',
+  '/explore',
+  '/match',
+  '/shortlist',
+  '/applications',
+  '/sessions',
+  '/messages',
+  '/profile',
+  '/refer',
+  '/notifications',
+  '/tutorial',
+]
 const PROTECTED_COUNSELOR_PATHS = ['/counselor']
 const PROTECTED_ADMIN_PATHS = ['/admin']
 

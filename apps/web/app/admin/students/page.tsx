@@ -1,40 +1,37 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import PageHeader from "@/components/ui/PageHeader";
-import StatusBadge from "@/components/ui/StatusBadge";
-import AdminTable from "@/components/ui/AdminTable";
-import { trpc } from "@/lib/trpc-client";
-import Link from "next/link";
+import { useState, useEffect } from 'react'
+import PageHeader from '@/components/ui/PageHeader'
+import StatusBadge from '@/components/ui/StatusBadge'
+import AdminTable from '@/components/ui/AdminTable'
+import { trpc } from '@/lib/trpc-client'
+import Link from 'next/link'
 
 function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debouncedValue;
+      setDebouncedValue(value)
+    }, delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+  return debouncedValue
 }
 
 export default function StudentsPage() {
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 500);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
+  const [cursor, setCursor] = useState<string | null>(null)
 
   const { data, isLoading } = trpc.admin.students.list.useQuery({
     search: debouncedSearch || undefined,
     cursor: cursor,
     limit: 20,
-  });
+  })
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Students"
-        description="Manage all registered students."
-      />
+      <PageHeader title="Students" description="Manage all registered students." />
 
       {/* SEARCH */}
       <div className="flex flex-col gap-4 lg:flex-row">
@@ -42,8 +39,8 @@ export default function StudentsPage() {
           type="text"
           value={search}
           onChange={(e) => {
-            setSearch(e.target.value);
-            setCursor(null); // Reset cursor on search
+            setSearch(e.target.value)
+            setCursor(null) // Reset cursor on search
           }}
           placeholder="Search students by name or email..."
           className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-3 text-gray-900 outline-none transition-all focus:border-primary dark:border-gray-800 dark:bg-[#1a1d25] dark:text-white dark:placeholder:text-gray-500"
@@ -66,7 +63,7 @@ export default function StudentsPage() {
           {isLoading ? (
             <div className="py-10 text-center">Loading...</div>
           ) : data?.items.length === 0 ? (
-             <div className="py-10 text-center">No students found</div>
+            <div className="py-10 text-center">No students found</div>
           ) : (
             data?.items.map((student) => (
               <div
@@ -75,22 +72,22 @@ export default function StudentsPage() {
               >
                 {/* STUDENT INFO */}
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white truncate">
-                    {student.name || "Unknown"}
+                  <p className="truncate font-semibold text-gray-900 dark:text-white">
+                    {student.name || 'Unknown'}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                  <p className="truncate text-sm text-gray-500 dark:text-gray-400">
                     {student.email}
                   </p>
                 </div>
 
                 {/* COUNTRY */}
                 <div className="text-gray-700 dark:text-gray-300">
-                  {student.studentProfile?.nationality || "N/A"}
+                  {student.studentProfile?.nationality || 'N/A'}
                 </div>
 
                 {/* COUNSELOR */}
-                <div className="text-gray-700 dark:text-gray-300 truncate">
-                  {(student as any).studentProfile?.assignedCounselor?.user?.name || "Unassigned"}
+                <div className="truncate text-gray-700 dark:text-gray-300">
+                  {(student as any).studentProfile?.assignedCounselor?.user?.name || 'Unassigned'}
                 </div>
 
                 {/* STATUS */}
@@ -114,9 +111,9 @@ export default function StudentsPage() {
 
       {/* PAGINATION */}
       <div className="flex justify-end gap-2">
-        <button 
+        <button
           disabled={!cursor}
-          onClick={() => setCursor(null)} 
+          onClick={() => setCursor(null)}
           className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50"
         >
           First Page
@@ -130,5 +127,5 @@ export default function StudentsPage() {
         </button>
       </div>
     </div>
-  );
+  )
 }

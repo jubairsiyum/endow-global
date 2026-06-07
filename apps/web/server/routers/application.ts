@@ -15,10 +15,15 @@ export const applicationRouter = createTRPCRouter({
     })
   }),
 
-  getById: protectedProcedure.input((val: any) => val).query(async ({ ctx, input }) => {
-    const { applicationId } = input
-    if (!applicationId) throw new Error('BAD_REQUEST')
-    const app = await authorizeApplicationAccess(ctx, applicationId, 'read')
-    return ctx.db.query.applications.findFirst({ where: (a, { eq }) => eq(a.id, app.id), with: { course: { with: { university: true } } } })
-  }),
+  getById: protectedProcedure
+    .input((val: any) => val)
+    .query(async ({ ctx, input }) => {
+      const { applicationId } = input
+      if (!applicationId) throw new Error('BAD_REQUEST')
+      const app = await authorizeApplicationAccess(ctx, applicationId, 'read')
+      return ctx.db.query.applications.findFirst({
+        where: (a, { eq }) => eq(a.id, app.id),
+        with: { course: { with: { university: true } } },
+      })
+    }),
 })

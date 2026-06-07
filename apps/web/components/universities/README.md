@@ -5,12 +5,14 @@ A complete, production-ready university discovery and matching platform built wi
 ## Features
 
 ### 1. **AI-Powered University Matching**
+
 - Smart profile matching based on GPA, IELTS score, budget, and preferences
 - Real-time match percentage calculation
 - Scholarship eligibility prediction
 - Visa success probability assessment
 
 ### 2. **Featured Universities Section**
+
 - Premium university cards with comprehensive information
 - Ranking badges
 - Scholarship percentages
@@ -21,6 +23,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Quick apply buttons
 
 ### 3. **Premium Statistics**
+
 - Animated counters for key metrics
 - 5000+ students abroad
 - 250+ partner universities
@@ -29,6 +32,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Glassmorphism design with animated backgrounds
 
 ### 4. **Country Explorer**
+
 - Interactive country cards
 - Average tuition costs
 - Visa success rates
@@ -38,6 +42,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Full country profile exploration
 
 ### 5. **Scholarship Spotlight**
+
 - Exclusive scholarship opportunities
 - Percentage-based awards
 - Requirements display
@@ -47,6 +52,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Application tracking
 
 ### 6. **Student Success Stories**
+
 - Real testimonial carousel
 - Student profiles with avatars
 - Scholarship amounts
@@ -56,6 +62,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Full story deep-dives
 
 ### 7. **Application Roadmap**
+
 - 7-step application journey visualization
 - Timeline layout for desktop
 - Mobile-responsive vertical timeline
@@ -64,6 +71,7 @@ A complete, production-ready university discovery and matching platform built wi
 - 4-6 month estimated timeline
 
 ### 8. **Premium Consultation CTA**
+
 - Multiple contact options (WhatsApp, Phone, Calendar)
 - Animated gradient background
 - Animated icon interactions
@@ -72,6 +80,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Hover effects and animations
 
 ### 9. **University Marquee**
+
 - Scrolling university logos (non-grayscale)
 - Smooth infinite loop animation
 - Hover card details
@@ -79,6 +88,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Premium branding showcase
 
 ### 10. **Sticky Filter Bar**
+
 - Floating search and filter system
 - Appears after scrolling past hero
 - Expandable filter panel
@@ -89,6 +99,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Mobile responsive
 
 ### 11. **Comparison Tool Modal**
+
 - Compare up to 4 universities side-by-side
 - Comprehensive criteria comparison:
   - Ranking
@@ -104,6 +115,7 @@ A complete, production-ready university discovery and matching platform built wi
 - Apply to selected universities
 
 ### 12. **Premium Footer**
+
 - Newsletter signup
 - Resource downloads
 - Quick links
@@ -137,6 +149,7 @@ components/universities/
 ## Data Structure
 
 ### Universities
+
 - ID, name, country, city
 - Logo and banner images
 - Rankings and ratings
@@ -150,6 +163,7 @@ components/universities/
 - Living expenses
 
 ### Countries
+
 - Name and country code
 - University count
 - Average tuition
@@ -160,6 +174,7 @@ components/universities/
 - Country flag emoji
 
 ### Scholarships
+
 - University reference
 - Scholarship percentage
 - Requirements
@@ -169,6 +184,7 @@ components/universities/
 - Description
 
 ### Student Stories
+
 - Student name and image
 - University and country
 - Review text
@@ -179,28 +195,32 @@ components/universities/
 ## Utility Functions
 
 ### AI Matching
+
 ```typescript
 calculateAIMatch(university, profile) // Calculate match percentage
 ```
 
 ### Formatting
+
 ```typescript
-formatCurrency(amount, currency)     // Format currency values
-calculateDaysRemaining(deadline)     // Get days until deadline
-getDayColor(days)                    // Get color based on urgency
-getMatchColor(percentage)            // Get color based on match score
+formatCurrency(amount, currency) // Format currency values
+calculateDaysRemaining(deadline) // Get days until deadline
+getDayColor(days) // Get color based on urgency
+getMatchColor(percentage) // Get color based on match score
 ```
 
 ### Data Access
+
 ```typescript
-getCountryByName(name)               // Get country data
-truncateText(text, length)           // Truncate long text
-getInitials(name)                    // Get name initials
+getCountryByName(name) // Get country data
+truncateText(text, length) // Truncate long text
+getInitials(name) // Get name initials
 ```
 
 ## Design System
 
 ### Colors
+
 - Primary: Blue (#0070F3)
 - Accent: Purple (#7B61FF)
 - Success: Green (#00D084)
@@ -209,10 +229,12 @@ getInitials(name)                    // Get name initials
 - Muted: Gray (#6B7280)
 
 ### Typography
+
 - Font: Quicksand (headings), Inter (body)
 - Sizes: Responsive from mobile to 4K
 
 ### Effects
+
 - Glassmorphism cards
 - Blur backgrounds
 - Gradient overlays
@@ -224,6 +246,7 @@ getInitials(name)                    // Get name initials
 ## Animation Library
 
 Uses **Framer Motion** for:
+
 - Page transitions
 - Scroll animations (whileInView)
 - Hover effects
@@ -235,6 +258,7 @@ Uses **Framer Motion** for:
 ## Responsiveness
 
 All components are fully responsive:
+
 - **Mobile**: Single column layouts
 - **Tablet**: 2-column grids where appropriate
 - **Desktop**: Full multi-column layouts
@@ -251,16 +275,19 @@ All components are fully responsive:
 ## Customization
 
 ### Adding New Universities
+
 1. Add to `lib/universities/data.ts` in the `universities` array
 2. Add logo/banner to `public/universities/`
 3. Update scholarship and country data
 
 ### Changing Colors
+
 - Modify gradient colors in component `className` props
 - Update color variables in `globals.css`
 - Adjust TailwindCSS config if needed
 
 ### Adding Animations
+
 - Import `motion` from framer-motion
 - Wrap components in `motion.div`
 - Use `variants` for complex animations
@@ -276,6 +303,7 @@ All components are fully responsive:
 ## TypeScript
 
 Fully typed with TypeScript:
+
 - University interface
 - Country interface
 - Scholarship interface
@@ -339,6 +367,7 @@ pnpm start
 ## Credits
 
 Built with:
+
 - Next.js 14
 - React 19
 - TypeScript

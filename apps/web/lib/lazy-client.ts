@@ -10,10 +10,7 @@
  * only built on first property access, and a clear error is thrown if
  * the required env vars are missing at request time.
  */
-export function lazyClient<T extends object>(
-  build: () => T,
-  serviceName: string,
-): T {
+export function lazyClient<T extends object>(build: () => T, serviceName: string): T {
   let instance: T | null = null
   return new Proxy({} as T, {
     get(_t, prop) {

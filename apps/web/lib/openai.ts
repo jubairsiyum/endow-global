@@ -4,40 +4,31 @@ import { PineconeStore } from '@langchain/pinecone'
 import { Pinecone } from '@pinecone-database/pinecone'
 import { lazyClient } from './lazy-client'
 
-export const openai = lazyClient<OpenAI>(
-  () => {
-    const key = process.env.OPENAI_API_KEY
-    if (!key) throw new Error('OPENAI_API_KEY is not set')
-    return new OpenAI({ apiKey: key })
-  },
-  'OpenAI',
-)
+export const openai = lazyClient<OpenAI>(() => {
+  const key = process.env.OPENAI_API_KEY
+  if (!key) throw new Error('OPENAI_API_KEY is not set')
+  return new OpenAI({ apiKey: key })
+}, 'OpenAI')
 
-export const chatModel = lazyClient<ChatOpenAI>(
-  () => {
-    const key = process.env.OPENAI_API_KEY
-    if (!key) throw new Error('OPENAI_API_KEY is not set')
-    return new ChatOpenAI({
-      modelName: 'gpt-4o',
-      temperature: 0.3,
-      streaming: true,
-      openAIApiKey: key,
-    })
-  },
-  'ChatOpenAI',
-)
+export const chatModel = lazyClient<ChatOpenAI>(() => {
+  const key = process.env.OPENAI_API_KEY
+  if (!key) throw new Error('OPENAI_API_KEY is not set')
+  return new ChatOpenAI({
+    modelName: 'gpt-4o',
+    temperature: 0.3,
+    streaming: true,
+    openAIApiKey: key,
+  })
+}, 'ChatOpenAI')
 
-export const embeddings = lazyClient<OpenAIEmbeddings>(
-  () => {
-    const key = process.env.OPENAI_API_KEY
-    if (!key) throw new Error('OPENAI_API_KEY is not set')
-    return new OpenAIEmbeddings({
-      modelName: 'text-embedding-3-small',
-      openAIApiKey: key,
-    })
-  },
-  'OpenAIEmbeddings',
-)
+export const embeddings = lazyClient<OpenAIEmbeddings>(() => {
+  const key = process.env.OPENAI_API_KEY
+  if (!key) throw new Error('OPENAI_API_KEY is not set')
+  return new OpenAIEmbeddings({
+    modelName: 'text-embedding-3-small',
+    openAIApiKey: key,
+  })
+}, 'OpenAIEmbeddings')
 
 let vectorStore: PineconeStore | null = null
 

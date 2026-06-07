@@ -1,7 +1,7 @@
-import AuthLayout from "@/components/auth/AuthLayout";
+import AuthLayout from '@/components/auth/AuthLayout'
 
-export const dynamic = 'force-dynamic';
+export const dynamic = 'force-dynamic'
 
 export default function RegisterPage() {
-  return <AuthLayout initialMode="signup" />;
+  return <AuthLayout initialMode="signup" />
 }

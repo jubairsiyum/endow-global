@@ -18,15 +18,18 @@ export async function GET(req: NextRequest) {
   if (hasScholarship === 'true') filterBy.push('hasScholarship:true')
 
   try {
-    const results = await typesense.collections(COURSES_COLLECTION).documents().search({
-      q,
-      query_by: 'name,subject,universityName,description',
-      filter_by: filterBy.join(' && ') || undefined,
-      facet_by: 'country,subject,level,hasScholarship',
-      sort_by: 'tuitionFee:asc',
-      page,
-      per_page: perPage,
-    })
+    const results = await typesense
+      .collections(COURSES_COLLECTION)
+      .documents()
+      .search({
+        q,
+        query_by: 'name,subject,universityName,description',
+        filter_by: filterBy.join(' && ') || undefined,
+        facet_by: 'country,subject,level,hasScholarship',
+        sort_by: 'tuitionFee:asc',
+        page,
+        per_page: perPage,
+      })
 
     return NextResponse.json(results)
   } catch (error) {

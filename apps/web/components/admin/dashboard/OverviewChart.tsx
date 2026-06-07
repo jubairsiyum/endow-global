@@ -1,21 +1,15 @@
-"use client";
+'use client'
 
-import {
-  LineChart,
-  Line,
-  XAxis,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const data = [
-  { name: "Mon", applications: 120 },
-  { name: "Tue", applications: 210 },
-  { name: "Wed", applications: 180 },
-  { name: "Thu", applications: 280 },
-  { name: "Fri", applications: 240 },
-  { name: "Sat", applications: 320 },
-];
+  { name: 'Mon', applications: 120 },
+  { name: 'Tue', applications: 210 },
+  { name: 'Wed', applications: 180 },
+  { name: 'Thu', applications: 280 },
+  { name: 'Fri', applications: 240 },
+  { name: 'Sat', applications: 320 },
+]
 
 export default function OverviewChart() {
   return (
@@ -26,14 +20,9 @@ export default function OverviewChart() {
 
           <Tooltip />
 
-          <Line
-            type="monotone"
-            dataKey="applications"
-            stroke="#dc2626"
-            strokeWidth={3}
-          />
+          <Line type="monotone" dataKey="applications" stroke="#dc2626" strokeWidth={3} />
         </LineChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }

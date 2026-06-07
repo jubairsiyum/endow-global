@@ -2,7 +2,11 @@ import admin from 'firebase-admin'
 
 function initFirebase() {
   if (!admin.apps.length) {
-    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && process.env.FIREBASE_PRIVATE_KEY) {
+    if (
+      process.env.FIREBASE_PROJECT_ID &&
+      process.env.FIREBASE_CLIENT_EMAIL &&
+      process.env.FIREBASE_PRIVATE_KEY
+    ) {
       admin.initializeApp({
         credential: admin.credential.cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
@@ -21,7 +25,7 @@ export async function sendPushNotification(
   data?: Record<string, string>
 ) {
   initFirebase()
-  
+
   if (!admin.apps.length) {
     console.warn('Firebase Admin not initialized. Skipping notification.')
     return

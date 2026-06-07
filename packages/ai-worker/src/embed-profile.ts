@@ -5,23 +5,17 @@ import OpenAI from 'openai'
 import { Pinecone } from '@pinecone-database/pinecone'
 import { lazyClient } from './utils/lazy-client'
 
-const openai = lazyClient<OpenAI>(
-  () => {
-    const key = process.env.OPENAI_API_KEY
-    if (!key) throw new Error('OPENAI_API_KEY is not set')
-    return new OpenAI({ apiKey: key })
-  },
-  'OpenAI',
-)
+const openai = lazyClient<OpenAI>(() => {
+  const key = process.env.OPENAI_API_KEY
+  if (!key) throw new Error('OPENAI_API_KEY is not set')
+  return new OpenAI({ apiKey: key })
+}, 'OpenAI')
 
-const pinecone = lazyClient<Pinecone>(
-  () => {
-    const key = process.env.PINECONE_API_KEY
-    if (!key) throw new Error('PINECONE_API_KEY is not set')
-    return new Pinecone({ apiKey: key })
-  },
-  'Pinecone',
-)
+const pinecone = lazyClient<Pinecone>(() => {
+  const key = process.env.PINECONE_API_KEY
+  if (!key) throw new Error('PINECONE_API_KEY is not set')
+  return new Pinecone({ apiKey: key })
+}, 'Pinecone')
 
 export async function embedStudentProfile(studentId: string) {
   const profile = await db.query.studentProfiles.findFirst({
@@ -54,7 +48,8 @@ export async function embedStudentProfile(studentId: string) {
 
   const embedding = embeddingResponse.data[0].embedding
 
-  await db.update(schema.studentProfiles)
+  await db
+    .update(schema.studentProfiles)
     .set({
       profileEmbedding: embedding,
       matchesUpdatedAt: new Date(),
@@ -68,8 +63,7 @@ export async function embedStudentProfile(studentId: string) {
     includeMetadata: true,
   })
 
-  await db.delete(schema.matchResults)
-    .where(eq(schema.matchResults.studentId, studentId))
+  await db.delete(schema.matchResults).where(eq(schema.matchResults.studentId, studentId))
 
   if (queryResponse.matches.length > 0) {
     await db.insert(schema.matchResults).values(
@@ -77,11 +71,14 @@ export async function embedStudentProfile(studentId: string) {
         studentId,
         courseId: match.id,
         score: match.score || 0,
-        matchReasons: generateMatchReasons({
-        targetCountries: profile.targetCountries as string[],
-        targetSubjects: profile.targetSubjects as string[],
-        budgetMax: profile.budgetMax,
-      }, match.metadata as Record<string, unknown>),
+        matchReasons: generateMatchReasons(
+          {
+            targetCountries: profile.targetCountries as string[],
+            targetSubjects: profile.targetSubjects as string[],
+            budgetMax: profile.budgetMax,
+          },
+          match.metadata as Record<string, unknown>
+        ),
       }))
     )
   }

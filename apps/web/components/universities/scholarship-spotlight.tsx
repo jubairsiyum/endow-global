@@ -1,16 +1,14 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import { motion } from "framer-motion";
-import { ArrowRight, Award, CalendarDays, MapPin } from "lucide-react";
-import { scholarships, universities } from "@/lib/universities/data";
-import { calculateDaysRemaining } from "@/lib/universities/utils";
+import Image from 'next/image'
+import { motion } from 'framer-motion'
+import { ArrowRight, Award, CalendarDays, MapPin } from 'lucide-react'
+import { scholarships, universities } from '@/lib/universities/data'
+import { calculateDaysRemaining } from '@/lib/universities/utils'
 
-const featuredScholarships = scholarships.slice(0, 3);
-const universityById = new Map(
-  universities.map((university) => [university.id, university])
-);
-const fallbackUniversityImage = "/universities/Hanseo University.png";
+const featuredScholarships = scholarships.slice(0, 3)
+const universityById = new Map(universities.map((university) => [university.id, university]))
+const fallbackUniversityImage = '/universities/Hanseo University.png'
 
 export default function ScholarshipSpotlight() {
   const containerVariants = {
@@ -19,7 +17,7 @@ export default function ScholarshipSpotlight() {
       opacity: 1,
       transition: { staggerChildren: 0.1, delayChildren: 0.1 },
     },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, x: -20 },
@@ -28,11 +26,11 @@ export default function ScholarshipSpotlight() {
       x: 0,
       transition: { duration: 0.6 },
     },
-  };
+  }
 
   return (
     <section className="relative overflow-x-hidden bg-white py-12 lg:py-14">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute right-0 top-0 h-[340px] w-[340px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
@@ -47,16 +45,14 @@ export default function ScholarshipSpotlight() {
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
             <Award className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-xs font-medium text-[#C41E3A]">
-              Financial Aid
-            </span>
+            <span className="text-xs font-medium text-[#C41E3A]">Financial Aid</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Exclusive Scholarship Opportunities
           </h2>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
-            Reduce your tuition burden with our partner universities&apos; exclusive
-            scholarships and financial aid programs
+            Reduce your tuition burden with our partner universities&apos; exclusive scholarships
+            and financial aid programs
           </p>
         </motion.div>
 
@@ -69,16 +65,14 @@ export default function ScholarshipSpotlight() {
           className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
         >
           {featuredScholarships.map((scholarship) => {
-            const university = universityById.get(scholarship.universityId);
-            const daysLeft = calculateDaysRemaining(scholarship.deadline);
-            const isUrgent = daysLeft <= 7;
-            const deadlineLabel = new Date(
-              scholarship.deadline
-            ).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            });
+            const university = universityById.get(scholarship.universityId)
+            const daysLeft = calculateDaysRemaining(scholarship.deadline)
+            const isUrgent = daysLeft <= 7
+            const deadlineLabel = new Date(scholarship.deadline).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            })
 
             return (
               <motion.div
@@ -92,11 +86,7 @@ export default function ScholarshipSpotlight() {
                 <div className="relative h-full">
                   <div className="relative h-16 overflow-hidden bg-[#111827]">
                     <Image
-                      src={
-                        university?.banner ??
-                        university?.logo ??
-                        fallbackUniversityImage
-                      }
+                      src={university?.banner ?? university?.logo ?? fallbackUniversityImage}
                       alt={`${scholarship.universityName} campus`}
                       fill
                       sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
@@ -140,7 +130,7 @@ export default function ScholarshipSpotlight() {
                       <div className="flex min-w-0 items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
                         <span className="line-clamp-1">
-                          {university?.country ?? "International"}
+                          {university?.country ?? 'International'}
                         </span>
                       </div>
                       <div className="flex min-w-0 items-center justify-end gap-1.5 text-right">
@@ -159,10 +149,10 @@ export default function ScholarshipSpotlight() {
                   </div>
                 </div>
               </motion.div>
-            );
+            )
           })}
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

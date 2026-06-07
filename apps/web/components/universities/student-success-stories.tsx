@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { Star, Award } from "lucide-react";
-import { studentStories } from "@/lib/universities/data";
-import Image from "next/image";
+import { motion } from 'framer-motion'
+import { Star, Award } from 'lucide-react'
+import { studentStories } from '@/lib/universities/data'
+import Image from 'next/image'
 
 export default function StudentSuccessStories() {
   const containerVariants = {
@@ -12,7 +12,7 @@ export default function StudentSuccessStories() {
       opacity: 1,
       transition: { staggerChildren: 0.1, delayChildren: 0.1 },
     },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -21,11 +21,11 @@ export default function StudentSuccessStories() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  };
+  }
 
   return (
     <section className="relative overflow-x-hidden bg-white py-16 lg:py-20">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-20 top-1/2 h-[400px] w-[400px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
@@ -40,16 +40,14 @@ export default function StudentSuccessStories() {
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
             <Award className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-xs font-medium text-[#C41E3A]">
-              Student Success 
-            </span>
+            <span className="text-xs font-medium text-[#C41E3A]">Student Success</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Success Stories from Our Students
           </h2>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
-            Real stories of transformation from students who achieved their
-            dreams through our platform
+            Real stories of transformation from students who achieved their dreams through our
+            platform
           </p>
         </motion.div>
 
@@ -101,10 +99,7 @@ export default function StudentSuccessStories() {
                 {/* Rating */}
                 <div className="flex items-center gap-1">
                   {Array.from({ length: story.rating }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 fill-[#C41E3A] text-[#C41E3A]"
-                    />
+                    <Star key={i} className="h-4 w-4 fill-[#C41E3A] text-[#C41E3A]" />
                   ))}
                 </div>
 
@@ -112,15 +107,11 @@ export default function StudentSuccessStories() {
                 <div className="space-y-2.5 border-t border-gray-200 pt-4">
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Scholarship</span>
-                    <span className="font-bold text-[#C41E3A]">
-                      {story.scholarship}%
-                    </span>
+                    <span className="font-bold text-[#C41E3A]">{story.scholarship}%</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-600">Country</span>
-                    <span className="font-bold text-gray-900">
-                      {story.country}
-                    </span>
+                    <span className="font-bold text-gray-900">{story.country}</span>
                   </div>
                 </div>
 
@@ -141,14 +132,12 @@ export default function StudentSuccessStories() {
           viewport={{ once: true }}
           className="mt-10 text-center"
         >
-          <p className="mb-4 text-base text-gray-600">
-            Ready to write your own success story?
-          </p>
+          <p className="mb-4 text-base text-gray-600">Ready to write your own success story?</p>
           <button className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
             Start Your Journey Today
           </button>
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

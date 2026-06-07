@@ -84,7 +84,7 @@ export function DocumentChecklist({ documents, index = 0 }: Props) {
                 'rounded-full px-2.5 py-1 capitalize transition-colors',
                 filter === f
                   ? 'bg-white text-gray-900 shadow-sm dark:bg-[#1a1d25] dark:text-white'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white',
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white'
               )}
             >
               {f}
@@ -112,9 +112,7 @@ export function DocumentChecklist({ documents, index = 0 }: Props) {
                 </p>
                 <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
                   {doc.rejectionReason ? (
-                    <span className="text-red-600 dark:text-red-300">
-                      {doc.rejectionReason}
-                    </span>
+                    <span className="text-red-600 dark:text-red-300">{doc.rejectionReason}</span>
                   ) : doc.updatedAt ? (
                     <>Updated {doc.updatedAt}</>
                   ) : (
@@ -125,7 +123,7 @@ export function DocumentChecklist({ documents, index = 0 }: Props) {
               <span
                 className={cn(
                   'shrink-0 text-[10px] font-bold uppercase tracking-[0.12em]',
-                  LABEL_TONE[doc.status],
+                  LABEL_TONE[doc.status]
                 )}
               >
                 {LABEL_FOR[doc.status]}

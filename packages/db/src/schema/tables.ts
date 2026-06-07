@@ -1,5 +1,16 @@
-import { mysqlTable, mysqlEnum, varchar, text, datetime, int, float, json, boolean, uniqueIndex, primaryKey, timestamp } from 'drizzle-orm/mysql-core'
-import { sql } from 'drizzle-orm'
+import {
+  mysqlTable,
+  mysqlEnum,
+  varchar,
+  text,
+  datetime,
+  int,
+  float,
+  json,
+  boolean,
+  uniqueIndex,
+  timestamp,
+} from 'drizzle-orm/mysql-core'
 
 function genId() {
   return globalThis.crypto.randomUUID()
@@ -7,42 +18,54 @@ function genId() {
 
 // ─── Auth (Better Auth compatible) ──
 
-export const users = mysqlTable('user', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
-  name: varchar('name', { length: 255 }),
-  email: varchar('email', { length: 255 }).notNull().unique(),
-  emailVerified: boolean('email_verified').default(false).notNull(),
-  image: varchar('image', { length: 255 }),
-  role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN']).default('STUDENT').notNull(),
-  fcmToken: varchar('fcm_token', { length: 255 }),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  emailIdx: uniqueIndex('email_idx').on(table.email),
-}))
+export const users = mysqlTable(
+  'user',
+  {
+    id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
+    name: varchar('name', { length: 255 }),
+    email: varchar('email', { length: 255 }).notNull().unique(),
+    emailVerified: boolean('email_verified').default(false).notNull(),
+    image: varchar('image', { length: 255 }),
+    role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN']).default('STUDENT').notNull(),
+    fcmToken: varchar('fcm_token', { length: 255 }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    emailIdx: uniqueIndex('email_idx').on(table.email),
+  })
+)
 
-export const accounts = mysqlTable('account', {
-  id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
-  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
-  providerId: varchar('provider_id', { length: 255 }).notNull(),
-  accountId: varchar('account_id', { length: 255 }).notNull(),
-  accessToken: text('access_token'),
-  refreshToken: text('refresh_token'),
-  idToken: text('id_token'),
-  accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }),
-  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }),
-  scope: varchar('scope', { length: 255 }),
-  password: varchar('password', { length: 255 }),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
-}, (table) => ({
-  providerAccountIdIdx: uniqueIndex('provider_account_idx').on(table.providerId, table.accountId),  
-}))
+export const accounts = mysqlTable(
+  'account',
+  {
+    id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    providerId: varchar('provider_id', { length: 255 }).notNull(),
+    accountId: varchar('account_id', { length: 255 }).notNull(),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }),
+    scope: varchar('scope', { length: 255 }),
+    password: varchar('password', { length: 255 }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    providerAccountIdIdx: uniqueIndex('provider_account_idx').on(table.providerId, table.accountId),
+  })
+)
 
 export const sessions = mysqlTable('session', {
   id: varchar('id', { length: 255 }).primaryKey().$defaultFn(genId),
   token: varchar('token', { length: 255 }).notNull().unique(),
-  userId: varchar('user_id', { length: 255 }).notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: varchar('user_id', { length: 255 })
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
   expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
   ipAddress: varchar('ip_address', { length: 255 }),
   userAgent: varchar('user_agent', { length: 255 }),
@@ -77,10 +100,15 @@ export const studentProfiles = mysqlTable('student_profile', {
   preferredIntakeMonth: varchar('preferred_intake_month', { length: 50 }),
   preferredIntakeYear: int('preferred_intake_year'),
   nationality: varchar('nationality', { length: 100 }),
-  highestEducation: mysqlEnum('highest_education', ['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).default('HIGH_SCHOOL').notNull(),
+  highestEducation: mysqlEnum('highest_education', ['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD'])
+    .default('HIGH_SCHOOL')
+    .notNull(),
   workExperienceYears: int('work_experience_years').default(0).notNull(),
   assignedCounselorId: varchar('assigned_counselor_id', { length: 25 }),
-  referralCode: varchar('referral_code', { length: 25 }).notNull().unique().$defaultFn(() => globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 12)),
+  referralCode: varchar('referral_code', { length: 25 })
+    .notNull()
+    .unique()
+    .$defaultFn(() => globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 12)),
   referralBalance: int('referral_balance').default(0).notNull(),
   profileEmbedding: json('profile_embedding').default('[]').notNull(),
   matchesUpdatedAt: datetime('matches_updated_at', { mode: 'date' }),
@@ -131,7 +159,14 @@ export const courses = mysqlTable('course', {
   name: varchar('name', { length: 255 }).notNull(),
   slug: varchar('slug', { length: 255 }).notNull().unique(),
   subject: varchar('subject', { length: 255 }).notNull(),
-  level: mysqlEnum('level', ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']).notNull(),
+  level: mysqlEnum('level', [
+    'UNDERGRADUATE',
+    'POSTGRADUATE',
+    'PHD',
+    'DIPLOMA',
+    'CERTIFICATE',
+    'FOUNDATION',
+  ]).notNull(),
   duration: int('duration').notNull(),
   durationUnit: varchar('duration_unit', { length: 10 }).default('YEARS').notNull(),
   tuitionFee: int('tuition_fee').notNull(),
@@ -157,7 +192,19 @@ export const applications = mysqlTable('application', {
   studentId: varchar('student_id', { length: 25 }).notNull(),
   courseId: varchar('course_id', { length: 25 }).notNull(),
   counselorId: varchar('counselor_id', { length: 25 }),
-  status: mysqlEnum('status', ['DRAFT', 'IN_PROGRESS', 'SUBMITTED', 'UNDER_REVIEW', 'DOCUMENTS_REQUIRED', 'ACCEPTED', 'REJECTED', 'WAITLISTED', 'WITHDRAWN']).default('DRAFT').notNull(),
+  status: mysqlEnum('status', [
+    'DRAFT',
+    'IN_PROGRESS',
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'DOCUMENTS_REQUIRED',
+    'ACCEPTED',
+    'REJECTED',
+    'WAITLISTED',
+    'WITHDRAWN',
+  ])
+    .default('DRAFT')
+    .notNull(),
   currentStep: int('current_step').default(1).notNull(),
   totalSteps: int('total_steps').default(5).notNull(),
   personalInfo: json('personal_info'),
@@ -170,28 +217,39 @@ export const applications = mysqlTable('application', {
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
-export const shortlistedCourses = mysqlTable('shortlisted_course', {
-  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  studentId: varchar('student_id', { length: 25 }).notNull(),
-  courseId: varchar('course_id', { length: 25 }).notNull(),
-  notes: text('notes'),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
-  uniqueStudentCourse: uniqueIndex('unique_student_course').on(table.studentId, table.courseId),
-}))
+export const shortlistedCourses = mysqlTable(
+  'shortlisted_course',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    studentId: varchar('student_id', { length: 25 }).notNull(),
+    courseId: varchar('course_id', { length: 25 }).notNull(),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueStudentCourse: uniqueIndex('unique_student_course').on(table.studentId, table.courseId),
+  })
+)
 
 // ─── AI Match Results ──────────────────────────────────────
 
-export const matchResults = mysqlTable('match_result', {
-  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  studentId: varchar('student_id', { length: 25 }).notNull(),
-  courseId: varchar('course_id', { length: 25 }).notNull(),
-  score: float('score').notNull(),
-  matchReasons: json('match_reasons').default('[]').notNull(),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
-  uniqueStudentCourse: uniqueIndex('unique_match_student_course').on(table.studentId, table.courseId),
-}))
+export const matchResults = mysqlTable(
+  'match_result',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    studentId: varchar('student_id', { length: 25 }).notNull(),
+    courseId: varchar('course_id', { length: 25 }).notNull(),
+    score: float('score').notNull(),
+    matchReasons: json('match_reasons').default('[]').notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueStudentCourse: uniqueIndex('unique_match_student_course').on(
+      table.studentId,
+      table.courseId
+    ),
+  })
+)
 
 // ─── Booking Session ───────────────────────────────────────
 
@@ -202,7 +260,9 @@ export const bookingSessions = mysqlTable('booking_session', {
   calBookingId: varchar('cal_booking_id', { length: 255 }),
   scheduledAt: datetime('scheduled_at', { mode: 'date' }).notNull(),
   duration: int('duration').default(60).notNull(),
-  status: mysqlEnum('status', ['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']).default('SCHEDULED').notNull(),
+  status: mysqlEnum('status', ['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'])
+    .default('SCHEDULED')
+    .notNull(),
   meetingUrl: varchar('meeting_url', { length: 255 }),
   notes: text('notes'),
   studentRating: int('student_rating'),
@@ -215,16 +275,23 @@ export const bookingSessions = mysqlTable('booking_session', {
 
 // ─── Messaging ─────────────────────────────────────────────
 
-export const conversations = mysqlTable('conversation', {
-  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  studentId: varchar('student_id', { length: 25 }).notNull(),
-  counselorId: varchar('counselor_id', { length: 25 }).notNull(),
-  lastMessageAt: timestamp('last_message_at', { mode: 'date' }).defaultNow().notNull(),
-  lastMessage: text('last_message'),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-}, (table) => ({
-  uniqueStudentCounselor: uniqueIndex('unique_student_counselor').on(table.studentId, table.counselorId),
-}))
+export const conversations = mysqlTable(
+  'conversation',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    studentId: varchar('student_id', { length: 25 }).notNull(),
+    counselorId: varchar('counselor_id', { length: 25 }).notNull(),
+    lastMessageAt: timestamp('last_message_at', { mode: 'date' }).defaultNow().notNull(),
+    lastMessage: text('last_message'),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  },
+  (table) => ({
+    uniqueStudentCounselor: uniqueIndex('unique_student_counselor').on(
+      table.studentId,
+      table.counselorId
+    ),
+  })
+)
 
 export const messages = mysqlTable('message', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
@@ -242,7 +309,14 @@ export const messages = mysqlTable('message', {
 export const notifications = mysqlTable('notification', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
   userId: varchar('user_id', { length: 25 }).notNull(),
-  type: mysqlEnum('type', ['SESSION_REMINDER', 'APPLICATION_UPDATE', 'NEW_MESSAGE', 'MATCH_READY', 'REFERRAL_EARNED', 'SYSTEM']).notNull(),
+  type: mysqlEnum('type', [
+    'SESSION_REMINDER',
+    'APPLICATION_UPDATE',
+    'NEW_MESSAGE',
+    'MATCH_READY',
+    'REFERRAL_EARNED',
+    'SYSTEM',
+  ]).notNull(),
   title: varchar('title', { length: 255 }).notNull(),
   body: text('body').notNull(),
   data: json('data'),

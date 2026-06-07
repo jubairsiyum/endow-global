@@ -12,14 +12,14 @@ const navItems = [
   { label: 'Universities', href: '/universities' },
   { label: 'Courses', href: '/courses' },
   { label: 'Blog', href: '/blog' },
-  { label: 'About', href: '/about' }
+  { label: 'About', href: '/about' },
 ] as const
 
 const transition = {
   type: 'spring' as const,
   stiffness: 340,
   damping: 28,
-  mass: 0.5
+  mass: 0.5,
 }
 
 const containerVariants = {
@@ -35,7 +35,7 @@ const containerVariants = {
     backgroundColor: 'rgba(255, 255, 255, 0)',
     borderColor: 'rgba(255, 255, 255, 0)',
     boxShadow: '0 0 0 rgba(0,0,0,0)',
-    backdropFilter: 'blur(0px)'
+    backdropFilter: 'blur(0px)',
   },
   scrolled: {
     maxWidth: 980,
@@ -49,8 +49,8 @@ const containerVariants = {
     backgroundColor: 'rgba(255, 255, 255, 0.78)',
     borderColor: 'rgba(229, 231, 235, 0.86)',
     boxShadow: '0 16px 42px rgba(15,23,42,0.12)',
-    backdropFilter: 'blur(22px)'
-  }
+    backdropFilter: 'blur(22px)',
+  },
 }
 
 export function Navbar() {
@@ -75,15 +75,12 @@ export function Navbar() {
   // a Next.js route navigation, which would remount the page and kill the
   // smooth form-switch animation.
   const handleAuthClick = useCallback(
-    (mode: 'signin' | 'signup') =>
-      (e: React.MouseEvent<HTMLAnchorElement>) => {
-        if (isAuthRoute && authMode !== mode) {
-          e.preventDefault()
-          window.dispatchEvent(
-            new CustomEvent('endow:set-auth-mode', { detail: mode })
-          )
-        }
-      },
+    (mode: 'signin' | 'signup') => (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (isAuthRoute && authMode !== mode) {
+        e.preventDefault()
+        window.dispatchEvent(new CustomEvent('endow:set-auth-mode', { detail: mode }))
+      }
+    },
     [isAuthRoute, authMode]
   )
 
@@ -107,7 +104,7 @@ export function Navbar() {
         animate={navMotion}
         transition={transition}
         className={[
-          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-5 md:gap-8' : 'gap-6'} border ${isScrolled ? 'rounded-[10px]' : ''}`
+          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-5 md:gap-8' : 'gap-6'} border ${isScrolled ? 'rounded-[10px]' : ''}`,
         ].join(' ')}
       >
         <Link
@@ -129,17 +126,13 @@ export function Navbar() {
           </span>
 
           <span className="flex shrink-0 flex-col justify-center leading-[1.1] tracking-tight">
-            <span className="whitespace-nowrap text-lg font-bold text-[#DC143C]">
-              Endow Global
-            </span>
-            <span className="whitespace-nowrap text-lg font-bold text-[#111827]">
-              Education
-            </span>
+            <span className="whitespace-nowrap text-lg font-bold text-[#DC143C]">Endow Global</span>
+            <span className="whitespace-nowrap text-lg font-bold text-[#111827]">Education</span>
           </span>
         </Link>
 
         <motion.div
-          className={`relative hidden items-center md:flex ${isHero ? 'rounded-full gap-1.5 p-1' : 'gap-1 p-0'}`}
+          className={`relative hidden items-center md:flex ${isHero ? 'gap-1.5 rounded-full p-1' : 'gap-1 p-0'}`}
           animate={{ backgroundColor: isHero ? navRailBg : 'transparent' }}
           transition={transition}
         >
@@ -153,9 +146,7 @@ export function Navbar() {
                   aria-current={isActive ? 'page' : undefined}
                   className={`relative rounded-full text-sm font-medium transition ${
                     isActive ? 'text-white' : textMuted
-                  } ${isActive ? '' : textHover} ${
-                    isHero ? 'px-3.5 py-1.5' : 'px-3 py-1.5'
-                  }`}
+                  } ${isActive ? '' : textHover} ${isHero ? 'px-3.5 py-1.5' : 'px-3 py-1.5'}`}
                 >
                   {isActive ? (
                     <motion.span
@@ -196,10 +187,10 @@ export function Navbar() {
               href="/register"
               prefetch={false}
               onClick={handleAuthClick('signup')}
-              className={`inline-flex items-center justify-center group rounded-full transition ${
+              className={`group inline-flex items-center justify-center rounded-full transition ${
                 isScrolled
-                  ? 'gap-2 px-5 py-2.5 font-semibold tracking-tight text-white bg-gradient-to-r from-red-600 to-rose-500 shadow-[0_10px_24px_rgba(196,30,58,0.20)] hover:shadow-red-200 hover:-translate-y-0.5 transition-all duration-300'
-                  : `text-sm font-semibold text-white bg-[#C41E3A] shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
+                  ? 'gap-2 bg-gradient-to-r from-red-600 to-rose-500 px-5 py-2.5 font-semibold tracking-tight text-white shadow-[0_10px_24px_rgba(196,30,58,0.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-red-200'
+                  : `bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
                       isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
                     }`
               }`}
@@ -210,18 +201,18 @@ export function Navbar() {
                   <motion.div
                     animate={{
                       x: [0, 1.5, 0],
-                      opacity: [0.95, 1, 0.95]
+                      opacity: [0.95, 1, 0.95],
                     }}
                     transition={{
                       duration: 2.5,
                       repeat: Infinity,
-                      ease: 'easeInOut'
+                      ease: 'easeInOut',
                     }}
                     className="group/arrow relative inline-flex items-center justify-center"
                   >
                     <ArrowRight
                       strokeWidth={1.5}
-                      className="h-5 w-5 text-white transition-all duration-300 ease-out group-hover:translate-x-1.5 group-hover:-translate-y-[1px]"
+                      className="h-5 w-5 text-white transition-all duration-300 ease-out group-hover:-translate-y-[1px] group-hover:translate-x-1.5"
                     />
                   </motion.div>
                 </>
@@ -263,10 +254,8 @@ export function Navbar() {
               animate={{
                 backgroundColor: isHero ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.30)',
                 borderColor: isHero ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.30)',
-                boxShadow: isHero
-                  ? '0 24px 60px rgba(0,0,0,0.08)'
-                  : '0 24px 60px rgba(0,0,0,0.12)',
-                backdropFilter: isHero ? 'blur(10px)' : 'blur(22px)'
+                boxShadow: isHero ? '0 24px 60px rgba(0,0,0,0.08)' : '0 24px 60px rgba(0,0,0,0.12)',
+                backdropFilter: isHero ? 'blur(10px)' : 'blur(22px)',
               }}
               transition={transition}
               className="rounded-3xl border p-4 backdrop-blur-2xl"
@@ -287,7 +276,7 @@ export function Navbar() {
                             : 'bg-[#C41E3A] text-white shadow-[0_12px_30px_rgba(196,30,58,0.25)]'
                           : isHero
                             ? 'text-gray-700 hover:bg-white/20 hover:text-gray-900'
-                            : 'text-gray-700 hover:bg-neutral-100 hover:text-gray-900'
+                            : 'text-gray-700 hover:bg-neutral-100 hover:text-gray-900',
                       ].join(' ')}
                     >
                       {item.label}

@@ -23,9 +23,7 @@ export async function autoAssignCounselor(studentId: string): Promise<string | n
     const expertiseCountries = normalizeCountryList(c.expertiseCountries)
     const expertiseSubjects = c.expertiseSubjects as string[]
     const countryOverlap = targetCountries.filter((co) => expertiseCountries.includes(co)).length
-    const subjectOverlap = targetSubjects.filter((s) =>
-      expertiseSubjects.includes(s)
-    ).length
+    const subjectOverlap = targetSubjects.filter((s) => expertiseSubjects.includes(s)).length
     score += countryOverlap * 3
     score += subjectOverlap * 2
     score -= c.totalStudents * 0.1
@@ -37,11 +35,13 @@ export async function autoAssignCounselor(studentId: string): Promise<string | n
 
   if (!best) return null
 
-  await db.update(schema.studentProfiles)
+  await db
+    .update(schema.studentProfiles)
     .set({ assignedCounselorId: best.id })
     .where(eq(schema.studentProfiles.id, studentId))
 
-  await db.update(schema.counselorProfiles)
+  await db
+    .update(schema.counselorProfiles)
     .set({ totalStudents: best.totalStudents + 1 })
     .where(eq(schema.counselorProfiles.id, best.id))
 

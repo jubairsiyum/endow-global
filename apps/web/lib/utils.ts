@@ -19,7 +19,10 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
 }
 
 export function slugify(str: string): string {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
 }
 
 export function generateReferralCode(): string {
@@ -31,7 +34,12 @@ export function truncate(str: string, length: number): string {
 }
 
 export function getInitials(name: string): string {
-  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 }
 
 export function absoluteUrl(path: string): string {

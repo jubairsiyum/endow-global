@@ -1,65 +1,42 @@
-"use client";
+'use client'
 
-import { useState } from "react";
+import { useState } from 'react'
 
-import {
-  motion,
-  AnimatePresence,
-} from "framer-motion";
+import { motion, AnimatePresence } from 'framer-motion'
 
-import {
-  Eye,
-  EyeOff,
- Mail,
-  Lock,
-  Shield,
-} from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Shield } from 'lucide-react'
 
 interface AuthPanelProps {
-  onSubmit?: (data: {
-    email: string;
-    password: string;
-  }) => void;
+  onSubmit?: (data: { email: string; password: string }) => void
 
-  isLoading?: boolean;
+  isLoading?: boolean
 }
 
-export default function AuthPanel({
-  onSubmit,
-  isLoading = false,
-}: AuthPanelProps) {
-  const [email, setEmail] =
-    useState("");
+export default function AuthPanel({ onSubmit, isLoading = false }: AuthPanelProps) {
+  const [email, setEmail] = useState('')
 
-  const [password, setPassword] =
-    useState("");
+  const [password, setPassword] = useState('')
 
-  const [showPassword, setShowPassword] =
-    useState(false);
+  const [showPassword, setShowPassword] = useState(false)
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState('')
 
-  const handleSubmit = (
-    e: React.FormEvent
-  ) => {
-    e.preventDefault();
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
 
-    setError("");
+    setError('')
 
     if (!email || !password) {
-      setError(
-        "Please fill in all fields"
-      );
+      setError('Please fill in all fields')
 
-      return;
+      return
     }
 
     onSubmit?.({
       email,
       password,
-    });
-  };
+    })
+  }
 
   return (
     <motion.div
@@ -74,34 +51,10 @@ export default function AuthPanel({
       transition={{
         duration: 0.7,
       }}
-      className="
-        relative
-        overflow-hidden
-        rounded-[42px]
-        border
-        border-white/10
-        bg-[linear-gradient(180deg,rgba(4,8,20,0.98)_0%,rgba(2,6,18,0.96)_100%)]
-        shadow-[0_45px_120px_rgba(0,0,0,0.72)]
-        backdrop-blur-2xl
-      "
+      className="relative overflow-hidden rounded-[42px] border border-white/10 bg-[linear-gradient(180deg,rgba(4,8,20,0.98)_0%,rgba(2,6,18,0.96)_100%)] shadow-[0_45px_120px_rgba(0,0,0,0.72)] backdrop-blur-2xl"
     >
-      
       {/* TOP EDGE LIGHT */}
-      <div
-        className="
-          absolute
-          left-10
-          right-10
-          top-0
-          h-[2px]
-          rounded-full
-          bg-gradient-to-r
-          from-cyan-300/55
-          via-white/75
-          to-[#ff445c]/60
-          opacity-60
-        "
-      />
+      <div className="absolute left-10 right-10 top-0 h-[2px] rounded-full bg-gradient-to-r from-cyan-300/55 via-white/75 to-[#ff445c]/60 opacity-60" />
 
       {/* LEFT BLUE EDGE */}
       <div className="absolute bottom-8 left-[-16px] h-[180px] w-[34px] rounded-full bg-cyan-400/80 blur-2xl" />
@@ -120,7 +73,6 @@ export default function AuthPanel({
 
       {/* CONTENT */}
       <div className="relative z-10 px-7 py-7">
-        
         {/* PREMIUM LOGO */}
         <motion.div
           initial={{
@@ -136,7 +88,6 @@ export default function AuthPanel({
           }}
           className="relative mx-auto flex h-[95px] w-[95px] items-center justify-center"
         >
-          
           {/* GLOW */}
           <motion.div
             animate={{
@@ -146,54 +97,27 @@ export default function AuthPanel({
             transition={{
               duration: 3,
               repeat: Infinity,
-              ease: "easeInOut",
+              ease: 'easeInOut',
             }}
             className="absolute inset-0 rounded-[36px] bg-[#9F050F]/45 blur-3xl"
           />
 
           {/* MAIN ICON BOX */}
-          <div
-            className="
-              relative
-              flex
-              h-full
-              w-full
-              items-center
-              justify-center
-              overflow-hidden
-              rounded-[36px]
-              bg-gradient-to-br
-              from-[#ff2445]
-              via-[#9F050F]
-              to-[#70030b]
-              shadow-[0_30px_90px_rgba(159,5,15,0.65)]
-            "
-          >
-            
+          <div className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-[36px] bg-gradient-to-br from-[#ff2445] via-[#9F050F] to-[#70030b] shadow-[0_30px_90px_rgba(159,5,15,0.65)]">
             {/* TOP SHINE */}
             <div className="absolute left-0 top-0 h-1/2 w-full bg-white/15 blur-2xl" />
 
             {/* MOVING LIGHT */}
             <motion.div
               animate={{
-                x: [
-                  "-160%",
-                  "220%",
-                ],
+                x: ['-160%', '220%'],
               }}
               transition={{
                 duration: 3,
                 repeat: Infinity,
-                ease: "linear",
+                ease: 'linear',
               }}
-              className="
-                absolute
-                inset-y-0
-                w-[40%]
-                rotate-[18deg]
-                bg-white/25
-                blur-xl
-              "
+              className="absolute inset-y-0 w-[40%] rotate-[18deg] bg-white/25 blur-xl"
             />
 
             {/* SHIELD */}
@@ -205,17 +129,14 @@ export default function AuthPanel({
               transition={{
                 duration: 2.2,
                 repeat: Infinity,
-                ease: "easeInOut",
+                ease: 'easeInOut',
               }}
               className="relative z-10"
             >
               <Shield
                 size={46}
                 strokeWidth={3}
-                className="
-                  text-white
-                  drop-shadow-[0_0_18px_rgba(255,255,255,0.95)]
-                "
+                className="text-white drop-shadow-[0_0_18px_rgba(255,255,255,0.95)]"
               />
             </motion.div>
           </div>
@@ -223,10 +144,7 @@ export default function AuthPanel({
 
         {/* HEADER */}
         <div className="mt-6 text-center">
-          
-          <h2 className="text-[36px] font-bold tracking-[-1.5px] text-white">
-            Admin Portal
-          </h2>
+          <h2 className="text-[36px] font-bold tracking-[-1.5px] text-white">Admin Portal</h2>
 
           <p className="mt-3 text-[14px] leading-7 text-white/55">
             Welcome back! Please sign in to continue.
@@ -235,7 +153,6 @@ export default function AuthPanel({
 
         {/* FORM */}
         <AnimatePresence mode="wait">
-          
           <motion.form
             onSubmit={handleSubmit}
             initial={{
@@ -249,101 +166,54 @@ export default function AuthPanel({
             }}
             className="mt-5 space-y-3.5"
           >
-            
             {/* EMAIL */}
             <div>
-              
               <label className="mb-2.5 block text-[13px] font-medium text-white/75">
                 Email Address
               </label>
 
-              <div className="group flex h-[56px] items-center rounded-[18px] border border-white/10 bg-white/[0.03] px-5 transition-all duration-300 hover:border-[#9F050F]/40 focus-within:border-[#9F050F]/60 focus-within:bg-white/[0.05]">
-                
-                <Mail
-                  size={17}
-                  className="text-white/30"
-                />
+              <div className="group flex h-[56px] items-center rounded-[18px] border border-white/10 bg-white/[0.03] px-5 transition-all duration-300 focus-within:border-[#9F050F]/60 focus-within:bg-white/[0.05] hover:border-[#9F050F]/40">
+                <Mail size={17} className="text-white/30" />
 
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => {
-                    setEmail(
-                      e.target.value
-                    );
+                    setEmail(e.target.value)
 
-                    setError("");
+                    setError('')
                   }}
                   placeholder="admin@endowglobal.com"
-                  className="
-                    h-full
-                    w-full
-                    bg-transparent
-                    px-3
-                    text-[14px]
-                    text-white
-                    outline-none
-                    placeholder:text-white/20
-                  "
+                  className="h-full w-full bg-transparent px-3 text-[14px] text-white outline-none placeholder:text-white/20"
                 />
               </div>
             </div>
 
             {/* PASSWORD */}
             <div>
-              
-              <label className="mb-2.5 block text-[13px] font-medium text-white/75">
-                Password
-              </label>
+              <label className="mb-2.5 block text-[13px] font-medium text-white/75">Password</label>
 
-              <div className="group flex h-[56px] items-center rounded-[18px] border border-white/10 bg-white/[0.03] px-5 transition-all duration-300 hover:border-[#9F050F]/40 focus-within:border-[#9F050F]/60 focus-within:bg-white/[0.05]">
-                
-                <Lock
-                  size={17}
-                  className="text-white/30"
-                />
+              <div className="group flex h-[56px] items-center rounded-[18px] border border-white/10 bg-white/[0.03] px-5 transition-all duration-300 focus-within:border-[#9F050F]/60 focus-within:bg-white/[0.05] hover:border-[#9F050F]/40">
+                <Lock size={17} className="text-white/30" />
 
                 <input
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => {
-                    setPassword(
-                      e.target.value
-                    );
+                    setPassword(e.target.value)
 
-                    setError("");
+                    setError('')
                   }}
                   placeholder="Enter your password"
-                  className="
-                    h-full
-                    w-full
-                    bg-transparent
-                    px-3
-                    text-[14px]
-                    text-white
-                    outline-none
-                    placeholder:text-white/20
-                  "
+                  className="h-full w-full bg-transparent px-3 text-[14px] text-white outline-none placeholder:text-white/20"
                 />
 
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowPassword(
-                      !showPassword
-                    )
-                  }
+                  onClick={() => setShowPassword(!showPassword)}
                   className="text-white/30 transition hover:text-white/70"
                 >
-                  {showPassword ? (
-                    <EyeOff size={17} />
-                  ) : (
-                    <Eye size={17} />
-                  )}
+                  {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
             </div>
@@ -372,7 +242,6 @@ export default function AuthPanel({
 
             {/* OPTIONS */}
             <div className="flex items-center justify-between pt-1">
-              
               <label className="flex items-center gap-2.5 text-[13px] text-white/55">
                 <input
                   type="checkbox"
@@ -381,10 +250,7 @@ export default function AuthPanel({
                 Remember me
               </label>
 
-              <button
-                type="button"
-                className="text-[13px] font-medium text-[#ff5c68]"
-              >
+              <button type="button" className="text-[13px] font-medium text-[#ff5c68]">
                 Forgot Password?
               </button>
             </div>
@@ -399,40 +265,17 @@ export default function AuthPanel({
               }}
               disabled={isLoading}
               type="submit"
-              className="
-                relative
-                mt-2
-                flex
-                h-[58px]
-                w-full
-                items-center
-                justify-center
-                overflow-hidden
-                rounded-[18px]
-                bg-gradient-to-r
-                from-[#7f040d]
-                via-[#9F050F]
-                to-[#d10d1b]
-                text-[15px]
-                font-semibold
-                text-white
-                shadow-[0_30px_70px_rgba(159,5,15,0.45)]
-              "
+              className="relative mt-2 flex h-[58px] w-full items-center justify-center overflow-hidden rounded-[18px] bg-gradient-to-r from-[#7f040d] via-[#9F050F] to-[#d10d1b] text-[15px] font-semibold text-white shadow-[0_30px_70px_rgba(159,5,15,0.45)]"
             >
               <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.2),transparent)] opacity-40" />
 
-              <span className="relative z-10">
-                {isLoading
-                  ? "Signing In..."
-                  : "Sign In"}
-              </span>
+              <span className="relative z-10">{isLoading ? 'Signing In...' : 'Sign In'}</span>
             </motion.button>
 
             {/* FOOTER */}
-            
           </motion.form>
         </AnimatePresence>
       </div>
     </motion.div>
-  );
+  )
 }

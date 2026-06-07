@@ -1,42 +1,22 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import {
-  Mail,
-  Phone,
-  MapPin,
-  ArrowRight,
-} from "lucide-react";
+import { motion } from 'framer-motion'
+import { Mail, Phone, MapPin, ArrowRight } from 'lucide-react'
 
 const footerLinks = [
   {
-    title: "Quick Links",
-    links: [
-      "All Universities",
-      "Scholarships",
-      "Study Destinations",
-      "Blog",
-    ],
+    title: 'Quick Links',
+    links: ['All Universities', 'Scholarships', 'Study Destinations', 'Blog'],
   },
   {
-    title: "Popular Universities",
-    links: [
-      "Hanseo University",
-      "Daejin University",
-      "Dong-Eui University",
-      "Sejong University",
-    ],
+    title: 'Popular Universities',
+    links: ['Hanseo University', 'Daejin University', 'Dong-Eui University', 'Sejong University'],
   },
   {
-    title: "Company",
-    links: [
-      "About Us",
-      "Contact Us",
-      "Privacy Policy",
-      "Terms & Conditions",
-    ],
+    title: 'Company',
+    links: ['About Us', 'Contact Us', 'Privacy Policy', 'Terms & Conditions'],
   },
-];
+]
 
 export default function UniversitiesFooter() {
   return (
@@ -50,13 +30,13 @@ export default function UniversitiesFooter() {
         className="border-b border-gray-800"
       >
         <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-14">
-          <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 items-center">
+          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
             {/* Newsletter Form */}
             <div className="space-y-4">
               <h3 className="text-2xl font-bold">Stay Updated</h3>
               <p className="text-sm text-gray-400">
-                Get the latest university opportunities, scholarship updates, and
-                study tips delivered to your inbox.
+                Get the latest university opportunities, scholarship updates, and study tips
+                delivered to your inbox.
               </p>
               <div className="flex gap-2">
                 <input
@@ -87,7 +67,7 @@ export default function UniversitiesFooter() {
       </motion.div>
 
       {/* Main Footer */}
-      <div className="mx-auto max-w-7xl px-6 lg:px-8 py-12 lg:py-14">
+      <div className="mx-auto max-w-7xl px-6 py-12 lg:px-8 lg:py-14">
         <motion.div
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
@@ -103,9 +83,7 @@ export default function UniversitiesFooter() {
             className="space-y-5"
           >
             <div>
-              <h2 className="text-2xl font-bold text-white">
-                Endow
-              </h2>
+              <h2 className="text-2xl font-bold text-white">Endow</h2>
               <div className="mt-3 h-px w-12 bg-[#C41E3A]" />
               <p className="mt-2 text-sm text-gray-400">
                 Your gateway to global education excellence
@@ -118,7 +96,7 @@ export default function UniversitiesFooter() {
                 <Mail className="h-4 w-4 text-[#C41E3A]" />
                 <a
                   href="mailto:info@endow.edu"
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                  className="text-sm text-gray-400 transition-colors hover:text-white"
                 >
                   info@endow.edu
                 </a>
@@ -127,7 +105,7 @@ export default function UniversitiesFooter() {
                 <Phone className="h-4 w-4 text-[#C41E3A]" />
                 <a
                   href="tel:+18001234567"
-                  className="text-sm text-gray-400 hover:text-white transition-colors"
+                  className="text-sm text-gray-400 transition-colors hover:text-white"
                 >
                   +1 (800) 123-4567
                 </a>
@@ -177,23 +155,41 @@ export default function UniversitiesFooter() {
         >
           {/* Social Links - Text only for now */}
           <div className="flex items-center justify-center gap-4">
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">f</a>
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">x</a>
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">in</a>
-            <a href="#" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white">ig</a>
+            <a
+              href="#"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white"
+            >
+              f
+            </a>
+            <a
+              href="#"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white"
+            >
+              x
+            </a>
+            <a
+              href="#"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white"
+            >
+              in
+            </a>
+            <a
+              href="#"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/5 text-sm text-gray-400 transition-colors hover:bg-[#C41E3A] hover:text-white"
+            >
+              ig
+            </a>
           </div>
 
           {/* Copyright */}
-          <div className="text-center space-y-2">
-            <p className="text-gray-500 text-sm">
-              © 2026 Endow Global. All rights reserved.
-            </p>
-            <p className="text-gray-600 text-xs">
+          <div className="space-y-2 text-center">
+            <p className="text-sm text-gray-500">© 2026 Endow Global. All rights reserved.</p>
+            <p className="text-xs text-gray-600">
               Trusted by students worldwide - Partner of 250+ Universities
             </p>
           </div>
         </motion.div>
       </div>
     </footer>
-  );
+  )
 }

@@ -1,13 +1,7 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import {
-  Calendar,
-  CheckCircle2,
-  MessageCircle,
-  Phone,
-  Sparkles,
-} from "lucide-react";
+import { motion } from 'framer-motion'
+import { Calendar, CheckCircle2, MessageCircle, Phone, Sparkles } from 'lucide-react'
 
 export default function PremiumConsultationCTA() {
   const containerVariants = {
@@ -16,7 +10,7 @@ export default function PremiumConsultationCTA() {
       opacity: 1,
       transition: { staggerChildren: 0.15, delayChildren: 0.1 },
     },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -25,7 +19,7 @@ export default function PremiumConsultationCTA() {
       y: 0,
       transition: { duration: 0.6 },
     },
-  };
+  }
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white py-16 lg:py-20">
@@ -52,9 +46,7 @@ export default function PremiumConsultationCTA() {
           <motion.div variants={itemVariants}>
             <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/80 px-3 py-1.5 shadow-sm backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-[#C41E3A]" />
-              <span className="text-xs font-medium text-[#C41E3A]">
-                Limited Time Offer
-              </span>
+              <span className="text-xs font-medium text-[#C41E3A]">Limited Time Offer</span>
             </div>
           </motion.div>
 
@@ -63,14 +55,11 @@ export default function PremiumConsultationCTA() {
             <h2 className="text-3xl font-bold tracking-tight text-gray-950 lg:text-4xl">
               Ready to Transform Your
               <br />
-              <span className="text-[#C41E3A]">
-                Educational Future?
-              </span>
+              <span className="text-[#C41E3A]">Educational Future?</span>
             </h2>
             <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600">
-              Get a free profile evaluation from our education experts. Receive
-              personalized university recommendations and exclusive scholarship
-              opportunities.
+              Get a free profile evaluation from our education experts. Receive personalized
+              university recommendations and exclusive scholarship opportunities.
             </p>
           </motion.div>
 
@@ -94,12 +83,8 @@ export default function PremiumConsultationCTA() {
                 <MessageCircle className="h-5 w-5" />
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">WhatsApp Consultation</h3>
-              <p className="mb-4 text-sm text-gray-600">
-                Chat with our counselors instantly
-              </p>
-              <p className="text-xs font-semibold text-[#C41E3A]">
-                Available 24/7
-              </p>
+              <p className="mb-4 text-sm text-gray-600">Chat with our counselors instantly</p>
+              <p className="text-xs font-semibold text-[#C41E3A]">Available 24/7</p>
             </motion.a>
 
             {/* Phone */}
@@ -117,12 +102,8 @@ export default function PremiumConsultationCTA() {
                 <Phone className="h-5 w-5" />
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">Phone Call</h3>
-              <p className="mb-4 text-sm text-gray-600">
-                Speak with an expert counselor
-              </p>
-              <p className="text-xs font-semibold text-[#C41E3A]">
-                +1 (800) 123-4567
-              </p>
+              <p className="mb-4 text-sm text-gray-600">Speak with an expert counselor</p>
+              <p className="text-xs font-semibold text-[#C41E3A]">+1 (800) 123-4567</p>
             </motion.a>
 
             {/* Calendar */}
@@ -140,29 +121,20 @@ export default function PremiumConsultationCTA() {
                 <Calendar className="h-5 w-5" />
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">Book Appointment</h3>
-              <p className="mb-4 text-sm text-gray-600">
-                Schedule your personalized session
-              </p>
-              <p className="text-xs font-semibold text-[#C41E3A]">
-                Pick your time
-              </p>
+              <p className="mb-4 text-sm text-gray-600">Schedule your personalized session</p>
+              <p className="text-xs font-semibold text-[#C41E3A]">Pick your time</p>
             </motion.a>
           </motion.div>
 
           {/* Benefits */}
-          <motion.div
-            variants={itemVariants}
-            className="mx-auto max-w-2xl space-y-3 pt-2"
-          >
-            <p className="text-sm font-semibold text-gray-500">
-              WHAT YOU'LL GET
-            </p>
+          <motion.div variants={itemVariants} className="mx-auto max-w-2xl space-y-3 pt-2">
+            <p className="text-sm font-semibold text-gray-500">WHAT YOU'LL GET</p>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
-                "Free Profile Assessment",
-                "AI University Matching",
-                "Scholarship Opportunities",
-                "Visa Success Prediction",
+                'Free Profile Assessment',
+                'AI University Matching',
+                'Scholarship Opportunities',
+                'Visa Success Prediction',
               ].map((benefit, idx) => (
                 <motion.p
                   key={idx}
@@ -180,5 +152,5 @@ export default function PremiumConsultationCTA() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

@@ -13,7 +13,7 @@ const categories = [
   'Career',
   'Success Stories',
   'Resources',
-  'Company Updates'
+  'Company Updates',
 ]
 
 type SearchFilterSectionProps = {
@@ -21,19 +21,20 @@ type SearchFilterSectionProps = {
   setActiveCategory: (category: string) => void
 }
 
-export function SearchFilterSection({ activeCategory, setActiveCategory }: SearchFilterSectionProps) {
+export function SearchFilterSection({
+  activeCategory,
+  setActiveCategory,
+}: SearchFilterSectionProps) {
   return (
-    <section className="relative bg-[#F8FAFC] py-20 lg:py-24 border-y border-[#E5E7EB]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-
+    <section className="relative border-y border-[#E5E7EB] bg-[#F8FAFC] py-20 lg:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* CATEGORY PILLS */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1 }}
-          className="flex flex-wrap gap-3 justify-center"
+          className="flex flex-wrap justify-center gap-3"
         >
           {categories.map((category, index) => (
             <motion.button
@@ -45,10 +46,10 @@ export function SearchFilterSection({ activeCategory, setActiveCategory }: Searc
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.05 }}
-              className={`h-11 px-5 rounded-full font-medium transition-all duration-300 text-base ${
+              className={`h-11 rounded-full px-5 text-base font-medium transition-all duration-300 ${
                 activeCategory === category
                   ? 'bg-[#C41E3A] text-white shadow-[0_10px_30px_rgba(196,30,58,0.18)]'
-                  : 'bg-white text-[#111827] border border-[#E5E7EB] hover:border-[#C41E3A]'
+                  : 'border border-[#E5E7EB] bg-white text-[#111827] hover:border-[#C41E3A]'
               }`}
             >
               {category}

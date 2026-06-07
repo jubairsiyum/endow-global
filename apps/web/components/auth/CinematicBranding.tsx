@@ -1,12 +1,11 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import Image from "next/image";
+import { motion } from 'framer-motion'
+import Image from 'next/image'
 
 export default function CinematicBranding() {
   return (
     <div className="relative flex h-screen w-full overflow-hidden border-r border-white/10 bg-[#030712]">
-      
       {/* =========================================
          WORLD MAP
       ========================================= */}
@@ -18,12 +17,7 @@ export default function CinematicBranding() {
           fill
           priority
           quality={100}
-          className="
-            object-cover
-            object-center
-            opacity-[0.58]
-            scale-[1.02]
-          "
+          className="scale-[1.02] object-cover object-center opacity-[0.58]"
         />
       </div>
 
@@ -31,26 +25,20 @@ export default function CinematicBranding() {
          PREMIUM GLOBAL CONNECTIONS
       ========================================= */}
 
-      <div className="absolute inset-0 z-[4] pointer-events-none">
-
+      <div className="pointer-events-none absolute inset-0 z-[4]">
         <svg
           className="h-full w-full"
           viewBox="0 0 1000 700"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
-
           <defs>
-
             {/* =========================================
                PREMIUM GLOW
             ========================================= */}
 
             <filter id="premiumGlow">
-              <feGaussianBlur
-                stdDeviation="6"
-                result="blur"
-              />
+              <feGaussianBlur stdDeviation="6" result="blur" />
 
               <feMerge>
                 <feMergeNode in="blur" />
@@ -62,30 +50,12 @@ export default function CinematicBranding() {
                FLOW GRADIENT 1
             ========================================= */}
 
-            <linearGradient
-              id="flow1"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <stop
-                offset="0%"
-                stopColor="#ff163d"
-                stopOpacity="0"
-              />
+            <linearGradient id="flow1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ff163d" stopOpacity="0" />
 
-              <stop
-                offset="50%"
-                stopColor="#ff5a74"
-                stopOpacity="1"
-              />
+              <stop offset="50%" stopColor="#ff5a74" stopOpacity="1" />
 
-              <stop
-                offset="100%"
-                stopColor="#ff163d"
-                stopOpacity="0"
-              />
+              <stop offset="100%" stopColor="#ff163d" stopOpacity="0" />
 
               <animateTransform
                 attributeName="gradientTransform"
@@ -101,30 +71,12 @@ export default function CinematicBranding() {
                FLOW GRADIENT 2
             ========================================= */}
 
-            <linearGradient
-              id="flow2"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <stop
-                offset="0%"
-                stopColor="#ff163d"
-                stopOpacity="0"
-              />
+            <linearGradient id="flow2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ff163d" stopOpacity="0" />
 
-              <stop
-                offset="50%"
-                stopColor="#ff304f"
-                stopOpacity="1"
-              />
+              <stop offset="50%" stopColor="#ff304f" stopOpacity="1" />
 
-              <stop
-                offset="100%"
-                stopColor="#ff163d"
-                stopOpacity="0"
-              />
+              <stop offset="100%" stopColor="#ff163d" stopOpacity="0" />
 
               <animateTransform
                 attributeName="gradientTransform"
@@ -140,30 +92,12 @@ export default function CinematicBranding() {
                FLOW GRADIENT 3
             ========================================= */}
 
-            <linearGradient
-              id="flow3"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="0%"
-            >
-              <stop
-                offset="0%"
-                stopColor="#ff163d"
-                stopOpacity="0"
-              />
+            <linearGradient id="flow3" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#ff163d" stopOpacity="0" />
 
-              <stop
-                offset="50%"
-                stopColor="#ff7588"
-                stopOpacity="1"
-              />
+              <stop offset="50%" stopColor="#ff7588" stopOpacity="1" />
 
-              <stop
-                offset="100%"
-                stopColor="#ff163d"
-                stopOpacity="0"
-              />
+              <stop offset="100%" stopColor="#ff163d" stopOpacity="0" />
 
               <animateTransform
                 attributeName="gradientTransform"
@@ -174,7 +108,6 @@ export default function CinematicBranding() {
                 repeatCount="indefinite"
               />
             </linearGradient>
-
           </defs>
 
           {/* =========================================
@@ -379,16 +312,14 @@ export default function CinematicBranding() {
               repeatCount="indefinite"
             />
           </path>
-
         </svg>
-
       </div>
 
       {/* =========================================
          DARK OVERLAY
       ========================================= */}
 
-      <div className="absolute inset-0 bg-[#030712]/52" />
+      <div className="bg-[#030712]/52 absolute inset-0" />
 
       {/* =========================================
          RED LIGHT
@@ -406,14 +337,13 @@ export default function CinematicBranding() {
          GRID
       ========================================= */}
 
-      <div className="absolute inset-0 opacity-[0.035] bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:72px_72px]" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff_1px,transparent_1px),linear-gradient(to_bottom,#ffffff_1px,transparent_1px)] bg-[size:72px_72px] opacity-[0.035]" />
 
       {/* =========================================
          CONTENT
       ========================================= */}
 
       <div className="relative z-20 flex h-full w-full flex-col px-16 py-14">
-        
         {/* LOGO */}
         <motion.div
           initial={{
@@ -428,18 +358,13 @@ export default function CinematicBranding() {
             duration: 0.7,
           }}
         >
-          <h1 className="text-[44px] font-bold leading-none tracking-[-3px] text-white">
-            Endow
-          </h1>
+          <h1 className="text-[44px] font-bold leading-none tracking-[-3px] text-white">Endow</h1>
 
-          <p className="mt-3 text-[16px] font-medium text-white/80">
-            Global Education
-          </p>
+          <p className="mt-3 text-[16px] font-medium text-white/80">Global Education</p>
         </motion.div>
 
         {/* HERO */}
         <div className="flex flex-1 items-center">
-          
           <motion.div
             initial={{
               opacity: 0,
@@ -455,27 +380,23 @@ export default function CinematicBranding() {
             }}
             className="max-w-[660px]"
           >
-            
             <h2 className="text-[64px] font-bold leading-[68px] tracking-[-2px] text-white">
               Empowering
               <br />
               Student
               <br />
-
               <span className="bg-gradient-to-r from-[#ff445c] via-[#ff243f] to-[#9F050F] bg-clip-text text-transparent">
                 Success.
               </span>
             </h2>
 
             <p className="mt-7 max-w-[560px] text-[18px] leading-[34px] text-white/80">
-              AI-powered ecosystem for
-              global admissions,
-              counselor collaboration and
-              modern education management.
+              AI-powered ecosystem for global admissions, counselor collaboration and modern
+              education management.
             </p>
           </motion.div>
         </div>
       </div>
     </div>
-  );
+  )
 }

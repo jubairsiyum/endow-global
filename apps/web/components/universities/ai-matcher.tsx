@@ -1,41 +1,41 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { MessageCircle, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
-import { calculateAIMatch } from "@/lib/universities/utils";
-import { universities } from "@/lib/universities/data";
-import type { UserProfile } from "@/lib/universities/types";
+import { motion } from 'framer-motion'
+import { MessageCircle, CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
+import { calculateAIMatch } from '@/lib/universities/utils'
+import { universities } from '@/lib/universities/data'
+import type { UserProfile } from '@/lib/universities/types'
 
 interface AIMatcherProps {
-  onClose?: () => void;
+  onClose?: () => void
 }
 
 export default function AIMatcher({ onClose }: AIMatcherProps) {
-  const [step, setStep] = useState<"input" | "results">("input");
+  const [step, setStep] = useState<'input' | 'results'>('input')
   const [profile, setProfile] = useState<UserProfile>({
     gpa: 3.2,
     ielts: 6.0,
     budget: 50000,
-    preferredCountry: "South Korea",
-    studyLevel: "bachelor",
-  });
-  const [results, setResults] = useState<any[]>([]);
+    preferredCountry: 'South Korea',
+    studyLevel: 'bachelor',
+  })
+  const [results, setResults] = useState<any[]>([])
 
   const handleInputChange = (field: keyof UserProfile, value: any) => {
-    setProfile({ ...profile, [field]: value });
-  };
+    setProfile({ ...profile, [field]: value })
+  }
 
   const handleMatch = () => {
     const matches = universities
       .map((uni) => calculateAIMatch(uni, profile))
       .sort((a, b) => b.matchPercentage - a.matchPercentage)
-      .slice(0, 3);
-    setResults(matches);
-    setStep("results");
-  };
+      .slice(0, 3)
+    setResults(matches)
+    setStep('results')
+  }
 
-  if (step === "results") {
+  if (step === 'results') {
     return (
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -60,17 +60,11 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-gray-900">
-                    {match.universityName}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-600">
-                    {match.reasons[0]}
-                  </p>
+                  <p className="font-semibold text-gray-900">{match.universityName}</p>
+                  <p className="mt-1 text-sm text-gray-600">{match.reasons[0]}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-base font-bold text-[#C41E3A]">
-                    {match.matchPercentage}%
-                  </p>
+                  <p className="text-base font-bold text-[#C41E3A]">{match.matchPercentage}%</p>
                   <p className="text-xs text-gray-500">Match</p>
                 </div>
               </div>
@@ -78,15 +72,11 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-2.5">
                   <p className="text-gray-500">Scholarship Chance</p>
-                  <p className="font-semibold text-gray-900">
-                    {match.scholarshipChance}%
-                  </p>
+                  <p className="font-semibold text-gray-900">{match.scholarshipChance}%</p>
                 </div>
                 <div className="rounded-xl border border-gray-200 bg-gray-50 p-2.5">
                   <p className="text-gray-500">Visa Success</p>
-                  <p className="font-semibold text-gray-900">
-                    {match.visaSuccessProbability}%
-                  </p>
+                  <p className="font-semibold text-gray-900">{match.visaSuccessProbability}%</p>
                 </div>
               </div>
             </motion.div>
@@ -95,7 +85,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
 
         <div className="flex gap-3 pt-1">
           <button
-            onClick={() => setStep("input")}
+            onClick={() => setStep('input')}
             className="h-11 flex-1 rounded-xl border border-gray-300 px-4 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"
           >
             Adjust Profile
@@ -105,7 +95,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
           </button>
         </div>
       </motion.div>
-    );
+    )
   }
 
   return (
@@ -132,9 +122,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
             max="4.0"
             step="0.1"
             value={profile.gpa}
-            onChange={(e) =>
-              handleInputChange("gpa", parseFloat(e.target.value))
-            }
+            onChange={(e) => handleInputChange('gpa', parseFloat(e.target.value))}
             className="w-full accent-[#C41E3A]"
           />
         </div>
@@ -149,9 +137,7 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
             max="9.0"
             step="0.5"
             value={profile.ielts}
-            onChange={(e) =>
-              handleInputChange("ielts", parseFloat(e.target.value))
-            }
+            onChange={(e) => handleInputChange('ielts', parseFloat(e.target.value))}
             className="w-full accent-[#C41E3A]"
           />
         </div>
@@ -166,22 +152,16 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
             max="100000"
             step="5000"
             value={profile.budget}
-            onChange={(e) =>
-              handleInputChange("budget", parseFloat(e.target.value))
-            }
+            onChange={(e) => handleInputChange('budget', parseFloat(e.target.value))}
             className="w-full accent-[#C41E3A]"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Preferred Country
-          </label>
+          <label className="block text-sm font-semibold text-gray-700">Preferred Country</label>
           <select
             value={profile.preferredCountry}
-            onChange={(e) =>
-              handleInputChange("preferredCountry", e.target.value)
-            }
+            onChange={(e) => handleInputChange('preferredCountry', e.target.value)}
             className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none transition-colors focus:border-[#C41E3A]"
           >
             <option>South Korea</option>
@@ -194,20 +174,16 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Study Level
-          </label>
+          <label className="block text-sm font-semibold text-gray-700">Study Level</label>
           <div className="grid grid-cols-3 gap-2">
-            {["bachelor", "master", "phd"].map((level) => (
+            {['bachelor', 'master', 'phd'].map((level) => (
               <button
                 key={level}
-                onClick={() =>
-                  handleInputChange("studyLevel", level as any)
-                }
+                onClick={() => handleInputChange('studyLevel', level as any)}
                 className={`h-10 rounded-xl px-3 text-sm font-semibold transition-colors ${
                   profile.studyLevel === level
-                    ? "bg-[#C41E3A] text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)]"
-                    : "border border-gray-200 bg-gray-50 text-gray-900 hover:border-red-200 hover:bg-red-50"
+                    ? 'bg-[#C41E3A] text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)]'
+                    : 'border border-gray-200 bg-gray-50 text-gray-900 hover:border-red-200 hover:bg-red-50'
                 }`}
               >
                 {level.charAt(0).toUpperCase() + level.slice(1)}
@@ -227,5 +203,5 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
         Get AI Recommendations
       </motion.button>
     </motion.div>
-  );
+  )
 }

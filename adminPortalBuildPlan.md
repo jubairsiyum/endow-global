@@ -12,12 +12,12 @@ Keep the client-side sidebar/topbar as a nested client component
 Phase 2: Backend — tRPC Routers (1 file rewrite + 1 new file)
 2.1 Rewrite server/routers/admin.ts — Full admin router with nested sub-routers:
 
-Sub-router	Procedures
-admin.dashboard	getMetrics — user count, application counts by status, counselor count, recent activity
-admin.students	list (search, pagination), getById, updateProfile, assignCounselor
-admin.applications	list (search, status filter, pagination), getById, updateStatus, addNotes
-admin.counselors	list, getById
-admin.notifications	sendSystem (to user or broadcast)
+Sub-router Procedures
+admin.dashboard getMetrics — user count, application counts by status, counselor count, recent activity
+admin.students list (search, pagination), getById, updateProfile, assignCounselor
+admin.applications list (search, status filter, pagination), getById, updateStatus, addNotes
+admin.counselors list, getById
+admin.notifications sendSystem (to user or broadcast)
 All procedures use adminProcedure (auth + ADMIN role check).
 
 2.2 Add zod validation — Input schemas for list/pagination/update endpoints.
@@ -54,17 +54,17 @@ Show application details, documents, personal statement
 Update status dropdown with confirmation
 Add/view counselor notes
 Files to Create/Modify
-Action	File
-Modify	middleware.ts
-Modify	app/admin/layout.tsx
-Rewrite	server/routers/admin.ts
-Modify	app/admin/page.tsx
-Rewrite	app/admin/students/page.tsx
-Create	app/admin/students/[id]/page.tsx
-Rewrite	app/admin/applications/page.tsx
-Create	app/admin/applications/[id]/page.tsx
-Modify	components/ui/StatusBadge.tsx (support real enum values)
-Modify	server/root.ts (if router structure changes)
+Action File
+Modify middleware.ts
+Modify app/admin/layout.tsx
+Rewrite server/routers/admin.ts
+Modify app/admin/page.tsx
+Rewrite app/admin/students/page.tsx
+Create app/admin/students/[id]/page.tsx
+Rewrite app/admin/applications/page.tsx
+Create app/admin/applications/[id]/page.tsx
+Modify components/ui/StatusBadge.tsx (support real enum values)
+Modify server/root.ts (if router structure changes)
 Execution Order
 Middleware + Admin layout auth guard (security first)
 Admin tRPC router (backend)

@@ -55,7 +55,7 @@ export function DashboardTopbar({
           {unreadNotifications > 0 && (
             <span
               className={cn(
-                'absolute right-1.5 top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white',
+                'absolute right-1.5 top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-primary px-1 text-[9px] font-bold text-white'
               )}
             >
               {unreadNotifications > 9 ? '9+' : unreadNotifications}

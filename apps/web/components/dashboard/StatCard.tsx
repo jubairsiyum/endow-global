@@ -58,7 +58,7 @@ export function StatCard({
           <div
             className={cn(
               'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-red-100 text-primary shadow-inner dark:from-[#3a1218] dark:to-[#2a1114]',
-              pulse && 'animate-pulse',
+              pulse && 'animate-pulse'
             )}
           >
             {icon}
@@ -71,7 +71,7 @@ export function StatCard({
           <p
             className={cn(
               'mt-1 font-heading text-3xl font-bold leading-none tracking-tight',
-              TONE_VALUE[tone],
+              TONE_VALUE[tone]
             )}
           >
             {display}
@@ -82,9 +82,7 @@ export function StatCard({
             )}
           </p>
           {caption && (
-            <p className="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">
-              {caption}
-            </p>
+            <p className="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">{caption}</p>
           )}
         </div>
       </div>

@@ -27,11 +27,15 @@ io.on('connection', (socket) => {
   })
 
   socket.on('typing:start', (data: { conversationId: string; userId: string }) => {
-    socket.to(`conversation:${data.conversationId}`).emit('typing:update', { userId: data.userId, isTyping: true })
+    socket
+      .to(`conversation:${data.conversationId}`)
+      .emit('typing:update', { userId: data.userId, isTyping: true })
   })
 
   socket.on('typing:stop', (data: { conversationId: string; userId: string }) => {
-    socket.to(`conversation:${data.conversationId}`).emit('typing:update', { userId: data.userId, isTyping: false })
+    socket
+      .to(`conversation:${data.conversationId}`)
+      .emit('typing:update', { userId: data.userId, isTyping: false })
   })
 
   socket.on('notification:send', (data: { userId: string; notification: object }) => {

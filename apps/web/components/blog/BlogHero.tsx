@@ -9,49 +9,48 @@ export function BlogHero() {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
+      transition: { staggerChildren: 0.1 },
+    },
   }
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FAFAFA] via-[#F8F9FB] to-white pt-24 lg:pt-28 pb-10 lg:pb-14">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FAFAFA] via-[#F8F9FB] to-white pb-10 pt-24 lg:pb-14 lg:pt-28">
       {/* BACKGROUND GLOW */}
-      <div className="absolute top-0 right-0 -mr-48 -mt-48 w-[420px] h-[420px] rounded-full bg-[#FEF2F2] blur-3xl opacity-40 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -ml-48 -mb-48 w-[420px] h-[420px] rounded-full bg-[#F8FAFC] blur-3xl opacity-60 pointer-events-none" />
-      <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[380px] h-[380px] bg-[#C41E3A]/4 blur-[120px] rounded-full" />
-      <div className="max-w-[1380px] mx-auto px-6 lg:px-10 xl:px-12 relative z-10">
+      <div className="pointer-events-none absolute right-0 top-0 -mr-48 -mt-48 h-[420px] w-[420px] rounded-full bg-[#FEF2F2] opacity-40 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-0 -mb-48 -ml-48 h-[420px] w-[420px] rounded-full bg-[#F8FAFC] opacity-60 blur-3xl" />
+      <div className="bg-[#C41E3A]/4 absolute left-1/2 top-32 h-[380px] w-[380px] -translate-x-1/2 rounded-full blur-[120px]" />
+      <div className="relative z-10 mx-auto max-w-[1380px] px-6 lg:px-10 xl:px-12">
         <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 lg:grid-cols-[45%_55%] gap-8 xl:gap-12 items-center"
+          className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[45%_55%] xl:gap-12"
         >
           {/* LEFT CONTENT */}
           <div>
             <motion.div variants={itemVariants} className="mb-5">
               <div className="inline-block">
-                <div className="flex h-9 items-center gap-2 px-3.5 rounded-full bg-[#FEF2F2] border border-[#E5E7EB]">
-                  <Zap className="w-3.5 h-3.5 text-[#C41E3A]" />
-                  <span className="text-xs font-semibold text-[#C41E3A] tracking-wide">Education Knowledge Hub</span>
+                <div className="flex h-9 items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#FEF2F2] px-3.5">
+                  <Zap className="h-3.5 w-3.5 text-[#C41E3A]" />
+                  <span className="text-xs font-semibold tracking-wide text-[#C41E3A]">
+                    Education Knowledge Hub
+                  </span>
                 </div>
               </div>
             </motion.div>
 
             <motion.h1
-            
               variants={itemVariants}
-              className="max-w-[580px] text-[32px] md:text-[40px] lg:text-[52px] font-extrabold leading-[1.0] tracking-[-1.5px] mb-5"
+              className="mb-5 max-w-[580px] text-[32px] font-extrabold leading-[1.0] tracking-[-1.5px] md:text-[40px] lg:text-[52px]"
             >
-              <div className="w-24 h-1 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444] mb-6" />
-              <span className="text-[#111827]">
-                Global Education
-              </span>
+              <div className="mb-6 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
+              <span className="text-[#111827]">Global Education</span>
 
               <br />
 
@@ -62,32 +61,36 @@ export function BlogHero() {
 
             <motion.p
               variants={itemVariants}
-              className="text-base text-[#6B7280] leading-relaxed mb-7 max-w-[520px]"
+              className="mb-7 max-w-[520px] text-base leading-relaxed text-[#6B7280]"
             >
-              Study abroad guides, scholarship opportunities, visa updates, university insights, and real student success journeys.
+              Study abroad guides, scholarship opportunities, visa updates, university insights, and
+              real student success journeys.
             </motion.p>
 
             {/* STATISTICS */}
-            <motion.div
-              variants={itemVariants}
-              className="grid grid-cols-3 gap-4 max-w-[580px]"
-            >
-              <div className="rounded-2xl border border-[#ECECEC] bg-white p-4 min-h-[115px] shadow-[0_6px_16px_rgba(15,23,42,0.05)] hover:shadow-md transition-all">
-                <div className="w-8 h-0.5 rounded-full bg-[#C41E3A] mb-3" />
+            <motion.div variants={itemVariants} className="grid max-w-[580px] grid-cols-3 gap-4">
+              <div className="min-h-[115px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">500+</p>
-                <p className="text-xs uppercase tracking-wider text-[#6B7280] mt-1.5 font-medium">Expert Articles</p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
+                  Expert Articles
+                </p>
               </div>
 
-              <div className="rounded-2xl border border-[#ECECEC] bg-white p-4 min-h-[115px] shadow-[0_6px_16px_rgba(15,23,42,0.05)] hover:shadow-md transition-all">
-                <div className="w-8 h-0.5 rounded-full bg-[#C41E3A] mb-3" />
+              <div className="min-h-[115px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">25K+</p>
-                <p className="text-xs uppercase tracking-wider text-[#6B7280] mt-1.5 font-medium">Monthly Readers</p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
+                  Monthly Readers
+                </p>
               </div>
 
-              <div className="rounded-2xl border border-[#ECECEC] bg-white p-4 min-h-[115px] shadow-[0_6px_16px_rgba(15,23,42,0.05)] hover:shadow-md transition-all">
-                <div className="w-8 h-0.5 rounded-full bg-[#C41E3A] mb-3" />
+              <div className="min-h-[115px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
+                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">20+</p>
-                <p className="text-xs uppercase tracking-wider text-[#6B7280] mt-1.5 font-medium">Partner Universities</p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
+                  Partner Universities
+                </p>
               </div>
             </motion.div>
           </div>
@@ -96,11 +99,11 @@ export function BlogHero() {
           <motion.div
             variants={itemVariants}
             whileHover={{ y: -8 }}
-            className="relative w-full ml-auto"
+            className="relative ml-auto w-full"
           >
-            <div className="rounded-3xl overflow-hidden bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-shadow duration-300 border border-[#ECECEC]">
+            <div className="overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-shadow duration-300">
               {/* CARD IMAGE */}
-              <div className="relative h-[260px] lg:h-[300px] w-full overflow-hidden bg-[#F8FAFC]">
+              <div className="relative h-[260px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
                 <Image
                   src="https://images.unsplash.com/photo-1491841573634-28e1ad7dc246?w=600&h=400&fit=crop"
                   alt="Featured article"
@@ -113,24 +116,25 @@ export function BlogHero() {
               {/* CARD CONTENT */}
               <div className="p-5">
                 {/* CATEGORY BADGE */}
-                <div className="inline-block mb-3">
-                  <span className="inline-flex items-center h-9 px-3.5 rounded-full bg-red-50 border border-red-100 text-[#C41E3A] text-xs font-bold uppercase tracking-wider">
+                <div className="mb-3 inline-block">
+                  <span className="inline-flex h-9 items-center rounded-full border border-red-100 bg-red-50 px-3.5 text-xs font-bold uppercase tracking-wider text-[#C41E3A]">
                     Scholarship Guide
                   </span>
                 </div>
 
                 {/* TITLE */}
-                <h3 className="text-[20px] lg:text-[22px] leading-snug font-bold text-[#111827] mb-2.5 line-clamp-2">
+                <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827] lg:text-[22px]">
                   Complete GKS Scholarship Guide 2024
                 </h3>
 
                 {/* DESCRIPTION */}
-                <p className="text-sm text-[#6B7280] mb-5 line-clamp-3 leading-relaxed">
-                  Everything you need to know about applying for the Global Korea Scholarship, from eligibility requirements to tips for a winning application.
+                <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-[#6B7280]">
+                  Everything you need to know about applying for the Global Korea Scholarship, from
+                  eligibility requirements to tips for a winning application.
                 </p>
 
                 {/* META */}
-                <div className="flex items-center justify-between text-xs text-[#6B7280] border-t border-[#E5E7EB] pt-4">
+                <div className="flex items-center justify-between border-t border-[#E5E7EB] pt-4 text-xs text-[#6B7280]">
                   <div className="flex items-center gap-3">
                     <span>By Endow Team</span>
                     <span>•</span>
@@ -140,9 +144,9 @@ export function BlogHero() {
 
                 {/* CTA */}
                 <div className="mt-5">
-                  <button className="h-11 px-4 rounded-full bg-[#C41E3A] text-white text-sm font-semibold flex items-center gap-2 hover:bg-[#B11A33] transition-all">
+                  <button className="flex h-11 items-center gap-2 rounded-full bg-[#C41E3A] px-4 text-sm font-semibold text-white transition-all hover:bg-[#B11A33]">
                     Read Article
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>

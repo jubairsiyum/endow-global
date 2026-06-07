@@ -1,12 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import {
-  CalendarClock,
-  FileCheck2,
-  GraduationCap,
-  MessageSquare,
-} from 'lucide-react'
+import { CalendarClock, FileCheck2, GraduationCap, MessageSquare } from 'lucide-react'
 
 import {
   mockDeadlines,

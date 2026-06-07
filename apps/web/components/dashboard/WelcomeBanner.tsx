@@ -50,16 +50,14 @@ export function WelcomeBanner({
             <Sparkles size={13} aria-hidden />
             Student portal
           </div>
-          <h1 className="font-heading text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl dark:text-white">
+          <h1 className="font-heading text-2xl font-bold tracking-tight text-gray-950 dark:text-white sm:text-3xl">
             Welcome back, <span className="text-primary">{name.split(' ')[0]}</span>.
           </h1>
           <p className="max-w-xl text-sm leading-6 text-gray-600 dark:text-gray-300">
             You&apos;re applying to{' '}
-            <span className="font-semibold text-gray-900 dark:text-white">
-              {program}
-            </span>{' '}
-            at <span className="font-semibold text-gray-900 dark:text-white">{university}</span>{' '}
-            for the {visaType}. Here&apos;s the latest on your application.
+            <span className="font-semibold text-gray-900 dark:text-white">{program}</span> at{' '}
+            <span className="font-semibold text-gray-900 dark:text-white">{university}</span> for
+            the {visaType}. Here&apos;s the latest on your application.
           </p>
         </div>
 
@@ -77,9 +75,7 @@ export function WelcomeBanner({
                 <GraduationCap size={13} className="text-primary" aria-hidden />
                 Application progress
               </span>
-              <span className="font-bold text-gray-900 dark:text-white">
-                {progress}%
-              </span>
+              <span className="font-bold text-gray-900 dark:text-white">{progress}%</span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-[#0b0f19]">
               <motion.div

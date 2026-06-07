@@ -28,7 +28,10 @@ export const endowRouter = createTRPCRouter({
         if (overview.targetCountries) update.targetCountries = overview.targetCountries
         if (overview.targetSubjects) update.targetSubjects = overview.targetSubjects
 
-        await db.update(schema.studentProfiles).set(update).where(eq(schema.studentProfiles.userId, input.studentId))
+        await db
+          .update(schema.studentProfiles)
+          .set(update)
+          .where(eq(schema.studentProfiles.userId, input.studentId))
       }
 
       return overview

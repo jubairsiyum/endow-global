@@ -48,7 +48,7 @@ export function FeatureCards({ variant = 'default' }: FeatureCardsProps) {
   if (variant === 'compact') {
     return (
       <motion.div
-        className="grid grid-cols-3 gap-3 mt-6"
+        className="mt-6 grid grid-cols-3 gap-3"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
@@ -57,11 +57,11 @@ export function FeatureCards({ variant = 'default' }: FeatureCardsProps) {
           <motion.div
             key={idx}
             variants={itemVariants}
-            className="p-3 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200"
+            className="rounded-lg border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-3"
           >
-            <div className="text-2xl mb-1">{feature.icon}</div>
+            <div className="mb-1 text-2xl">{feature.icon}</div>
             <h4 className="text-xs font-semibold text-gray-900">{feature.title}</h4>
-            <p className="text-xs text-gray-600 mt-1">{feature.description}</p>
+            <p className="mt-1 text-xs text-gray-600">{feature.description}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -70,7 +70,7 @@ export function FeatureCards({ variant = 'default' }: FeatureCardsProps) {
 
   return (
     <motion.div
-      className="grid grid-cols-1 gap-4 mt-8"
+      className="mt-8 grid grid-cols-1 gap-4"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
@@ -79,13 +79,13 @@ export function FeatureCards({ variant = 'default' }: FeatureCardsProps) {
         <motion.div
           key={idx}
           variants={itemVariants}
-          className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border border-gray-200 hover:border-[#C41E3A]/30 transition-colors"
+          className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-gray-100 p-4 transition-colors hover:border-[#C41E3A]/30"
         >
           <div className="flex items-start gap-3">
             <span className="text-2xl">{feature.icon}</span>
             <div>
               <h4 className="font-semibold text-gray-900">{feature.title}</h4>
-              <p className="text-sm text-gray-600 mt-1">{feature.description}</p>
+              <p className="mt-1 text-sm text-gray-600">{feature.description}</p>
             </div>
           </div>
         </motion.div>

@@ -1,9 +1,12 @@
 import { db, schema } from '../..'
 import { eq } from 'drizzle-orm'
 import { hash } from 'bcryptjs'
+import { seedSouthKoreaCatalog } from './korea'
 
 async function main() {
   console.log('🌱 Seeding database...')
+
+  await seedSouthKoreaCatalog()
 
   const existingAdmin = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, 'admin@endowglobal.com'),
@@ -115,7 +118,11 @@ async function main() {
             applicationDeadline: new Date('2025-06-30'),
             startDate: new Date('2025-09-15'),
             language: 'English',
-            requirements: JSON.stringify(['Bachelors in CS or related', 'IELTS 6.5+', 'References x2']),
+            requirements: JSON.stringify([
+              'Bachelors in CS or related',
+              'IELTS 6.5+',
+              'References x2',
+            ]),
             hasScholarship: true,
             scholarshipDetails: 'Merit-based scholarship up to 30% tuition reduction',
             description: `Study Computer Science at ${uni.name} with world-class faculty and cutting-edge research facilities.`,
@@ -140,7 +147,12 @@ async function main() {
             applicationDeadline: new Date('2025-05-31'),
             startDate: new Date('2025-09-15'),
             language: 'English',
-            requirements: JSON.stringify(['Bachelors degree', '3 years work experience', 'GMAT 600+', 'IELTS 7.0+']),
+            requirements: JSON.stringify([
+              'Bachelors degree',
+              '3 years work experience',
+              'GMAT 600+',
+              'IELTS 7.0+',
+            ]),
             hasScholarship: false,
             description: `Transform your career with an MBA from ${uni.name}.`,
             isActive: true,

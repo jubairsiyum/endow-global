@@ -4,15 +4,15 @@
 const COMMON_MAP: Record<string, string> = {
   'united states': 'US',
   'united states of america': 'US',
-  'usa': 'US',
-  'us': 'US',
+  usa: 'US',
+  us: 'US',
   'united kingdom': 'GB',
-  'uk': 'GB',
+  uk: 'GB',
   'great britain': 'GB',
   'south korea': 'KR',
-  'korea': 'KR',
-  'china': 'CN',
-  'india': 'IN',
+  korea: 'KR',
+  china: 'CN',
+  india: 'IN',
 }
 
 export function normalizeCountry(input: string | null | undefined): string | null {
@@ -23,7 +23,10 @@ export function normalizeCountry(input: string | null | undefined): string | nul
   // If input already looks like an ISO alpha-2 code
   if (/^[A-Za-z]{2}$/.test(s)) return s.toUpperCase()
   // Fallback: capitalize words and return as-is (best-effort)
-  return s.split(/\s+/).map((p) => p[0].toUpperCase() + p.slice(1)).join(' ')
+  return s
+    .split(/\s+/)
+    .map((p) => p[0].toUpperCase() + p.slice(1))
+    .join(' ')
 }
 
 export function normalizeCountryList(list: any): string[] {

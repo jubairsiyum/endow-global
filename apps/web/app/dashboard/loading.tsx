@@ -1,6 +1,6 @@
 export default function DashboardLoading() {
   return (
-    <div className="space-y-6 animate-pulse" aria-busy="true" aria-live="polite">
+    <div className="animate-pulse space-y-6" aria-busy="true" aria-live="polite">
       {/* Banner skeleton */}
       <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25] sm:p-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -9,8 +9,8 @@ export default function DashboardLoading() {
             <div className="h-8 w-64 rounded-xl bg-gray-100 dark:bg-[#222530]" />
             <div className="h-4 w-96 max-w-full rounded-lg bg-gray-100 dark:bg-[#222530]" />
           </div>
-          <div className="space-y-3 lg:max-w-sm lg:w-full">
-            <div className="h-6 w-24 ml-auto rounded-full bg-gray-100 dark:bg-[#222530]" />
+          <div className="space-y-3 lg:w-full lg:max-w-sm">
+            <div className="ml-auto h-6 w-24 rounded-full bg-gray-100 dark:bg-[#222530]" />
             <div className="h-14 w-full rounded-2xl bg-gray-100 dark:bg-[#222530]" />
           </div>
         </div>

@@ -16,12 +16,16 @@ export type StudentOverview = z.infer<typeof OverviewSchema>
 export async function fetchStudentOverviewFromEndow(studentId: string): Promise<StudentOverview> {
   const base = process.env.ENDOW_CONNECT_BASE_URL
   const key = process.env.ENDOW_CONNECT_API_KEY
-  if (!base || !key) throw new Error('ENDOW_CONNECT_BASE_URL or ENDOW_CONNECT_API_KEY not configured')
+  if (!base || !key)
+    throw new Error('ENDOW_CONNECT_BASE_URL or ENDOW_CONNECT_API_KEY not configured')
 
-  const res = await fetch(`${base.replace(/\/+$/,'')}/students/${encodeURIComponent(studentId)}/overview`, {
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    cache: 'no-store',
-  })
+  const res = await fetch(
+    `${base.replace(/\/+$/, '')}/students/${encodeURIComponent(studentId)}/overview`,
+    {
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      cache: 'no-store',
+    }
+  )
 
   if (!res.ok) {
     const text = await res.text()

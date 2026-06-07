@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 import {
   MessageSquare,
   Search,
@@ -10,57 +10,57 @@ import {
   Shield,
   Plane,
   CheckCircle2,
-} from "lucide-react";
+} from 'lucide-react'
 
 const roadmapSteps = [
   {
     number: 1,
-    title: "Consultation",
-    description: "Discuss your academic goals and profile with our counselors",
+    title: 'Consultation',
+    description: 'Discuss your academic goals and profile with our counselors',
     icon: MessageSquare,
   },
   {
     number: 2,
-    title: "University Matching",
-    description: "Get personalized university recommendations using AI",
+    title: 'University Matching',
+    description: 'Get personalized university recommendations using AI',
     icon: Search,
   },
   {
     number: 3,
-    title: "Document Preparation",
-    description: "Prepare all required documents with our expert guidance",
+    title: 'Document Preparation',
+    description: 'Prepare all required documents with our expert guidance',
     icon: FileText,
   },
   {
     number: 4,
-    title: "Application",
-    description: "Submit complete applications to selected universities",
+    title: 'Application',
+    description: 'Submit complete applications to selected universities',
     icon: Send,
   },
   {
     number: 5,
-    title: "Interview",
-    description: "Prepare and conduct university interviews",
+    title: 'Interview',
+    description: 'Prepare and conduct university interviews',
     icon: Video,
   },
   {
     number: 6,
-    title: "Visa Processing",
-    description: "Navigate the visa application process with full support",
+    title: 'Visa Processing',
+    description: 'Navigate the visa application process with full support',
     icon: Shield,
   },
   {
     number: 7,
-    title: "Departure",
-    description: "Final preparations and welcome to your new chapter",
+    title: 'Departure',
+    description: 'Final preparations and welcome to your new chapter',
     icon: Plane,
   },
-];
+]
 
 export default function ApplicationRoadmap() {
   return (
     <section className="relative overflow-x-hidden bg-[#F8FAFC] py-16 lg:py-20">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
@@ -75,16 +75,11 @@ export default function ApplicationRoadmap() {
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
             <CheckCircle2 className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-xs font-medium text-[#C41E3A]">
-              Your Journey
-            </span>
+            <span className="text-xs font-medium text-[#C41E3A]">Your Journey</span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
-            Your Application Roadmap
-          </h2>
+          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">Your Application Roadmap</h2>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
-            We guide you through every step of your international education
-            journey
+            We guide you through every step of your international education journey
           </p>
         </motion.div>
 
@@ -103,7 +98,7 @@ export default function ApplicationRoadmap() {
               className="relative grid gap-8 lg:grid-cols-7"
             >
               {roadmapSteps.map((step, idx) => {
-                const Icon = step.icon;
+                const Icon = step.icon
                 return (
                   <motion.div
                     key={idx}
@@ -127,16 +122,12 @@ export default function ApplicationRoadmap() {
                     </motion.div>
 
                     {/* Content */}
-                    <div className="text-center space-y-2">
-                      <h3 className="font-bold text-gray-900">
-                        {step.title}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {step.description}
-                      </p>
+                    <div className="space-y-2 text-center">
+                      <h3 className="font-bold text-gray-900">{step.title}</h3>
+                      <p className="text-sm text-gray-600">{step.description}</p>
                     </div>
                   </motion.div>
-                );
+                )
               })}
             </motion.div>
           </div>
@@ -148,10 +139,10 @@ export default function ApplicationRoadmap() {
           whileInView={{ opacity: 1 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="lg:hidden space-y-6"
+          className="space-y-6 lg:hidden"
         >
           {roadmapSteps.map((step, idx) => {
-            const Icon = step.icon;
+            const Icon = step.icon
             return (
               <motion.div
                 key={idx}
@@ -178,15 +169,11 @@ export default function ApplicationRoadmap() {
 
                 {/* Content */}
                 <div className="flex-1 pt-2">
-                  <h3 className="font-bold text-gray-900">
-                    {step.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    {step.description}
-                  </p>
+                  <h3 className="font-bold text-gray-900">{step.title}</h3>
+                  <p className="mt-1 text-sm text-gray-600">{step.description}</p>
                 </div>
               </motion.div>
-            );
+            )
           })}
         </motion.div>
 
@@ -196,14 +183,12 @@ export default function ApplicationRoadmap() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.5 }}
           viewport={{ once: true }}
-          className="mt-12 text-center space-y-4"
+          className="mt-12 space-y-4 text-center"
         >
-          <h3 className="text-xl font-bold text-gray-900">
-            Estimated Timeline: 3-4 Months
-          </h3>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Our streamlined process ensures you're ready to start your
-            international education journey on time, every time.
+          <h3 className="text-xl font-bold text-gray-900">Estimated Timeline: 3-4 Months</h3>
+          <p className="mx-auto max-w-2xl text-gray-600">
+            Our streamlined process ensures you're ready to start your international education
+            journey on time, every time.
           </p>
           <button className="inline-flex h-11 items-center gap-2 rounded-full bg-gradient-to-r from-red-600 to-rose-500 px-5 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(196,30,58,0.18)] transition-shadow hover:shadow-red-200">
             Schedule Your Consultation
@@ -211,5 +196,5 @@ export default function ApplicationRoadmap() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

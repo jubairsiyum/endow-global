@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import { Navbar } from "@/components/layout/Navbar";
-import HeroSection from "@/components/universities/hero-section";
-import UniversityMarquee from "@/components/universities/university-marquee";
-import FeaturedUniversities from "@/components/universities/featured-universities";
-import StatisticsSection from "@/components/universities/statistics-section";
-import CountryExplorer from "@/components/universities/country-explorer";
-import ScholarshipSpotlight from "@/components/universities/scholarship-spotlight";
-import StudentSuccessStories from "@/components/universities/student-success-stories";
-import ApplicationRoadmap from "@/components/universities/application-roadmap";
-import PremiumConsultationCTA from "@/components/universities/premium-consultation-cta";
-import UniversitiesFooter from "@/components/universities/footer";
-import StickyFilterBar from "@/components/universities/sticky-filter-bar";
+import { Navbar } from '@/components/layout/Navbar'
+import HeroSection from '@/components/universities/hero-section'
+import UniversityMarquee from '@/components/universities/university-marquee'
+import FeaturedUniversities from '@/components/universities/featured-universities'
+import StatisticsSection from '@/components/universities/statistics-section'
+import CountryExplorer from '@/components/universities/country-explorer'
+import ScholarshipSpotlight from '@/components/universities/scholarship-spotlight'
+import StudentSuccessStories from '@/components/universities/student-success-stories'
+import ApplicationRoadmap from '@/components/universities/application-roadmap'
+import PremiumConsultationCTA from '@/components/universities/premium-consultation-cta'
+import UniversitiesFooter from '@/components/universities/footer'
+import StickyFilterBar from '@/components/universities/sticky-filter-bar'
 
 export default function UniversitiesPage() {
   return (
@@ -33,7 +33,5 @@ export default function UniversitiesPage() {
       <UniversitiesFooter />
       <StickyFilterBar />
     </div>
-  );
+  )
 }
-
-

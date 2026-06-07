@@ -1,14 +1,14 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from 'react'
+import Link from 'next/link'
 
 type MenuItem = {
-  id: string;
-  label: string;
-  href: string;
-  badge?: number;
-};
+  id: string
+  label: string
+  href: string
+  badge?: number
+}
 
 const menuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
@@ -19,63 +19,61 @@ const menuItems: MenuItem[] = [
   { id: 'sessions', label: 'Sessions', href: '/sessions' },
   { id: 'messages', label: 'Messages', href: '/messages', badge: 3 },
   { id: 'referral', label: 'Refer & Earn', href: '/referral' },
-];
+]
 
 export default function Sidebar() {
-  const [activeItem, setActiveItem] = useState('dashboard');
+  const [activeItem, setActiveItem] = useState('dashboard')
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 bg-white border-r border-gray-200 px-4 py-6 flex flex-col">
+    <aside className="fixed left-0 top-0 flex h-screen w-60 flex-col border-r border-gray-200 bg-white px-4 py-6">
       {/* Logo/Branding - Optional */}
       <div className="mb-8">
         <h1 className="text-xl font-bold text-gray-900">Endow</h1>
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex flex-col gap-2 flex-1">
+      <nav className="flex flex-1 flex-col gap-2">
         {menuItems.map((item) => {
-          const isActive = activeItem === item.id;
-          const hasNotification = item.badge && item.badge > 0;
+          const isActive = activeItem === item.id
+          const hasNotification = item.badge && item.badge > 0
 
           return (
             <Link key={item.id} href={item.href}>
               <button
                 onClick={() => setActiveItem(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all duration-200 ${
+                className={`flex w-full items-center justify-between rounded-lg px-4 py-2 transition-all duration-200 ${
                   isActive
-                    ? 'bg-red-50 text-red-600 font-semibold'
-                    : 'text-gray-600 font-medium hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-red-50 font-semibold text-red-600'
+                    : 'font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 }`}
               >
                 {/* Left dot indicator */}
-                <div className="flex items-center gap-3 flex-1">
+                <div className="flex flex-1 items-center gap-3">
                   <div
-                    className={`w-2 h-2 rounded-full ${
-                      isActive ? 'bg-red-500' : 'bg-gray-400'
-                    }`}
+                    className={`h-2 w-2 rounded-full ${isActive ? 'bg-red-500' : 'bg-gray-400'}`}
                   />
                   <span className="text-sm">{item.label}</span>
                 </div>
 
                 {/* Right notification badge */}
                 {hasNotification && (
-                  <div className="flex items-center justify-center w-5 h-5 bg-red-500 text-white text-xs font-semibold rounded-full flex-shrink-0">
+                  <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-red-500 text-xs font-semibold text-white">
                     {item.badge}
                   </div>
                 )}
               </button>
             </Link>
-          );
+          )
         })}
       </nav>
 
       {/* Footer section - Optional */}
-      <div className="border-t border-gray-200 pt-4 mt-4">
-        <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-600 font-medium hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-all duration-200">
-          <div className="w-2 h-2 rounded-full bg-gray-400" />
+      <div className="mt-4 border-t border-gray-200 pt-4">
+        <button className="flex w-full items-center gap-3 rounded-lg px-4 py-2 text-sm font-medium text-gray-600 transition-all duration-200 hover:bg-gray-50 hover:text-gray-900">
+          <div className="h-2 w-2 rounded-full bg-gray-400" />
           <span>Settings</span>
         </button>
       </div>
     </aside>
-  );
+  )
 }

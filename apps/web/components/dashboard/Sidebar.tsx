@@ -24,12 +24,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { name: 'Overview',      href: '/dashboard',              icon: LayoutGrid },
-  { name: 'My Application',href: '/dashboard/application',  icon: FileText },
-  { name: 'Documents',     href: '/dashboard/documents',    icon: FolderOpen },
-  { name: 'Messages',      href: '/dashboard/messages',     icon: MessageSquare },
-  { name: 'Appointments',  href: '/dashboard/appointments', icon: Calendar },
-  { name: 'Settings',      href: '/dashboard/settings',     icon: Settings },
+  { name: 'Overview', href: '/dashboard', icon: LayoutGrid },
+  { name: 'My Application', href: '/dashboard/application', icon: FileText },
+  { name: 'Documents', href: '/dashboard/documents', icon: FolderOpen },
+  { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
+  { name: 'Appointments', href: '/dashboard/appointments', icon: Calendar },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 interface Props {
@@ -64,14 +64,14 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
       aria-label="Student dashboard navigation"
       className={cn(
         'relative flex h-screen flex-col overflow-hidden border-r border-gray-200 bg-white',
-        isFull ? 'w-[260px]' : 'w-[72px]',
+        isFull ? 'w-[260px]' : 'w-[72px]'
       )}
     >
       {/* LOGO */}
       <div
         className={cn(
           'flex shrink-0 items-center border-b border-gray-100',
-          isFull ? 'h-[68px] px-5' : 'h-[68px] justify-center px-2',
+          isFull ? 'h-[68px] px-5' : 'h-[68px] justify-center px-2'
         )}
       >
         <Link
@@ -94,18 +94,13 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
 
       {/* NAV */}
       <nav
-        className={cn(
-          'mt-3 flex-1 space-y-1 overflow-hidden',
-          isFull ? 'px-3' : 'px-2',
-        )}
+        className={cn('mt-3 flex-1 space-y-1 overflow-hidden', isFull ? 'px-3' : 'px-2')}
         aria-label="Primary"
       >
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive =
-            item.href === '/dashboard'
-              ? pathname === '/dashboard'
-              : pathname.startsWith(item.href)
+            item.href === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.href)
 
           return (
             <Link
@@ -117,9 +112,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
               className={cn(
                 'group relative flex items-center rounded-2xl text-sm font-medium transition-all duration-300',
                 isFull ? 'gap-3 px-3 py-2.5' : 'h-11 w-full justify-center',
-                isActive
-                  ? 'text-primary'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                isActive ? 'text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               )}
             >
               {isActive && (
@@ -133,33 +126,25 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
                 size={18}
                 className={cn(
                   'relative z-10 shrink-0 transition-colors',
-                  isActive ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700',
+                  isActive ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700'
                 )}
                 aria-hidden
               />
-              {isFull && (
-                <span className="relative z-10 truncate">{item.name}</span>
-              )}
+              {isFull && <span className="relative z-10 truncate">{item.name}</span>}
             </Link>
           )
         })}
       </nav>
 
       {/* USER + SIGN OUT */}
-      <div
-        className={cn(
-          'shrink-0 border-t border-gray-100 p-2',
-        )}
-      >
+      <div className={cn('shrink-0 border-t border-gray-100 p-2')}>
         {user && isFull && (
           <div className="mb-2 flex items-center gap-2.5 rounded-2xl bg-gray-50 px-3 py-2.5">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-xs font-bold text-white">
               {user.initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900">
-                {user.name}
-              </p>
+              <p className="truncate text-sm font-semibold text-gray-900">{user.name}</p>
               <p className="truncate text-[11px] text-gray-500">{user.email}</p>
             </div>
           </div>
@@ -170,7 +155,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
           title={compact ? 'Sign out' : undefined}
           className={cn(
             'group flex w-full items-center rounded-2xl text-sm font-medium text-gray-600 transition-all duration-300 hover:bg-red-50 hover:text-primary',
-            isFull ? 'gap-3 px-3 py-2.5' : 'h-11 justify-center',
+            isFull ? 'gap-3 px-3 py-2.5' : 'h-11 justify-center'
           )}
         >
           <LogOut

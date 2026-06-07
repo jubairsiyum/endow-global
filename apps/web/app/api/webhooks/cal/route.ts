@@ -46,7 +46,8 @@ export async function POST(req: Request) {
   }
 
   if (triggerEvent === 'BOOKING_CANCELLED') {
-    await db.update(schema.bookingSessions)
+    await db
+      .update(schema.bookingSessions)
       .set({ status: 'CANCELLED' })
       .where(eq(schema.bookingSessions.calBookingId, payload.uid))
   }

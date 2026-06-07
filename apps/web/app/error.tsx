@@ -14,18 +14,18 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="flex h-screen flex-col items-center justify-center gap-6 bg-gradient-to-br from-gray-900 to-black text-white px-4">
-      <div className="text-center space-y-4 max-w-md">
-        <div className="w-16 h-16 rounded-full bg-red-600/20 flex items-center justify-center mx-auto">
+    <div className="flex h-screen flex-col items-center justify-center gap-6 bg-gradient-to-br from-gray-900 to-black px-4 text-white">
+      <div className="max-w-md space-y-4 text-center">
+        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-red-600/20">
           <span className="text-3xl">⚠️</span>
         </div>
         <h2 className="text-3xl font-bold">Something Went Wrong</h2>
-        <p className="text-gray-400 text-sm">
+        <p className="text-sm text-gray-400">
           {error.message || 'An unexpected error occurred. Please try again.'}
         </p>
         <button
           onClick={() => reset()}
-          className="inline-block rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white hover:bg-red-700 transition-colors mt-4"
+          className="mt-4 inline-block rounded-lg bg-red-600 px-6 py-2.5 font-semibold text-white transition-colors hover:bg-red-700"
         >
           Try Again
         </button>

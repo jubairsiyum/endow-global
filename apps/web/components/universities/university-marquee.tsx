@@ -1,46 +1,46 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { universities } from "@/lib/universities/data";
-import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { motion } from 'framer-motion'
+import { universities } from '@/lib/universities/data'
+import Image from 'next/image'
+import { useEffect, useRef, useState } from 'react'
 
 export default function UniversityMarquee() {
-  const marqueeContentRef = useRef<HTMLDivElement>(null);
-  const [trackWidth, setTrackWidth] = useState<number>(0);
-  const [animationDuration, setAnimationDuration] = useState<number>(60);
+  const marqueeContentRef = useRef<HTMLDivElement>(null)
+  const [trackWidth, setTrackWidth] = useState<number>(0)
+  const [animationDuration, setAnimationDuration] = useState<number>(60)
 
   useEffect(() => {
     const measureWidth = () => {
       if (marqueeContentRef.current) {
-        const firstTrack = marqueeContentRef.current.querySelector(".marquee-track");
+        const firstTrack = marqueeContentRef.current.querySelector('.marquee-track')
         if (firstTrack) {
-          const width = (firstTrack as HTMLElement).offsetWidth;
-          setTrackWidth(width);
+          const width = (firstTrack as HTMLElement).offsetWidth
+          setTrackWidth(width)
           // Calculate animation duration: 60px per second is a smooth speed
-          setAnimationDuration(Math.max(30, width / 60));
+          setAnimationDuration(Math.max(30, width / 60))
         }
       }
-    };
+    }
 
     // Measure on mount
-    measureWidth();
+    measureWidth()
 
     // Measure on window resize
-    const resizeObserver = new ResizeObserver(measureWidth);
-    const container = marqueeContentRef.current?.parentElement;
+    const resizeObserver = new ResizeObserver(measureWidth)
+    const container = marqueeContentRef.current?.parentElement
     if (container) {
-      resizeObserver.observe(container);
+      resizeObserver.observe(container)
     }
 
     // Fallback resize listener
-    window.addEventListener("resize", measureWidth);
+    window.addEventListener('resize', measureWidth)
 
     return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener("resize", measureWidth);
-    };
-  }, []);
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', measureWidth)
+    }
+  }, [])
 
   return (
     <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-8 lg:py-10">
@@ -53,10 +53,15 @@ export default function UniversityMarquee() {
           <div
             className="marquee-content"
             ref={marqueeContentRef}
-            style={{
-              "--marquee-track-width": `${trackWidth}px`,
-              "--marquee-animation-duration": `${animationDuration}s`,
-            } as React.CSSProperties & { "--marquee-track-width": string; "--marquee-animation-duration": string }}
+            style={
+              {
+                '--marquee-track-width': `${trackWidth}px`,
+                '--marquee-animation-duration': `${animationDuration}s`,
+              } as React.CSSProperties & {
+                '--marquee-track-width': string
+                '--marquee-animation-duration': string
+              }
+            }
           >
             {/* Track 1 - Original */}
             <div className="marquee-track">
@@ -145,5 +150,5 @@ export default function UniversityMarquee() {
         </div>
       </div>
     </section>
-  );
+  )
 }

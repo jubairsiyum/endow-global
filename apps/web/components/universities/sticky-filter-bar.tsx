@@ -1,31 +1,25 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import {
-  Search,
-  DollarSign,
-  Sparkles,
-  Filter,
-  Globe,
-} from "lucide-react";
-import { useState, useEffect } from "react";
+import { motion } from 'framer-motion'
+import { Search, DollarSign, Sparkles, Filter, Globe } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface StickyFilterBarProps {
-  onSearch?: (query: string) => void;
+  onSearch?: (query: string) => void
 }
 
 export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isVisible, setIsVisible] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsVisible(window.scrollY > 600);
-    };
+      setIsVisible(window.scrollY > 600)
+    }
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <motion.div
@@ -40,7 +34,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
       >
         <div className="flex h-14 items-center gap-3 px-4">
           {/* Search Input */}
-          <div className="flex flex-1 items-center gap-2 min-w-0">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
             <Search className="h-4 w-4 shrink-0 text-[#C41E3A]" />
             <input
               type="text"
@@ -52,7 +46,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
 
           {/* Quick Filters */}
           {!isExpanded && (
-            <div className="hidden sm:flex items-center gap-2">
+            <div className="hidden items-center gap-2 sm:flex">
               <button className="flex items-center gap-1 rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-[#C41E3A] transition-colors hover:bg-red-100">
                 <Globe className="h-3 w-3" />
                 Country
@@ -81,11 +75,11 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
         {isExpanded && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
+            animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             className="space-y-4 border-t border-red-100 bg-white/95 p-5"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {/* Country Filter */}
               <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Countries</option>
@@ -138,5 +132,5 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
         )}
       </motion.div>
     </motion.div>
-  );
+  )
 }

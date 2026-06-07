@@ -1,6 +1,6 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion'
 
 export default function FloatingPaperPlane() {
   return (
@@ -13,17 +13,11 @@ export default function FloatingPaperPlane() {
       transition={{
         duration: 16,
         repeat: Infinity,
-        ease: "easeInOut",
+        ease: 'easeInOut',
       }}
-      className="
-        absolute
-        top-[120px]
-        left-[32%]
-        z-20
-      "
+      className="absolute left-[32%] top-[120px] z-20"
     >
       <div className="relative">
-
         {/* Trail */}
         <motion.div
           animate={{
@@ -33,31 +27,12 @@ export default function FloatingPaperPlane() {
             duration: 3,
             repeat: Infinity,
           }}
-          className="
-            absolute
-            top-10
-            right-12
-            w-[260px]
-            h-[120px]
-            border-t-2
-            border-dashed
-            border-red-200
-            rounded-[100%]
-            rotate-[18deg]
-          "
+          className="absolute right-12 top-10 h-[120px] w-[260px] rotate-[18deg] rounded-[100%] border-t-2 border-dashed border-red-200"
         />
 
         {/* Plane */}
-        <div
-          className="
-            text-6xl
-            drop-shadow-[0_10px_25px_rgba(239,68,68,0.25)]
-          "
-        >
-          ✈️
-        </div>
-
+        <div className="text-6xl drop-shadow-[0_10px_25px_rgba(239,68,68,0.25)]">✈️</div>
       </div>
     </motion.div>
-  );
+  )
 }

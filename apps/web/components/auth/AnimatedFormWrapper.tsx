@@ -1,18 +1,14 @@
-"use client";
+'use client'
 
-import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 
-export default function AnimatedFormWrapper({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const pathname = usePathname();
-  const isSignIn = pathname === "/sign-in";
+export default function AnimatedFormWrapper({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const isSignIn = pathname === '/sign-in'
 
   // Create a stable key based on the route
-  const routeKey = isSignIn ? "sign-in" : "sign-up";
+  const routeKey = isSignIn ? 'sign-in' : 'sign-up'
 
   return (
     <AnimatePresence mode="wait">
@@ -32,11 +28,11 @@ export default function AnimatedFormWrapper({
         }}
         transition={{
           duration: 0.4,
-          ease: "easeInOut",
+          ease: 'easeInOut',
         }}
       >
         {children}
       </motion.div>
     </AnimatePresence>
-  );
+  )
 }

@@ -1,9 +1,22 @@
 import { relations } from 'drizzle-orm'
 import {
-  accounts, sessions, users, studentProfiles, counselorProfiles,
-  universities, courses, applications, shortlistedCourses,
-  matchResults, bookingSessions, conversations, messages,
-  notifications, referrals, newsletterSubscribers, chatHistory,
+  accounts,
+  sessions,
+  users,
+  studentProfiles,
+  counselorProfiles,
+  universities,
+  courses,
+  applications,
+  shortlistedCourses,
+  matchResults,
+  bookingSessions,
+  conversations,
+  messages,
+  notifications,
+  referrals,
+  newsletterSubscribers,
+  chatHistory,
 } from './tables'
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -17,17 +30,30 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 export const usersRelations = relations(users, ({ one, many }) => ({
   accounts: many(accounts),
   sessions: many(sessions),
-  studentProfile: one(studentProfiles, { fields: [users.id], references: [studentProfiles.userId] }),
-  counselorProfile: one(counselorProfiles, { fields: [users.id], references: [counselorProfiles.userId] }),
+  studentProfile: one(studentProfiles, {
+    fields: [users.id],
+    references: [studentProfiles.userId],
+  }),
+  counselorProfile: one(counselorProfiles, {
+    fields: [users.id],
+    references: [counselorProfiles.userId],
+  }),
   sentMessages: many(messages, { relationName: 'sentMessages' }),
   notifications: many(notifications),
   referralsMade: many(referrals, { relationName: 'referralsMade' }),
-  referralReceived: one(referrals, { fields: [users.id], references: [referrals.referredId], relationName: 'referralReceived' }),
+  referralReceived: one(referrals, {
+    fields: [users.id],
+    references: [referrals.referredId],
+    relationName: 'referralReceived',
+  }),
 }))
 
 export const studentProfilesRelations = relations(studentProfiles, ({ one, many }) => ({
   user: one(users, { fields: [studentProfiles.userId], references: [users.id] }),
-  assignedCounselor: one(counselorProfiles, { fields: [studentProfiles.assignedCounselorId], references: [counselorProfiles.id] }),
+  assignedCounselor: one(counselorProfiles, {
+    fields: [studentProfiles.assignedCounselorId],
+    references: [counselorProfiles.id],
+  }),
   applications: many(applications),
   shortlistedCourses: many(shortlistedCourses),
   bookingSessions: many(bookingSessions),
@@ -55,35 +81,68 @@ export const coursesRelations = relations(courses, ({ one, many }) => ({
 }))
 
 export const applicationsRelations = relations(applications, ({ one }) => ({
-  student: one(studentProfiles, { fields: [applications.studentId], references: [studentProfiles.id] }),
+  student: one(studentProfiles, {
+    fields: [applications.studentId],
+    references: [studentProfiles.id],
+  }),
   course: one(courses, { fields: [applications.courseId], references: [courses.id] }),
-  counselor: one(counselorProfiles, { fields: [applications.counselorId], references: [counselorProfiles.id] }),
+  counselor: one(counselorProfiles, {
+    fields: [applications.counselorId],
+    references: [counselorProfiles.id],
+  }),
 }))
 
 export const shortlistedCoursesRelations = relations(shortlistedCourses, ({ one }) => ({
-  student: one(studentProfiles, { fields: [shortlistedCourses.studentId], references: [studentProfiles.id] }),
+  student: one(studentProfiles, {
+    fields: [shortlistedCourses.studentId],
+    references: [studentProfiles.id],
+  }),
   course: one(courses, { fields: [shortlistedCourses.courseId], references: [courses.id] }),
 }))
 
 export const matchResultsRelations = relations(matchResults, ({ one }) => ({
-  student: one(studentProfiles, { fields: [matchResults.studentId], references: [studentProfiles.id] }),
+  student: one(studentProfiles, {
+    fields: [matchResults.studentId],
+    references: [studentProfiles.id],
+  }),
   course: one(courses, { fields: [matchResults.courseId], references: [courses.id] }),
 }))
 
 export const bookingSessionsRelations = relations(bookingSessions, ({ one }) => ({
-  student: one(studentProfiles, { fields: [bookingSessions.studentId], references: [studentProfiles.id] }),
-  counselor: one(counselorProfiles, { fields: [bookingSessions.counselorId], references: [counselorProfiles.id] }),
+  student: one(studentProfiles, {
+    fields: [bookingSessions.studentId],
+    references: [studentProfiles.id],
+  }),
+  counselor: one(counselorProfiles, {
+    fields: [bookingSessions.counselorId],
+    references: [counselorProfiles.id],
+  }),
 }))
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
-  student: one(studentProfiles, { fields: [conversations.studentId], references: [studentProfiles.id], relationName: 'studentConversations' }),
-  counselor: one(counselorProfiles, { fields: [conversations.counselorId], references: [counselorProfiles.id], relationName: 'counselorConversations' }),
+  student: one(studentProfiles, {
+    fields: [conversations.studentId],
+    references: [studentProfiles.id],
+    relationName: 'studentConversations',
+  }),
+  counselor: one(counselorProfiles, {
+    fields: [conversations.counselorId],
+    references: [counselorProfiles.id],
+    relationName: 'counselorConversations',
+  }),
   messages: many(messages),
 }))
 
 export const messagesRelations = relations(messages, ({ one }) => ({
-  conversation: one(conversations, { fields: [messages.conversationId], references: [conversations.id] }),
-  sender: one(users, { fields: [messages.senderId], references: [users.id], relationName: 'sentMessages' }),
+  conversation: one(conversations, {
+    fields: [messages.conversationId],
+    references: [conversations.id],
+  }),
+  sender: one(users, {
+    fields: [messages.senderId],
+    references: [users.id],
+    relationName: 'sentMessages',
+  }),
 }))
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
@@ -91,6 +150,14 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 }))
 
 export const referralsRelations = relations(referrals, ({ one }) => ({
-  referrer: one(users, { fields: [referrals.referrerId], references: [users.id], relationName: 'referralsMade' }),
-  referred: one(users, { fields: [referrals.referredId], references: [users.id], relationName: 'referralReceived' }),
+  referrer: one(users, {
+    fields: [referrals.referrerId],
+    references: [users.id],
+    relationName: 'referralsMade',
+  }),
+  referred: one(users, {
+    fields: [referrals.referredId],
+    references: [users.id],
+    relationName: 'referralReceived',
+  }),
 }))

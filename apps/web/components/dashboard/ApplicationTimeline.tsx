@@ -65,11 +65,10 @@ export function ApplicationTimeline({ steps, index = 0 }: Props) {
                   'relative z-10 mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-bold transition-all',
                   isComplete &&
                     'border-primary bg-primary text-white shadow-[0_0_0_4px_rgba(196,30,58,0.12)]',
-                  isActive &&
-                    'border-primary bg-white text-primary dark:bg-[#1a1d25]',
+                  isActive && 'border-primary bg-white text-primary dark:bg-[#1a1d25]',
                   !isComplete &&
                     !isActive &&
-                    'border-gray-200 bg-white text-gray-400 dark:border-gray-700 dark:bg-[#1a1d25]',
+                    'border-gray-200 bg-white text-gray-400 dark:border-gray-700 dark:bg-[#1a1d25]'
                 )}
               >
                 {isComplete ? (
@@ -102,7 +101,7 @@ export function ApplicationTimeline({ steps, index = 0 }: Props) {
                     'text-sm font-semibold',
                     isActive || isComplete
                       ? 'text-gray-900 dark:text-white'
-                      : 'text-gray-500 dark:text-gray-400',
+                      : 'text-gray-500 dark:text-gray-400'
                   )}
                 >
                   {step.label}

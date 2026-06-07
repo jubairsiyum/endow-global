@@ -50,16 +50,32 @@ export async function initTypesense() {
 }
 
 export async function indexCourse(course: {
-  id: string; name: string; subject: string; level: string;
-  country: string; city: string; universityName: string; universitySlug: string;
-  slug: string; tuitionFee: number; currency: string; duration: number;
-  durationUnit: string; hasScholarship: boolean; language: string;
-  description: string; applicationDeadline?: Date | null; isActive: boolean;
+  id: string
+  name: string
+  subject: string
+  level: string
+  country: string
+  city: string
+  universityName: string
+  universitySlug: string
+  slug: string
+  tuitionFee: number
+  currency: string
+  duration: number
+  durationUnit: string
+  hasScholarship: boolean
+  language: string
+  description: string
+  applicationDeadline?: Date | null
+  isActive: boolean
 }) {
-  return typesense.collections(COURSES_COLLECTION).documents().upsert({
-    ...course,
-    applicationDeadline: course.applicationDeadline
-      ? Math.floor(course.applicationDeadline.getTime() / 1000)
-      : undefined,
-  })
+  return typesense
+    .collections(COURSES_COLLECTION)
+    .documents()
+    .upsert({
+      ...course,
+      applicationDeadline: course.applicationDeadline
+        ? Math.floor(course.applicationDeadline.getTime() / 1000)
+        : undefined,
+    })
 }

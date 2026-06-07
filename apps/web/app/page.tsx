@@ -257,8 +257,8 @@ function FeaturesSection() {
             </div>
             <p className="max-w-2xl text-base leading-7 text-gray-600">
               We turn the complex application process into a clear sequence: discover the right fit,
-              prepare the strongest application, and stay aligned with counselors from first shortlist
-              to submission.
+              prepare the strongest application, and stay aligned with counselors from first
+              shortlist to submission.
             </p>
           </div>
         </FadeUp>

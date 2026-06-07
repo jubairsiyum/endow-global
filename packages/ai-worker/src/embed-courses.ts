@@ -58,7 +58,8 @@ async function embedCourses() {
 
     await Promise.all(
       batch.map((course) =>
-        db.update(schema.courses)
+        db
+          .update(schema.courses)
           .set({ vectorId: course.id })
           .where(eq(schema.courses.id, course.id))
       )

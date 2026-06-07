@@ -1,86 +1,82 @@
-"use client";
+'use client'
 
-import Image from "next/image";
-import { useEffect, useMemo, useRef } from "react";
+import Image from 'next/image'
+import { useEffect, useMemo, useRef } from 'react'
 
 type UniversityLogo = {
-  name: string;
-  logo: string;
-};
+  name: string
+  logo: string
+}
 
 type DiagnosticUniversityMarqueeProps = {
-  universities: readonly UniversityLogo[];
-};
+  universities: readonly UniversityLogo[]
+}
 
 type DiagnosticConfig = {
-  animationEnabled: boolean;
-  debug: boolean;
-  imageMode: "next" | "img";
-  logoMode: "all" | "one";
-  targetLogo: string;
-};
+  animationEnabled: boolean
+  debug: boolean
+  imageMode: 'next' | 'img'
+  logoMode: 'all' | 'one'
+  targetLogo: string
+}
 
 function getDiagnosticConfig(): DiagnosticConfig {
-  if (typeof window === "undefined") {
+  if (typeof window === 'undefined') {
     return {
       animationEnabled: true,
       debug: false,
-      imageMode: "next",
-      logoMode: "all",
-      targetLogo: "Kyung Hee University",
-    };
+      imageMode: 'next',
+      logoMode: 'all',
+      targetLogo: 'Kyung Hee University',
+    }
   }
 
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search)
 
   return {
-    animationEnabled: params.get("marqueeAnim") !== "off",
-    debug: params.get("marqueeDebug") === "1",
-    imageMode: params.get("marqueeImage") === "img" ? "img" : "next",
-    logoMode: params.get("marqueeLogos") === "one" ? "one" : "all",
-    targetLogo: params.get("marqueeLogo") || "Kyung Hee University",
-  };
+    animationEnabled: params.get('marqueeAnim') !== 'off',
+    debug: params.get('marqueeDebug') === '1',
+    imageMode: params.get('marqueeImage') === 'img' ? 'img' : 'next',
+    logoMode: params.get('marqueeLogos') === 'one' ? 'one' : 'all',
+    targetLogo: params.get('marqueeLogo') || 'Kyung Hee University',
+  }
 }
 
-export function DiagnosticUniversityMarquee({
-  universities,
-}: DiagnosticUniversityMarqueeProps) {
-  const contentRef = useRef<HTMLDivElement>(null);
-  const config = getDiagnosticConfig();
+export function DiagnosticUniversityMarquee({ universities }: DiagnosticUniversityMarqueeProps) {
+  const contentRef = useRef<HTMLDivElement>(null)
+  const config = getDiagnosticConfig()
 
   const visibleUniversities = useMemo(() => {
-    if (config.logoMode !== "one") {
-      return universities;
+    if (config.logoMode !== 'one') {
+      return universities
     }
 
     const selectedUniversity = universities.find((university) =>
       university.name.toLowerCase().includes(config.targetLogo.toLowerCase())
-    );
+    )
 
-    return selectedUniversity ? [selectedUniversity] : universities.slice(0, 1);
-  }, [config.logoMode, config.targetLogo, universities]);
+    return selectedUniversity ? [selectedUniversity] : universities.slice(0, 1)
+  }, [config.logoMode, config.targetLogo, universities])
 
   const marqueeItems = useMemo(
     () => [...visibleUniversities, ...visibleUniversities],
     [visibleUniversities]
-  );
+  )
 
   useEffect(() => {
     if (!config.debug || !contentRef.current) {
-      return;
+      return
     }
 
-    const content = contentRef.current;
-    const tracks = Array.from(
-      content.querySelectorAll<HTMLElement>("[data-marquee-half]")
-    );
-    const images = Array.from(content.querySelectorAll<HTMLImageElement>("img"));
-    const start = performance.now();
-    let lastFrame = start;
-    let rafId = 0;
+    const content = contentRef.current
+    const tracks = Array.from(content.querySelectorAll<HTMLElement>('[data-marquee-half]'))
+    const images = Array.from(content.querySelectorAll<HTMLImageElement>('img'))
+    const start = performance.now()
+    let lastFrame = start
+    let rafId = 0
 
     const logSnapshot = (label: string) => {
-      const computedStyle = window.getComputedStyle(content);
+      const computedStyle = window.getComputedStyle(content)
 
       console.table({
         label,
@@ -92,14 +88,13 @@ export function DiagnosticUniversityMarquee({
         contentOffsetWidth: content.offsetWidth,
         firstHalfWidth: tracks[0]?.scrollWidth ?? 0,
         secondHalfWidth: tracks[1]?.scrollWidth ?? 0,
-        widthMismatch:
-          Math.abs((tracks[0]?.scrollWidth ?? 0) - (tracks[1]?.scrollWidth ?? 0)),
+        widthMismatch: Math.abs((tracks[0]?.scrollWidth ?? 0) - (tracks[1]?.scrollWidth ?? 0)),
         animationName: computedStyle.animationName,
         animationDuration: computedStyle.animationDuration,
         transform: computedStyle.transform,
         imageCount: images.length,
-      });
-    };
+      })
+    }
 
     const logImages = () => {
       console.table(
@@ -113,95 +108,89 @@ export function DiagnosticUniversityMarquee({
           loading: image.loading,
           decoding: image.decoding,
         }))
-      );
-    };
+      )
+    }
 
-    const decodeStartedAt = performance.now();
+    const decodeStartedAt = performance.now()
     Promise.allSettled(images.map((image) => image.decode?.() ?? Promise.resolve()))
       .then((results) => {
-        console.log("[marquee-debug] image decode settled", {
+        console.log('[marquee-debug] image decode settled', {
           durationMs: Math.round(performance.now() - decodeStartedAt),
-          fulfilled: results.filter((result) => result.status === "fulfilled")
-            .length,
-          rejected: results.filter((result) => result.status === "rejected")
-            .length,
-        });
-        logImages();
+          fulfilled: results.filter((result) => result.status === 'fulfilled').length,
+          rejected: results.filter((result) => result.status === 'rejected').length,
+        })
+        logImages()
       })
       .catch((error) => {
-        console.warn("[marquee-debug] image decode failed", error);
-      });
+        console.warn('[marquee-debug] image decode failed', error)
+      })
 
     const onAnimationIteration = () => {
-      console.log("[marquee-debug] animation iteration", {
+      console.log('[marquee-debug] animation iteration', {
         elapsedMs: Math.round(performance.now() - start),
         transform: window.getComputedStyle(content).transform,
-      });
-    };
+      })
+    }
 
     const frameLoop = (timestamp: number) => {
-      const frameGap = timestamp - lastFrame;
+      const frameGap = timestamp - lastFrame
 
       if (frameGap > 50) {
-        console.warn("[marquee-debug] long frame", {
+        console.warn('[marquee-debug] long frame', {
           frameGapMs: Math.round(frameGap),
           elapsedMs: Math.round(timestamp - start),
           transform: window.getComputedStyle(content).transform,
-        });
+        })
       }
 
-      lastFrame = timestamp;
-      rafId = requestAnimationFrame(frameLoop);
-    };
+      lastFrame = timestamp
+      rafId = requestAnimationFrame(frameLoop)
+    }
 
     const performanceObserver =
-      "PerformanceObserver" in window
+      'PerformanceObserver' in window
         ? new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
-              console.warn("[marquee-debug] long task", {
+              console.warn('[marquee-debug] long task', {
                 name: entry.name,
                 durationMs: Math.round(entry.duration),
                 startTimeMs: Math.round(entry.startTime),
-              });
+              })
             }
           })
-        : null;
+        : null
 
     try {
-      performanceObserver?.observe({ entryTypes: ["longtask"] });
+      performanceObserver?.observe({ entryTypes: ['longtask'] })
     } catch {
-      console.info("[marquee-debug] Long Task API unavailable in this browser.");
+      console.info('[marquee-debug] Long Task API unavailable in this browser.')
     }
 
-    logSnapshot("mounted");
-    logImages();
-    content.addEventListener("animationiteration", onAnimationIteration);
-    rafId = requestAnimationFrame(frameLoop);
+    logSnapshot('mounted')
+    logImages()
+    content.addEventListener('animationiteration', onAnimationIteration)
+    rafId = requestAnimationFrame(frameLoop)
 
     return () => {
-      content.removeEventListener("animationiteration", onAnimationIteration);
-      cancelAnimationFrame(rafId);
-      performanceObserver?.disconnect();
-    };
-  }, [config, marqueeItems]);
+      content.removeEventListener('animationiteration', onAnimationIteration)
+      cancelAnimationFrame(rafId)
+      performanceObserver?.disconnect()
+    }
+  }, [config, marqueeItems])
 
-  const renderLogo = (
-    university: UniversityLogo,
-    index: number,
-    duplicate: boolean
-  ) => {
-    const isFirstUniqueLogo = !duplicate && index < visibleUniversities.length;
+  const renderLogo = (university: UniversityLogo, index: number, duplicate: boolean) => {
+    const isFirstUniqueLogo = !duplicate && index < visibleUniversities.length
 
     return (
       <div
         className="university-logo-cell"
         data-logo-name={university.name}
-        key={`${duplicate ? "duplicate" : "original"}-${university.name}-${index}`}
+        key={`${duplicate ? 'duplicate' : 'original'}-${university.name}-${index}`}
       >
-        {config.imageMode === "img" ? (
+        {config.imageMode === 'img' ? (
           <img
             src={university.logo}
-            alt={duplicate ? "" : university.name}
+            alt={duplicate ? '' : university.name}
             width={72}
             height={72}
             loading="eager"
@@ -212,20 +201,20 @@ export function DiagnosticUniversityMarquee({
         ) : (
           <Image
             src={university.logo}
-            alt={duplicate ? "" : university.name}
+            alt={duplicate ? '' : university.name}
             width={72}
             height={72}
             sizes="64px"
             priority={isFirstUniqueLogo}
-            loading={isFirstUniqueLogo ? undefined : "eager"}
+            loading={isFirstUniqueLogo ? undefined : 'eager'}
             decoding="async"
             draggable={false}
             className="h-16 w-16 object-contain"
           />
         )}
       </div>
-    );
-  };
+    )
+  }
 
   return (
     <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
@@ -234,23 +223,19 @@ export function DiagnosticUniversityMarquee({
           <div
             ref={contentRef}
             className="university-marquee"
-            data-animation={config.animationEnabled ? "on" : "off"}
+            data-animation={config.animationEnabled ? 'on' : 'off'}
             data-image-mode={config.imageMode}
             data-logo-mode={config.logoMode}
           >
             <div className="university-marquee-half" data-marquee-half="original">
-              {marqueeItems.map((university, index) =>
-                renderLogo(university, index, false)
-              )}
+              {marqueeItems.map((university, index) => renderLogo(university, index, false))}
             </div>
             <div className="university-marquee-half" data-marquee-half="duplicate">
-              {marqueeItems.map((university, index) =>
-                renderLogo(university, index, true)
-              )}
+              {marqueeItems.map((university, index) => renderLogo(university, index, true))}
             </div>
           </div>
         </div>
       </div>
     </section>
-  );
+  )
 }

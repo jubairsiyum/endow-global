@@ -74,13 +74,13 @@ export function UpcomingDeadlines({ deadlines, index = 0 }: Props) {
               transition={{ duration: 0.4, delay: index * 0.08 + 0.1 + i * 0.05, ease: EASE }}
               className={cn(
                 'group flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3 transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-[#222530]',
-                tone === 'danger' && t.ring,
+                tone === 'danger' && t.ring
               )}
             >
               <span
                 className={cn(
                   'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold',
-                  t.chip,
+                  t.chip
                 )}
                 aria-hidden
               >
@@ -102,7 +102,7 @@ export function UpcomingDeadlines({ deadlines, index = 0 }: Props) {
               <span
                 className={cn(
                   'shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.1em]',
-                  t.badge,
+                  t.badge
                 )}
               >
                 {tone === 'danger' ? 'Urgent' : tone === 'warning' ? 'Soon' : 'Upcoming'}

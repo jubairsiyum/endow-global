@@ -57,7 +57,7 @@ export function QuickActions({ actions, index = 0 }: Props) {
               className={cn(
                 'group flex flex-col items-start gap-3 rounded-2xl border border-gray-100 bg-white p-4 text-left transition-all',
                 'hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md',
-                'dark:border-gray-800 dark:bg-[#222530]',
+                'dark:border-gray-800 dark:bg-[#222530]'
               )}
             >
               <span
@@ -66,15 +66,13 @@ export function QuickActions({ actions, index = 0 }: Props) {
                   'bg-gradient-to-br from-red-50 to-red-100 text-primary',
                   'group-hover:from-primary group-hover:to-[#C41E3A] group-hover:text-white',
                   'transition-all duration-300',
-                  'dark:from-[#2a1114] dark:to-[#3a1218] dark:group-hover:from-primary dark:group-hover:to-[#C41E3A]',
+                  'dark:from-[#2a1114] dark:to-[#3a1218] dark:group-hover:from-primary dark:group-hover:to-[#C41E3A]'
                 )}
               >
                 <Icon size={18} aria-hidden />
               </span>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                  {a.label}
-                </p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">{a.label}</p>
                 {a.description && (
                   <p className="mt-0.5 line-clamp-2 text-[11px] text-gray-500 dark:text-gray-400">
                     {a.description}

@@ -1,7 +1,11 @@
 import { db, schema } from '@/lib/db'
 import { eq } from 'drizzle-orm'
 
-export async function authorizeApplicationAccess(ctx: any, applicationId: string, mode: 'read' | 'write' = 'read') {
+export async function authorizeApplicationAccess(
+  ctx: any,
+  applicationId: string,
+  mode: 'read' | 'write' = 'read'
+) {
   // Fetch application and enforce access rules
   const app = await db.query.applications.findFirst({
     where: (a, { eq }) => eq(a.id, applicationId),
@@ -20,7 +24,9 @@ export async function authorizeApplicationAccess(ctx: any, applicationId: string
   }
 
   // STUDENT - owner only
-  const profile = await db.query.studentProfiles.findFirst({ where: (sp, { eq }) => eq(sp.userId, user.id) })
+  const profile = await db.query.studentProfiles.findFirst({
+    where: (sp, { eq }) => eq(sp.userId, user.id),
+  })
   if (!profile) throw new Error('FORBIDDEN')
   if (app.studentId !== profile.id) throw new Error('FORBIDDEN')
 

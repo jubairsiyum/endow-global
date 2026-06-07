@@ -5,12 +5,14 @@ import { eq } from 'drizzle-orm'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  const staticPages = ['', '/universities', '/blog', '/about', '/faq', '/opportunities'].map((path) => ({
-    url: `${baseUrl}${path}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: path === '' ? 1 : 0.8,
-  }))
+  const staticPages = ['', '/universities', '/blog', '/about', '/faq', '/opportunities'].map(
+    (path) => ({
+      url: `${baseUrl}${path}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: path === '' ? 1 : 0.8,
+    })
+  )
 
   try {
     const universities = await db

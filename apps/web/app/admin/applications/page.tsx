@@ -1,42 +1,39 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import PageHeader from "@/components/ui/PageHeader";
-import StatusBadge from "@/components/ui/StatusBadge";
-import AdminTable from "@/components/ui/AdminTable";
-import { trpc } from "@/lib/trpc-client";
-import Link from "next/link";
+import { useState, useEffect } from 'react'
+import PageHeader from '@/components/ui/PageHeader'
+import StatusBadge from '@/components/ui/StatusBadge'
+import AdminTable from '@/components/ui/AdminTable'
+import { trpc } from '@/lib/trpc-client'
+import Link from 'next/link'
 
 function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => clearTimeout(handler);
-  }, [value, delay]);
-  return debouncedValue;
+      setDebouncedValue(value)
+    }, delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+  return debouncedValue
 }
 
 export default function ApplicationsPage() {
-  const [search, setSearch] = useState("");
-  const debouncedSearch = useDebounce(search, 500);
-  const [statusFilter, setStatusFilter] = useState<any>("");
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebounce(search, 500)
+  const [statusFilter, setStatusFilter] = useState<any>('')
+  const [cursor, setCursor] = useState<string | null>(null)
 
   const { data, isLoading } = trpc.admin.applications.list.useQuery({
     search: debouncedSearch || undefined,
     status: statusFilter || undefined,
     cursor: cursor,
     limit: 20,
-  });
+  })
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        title="Applications"
-        description="Manage all student applications."
-      />
+      <PageHeader title="Applications" description="Manage all student applications." />
 
       {/* SEARCH + FILTER */}
       <div className="flex flex-col gap-4 lg:flex-row">
@@ -44,20 +41,20 @@ export default function ApplicationsPage() {
           type="text"
           value={search}
           onChange={(e) => {
-            setSearch(e.target.value);
-            setCursor(null);
+            setSearch(e.target.value)
+            setCursor(null)
           }}
           placeholder="Search applications..."
-          className="w-full lg:w-2/3 rounded-2xl border border-gray-200 bg-white px-5 py-3 text-gray-900 outline-none transition-all focus:border-primary dark:border-gray-800 dark:bg-[#1a1d25] dark:text-white dark:placeholder:text-gray-500"
+          className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-3 text-gray-900 outline-none transition-all focus:border-primary dark:border-gray-800 dark:bg-[#1a1d25] dark:text-white dark:placeholder:text-gray-500 lg:w-2/3"
         />
 
         <select
           value={statusFilter}
           onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setCursor(null);
+            setStatusFilter(e.target.value)
+            setCursor(null)
           }}
-          className="w-full lg:w-1/3 rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none transition-all dark:border-gray-800 dark:bg-[#1a1d25] dark:text-white"
+          className="w-full rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none transition-all dark:border-gray-800 dark:bg-[#1a1d25] dark:text-white lg:w-1/3"
         >
           <option value="">All Statuses</option>
           <option value="DRAFT">Draft</option>
@@ -96,20 +93,20 @@ export default function ApplicationsPage() {
                 className="grid min-w-[850px] grid-cols-5 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"
               >
                 <div>
-                  <p className="font-semibold text-gray-900 dark:text-white truncate">
-                    {application.student?.user?.name || "Unknown"}
+                  <p className="truncate font-semibold text-gray-900 dark:text-white">
+                    {application.student?.user?.name || 'Unknown'}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                  <p className="truncate text-sm text-gray-500 dark:text-gray-400">
                     {application.student?.user?.email}
                   </p>
                 </div>
 
-                <div className="text-gray-700 dark:text-gray-300 truncate">
-                  {application.course?.university?.name || "N/A"}
+                <div className="truncate text-gray-700 dark:text-gray-300">
+                  {application.course?.university?.name || 'N/A'}
                 </div>
 
-                <div className="text-gray-700 dark:text-gray-300 truncate">
-                  {application.course?.name || "N/A"}
+                <div className="truncate text-gray-700 dark:text-gray-300">
+                  {application.course?.name || 'N/A'}
                 </div>
 
                 <div>
@@ -131,9 +128,9 @@ export default function ApplicationsPage() {
 
       {/* PAGINATION */}
       <div className="flex justify-end gap-2">
-        <button 
+        <button
           disabled={!cursor}
-          onClick={() => setCursor(null)} 
+          onClick={() => setCursor(null)}
           className="rounded-xl border px-4 py-2 text-sm disabled:opacity-50"
         >
           First Page
@@ -147,5 +144,5 @@ export default function ApplicationsPage() {
         </button>
       </div>
     </div>
-  );
+  )
 }

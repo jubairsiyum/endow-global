@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { motion } from "framer-motion";
-import { ArrowRight, MapPin, DollarSign, Zap, ShieldCheck } from "lucide-react";
-import { countries } from "@/lib/universities/data";
-import { formatCurrency } from "@/lib/universities/utils";
+import { motion } from 'framer-motion'
+import { ArrowRight, MapPin, DollarSign, Zap, ShieldCheck } from 'lucide-react'
+import { countries } from '@/lib/universities/data'
+import { formatCurrency } from '@/lib/universities/utils'
 
 export default function CountryExplorer() {
   const containerVariants = {
@@ -12,7 +12,7 @@ export default function CountryExplorer() {
       opacity: 1,
       transition: { staggerChildren: 0.1, delayChildren: 0.1 },
     },
-  };
+  }
 
   const itemVariants = {
     hidden: { opacity: 0, scale: 0.95 },
@@ -21,11 +21,11 @@ export default function CountryExplorer() {
       scale: 1,
       transition: { duration: 0.6 },
     },
-  };
+  }
 
   return (
     <section className="relative overflow-x-hidden bg-white py-16 lg:py-20">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
@@ -40,16 +40,13 @@ export default function CountryExplorer() {
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
             <MapPin className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-xs font-medium text-[#C41E3A]">
-              Explore Destinations
-            </span>
+            <span className="text-xs font-medium text-[#C41E3A]">Explore Destinations</span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
             Study Destinations Worldwide
           </h2>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
-            Compare countries, universities, costs, and opportunities at a
-            glance
+            Compare countries, universities, costs, and opportunities at a glance
           </p>
         </motion.div>
 
@@ -77,9 +74,7 @@ export default function CountryExplorer() {
                     <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-red-100 bg-red-50 text-sm font-bold text-[#C41E3A]">
                       {country.code}
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900">
-                      {country.name}
-                    </h3>
+                    <h3 className="text-xl font-bold text-gray-900">{country.name}</h3>
                   </div>
                   <span className="rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-gray-700">
                     {country.universities}+ universities
@@ -87,7 +82,7 @@ export default function CountryExplorer() {
                 </div>
 
                 {/* Description */}
-                <p className="text-gray-600 text-sm">{country.description}</p>
+                <p className="text-sm text-gray-600">{country.description}</p>
 
                 {/* Stats Grid */}
                 <div className="space-y-3">
@@ -95,9 +90,7 @@ export default function CountryExplorer() {
                   <div className="flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-3">
                     <div>
                       <p className="text-xs text-gray-600">Universities</p>
-                      <p className="text-base font-bold text-gray-900">
-                        {country.universities}+
-                      </p>
+                      <p className="text-base font-bold text-gray-900">{country.universities}+</p>
                     </div>
                     <Zap className="h-5 w-5 text-[#C41E3A]" />
                   </div>
@@ -143,9 +136,7 @@ export default function CountryExplorer() {
 
                 {/* Top Universities Preview */}
                 <div className="space-y-2">
-                  <p className="text-xs font-semibold text-gray-700">
-                    Top Universities
-                  </p>
+                  <p className="text-xs font-semibold text-gray-700">Top Universities</p>
                   <div className="space-y-2">
                     {country.topUniversities.map((uni, i) => (
                       <p key={i} className="flex items-center gap-2 text-xs text-gray-600">
@@ -167,5 +158,5 @@ export default function CountryExplorer() {
         </motion.div>
       </div>
     </section>
-  );
+  )
 }

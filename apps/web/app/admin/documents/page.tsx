@@ -1,32 +1,31 @@
-import PageHeader from "@/components/ui/PageHeader";
-import StatusBadge from "@/components/ui/StatusBadge";
-import AdminTable from "@/components/ui/AdminTable";
+import PageHeader from '@/components/ui/PageHeader'
+import StatusBadge from '@/components/ui/StatusBadge'
+import AdminTable from '@/components/ui/AdminTable'
 
 const documents = [
   {
-    student: "Rahim Ahmed",
-    type: "Passport",
-    uploaded: "2 hours ago",
-    status: "Approved",
+    student: 'Rahim Ahmed',
+    type: 'Passport',
+    uploaded: '2 hours ago',
+    status: 'Approved',
   },
   {
-    student: "Nusrat Jahan",
-    type: "Transcript",
-    uploaded: "5 hours ago",
-    status: "Pending",
+    student: 'Nusrat Jahan',
+    type: 'Transcript',
+    uploaded: '5 hours ago',
+    status: 'Pending',
   },
   {
-    student: "Tanvir Hasan",
-    type: "Bank Statement",
-    uploaded: "Yesterday",
-    status: "Rejected",
+    student: 'Tanvir Hasan',
+    type: 'Bank Statement',
+    uploaded: 'Yesterday',
+    status: 'Rejected',
   },
-];
+]
 
 export default function DocumentsPage() {
   return (
     <div className="space-y-6">
-      
       <PageHeader
         title="Documents"
         description="Manage uploaded student documents."
@@ -35,7 +34,6 @@ export default function DocumentsPage() {
 
       {/* SEARCH */}
       <div className="flex flex-col gap-4 lg:flex-row">
-        
         <input
           type="text"
           placeholder="Search documents..."
@@ -49,11 +47,8 @@ export default function DocumentsPage() {
 
       {/* TABLE */}
       <AdminTable>
-        
         <div className="overflow-x-auto">
-          
           <div className="grid min-w-[850px] grid-cols-5 border-b border-gray-100 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-600 dark:border-gray-800 dark:bg-[#222530] dark:text-gray-300">
-            
             <div>Student</div>
 
             <div>Document Type</div>
@@ -70,18 +65,11 @@ export default function DocumentsPage() {
               key={index}
               className="grid min-w-[850px] grid-cols-5 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"
             >
-              
-              <div className="font-semibold text-gray-900 dark:text-white">
-                {doc.student}
-              </div>
+              <div className="font-semibold text-gray-900 dark:text-white">{doc.student}</div>
 
-              <div className="text-gray-700 dark:text-gray-300">
-                {doc.type}
-              </div>
+              <div className="text-gray-700 dark:text-gray-300">{doc.type}</div>
 
-              <div className="text-gray-700 dark:text-gray-300">
-                {doc.uploaded}
-              </div>
+              <div className="text-gray-700 dark:text-gray-300">{doc.uploaded}</div>
 
               <div>
                 <StatusBadge status={doc.status} />
@@ -97,5 +85,5 @@ export default function DocumentsPage() {
         </div>
       </AdminTable>
     </div>
-  );
+  )
 }

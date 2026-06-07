@@ -28,8 +28,8 @@ export default function BlogPage() {
 
         {/* MAIN CONTENT */}
         <section className="relative bg-gradient-to-b from-white via-white to-[#F8FAFC] py-12 lg:py-14">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-10">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3 lg:gap-10">
               {/* ARTICLES */}
               <div className="lg:col-span-2">
                 <ArticlesGrid category="All Articles" />

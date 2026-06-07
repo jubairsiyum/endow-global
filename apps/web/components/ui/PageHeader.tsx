@@ -1,25 +1,16 @@
 interface Props {
-  title: string;
-  description: string;
-  buttonText?: string;
+  title: string
+  description: string
+  buttonText?: string
 }
 
-export default function PageHeader({
-  title,
-  description,
-  buttonText,
-}: Props) {
+export default function PageHeader({ title, description, buttonText }: Props) {
   return (
     <div className="flex items-center justify-between">
-      
       <div>
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">
-          {title}
-        </h1>
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900">{title}</h1>
 
-        <p className="mt-2 text-gray-500">
-          {description}
-        </p>
+        <p className="mt-2 text-gray-500">{description}</p>
       </div>
 
       {buttonText && (
@@ -28,5 +19,5 @@ export default function PageHeader({
         </button>
       )}
     </div>
-  );
+  )
 }

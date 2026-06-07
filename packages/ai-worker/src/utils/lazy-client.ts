@@ -2,10 +2,7 @@
  * Build-safe lazy proxy for module-level service clients.
  * See apps/web/lib/lazy-client.ts for the canonical implementation.
  */
-export function lazyClient<T extends object>(
-  build: () => T,
-  serviceName: string,
-): T {
+export function lazyClient<T extends object>(build: () => T, serviceName: string): T {
   let instance: T | null = null
   return new Proxy({} as T, {
     get(_t, prop) {

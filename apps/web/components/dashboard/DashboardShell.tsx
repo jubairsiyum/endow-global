@@ -20,8 +20,7 @@ export function DashboardShell({ children }: Props) {
   // Defense in depth: even though middleware protects /dashboard, redirect if no session
   useEffect(() => {
     if (!isPending && !session) {
-      const callbackUrl =
-        typeof window !== 'undefined' ? window.location.pathname : '/dashboard'
+      const callbackUrl = typeof window !== 'undefined' ? window.location.pathname : '/dashboard'
       router.replace(`/login?callbackUrl=${encodeURIComponent(callbackUrl)}`)
     }
   }, [isPending, session, router])
@@ -78,11 +77,7 @@ export function DashboardShell({ children }: Props) {
           drawerOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <DashboardSidebar
-          variant="drawer"
-          user={user}
-          onNavigate={() => setDrawerOpen(false)}
-        />
+        <DashboardSidebar variant="drawer" user={user} onNavigate={() => setDrawerOpen(false)} />
       </div>
 
       {/* MAIN */}
