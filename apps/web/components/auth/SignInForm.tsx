@@ -7,7 +7,7 @@ import { Mail, LockKeyhole } from 'lucide-react'
 
 export default function SignInForm() {
   return (
-    <div>
+    <div className="flex h-full flex-col justify-center">
       <AuthTabToggle />
 
       <div className="text-left">
@@ -28,7 +28,7 @@ export default function SignInForm() {
             Email
           </label>
 
-          <div className="h-13 mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+          <div className="mt-1 flex h-[52px] min-h-[52px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
             <Mail className="text-slate-400" size={19} />
 
             <input
@@ -44,7 +44,7 @@ export default function SignInForm() {
             Password
           </label>
 
-          <div className="h-13 mt-1 flex min-h-[50px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
+          <div className="mt-1 flex h-[52px] min-h-[52px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
             <LockKeyhole className="text-slate-400" size={19} />
 
             <input
@@ -69,7 +69,7 @@ export default function SignInForm() {
 
       <button
         type="button"
-        className="h-13 mt-5 min-h-[50px] w-full rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]"
+        className="mt-5 flex h-[52px] min-h-[52px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]"
       >
         Sign In
       </button>

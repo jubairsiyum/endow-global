@@ -62,6 +62,7 @@ export default function AuthTabToggle() {
           {isSignIn && (
             <motion.div
               layoutId="activePill"
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className="
                 absolute
                 inset-1
@@ -116,6 +117,7 @@ export default function AuthTabToggle() {
           {!isSignIn && (
             <motion.div
               layoutId="activePill"
+              transition={{ type: "spring", stiffness: 350, damping: 30 }}
               className="
                 absolute
                 inset-1

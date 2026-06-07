@@ -1,62 +1,90 @@
 "use client";
 
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SignInForm from "./SignInForm";
 import SignUpForm from "./SignUpForm";
 import { useAuthMode } from "./AuthContext";
 
+const formVariants = {
+  enter: { x: 10, opacity: 0 },
+  center: { x: 0, opacity: 1 },
+  exit: { x: -10, opacity: 0 },
+};
+
+const formTransition = {
+  duration: 0.28,
+  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+};
+
+const heightTransition = {
+  duration: 0.32,
+  ease: [0.4, 0, 0.2, 1] as [number, number, number, number],
+};
+
+const FALLBACK_SIGNIN = 560;
+const FALLBACK_SIGNUP = 740;
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export default function UnifiedAuthForm() {
   const { mode } = useAuthMode();
   const isSignIn = mode === "signin";
 
-  // Direction logic for smooth animations
-  const direction = isSignIn ? -1 : 1; // -1 for SignIn (slides right), 1 for SignUp (slides left)
+  const signinSizerRef = useRef<HTMLDivElement>(null);
+  const signupSizerRef = useRef<HTMLDivElement>(null);
+  const [signinHeight, setSigninHeight] = useState(FALLBACK_SIGNIN);
+  const [signupHeight, setSignupHeight] = useState(FALLBACK_SIGNUP);
 
-  const formVariants = {
-    enter: (direction: number) => ({
-      x: direction > 0 ? 50 : -50,
-      opacity: 0,
-      scale: 0.95,
-    }),
-    center: {
-      zIndex: 1,
-      x: 0,
-      opacity: 1,
-      scale: 1,
-    },
-    exit: (direction: number) => ({
-      zIndex: 0,
-      x: direction < 0 ? 50 : -50,
-      opacity: 0,
-      scale: 0.95,
-    }),
-  };
+  useIsomorphicLayoutEffect(() => {
+    const measure = () => {
+      if (signinSizerRef.current) {
+        setSigninHeight(signinSizerRef.current.offsetHeight);
+      }
+      if (signupSizerRef.current) {
+        setSignupHeight(signupSizerRef.current.offsetHeight);
+      }
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, []);
+
+  const targetHeight = isSignIn ? signinHeight : signupHeight;
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-      <AnimatePresence initial={false} mode="wait" custom={direction}>
+    <motion.div
+      className="relative w-full"
+      animate={{ height: targetHeight }}
+      initial={false}
+      transition={heightTransition}
+    >
+      <div
+        ref={signinSizerRef}
+        aria-hidden
+        className="pointer-events-none invisible absolute inset-x-0 top-0"
+      >
+        <SignInForm />
+      </div>
+      <div
+        ref={signupSizerRef}
+        aria-hidden
+        className="pointer-events-none invisible absolute inset-x-0 top-0"
+      >
+        <SignUpForm />
+      </div>
+
+      <AnimatePresence initial={false} mode="popLayout">
         {isSignIn ? (
           <motion.div
             key="signin"
             variants={formVariants}
-            custom={direction}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{
-              x: {
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              },
-              opacity: {
-                duration: 0.3,
-              },
-              scale: {
-                duration: 0.3,
-              },
-            }}
-            className="w-full"
+            transition={formTransition}
+            className="absolute inset-0 w-full"
           >
             <SignInForm />
           </motion.div>
@@ -64,29 +92,16 @@ export default function UnifiedAuthForm() {
           <motion.div
             key="signup"
             variants={formVariants}
-            custom={direction}
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{
-              x: {
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              },
-              opacity: {
-                duration: 0.3,
-              },
-              scale: {
-                duration: 0.3,
-              },
-            }}
-            className="w-full"
+            transition={formTransition}
+            className="absolute inset-0 w-full"
           >
             <SignUpForm />
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
