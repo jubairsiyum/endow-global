@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Star, Award } from 'lucide-react'
 import { studentStories } from '@/lib/universities/data'
 import Image from 'next/image'
+import ScrollFloat from "@/components/animations/ScrollFloat";
 
 export default function StudentSuccessStories() {
   const containerVariants = {
@@ -42,9 +43,17 @@ export default function StudentSuccessStories() {
             <Award className="h-3.5 w-3.5 text-[#C41E3A]" />
             <span className="text-xs font-medium text-[#C41E3A]">Student Success</span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
+          <ScrollFloat
+            animationDuration={1.1}
+            ease="back.inOut(1.8)"
+            scrollStart="top bottom-=15%"
+            scrollEnd="center center"
+            stagger={0.015}
+            containerClassName="text-center !my-0"
+            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
+          >
             Success Stories from Our Students
-          </h2>
+          </ScrollFloat>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
             Real stories of transformation from students who achieved their dreams through our
             platform

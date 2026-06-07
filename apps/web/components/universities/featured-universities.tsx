@@ -1,8 +1,9 @@
 'use client'
 
-import Image from 'next/image'
-import { motion, type Variants } from 'framer-motion'
-import { ArrowRight, Landmark, MapPin } from 'lucide-react'
+import Image from "next/image";
+import { motion, type Variants } from "framer-motion";
+import { ArrowRight, Landmark, MapPin } from "lucide-react";
+import ScrollFloat from "@/components/animations/ScrollFloat";
 
 type UniversityOpportunity = {
   id: string
@@ -225,10 +226,17 @@ export default function FeaturedUniversities() {
           viewport={{ once: true, margin: '-80px' }}
           className="mx-auto mb-12 max-w-4xl text-center"
         >
-          <h2 className="font-serif text-5xl font-semibold leading-[1.05] tracking-normal text-[#111827] sm:text-6xl lg:text-[64px]">
-            {' '}
-            <span className="text-[#8B0E1A]">University Opportunities</span>
-          </h2>
+          <ScrollFloat
+            animationDuration={1.1}
+            ease="back.inOut(1.8)"
+            scrollStart="top bottom-=15%"
+            scrollEnd="center center"
+            stagger={0.015}
+            containerClassName="scroll-title-highlight-university text-center !my-0"
+            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
+          >
+            University Opportunities
+          </ScrollFloat>
 
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
             Handpicked universities offering world-class education, exclusive scholarships, and

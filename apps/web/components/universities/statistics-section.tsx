@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { TrendingUp, Users, Globe, Award } from 'lucide-react'
+import ScrollFloat from "@/components/animations/ScrollFloat";
 
 interface StatConfig {
   value: number
@@ -98,9 +99,17 @@ export default function StatisticsSection() {
           viewport={{ once: true }}
           className="mb-12 space-y-3 text-center"
         >
-          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
+          <ScrollFloat
+            animationDuration={1.1}
+            ease="back.inOut(1.8)"
+            scrollStart="top bottom-=15%"
+            scrollEnd="center center"
+            stagger={0.015}
+            containerClassName="scroll-title-highlight-success text-center !my-0"
+            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
+          >
             Global Success by Numbers
-          </h2>
+          </ScrollFloat>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
             Join thousands of students who have successfully pursued their education dreams globally
           </p>
