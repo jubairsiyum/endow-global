@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { useAuthMode } from "./AuthContext";
 
 export default function AuthTabToggle() {
@@ -41,6 +40,28 @@ export default function AuthTabToggle() {
           overflow-hidden
         "
       >
+        <div
+          className="
+            absolute
+            top-1
+            bottom-1
+            left-1
+            w-[calc(50%-4px)]
+            rounded-[0.85rem]
+            bg-gradient-to-r
+            from-slate-950
+            to-red-900
+            shadow-[0_12px_26px_rgba(127,29,29,0.24)]
+            will-change-transform
+          "
+          style={{
+            transform: isSignIn ? "translateX(0)" : "translateX(100%)",
+            transition: "transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
+        </div>
+
         <button
           onClick={handleSignInClick}
           className="
@@ -59,24 +80,6 @@ export default function AuthTabToggle() {
             border-none
           "
         >
-          {isSignIn && (
-            <motion.div
-              layoutId="activePill"
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-              className="
-                absolute
-                inset-1
-                rounded-[0.85rem]
-                bg-gradient-to-r
-                from-slate-950
-                to-red-900
-                shadow-[0_12px_26px_rgba(127,29,29,0.24)]
-              "
-            >
-              <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
-            </motion.div>
-          )}
-
           <span
             className={`
               relative
@@ -95,7 +98,6 @@ export default function AuthTabToggle() {
           </span>
         </button>
 
-        {/* Sign Up Button Container */}
         <button
           onClick={handleSignUpClick}
           className="
@@ -114,24 +116,6 @@ export default function AuthTabToggle() {
             border-none
           "
         >
-          {!isSignIn && (
-            <motion.div
-              layoutId="activePill"
-              transition={{ type: "spring", stiffness: 350, damping: 30 }}
-              className="
-                absolute
-                inset-1
-                rounded-[0.85rem]
-                bg-gradient-to-r
-                from-slate-950
-                to-red-900
-                shadow-[0_12px_26px_rgba(127,29,29,0.24)]
-              "
-            >
-              <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm" />
-            </motion.div>
-          )}
-
           <span
             className={`
               relative
