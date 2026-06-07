@@ -24,14 +24,16 @@ export default function UniversitiesPage() {
       </section>
       <UniversityMarquee />
       <FeaturedUniversities />
-      <StatisticsSection />
       <CountryExplorer />
       <ScholarshipSpotlight />
-      <StudentSuccessStories />
       <ApplicationRoadmap />
+      <StatisticsSection />
+      <StudentSuccessStories />
       <PremiumConsultationCTA />
       <UniversitiesFooter />
       <StickyFilterBar />
     </div>
   );
 }
+
+

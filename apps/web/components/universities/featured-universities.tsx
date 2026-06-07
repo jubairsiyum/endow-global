@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion, type Variants } from "framer-motion";
-import { ArrowRight, GraduationCap, Landmark, MapPin } from "lucide-react";
+import { ArrowRight, Landmark, MapPin } from "lucide-react";
 
 type UniversityOpportunity = {
   id: string;
@@ -235,8 +235,7 @@ export default function FeaturedUniversities() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
-            Handpicked universities offering world-class education with
-            exclusive scholarships and visa guarantees.
+            Handpicked universities offering world-class education, exclusive scholarships, and guaranteed visa support — all in one place.
           </p>
         </motion.div>
 
@@ -265,9 +264,9 @@ export default function FeaturedUniversities() {
         >
           <button
             type="button"
-            className="group inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#760B16] via-[#8B0E1A] to-[#A91324] px-9 py-4 text-sm font-bold text-white shadow-[0_18px_45px_rgba(201,161,91,0.34)] transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(201,161,91,0.48)] sm:px-11"
+            className="group inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#760B16] via-[#8B0E1A] to-[#A91324] px-9 py-4 text-sm font-bold text-white shadow-[0_18px_45px_rgba(201,161,91,0.34)] transition-all duration-300 hover:scale-[1.03] hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(201,161,91,0.48)] sm:px-11"
           >
-            <GraduationCap className="h-5 w-5 text-[#F4D99A]" />
+            <Landmark className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
             <span>View All Universities</span>
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
           </button>
