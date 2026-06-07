@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import { ArrowRight, GraduationCap, Landmark, MapPin } from "lucide-react";
 
 type UniversityOpportunity = {
@@ -112,7 +112,7 @@ const universityOpportunities: UniversityOpportunity[] = [
   },
 ];
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: {
     opacity: 0,
   },
@@ -125,7 +125,7 @@ const containerVariants = {
   },
 };
 
-const cardVariants = {
+const cardVariants: Variants = {
   hidden: {
     opacity: 0,
     y: 26,
@@ -135,7 +135,7 @@ const cardVariants = {
     y: 0,
     transition: {
       duration: 0.55,
-      ease: [0.22, 1, 0.36, 1],
+      ease: "easeOut",
     },
   },
 };
@@ -151,45 +151,45 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
           ease: "easeOut",
         },
       }}
-      className="group relative flex min-h-[170px] overflow-hidden rounded-[24px] border border-[#F1F5F9] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.055)] transition-shadow duration-300 hover:shadow-[0_28px_70px_rgba(139,14,26,0.16)]"
+      className="group relative h-[118px] overflow-hidden rounded-[20px] border border-[#F1F5F9] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.055)] transition-shadow duration-300 hover:shadow-[0_20px_44px_rgba(139,14,26,0.14)]"
     >
       <div className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-[#8B0E1A] via-[#A91324] to-[#C9A15B] transition-transform duration-500 ease-out group-hover:scale-x-100" />
 
-      <div className="flex w-full flex-col gap-5 sm:flex-row sm:items-center">
-        <div className="flex min-w-0 flex-1 items-start gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border border-[#F8EFE1] bg-white shadow-[0_12px_28px_rgba(15,23,42,0.08)]">
-            <Image
-              src={opportunity.logo}
-              alt={`${opportunity.university} logo`}
-              width={44}
-              height={44}
-              className="max-h-11 w-auto object-contain"
-            />
-          </div>
+      <div className="grid h-full w-full grid-cols-[48px_minmax(0,1fr)_90px] items-center gap-3">
+        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center self-center">
+          <Image
+            src={opportunity.logo}
+            alt={`${opportunity.university} logo`}
+            fill
+            sizes="48px"
+            className="object-contain"
+          />
+        </div>
 
-          <div className="min-w-0 pt-0.5">
-            <h3 className="font-serif text-[21px] font-bold leading-tight text-[#111827]">
-              {opportunity.program}
-            </h3>
+        <div className="min-w-0 self-center overflow-hidden pr-1">
+          <h3 className="line-clamp-2 max-w-full overflow-hidden font-serif text-lg font-bold leading-[1.2] tracking-normal text-[#111827]">
+            {opportunity.program}
+          </h3>
 
-            <p className="mt-2 truncate text-sm font-medium text-slate-500">
-              {opportunity.university}
-            </p>
+          <p className="mt-1.5 line-clamp-1 max-w-full overflow-hidden text-ellipsis text-[13px] font-medium leading-4 text-slate-500">
+            {opportunity.university}
+          </p>
 
-            <div className="mt-3 flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.16em] text-slate-400">
-              <MapPin className="h-3.5 w-3.5 text-[#C9A15B]" />
-              <span>{opportunity.location}</span>
-            </div>
+          <div className="mt-1.5 flex max-w-full items-center gap-1 overflow-hidden text-[11px] font-semibold uppercase leading-4 tracking-wider text-slate-400">
+            <MapPin className="h-3 w-3 shrink-0 text-[#C9A15B]" />
+            <span className="line-clamp-1 min-w-0 overflow-hidden text-ellipsis">
+              {opportunity.location}
+            </span>
           </div>
         </div>
 
-        <div className="flex shrink-0 items-end justify-between gap-4 border-t border-[#EEF2F6] pt-4 sm:min-w-[150px] sm:items-center sm:justify-end sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0">
-          <div className="text-left sm:text-right">
+        <div className="flex h-full min-w-0 flex-col items-end justify-center gap-3 border-l border-[#EEF2F6] pl-3 text-right">
+          <div className="min-w-0">
             <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-slate-400">
               From
             </p>
 
-            <p className="mt-2 text-[26px] font-extrabold leading-none tracking-normal text-[#8B0E1A] transition-colors duration-300 group-hover:text-[#6F0914]">
+            <p className="mt-1 whitespace-nowrap text-base font-bold leading-none tracking-normal text-[#8B0E1A] transition-colors duration-300 group-hover:text-[#6F0914]">
               {opportunity.price}
             </p>
           </div>
@@ -197,9 +197,9 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
           <button
             type="button"
             aria-label={`View ${opportunity.program} at ${opportunity.university}`}
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#8B0E1A] text-[#8B0E1A] transition-all duration-300 group-hover:bg-[#8B0E1A] group-hover:text-white"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#8B0E1A] text-[#8B0E1A] transition-all duration-300 group-hover:bg-[#8B0E1A] group-hover:text-white"
           >
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
@@ -209,41 +209,32 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
 
 export default function FeaturedUniversities() {
   return (
-    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 py-24 sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 pb-16 pt-24 sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-28 -top-28 h-[420px] w-[420px] rounded-full bg-white/90 blur-3xl" />
         <div className="absolute -right-24 top-8 h-[520px] w-[520px] rounded-full bg-[#F7EBD5]/70 blur-3xl" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D5B1] to-transparent" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl">
+      <div className="relative z-10 mx-auto max-w-[1500px]">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{
             duration: 0.7,
-            ease: [0.22, 1, 0.36, 1],
+            ease: "easeOut",
           }}
           viewport={{ once: true, margin: "-80px" }}
-          className="mx-auto mb-16 max-w-4xl text-center"
+          className="mx-auto mb-12 max-w-4xl text-center"
         >
-          <div className="mb-6 inline-flex items-center gap-3 text-[#C9A15B]">
-            <span className="h-px w-10 bg-[#C9A15B] sm:w-14" />
-            <Landmark className="h-4 w-4" />
-            <span className="text-xs font-bold uppercase tracking-[0.34em]">
-              Featured Partners
-            </span>
-            <span className="h-px w-10 bg-[#C9A15B] sm:w-14" />
-          </div>
-
           <h2 className="font-serif text-5xl font-semibold leading-[1.05] tracking-normal text-[#111827] sm:text-6xl lg:text-[64px]">
-            Premium{" "}
+            {" "}
             <span className="text-[#8B0E1A]">
               University Opportunities
             </span>
           </h2>
 
-          <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-slate-500 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
             Handpicked universities offering world-class education with
             exclusive scholarships and visa guarantees.
           </p>
@@ -254,7 +245,7 @@ export default function FeaturedUniversities() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3"
+          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
         >
           {universityOpportunities.map((opportunity) => (
             <UniversityCard key={opportunity.id} opportunity={opportunity} />
@@ -267,10 +258,10 @@ export default function FeaturedUniversities() {
           transition={{
             duration: 0.6,
             delay: 0.18,
-            ease: [0.22, 1, 0.36, 1],
+            ease: "easeOut",
           }}
           viewport={{ once: true }}
-          className="mt-16 flex justify-center"
+          className="mt-12 flex justify-center"
         >
           <button
             type="button"

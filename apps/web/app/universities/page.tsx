@@ -15,12 +15,10 @@ import StickyFilterBar from "@/components/universities/sticky-filter-bar";
 
 export default function UniversitiesPage() {
   return (
-    <div className="w-full flex flex-col overflow-x-hidden">
-      <section className="relative overflow-x-hidden bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-          <div className="pt-4 pb-6 lg:pb-8">
-            <Navbar />
-          </div>
+    <div className="flex w-full flex-col overflow-x-hidden">
+      <Navbar />
+      <section className="relative overflow-x-hidden bg-white pt-[120px] lg:pt-[136px]">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
           <HeroSection />
         </div>
       </section>
