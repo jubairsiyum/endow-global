@@ -14,27 +14,8 @@ import {
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/button'
-
-const heroVideos = [
-  {
-    label: 'Campus study',
-    src: 'https://videos.pexels.com/video-files/7969378/7969378-uhd_1440_2732_25fps.mp4',
-  },
-  {
-    label: 'Students walking',
-    src: 'https://videos.pexels.com/video-files/7969427/7969427-uhd_1440_2732_25fps.mp4',
-  },
-  {
-    label: 'Outdoor collaboration',
-    src: 'https://videos.pexels.com/video-files/6145420/6145420-uhd_1440_2732_25fps.mp4',
-  },
-] as const
-
-const heroStats = [
-  { value: '40+', label: 'Partner universities' },
-  { value: '12', label: 'Study destinations' },
-  { value: '1:1', label: 'Counselor guidance' },
-] as const
+import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
+import VideoBackground from '@/components/home/VideoBackground'
 
 const universities = [
   {
@@ -68,28 +49,6 @@ const features = [
     copy: 'Track documents, counselor notes, deadlines, and next steps without losing momentum.',
   },
 ] as const
-
-function VideoBackground() {
-  return (
-    <div className="absolute inset-0 overflow-hidden">
-      <video
-        aria-label="Students exploring study options on campus"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        className="h-full w-full object-cover"
-      >
-        {heroVideos.map((video) => (
-          <source key={video.src} src={video.src} type="video/mp4" />
-        ))}
-      </video>
-      <div className="bg-white/88 absolute inset-0" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_18%,rgba(196,30,58,0.12),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.74)_0%,rgba(255,255,255,0.94)_82%)]" />
-    </div>
-  )
-}
 
 function HeroSearchPanel() {
   return (
@@ -199,18 +158,6 @@ function HeroSection() {
             <div className="mt-8">
               <HeroSearchPanel />
             </div>
-
-            <div className="mx-auto mt-6 grid max-w-2xl grid-cols-1 gap-2 sm:grid-cols-3">
-              {/* {heroStats.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-white/56 rounded-lg border border-gray-200/70 px-4 py-3 backdrop-blur"
-                >
-                  <p className="text-2xl font-bold text-gray-950">{stat.value}</p>
-                  <p className="mt-1 text-xs font-medium leading-4 text-gray-600">{stat.label}</p>
-                </div>
-              ))} */}
-            </div>
           </div>
         </div>
       </div>
@@ -224,27 +171,29 @@ function UniversityMarquee() {
   return (
     <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
-          <div className="university-marquee flex items-center gap-14 whitespace-nowrap">
-            {marqueeItems.map((university, index) => (
-              <div
-                key={`${university.name}-${index}`}
-                className="flex items-center gap-3 opacity-80 transition hover:opacity-100"
-              >
-                <Image
-                  src={university.logo}
-                  alt={university.name}
-                  width={56}
-                  height={56}
-                  className="h-14 w-14 object-contain"
-                />
-                <span className="text-xl font-bold text-gray-600 sm:text-2xl">
-                  {university.name}
-                </span>
-              </div>
-            ))}
+        <FadeUp>
+          <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+            <div className="university-marquee flex items-center gap-14 whitespace-nowrap">
+              {marqueeItems.map((university, index) => (
+                <div
+                  key={`${university.name}-${index}`}
+                  className="flex items-center gap-3 opacity-80 transition hover:opacity-100"
+                >
+                  <Image
+                    src={university.logo}
+                    alt={university.name}
+                    width={56}
+                    height={56}
+                    className="h-14 w-14 object-contain"
+                  />
+                  <span className="text-xl font-bold text-gray-600 sm:text-2xl">
+                    {university.name}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        </FadeUp>
       </div>
     </section>
   )
@@ -254,53 +203,56 @@ function FeaturesSection() {
   return (
     <section className="bg-[#f7f8fb] py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#C41E3A] shadow-sm">
-              <GraduationCap size={16} />
-              Built for study abroad decisions
+        <FadeUp>
+          <div className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#C41E3A] shadow-sm">
+                <GraduationCap size={16} />
+                Built for study abroad decisions
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+                Everything you need to move with confidence
+              </h2>
             </div>
-            <h2 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              Everything you need to move with confidence
-            </h2>
+            <p className="max-w-2xl text-base leading-7 text-gray-600">
+              We turn the complex application process into a clear sequence: discover the right fit,
+              prepare the strongest application, and stay aligned with counselors from first shortlist
+              to submission.
+            </p>
           </div>
-          <p className="max-w-2xl text-base leading-7 text-gray-600">
-            We turn the complex application process into a clear sequence: discover the right fit,
-            prepare the strongest application, and stay aligned with counselors from first shortlist
-            to submission.
-          </p>
-        </div>
+        </FadeUp>
 
-        <div className="mt-9 grid gap-4 md:grid-cols-3">
+        <FadeUpStagger className="mt-9 grid gap-4 md:grid-cols-3" amount={0.15}>
           {features.map((feature) => {
             const Icon = feature.icon
 
             return (
-              <article
-                key={feature.title}
-                className="rounded-lg border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]"
-              >
-                <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-[#C41E3A]">
-                  <Icon size={20} />
-                </span>
-                <h3 className="text-lg font-bold text-gray-950">{feature.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600">{feature.copy}</p>
-              </article>
+              <FadeUpItem key={feature.title}>
+                <article className="h-full rounded-lg border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+                  <span className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-[#C41E3A]">
+                    <Icon size={20} />
+                  </span>
+                  <h3 className="text-lg font-bold text-gray-950">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">{feature.copy}</p>
+                </article>
+              </FadeUpItem>
             )
           })}
-        </div>
+        </FadeUpStagger>
 
-        <div className="mt-8 flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-          {['Eligibility checks', 'Document reminders', 'Counselor updates'].map((item) => (
-            <span
-              key={item}
-              className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700"
-            >
-              <CheckCircle2 size={17} className="text-[#C41E3A]" />
-              {item}
-            </span>
-          ))}
-        </div>
+        <FadeUp>
+          <div className="mt-8 flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+            {['Eligibility checks', 'Document reminders', 'Counselor updates'].map((item) => (
+              <span
+                key={item}
+                className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700"
+              >
+                <CheckCircle2 size={17} className="text-[#C41E3A]" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </FadeUp>
       </div>
     </section>
   )

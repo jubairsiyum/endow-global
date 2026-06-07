@@ -14,8 +14,7 @@ export default function AuthLayout({
   initialMode?: 'signin' | 'signup'
 } = {}) {
   const pathname = usePathname()
-  const currentMode =
-    pathname?.includes('/register') || pathname?.includes('/sign-up') ? 'signup' : initialMode
+  const currentMode = pathname?.startsWith('/register') ? 'signup' : initialMode
 
   return (
     <AuthProvider initialMode={currentMode}>
