@@ -26,13 +26,13 @@ export default function HeroSection() {
   };
 
   return (
-    <div className="relative w-full overflow-x-hidden py-16 lg:py-20">
+    <div className="relative flex min-h-[calc(100svh-6rem)] w-full items-center overflow-x-hidden py-6 lg:py-8">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
       <div className="relative z-10">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+        <div className="grid w-full items-center gap-8 lg:grid-cols-2 lg:gap-12">
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -49,7 +49,7 @@ export default function HeroSection() {
             </motion.div>
 
             <motion.div variants={itemVariants} className="space-y-3">
-              <h1 className="text-5xl font-bold tracking-tight text-[#111827] lg:text-6xl">
+              <h1 className="text-4xl font-bold tracking-tight text-[#111827] sm:text-5xl lg:text-6xl">
                 Discover Your{" "}
                 <span className="text-[#C41E3A]">Perfect</span>
                 <br />

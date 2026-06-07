@@ -93,23 +93,30 @@ export function Navbar() {
       >
         <Link
           href="/"
-          className={`flex h-14 shrink-0 items-center rounded-full pr-2 text-sm font-semibold transition sm:h-16 md:pr-4 ${textPrimary}`}
+          aria-label="Endow Global Education home"
+          className={`flex h-14 shrink-0 items-center gap-3.5 rounded-full pr-2 font-semibold transition sm:h-16 md:pr-4 ${textPrimary}`}
         >
-          {/* Wide logo mark */}
-          <span className="relative flex h-10 w-[168px] min-w-[168px] shrink-0 items-center overflow-hidden sm:h-12 sm:w-[202px] sm:min-w-[202px] md:h-[52px] md:w-[220px] md:min-w-[220px]">
+          <span className="flex h-12 shrink-0 items-center">
             <Image
-              src="/logo/endoedu.png"
-              alt="Endow Global Education"
-              fill
+              src="/logo/endoedu.svg"
+              alt=""
+              aria-hidden="true"
+              width={616}
+              height={504}
               priority
-              sizes="(max-width: 640px) 168px, (max-width: 768px) 202px, 220px"
-              className="object-cover object-center"
+              sizes="59px"
+              className="h-12 w-auto shrink-0 object-contain object-center"
             />
           </span>
 
-          {/* <span className="hidden whitespace-nowrap text-base font-semibold tracking-tight sm:inline">
-            Endow Global
-          </span> */}
+          <span className="flex shrink-0 flex-col justify-center leading-[1.1] tracking-tight">
+            <span className="whitespace-nowrap text-lg font-bold text-[#DC143C]">
+              Endow Global
+            </span>
+            <span className="whitespace-nowrap text-lg font-bold text-[#111827]">
+              Education
+            </span>
+          </span>
         </Link>
 
         <motion.div

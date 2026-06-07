@@ -226,10 +226,6 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
         <CheckCircle2 className="h-4 w-4" />
         Get AI Recommendations
       </motion.button>
-
-      <p className="text-center text-xs text-gray-500">
-        Takes less than 1 minute. No commitment required.
-      </p>
     </motion.div>
   );
 }

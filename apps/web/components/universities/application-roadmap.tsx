@@ -199,7 +199,7 @@ export default function ApplicationRoadmap() {
           className="mt-12 text-center space-y-4"
         >
           <h3 className="text-xl font-bold text-gray-900">
-            Estimated Timeline: 4-6 Months
+            Estimated Timeline: 3-4 Months
           </h3>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Our streamlined process ensures you're ready to start your
