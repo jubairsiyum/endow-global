@@ -1,66 +1,24 @@
-"use client";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { auth } from "@/lib/auth";
+import { AdminClientLayout } from "@/components/admin/layout/AdminClientLayout";
 
-import { useState } from "react";
-
-import { Sidebar } from "@/components/admin/layout/Sidebar";
-import { Topbar } from "@/components/admin/layout/Topbar";
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] =
-    useState(false);
+  const session = await auth.api.getSession({
+    headers: headers(),
+  });
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-[#f4f6fb] dark:bg-[#0b0f19]">
-      
-      {/* MOBILE OVERLAY */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
-          onClick={() =>
-            setSidebarOpen(false)
-          }
-        />
-      )}
+  if (!session) {
+    redirect("/login");
+  }
 
-      {/* SIDEBAR */}
-      <div
-        className={`
-          fixed left-0 top-0 z-50 h-screen
-          transition-transform duration-300
+  if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+    redirect("/dashboard");
+  }
 
-          ${
-            sidebarOpen
-              ? "translate-x-0"
-              : "-translate-x-full"
-          }
-
-          lg:relative lg:translate-x-0
-        `}
-      >
-        <Sidebar />
-      </div>
-
-      {/* MAIN */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        
-        {/* TOPBAR */}
-        <div className="shrink-0">
-          <Topbar
-            onMenuClick={() =>
-              setSidebarOpen(true)
-            }
-          />
-        </div>
-
-        {/* SCROLLABLE CONTENT */}
-        <main className="flex-1 overflow-y-auto p-3 lg:p-5">
-          {children}
-        </main>
-      </div>
-    </div>
-  );
+  return <AdminClientLayout>{children}</AdminClientLayout>;
 }

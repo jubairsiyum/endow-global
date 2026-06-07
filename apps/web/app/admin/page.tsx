@@ -1,61 +1,70 @@
+"use client";
+
 import {
   CalendarDays,
   Clock3,
   FileText,
   Users,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 import AnalyticsChart from "@/components/admin/dashboard/AnalyticsChart";
 import TopCountries from "@/components/admin/dashboard/TopCountries";
 import UpcomingConsultations from "@/components/admin/dashboard/UpcomingConsultations";
-
-const stats = [
-  {
-    title: "Total Students",
-    value: "2,587",
-    growth: "+12.5%",
-    icon: Users,
-  },
-  {
-    title: "Applications",
-    value: "1,368",
-    growth: "+8.2%",
-    icon: FileText,
-  },
-  {
-    title: "Pending Docs",
-    value: "324",
-    growth: "+4.3%",
-    icon: Clock3,
-  },
-  {
-    title: "Consultations",
-    value: "156",
-    growth: "+15.7%",
-    icon: CalendarDays,
-  },
-];
-
-const activities = [
-  {
-    title: "New student registered",
-    time: "2 min ago",
-  },
-  {
-    title: "Document approved",
-    time: "15 min ago",
-  },
-  {
-    title: "Counselor assigned",
-    time: "25 min ago",
-  },
-  {
-    title: "New application received",
-    time: "1 hour ago",
-  },
-];
+import { trpc } from "@/lib/trpc-client";
 
 export default function AdminPage() {
+  const { data: metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery();
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Calculate some derived stats
+  const pipelineStatusMap = metrics?.applicationsByStatus?.reduce((acc, curr) => {
+    acc[curr.status] = curr.count;
+    return acc;
+  }, {} as Record<string, number>) || {};
+
+  const totalApplications = metrics?.applicationsByStatus?.reduce((sum, curr) => sum + curr.count, 0) || 0;
+  const pendingDocs = pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0;
+
+  const stats = [
+    {
+      title: "Total Students",
+      value: metrics?.students?.toString() || "0",
+      growth: "+0%", // Hardcoded for now
+      icon: Users,
+    },
+    {
+      title: "Applications",
+      value: totalApplications.toString(),
+      growth: "+0%", // Hardcoded for now
+      icon: FileText,
+    },
+    {
+      title: "Pending Docs",
+      value: pendingDocs.toString(),
+      growth: "+0%", // Hardcoded for now
+      icon: Clock3,
+    },
+    {
+      title: "Counselors",
+      value: metrics?.counselors?.toString() || "0",
+      growth: "+0%", // Hardcoded for now
+      icon: CalendarDays,
+    },
+  ];
+
+  const activities = metrics?.recentActivity?.map((app) => ({
+    title: `Application ${app.status.toLowerCase().replace('_', ' ')}: ${app.student?.name}`,
+    time: formatDistanceToNow(new Date(app.updatedAt), { addSuffix: true }),
+  })) || [];
+
   return (
     <div className="mx-auto max-w-[1380px] space-y-3">
       
@@ -70,13 +79,6 @@ export default function AdminPage() {
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
             Here's what's happening with your applications today.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          
-          <button className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-700 transition-all hover:bg-gray-50 dark:border-gray-800 dark:bg-[#1a1d25] dark:text-gray-300 dark:hover:bg-[#222530]">
-            May 20, 2025 - May 26, 2025
-          </button>
         </div>
       </div>
 
@@ -111,15 +113,7 @@ export default function AdminPage() {
                       <h2 className="text-lg font-bold leading-tight text-gray-900 dark:text-white">
                         {item.value}
                       </h2>
-
-                      <p className="mt-0.5 text-[10px] text-gray-500 dark:text-gray-500">
-                        vs last 7 days
-                      </p>
                     </div>
-
-                    <span className="rounded-full bg-green-50 px-2 py-1 text-[10px] font-semibold text-green-600 dark:bg-green-500/10 dark:text-green-400 shrink-0 whitespace-nowrap">
-                      {item.growth}
-                    </span>
                   </div>
                 </div>
               );
@@ -155,37 +149,37 @@ export default function AdminPage() {
                 </p>
 
                 <h3 className="mt-1 text-lg font-bold text-red-700 dark:text-red-400">
-                  128
+                  {(pipelineStatusMap['DRAFT'] || 0) + (pipelineStatusMap['IN_PROGRESS'] || 0)}
                 </h3>
               </div>
 
               <div className="rounded-lg bg-blue-50 px-3 py-2.5 dark:bg-[#111b2a]">
                 <p className="text-xs font-medium text-blue-600">
-                  Consulting
+                  Submitted
                 </p>
 
                 <h3 className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-400">
-                  256
+                  {pipelineStatusMap['SUBMITTED'] || 0}
                 </h3>
               </div>
 
               <div className="rounded-lg bg-yellow-50 px-3 py-2.5 dark:bg-[#2a2311]">
                 <p className="text-xs font-medium text-yellow-600">
-                  Documents
+                  Under Review
                 </p>
 
                 <h3 className="mt-1 text-lg font-bold text-yellow-700 dark:text-yellow-400">
-                  312
+                  {pipelineStatusMap['UNDER_REVIEW'] || 0}
                 </h3>
               </div>
 
               <div className="rounded-lg bg-purple-50 px-3 py-2.5 dark:bg-[#21112a]">
                 <p className="text-xs font-medium text-purple-600">
-                  Applying
+                  Docs Required
                 </p>
 
                 <h3 className="mt-1 text-lg font-bold text-purple-700 dark:text-purple-400">
-                  248
+                  {pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0}
                 </h3>
               </div>
 
@@ -195,7 +189,7 @@ export default function AdminPage() {
                 </p>
 
                 <h3 className="mt-1 text-lg font-bold text-green-700 dark:text-green-400">
-                  1,245
+                  {pipelineStatusMap['ACCEPTED'] || 0}
                 </h3>
               </div>
             </div>
@@ -213,15 +207,14 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               
               <h2 className="text-xs font-semibold text-gray-900 dark:text-white">
-                Recent Activities
+                Recent Applications
               </h2>
-
-              <button className="text-xs font-medium text-primary">
-                View All
-              </button>
             </div>
 
             <div className="mt-3 space-y-2">
+              {activities.length === 0 && (
+                 <p className="text-xs text-gray-500">No recent activity</p>
+              )}
               {activities.map((item, index) => (
                 <div
                   key={index}
@@ -231,7 +224,7 @@ export default function AdminPage() {
                   <div className="mt-1.5 h-2 w-2 rounded-full bg-primary shrink-0" />
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-900 dark:text-white">
+                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
                       {item.title}
                     </p>
 
