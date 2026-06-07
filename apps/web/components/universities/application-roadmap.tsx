@@ -11,6 +11,7 @@ import {
   Plane,
   CheckCircle2,
 } from "lucide-react";
+import ScrollFloat from "@/components/animations/ScrollFloat";
 
 const roadmapSteps = [
   {
@@ -79,9 +80,17 @@ export default function ApplicationRoadmap() {
               Your Journey
             </span>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
+          <ScrollFloat
+            animationDuration={1.1}
+            ease="back.inOut(1.8)"
+            scrollStart="top bottom-=15%"
+            scrollEnd="center center"
+            stagger={0.015}
+            containerClassName="text-center !my-0"
+            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
+          >
             Your Application Roadmap
-          </h2>
+          </ScrollFloat>
           <p className="mx-auto max-w-2xl text-base text-gray-600">
             We guide you through every step of your international education
             journey

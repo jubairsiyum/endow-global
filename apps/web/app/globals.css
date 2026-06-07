@@ -72,6 +72,17 @@ body {
 }
 
 /* =========================
+   SCROLL FLOAT TITLES
+========================= */
+
+.scroll-title-highlight-university .word:nth-child(-n + 10),
+.scroll-title-highlight-worldwide .word:nth-child(n + 20):nth-child(-n + 28),
+.scroll-title-highlight-scholarship .word:nth-child(n + 11):nth-child(-n + 21),
+.scroll-title-highlight-success .word:nth-child(n + 8):nth-child(-n + 14) {
+  color: #C41E3A;
+}
+
+/* =========================
    BUTTON TRANSITIONS
 ========================= */
 
