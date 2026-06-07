@@ -6,7 +6,6 @@ import {
   ArrowRight,
   Building2,
   Globe2,
-  GraduationCap,
   Landmark,
   Wallet,
 } from "lucide-react";
@@ -20,7 +19,6 @@ type Destination = {
   description: string;
   universities: string;
   avgTuition: string;
-  topUniversities: string;
 };
 
 const destinations: Destination[] = [
@@ -33,8 +31,7 @@ const destinations: Destination[] = [
     description:
       "Innovative education with world-class universities and vibrant culture.",
     universities: "120+",
-    avgTuition: "$5,000 / year",
-    topUniversities: "SNU, KAIST",
+    avgTuition: "$5,000/year",
   },
   {
     name: "USA",
@@ -45,8 +42,7 @@ const destinations: Destination[] = [
     description:
       "Global leader in higher education with diverse opportunities.",
     universities: "4,000+",
-    avgTuition: "$35,000 / year",
-    topUniversities: "MIT, Stanford",
+    avgTuition: "$35,000/year",
   },
   {
     name: "United Kingdom",
@@ -57,8 +53,7 @@ const destinations: Destination[] = [
     description:
       "Prestigious universities with globally respected academic pathways.",
     universities: "160+",
-    avgTuition: "$28,000 / year",
-    topUniversities: "Oxford, Cambridge",
+    avgTuition: "$28,000/year",
   },
   {
     name: "Canada",
@@ -69,8 +64,7 @@ const destinations: Destination[] = [
     description:
       "Welcoming campuses, strong work pathways, and excellent quality of life.",
     universities: "100+",
-    avgTuition: "$16,000 / year",
-    topUniversities: "Toronto, McGill",
+    avgTuition: "$16,000/year",
   },
   {
     name: "Australia",
@@ -81,8 +75,7 @@ const destinations: Destination[] = [
     description:
       "Research-led education with practical careers and coastal student life.",
     universities: "90+",
-    avgTuition: "$20,000 / year",
-    topUniversities: "Sydney, Melbourne",
+    avgTuition: "$20,000/year",
   },
   {
     name: "Japan",
@@ -93,8 +86,51 @@ const destinations: Destination[] = [
     description:
       "Advanced learning, rich culture, and affordable global study routes.",
     universities: "780+",
-    avgTuition: "$5,000 / year",
-    topUniversities: "Tokyo, Kyoto",
+    avgTuition: "$5,000/year",
+  },
+  {
+    name: "Germany",
+    flag: "\uD83C\uDDE9\uD83C\uDDEA",
+    image:
+      "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Berlin city landmark in Germany",
+    description:
+      "World-class public universities with strong engineering and research.",
+    universities: "420+",
+    avgTuition: "$3,000/year",
+  },
+  {
+    name: "France",
+    flag: "\uD83C\uDDEB\uD83C\uDDF7",
+    image:
+      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Paris skyline and Eiffel Tower in France",
+    description:
+      "Elite business schools, design programs, and European culture.",
+    universities: "250+",
+    avgTuition: "$12,000/year",
+  },
+  {
+    name: "Ireland",
+    flag: "\uD83C\uDDEE\uD83C\uDDEA",
+    image:
+      "https://images.unsplash.com/photo-1590089415225-401ed6f9db8e?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Dublin city architecture in Ireland",
+    description:
+      "English-taught programs with technology careers and post-study routes.",
+    universities: "30+",
+    avgTuition: "$15,000/year",
+  },
+  {
+    name: "Finland",
+    flag: "\uD83C\uDDEB\uD83C\uDDEE",
+    image:
+      "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=1200&q=85",
+    imageAlt: "Helsinki waterfront and architecture in Finland",
+    description:
+      "Future-focused education with safe cities and innovation-led campuses.",
+    universities: "40+",
+    avgTuition: "$13,000/year",
   },
 ];
 
@@ -126,12 +162,12 @@ function DestinationCard({ destination }: { destination: Destination }) {
     <motion.article
       variants={cardVariants}
       whileHover={{
-        y: -8,
+        y: -6,
         transition: { duration: 0.28, ease: "easeOut" },
       }}
-      className="group relative h-[320px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_18px_48px_rgba(15,23,42,0.075)] transition-all duration-300 hover:border-[#D9B873] hover:shadow-[0_24px_64px_rgba(139,14,26,0.13)]"
+      className="group relative h-[300px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#D9B873] hover:shadow-[0_22px_58px_rgba(139,14,26,0.12)]"
     >
-      <div className="relative h-[130px] overflow-hidden">
+      <div className="relative h-[110px] overflow-hidden">
         <Image
           src={destination.image}
           alt={destination.imageAlt}
@@ -144,53 +180,44 @@ function DestinationCard({ destination }: { destination: Destination }) {
         <div className="absolute left-4 top-4 flex h-10 min-w-10 items-center justify-center rounded-2xl border border-white/55 bg-white/82 px-2.5 text-xl shadow-[0_10px_24px_rgba(15,23,42,0.16)] backdrop-blur-xl">
           {destination.flag}
         </div>
-
-        <button
-          type="button"
-          aria-label={`Explore ${destination.name}`}
-          className="absolute right-4 top-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#B11226] via-[#8B0E1A] to-[#5F0710] text-white shadow-[0_16px_30px_rgba(139,14,26,0.32)] transition-transform duration-300 group-hover:scale-[1.08]"
-        >
-          <ArrowRight className="h-5 w-5" strokeWidth={2.2} />
-        </button>
       </div>
 
-      <div className="flex h-[190px] flex-col px-5 pb-5 pt-5">
-        <h3 className="font-serif text-[28px] font-bold leading-none tracking-normal text-[#071225]">
+      <div className="flex h-[190px] flex-col px-5 pb-4 pt-4">
+        <h3 className="truncate font-serif text-2xl font-bold leading-none tracking-normal text-[#071225]">
           {destination.name}
         </h3>
 
-        <p className="mt-2 line-clamp-2 min-h-[38px] text-sm leading-[1.35] text-slate-600">
+        <p className="mt-1.5 line-clamp-2 min-h-9 text-sm leading-[1.3] text-slate-600">
           {destination.description}
         </p>
 
-        <div className="mt-auto grid grid-cols-3 gap-2.5 border-t border-[#EDF0F4] pt-4">
-          <div className="min-w-0 rounded-2xl bg-[#F8FAFC] px-3 py-2">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[#C41E3A]">
+        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[#EDF0F4] pt-2.5">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Building2 className="h-3.5 w-3.5" />
-            </div>
-            <p className="truncate text-[15px] font-semibold leading-5 text-[#071225]">
+            </span>
+            <p className="text-[13px] font-semibold leading-4 text-[#071225]">
               {destination.universities} Universities
             </p>
           </div>
 
-          <div className="min-w-0 rounded-2xl bg-[#F8FAFC] px-3 py-2">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[#C41E3A]">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Wallet className="h-3.5 w-3.5" />
-            </div>
-            <p className="truncate text-[15px] font-semibold leading-5 text-[#071225]">
+            </span>
+            <p className="text-[13px] font-semibold leading-4 text-[#071225]">
               {destination.avgTuition}
             </p>
           </div>
-
-          <div className="min-w-0 rounded-2xl bg-[#F8FAFC] px-3 py-2">
-            <div className="mb-1.5 flex items-center gap-1.5 text-[#C41E3A]">
-              <GraduationCap className="h-3.5 w-3.5" />
-            </div>
-            <p className="truncate text-[15px] font-semibold leading-5 text-[#071225]">
-              {destination.topUniversities}
-            </p>
-          </div>
         </div>
+
+        <button
+          type="button"
+          className="mt-auto inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#C41E3A] bg-white px-4 text-sm font-bold text-[#8B0E1A] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-300 hover:border-[#8B0E1A] hover:bg-[#8B0E1A] hover:text-white"
+        >
+          Explore Destination
+          <ArrowRight className="h-4 w-4" />
+        </button>
       </div>
     </motion.article>
   );
@@ -210,7 +237,7 @@ export default function CountryExplorer() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         viewport={{ once: true, margin: "-80px" }}
-        className="relative mx-auto max-w-7xl"
+        className="relative mx-auto max-w-[1440px]"
       >
         <div className="mx-auto mb-14 max-w-4xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#F0C9D0] bg-white px-4 py-2 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
@@ -243,7 +270,7 @@ export default function CountryExplorer() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
         >
           {destinations.map((destination) => (
             <DestinationCard key={destination.name} destination={destination} />
