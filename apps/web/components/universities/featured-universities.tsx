@@ -235,7 +235,7 @@ export default function FeaturedUniversities() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
-            Handpicked universities offering world-class education, exclusive scholarships, and guaranteed visa support — all in one place.
+            Handpicked universities offering world-class education, exclusive scholarships, and guaranteed visa support — all in one place
           </p>
         </motion.div>
 
