@@ -41,7 +41,7 @@ export default function StudentSuccessStories() {
           <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
             <Award className="h-3.5 w-3.5 text-[#C41E3A]" />
             <span className="text-xs font-medium text-[#C41E3A]">
-              Student Success
+              Student Success 
             </span>
           </div>
           <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl">
