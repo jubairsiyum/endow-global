@@ -61,7 +61,7 @@ export default function AdminPage() {
   ];
 
   const activities = metrics?.recentActivity?.map((app) => ({
-    title: `Application ${app.status.toLowerCase().replace('_', ' ')}: ${app.student?.name}`,
+    title: `Application ${app.status.toLowerCase().replace('_', ' ')}: ${app.student?.user?.name}`,
     time: formatDistanceToNow(new Date(app.updatedAt), { addSuffix: true }),
   })) || [];
 

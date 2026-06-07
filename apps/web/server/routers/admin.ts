@@ -27,7 +27,9 @@ export const adminRouter = createTRPCRouter({
         orderBy: [desc(schema.applications.updatedAt)],
         limit: 10,
         with: {
-          student: true,
+          student: {
+            with: { user: true },
+          },
           course: {
             with: { university: true },
           },
@@ -72,7 +74,7 @@ export const adminRouter = createTRPCRouter({
           orderBy: [desc(schema.users.id)],
           with: {
             studentProfile: {
-              with: { assignedCounselor: true },
+              with: { assignedCounselor: { with: { user: true } } },
             },
           },
         });
@@ -93,15 +95,17 @@ export const adminRouter = createTRPCRouter({
           where: and(eq(schema.users.id, input.id), eq(schema.users.role, "STUDENT")),
           with: {
             studentProfile: {
-              with: { assignedCounselor: true },
-            },
-            applications: {
               with: {
-                course: { with: { university: true } },
+                assignedCounselor: true,
+                applications: {
+                  with: {
+                    course: { with: { university: true } },
+                  },
+                },
+                bookingSessions: {
+                  with: { counselor: true },
+                },
               },
-            },
-            bookingSessionsAsStudent: {
-              with: { counselor: true },
             },
           },
         });
@@ -168,9 +172,9 @@ export const adminRouter = createTRPCRouter({
           limit: limit + 1,
           orderBy: [desc(schema.applications.id)],
           with: {
-            student: true,
+            student: { with: { user: true } },
             course: { with: { university: true } },
-            counselor: true,
+            counselor: { with: { user: true } },
           },
         });
 
@@ -180,7 +184,7 @@ export const adminRouter = createTRPCRouter({
           const lowerSearch = search.toLowerCase();
           filteredItems = items.filter(
             (app) =>
-              app.student?.name?.toLowerCase().includes(lowerSearch) ||
+              app.student?.user?.name?.toLowerCase().includes(lowerSearch) ||
               app.course?.university?.name.toLowerCase().includes(lowerSearch) ||
               app.course?.name.toLowerCase().includes(lowerSearch)
           );
@@ -201,9 +205,9 @@ export const adminRouter = createTRPCRouter({
         return db.query.applications.findFirst({
           where: eq(schema.applications.id, input.id),
           with: {
-            student: { with: { studentProfile: true } },
+            student: { with: { user: true } },
             course: { with: { university: true } },
-            counselor: true,
+            counselor: { with: { user: true } },
           },
         });
       }),

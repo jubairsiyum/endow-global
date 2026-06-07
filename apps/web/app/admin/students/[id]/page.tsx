@@ -25,7 +25,8 @@ export default function StudentDetailPage() {
     return <div className="py-20 text-center">Student not found</div>;
   }
 
-  const profile = student.studentProfile;
+  const s = student as any;
+  const profile = s.studentProfile;
 
   return (
     <div className="space-y-6">
@@ -74,9 +75,9 @@ export default function StudentDetailPage() {
           {/* APPLICATIONS */}
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Applications</h2>
-            {student.applications && student.applications.length > 0 ? (
+            {profile?.applications && profile.applications.length > 0 ? (
               <div className="space-y-4">
-                {student.applications.map((app) => (
+                {profile.applications.map((app: any) => (
                   <div key={app.id} className="rounded-lg border p-4 dark:border-gray-700">
                     <p className="font-semibold">{app.course?.name}</p>
                     <p className="text-sm text-gray-500">{app.course?.university?.name}</p>
@@ -112,9 +113,9 @@ export default function StudentDetailPage() {
 
           <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Sessions</h2>
-            {student.bookingSessionsAsStudent && student.bookingSessionsAsStudent.length > 0 ? (
+            {profile?.bookingSessions && profile.bookingSessions.length > 0 ? (
               <div className="space-y-3">
-                {student.bookingSessionsAsStudent.map((session) => (
+                {profile.bookingSessions.map((session: any) => (
                   <div key={session.id} className="text-sm">
                     <p className="font-medium">{new Date(session.scheduledAt).toLocaleString()}</p>
                     <p className="text-gray-500">Status: {session.status}</p>

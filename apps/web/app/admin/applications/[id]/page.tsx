@@ -56,8 +56,8 @@ export default function ApplicationDetailPage() {
         </button>
         <div className="flex-1">
           <PageHeader 
-            title={`Application: ${app.course?.name}`} 
-            description={`${app.course?.university?.name} • ${app.student?.name}`} 
+            title={`Application: ${app.course?.name}`}
+            description={`${app.course?.university?.name} • ${app.student?.user?.name}`}
           />
         </div>
       </div>
@@ -72,12 +72,12 @@ export default function ApplicationDetailPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-gray-500">Student</p>
-                <p className="font-medium text-gray-900 dark:text-white">{app.student?.name}</p>
-                <p className="text-xs text-gray-500">{app.student?.email}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{app.student?.user?.name}</p>
+                <p className="text-xs text-gray-500">{app.student?.user?.email}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Counselor</p>
-                <p className="font-medium text-gray-900 dark:text-white">{app.counselor?.name || "Unassigned"}</p>
+                <p className="font-medium text-gray-900 dark:text-white">{app.counselor?.user?.name || "Unassigned"}</p>
               </div>
               <div>
                 <p className="text-sm text-gray-500">Submitted At</p>
