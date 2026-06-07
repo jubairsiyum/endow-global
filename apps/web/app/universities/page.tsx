@@ -17,7 +17,7 @@ export default function UniversitiesPage() {
   return (
     <div className="flex w-full flex-col overflow-x-hidden">
       <Navbar />
-      <section className="relative overflow-x-hidden bg-white pt-[120px] lg:pt-[136px]">
+      <section className="relative overflow-x-hidden bg-white pt-24">
         <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
           <HeroSection />
         </div>
