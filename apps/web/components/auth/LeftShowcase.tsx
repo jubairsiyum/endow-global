@@ -6,24 +6,15 @@ import { Globe, MessageCircleMore, BadgeCheck, Sparkles } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 const showcaseCopy = {
-  signin: {
-    eyebrow: 'Student portal',
-    title: 'Pick up your study plan exactly where you left it.',
-    description:
-      'Sign in to manage applications, documents, counselor sessions, and university shortlists from one polished workspace.',
-    trust: 'Your applications, sessions, and next steps stay organized in one place.',
-  },
-  signup: {
-    eyebrow: 'Start your journey',
-    title: 'Build your global education profile with expert guidance.',
-    description:
-      'Register to create your profile, compare suitable universities, and get support from counselors who know the application path.',
-    trust: 'Trusted guidance for applications across leading study destinations.',
-  },
+  eyebrow: 'Student portal',
+  title: 'Pick up your study plan exactly where you left it.',
+  description:
+    'Sign in to manage applications, documents, counselor sessions, and university shortlists from one polished workspace.',
+  trust: 'Your applications, sessions, and next steps stay organized in one place.',
 } as const
 
-export default function LeftShowcase({ mode }: { mode: 'signin' | 'signup' }) {
-  const copy = showcaseCopy[mode]
+export default function LeftShowcase(_: { mode: 'signin' | 'signup' }) {
+  const copy = showcaseCopy
 
   return (
     <div className="relative hidden w-[55%] flex-col justify-center px-4 lg:flex">

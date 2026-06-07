@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -56,6 +56,8 @@ const containerVariants = {
 export function Navbar() {
   const pathname = usePathname()
   const isHome = pathname === '/'
+  const isAuthRoute = pathname === '/login' || pathname === '/register'
+  const authMode: 'signin' | 'signup' = pathname === '/register' ? 'signup' : 'signin'
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const isHero = !isScrolled
@@ -67,6 +69,23 @@ export function Navbar() {
   const pillActiveShadow = 'shadow-[0_10px_30px_rgba(196,30,58,0.25)]'
 
   const navMotion = isHero ? containerVariants.hero : containerVariants.scrolled
+
+  // When already on an auth route, the Navbar's Sign In / Sign Up buttons
+  // must toggle the form in-page (via the AuthContext) rather than performing
+  // a Next.js route navigation, which would remount the page and kill the
+  // smooth form-switch animation.
+  const handleAuthClick = useCallback(
+    (mode: 'signin' | 'signup') =>
+      (e: React.MouseEvent<HTMLAnchorElement>) => {
+        if (isAuthRoute && authMode !== mode) {
+          e.preventDefault()
+          window.dispatchEvent(
+            new CustomEvent('endow:set-auth-mode', { detail: mode })
+          )
+        }
+      },
+    [isAuthRoute, authMode]
+  )
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 50)
@@ -162,6 +181,8 @@ export function Navbar() {
           >
             <Link
               href="/login"
+              prefetch={false}
+              onClick={handleAuthClick('signin')}
               className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
                 isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
               }`}
@@ -173,6 +194,8 @@ export function Navbar() {
           <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/register"
+              prefetch={false}
+              onClick={handleAuthClick('signup')}
               className={`inline-flex items-center justify-center group rounded-full transition ${
                 isScrolled
                   ? 'gap-2 px-5 py-2.5 font-semibold tracking-tight text-white bg-gradient-to-r from-red-600 to-rose-500 shadow-[0_10px_24px_rgba(196,30,58,0.20)] hover:shadow-red-200 hover:-translate-y-0.5 transition-all duration-300'
@@ -275,12 +298,16 @@ export function Navbar() {
               <div className="mt-4 flex flex-col gap-2">
                 <Link
                   href="/login"
+                  prefetch={false}
+                  onClick={handleAuthClick('signin')}
                   className="flex items-center justify-center rounded-full border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
+                  prefetch={false}
+                  onClick={handleAuthClick('signup')}
                   className="flex items-center justify-center rounded-full bg-[#C41E3A] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)]"
                 >
                   Sign Up

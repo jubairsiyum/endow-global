@@ -1,20 +1,17 @@
 import '../../../env-loader.cjs'
 import { drizzle } from 'drizzle-orm/mysql2'
 import mysql from 'mysql2/promise'
-import type { MySql2Database } from 'drizzle-orm/mysql2'
 import * as schema from './schema'
 
-type DrizzleDb = MySql2Database<typeof schema>
-
 const globalForDb = globalThis as unknown as {
-  db: DrizzleDb | undefined
+  db: ReturnType<typeof createDb> | undefined
 }
 
-function createDb(): DrizzleDb {
+function createDb() {
   const pool = mysql.createPool({
     uri: process.env.DATABASE_URL,
   })
-  return drizzle(pool, { schema, mode: 'default' }) as DrizzleDb
+  return drizzle(pool, { schema, mode: 'default' })
 }
 
 export const db = globalForDb.db ?? createDb()

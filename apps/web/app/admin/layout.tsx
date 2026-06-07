@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
+import { UserRole } from "@endow/types";
 import { AdminClientLayout } from "@/components/admin/layout/AdminClientLayout";
 
 export default async function AdminLayout({
@@ -16,7 +17,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  if (session.user.role !== "ADMIN" && session.user.role !== "SUPER_ADMIN") {
+  if (session.user.role !== UserRole.ADMIN) {
     redirect("/dashboard");
   }
 

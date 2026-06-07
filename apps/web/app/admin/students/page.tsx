@@ -90,7 +90,7 @@ export default function StudentsPage() {
 
                 {/* COUNSELOR */}
                 <div className="text-gray-700 dark:text-gray-300 truncate">
-                  {student.studentProfile?.assignedCounselor?.name || "Unassigned"}
+                  {(student as any).studentProfile?.assignedCounselor?.user?.name || "Unassigned"}
                 </div>
 
                 {/* STATUS */}

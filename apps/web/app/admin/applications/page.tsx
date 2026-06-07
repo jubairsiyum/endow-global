@@ -90,17 +90,17 @@ export default function ApplicationsPage() {
           ) : data?.items.length === 0 ? (
             <div className="py-10 text-center">No applications found</div>
           ) : (
-            data?.items.map((application) => (
+            data?.items.map((application: any) => (
               <div
                 key={application.id}
                 className="grid min-w-[850px] grid-cols-5 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"
               >
                 <div>
                   <p className="font-semibold text-gray-900 dark:text-white truncate">
-                    {application.student?.name || "Unknown"}
+                    {application.student?.user?.name || "Unknown"}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
-                    {application.student?.email}
+                    {application.student?.user?.email}
                   </p>
                 </div>
 
