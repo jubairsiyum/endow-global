@@ -38,27 +38,26 @@ export default function CoursesPage() {
   const { data: subjects } = trpc.course.getSubjects.useQuery()
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans text-gray-900">
-      <div className="sticky top-0 z-40">
-        <Navbar />
-      </div>
+    <div className="w-full flex flex-col overflow-x-hidden">
+      <section className="relative overflow-x-hidden bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <div className="pt-4 pb-6 lg:pb-8">
+            <Navbar />
+          </div>
 
-      <main className="flex-grow">
-        {/* Hero */}
-        <section className="bg-gradient-to-br from-[#C41E3A] to-red-700 py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="py-16 lg:py-24">
             <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl">
-                Find Your Perfect Course
+              <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
+                Find Your <span className="text-[#C41E3A]">Perfect Course</span>
               </h1>
-              <p className="mx-auto mt-4 max-w-2xl text-lg text-white/90">
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-600 sm:text-lg">
                 Browse thousands of programs from partner universities worldwide
               </p>
             </div>
 
             {/* Search Bar */}
             <div className="mx-auto mt-8 max-w-3xl">
-              <div className="flex items-center gap-2 rounded-2xl bg-white p-2 shadow-xl">
+              <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_16px_45px_rgba(15,23,42,0.08)]">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
                   <input
@@ -78,8 +77,10 @@ export default function CoursesPage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
+      <main className="flex-grow">
         {/* Filters + Results */}
         <section className="py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

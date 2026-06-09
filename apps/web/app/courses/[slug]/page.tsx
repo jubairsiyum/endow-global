@@ -39,10 +39,14 @@ export default function CourseDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
-        <div className="sticky top-0 z-40"><Navbar /></div>
+      <div className="w-full flex flex-col overflow-x-hidden">
+        <section className="relative overflow-x-hidden bg-white">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+            <div className="pt-4 pb-6 lg:pb-8"><Navbar /></div>
+          </div>
+        </section>
         <main className="flex-grow py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="animate-pulse space-y-6">
               <div className="h-8 w-48 rounded bg-gray-200" />
               <div className="h-12 w-3/4 rounded bg-gray-200" />
@@ -63,8 +67,12 @@ export default function CourseDetailPage() {
 
   if (error || !course) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
-        <div className="sticky top-0 z-40"><Navbar /></div>
+      <div className="w-full flex flex-col overflow-x-hidden">
+        <section className="relative overflow-x-hidden bg-white">
+          <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+            <div className="pt-4 pb-6 lg:pb-8"><Navbar /></div>
+          </div>
+        </section>
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <GraduationCap className="mx-auto h-20 w-20 text-gray-300" />
@@ -85,13 +93,15 @@ export default function CourseDetailPage() {
   const requirements: string[] = Array.isArray(course.requirements) ? course.requirements : []
 
   return (
-    <div className="min-h-screen flex flex-col bg-white font-sans text-gray-900">
-      <div className="sticky top-0 z-40"><Navbar /></div>
+    <div className="w-full flex flex-col overflow-x-hidden">
+      <section className="relative overflow-x-hidden bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <div className="pt-4 pb-6 lg:pb-8">
+            <Navbar />
+          </div>
 
-      <main className="flex-grow">
-        {/* Breadcrumb + Header */}
-        <section className="bg-gradient-to-br from-gray-50 to-white py-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="py-10 lg:py-16">
+            {/* Breadcrumb */}
             <Link
               href="/courses"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-[#C41E3A] transition-colors"
@@ -117,7 +127,7 @@ export default function CourseDetailPage() {
                   )}
                 </div>
 
-                <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
                   {course.name}
                 </h1>
 
@@ -160,8 +170,10 @@ export default function CourseDetailPage() {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
+      <main className="flex-grow">
         {/* Content */}
         <section className="py-10">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

@@ -2,10 +2,14 @@ import { Navbar } from '@/components/layout/Navbar'
 
 export default function CourseLoading() {
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <div className="sticky top-0 z-40"><Navbar /></div>
+    <div className="w-full flex flex-col overflow-x-hidden">
+      <section className="relative overflow-x-hidden bg-white">
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+          <div className="pt-4 pb-6 lg:pb-8"><Navbar /></div>
+        </div>
+      </section>
       <main className="flex-grow py-16">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="animate-pulse space-y-6">
             <div className="h-4 w-32 rounded bg-gray-200" />
             <div className="flex gap-2">
