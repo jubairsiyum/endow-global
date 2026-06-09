@@ -9,9 +9,7 @@ import {
   Video,
   Shield,
   Plane,
-  CheckCircle2,
 } from 'lucide-react'
-import ScrollFloat from "@/components/animations/ScrollFloat";
 
 const roadmapSteps = [
   {
@@ -60,7 +58,7 @@ const roadmapSteps = [
 
 export default function ApplicationRoadmap() {
   return (
-    <section className="relative overflow-x-hidden bg-[#F8FAFC] py-16 lg:py-20">
+    <section className="relative overflow-x-hidden bg-[#F8FAFC] pt-2 pb-12 lg:pt-4 lg:pb-16">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -72,24 +70,18 @@ export default function ApplicationRoadmap() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-12 space-y-3 text-center"
+          className="mb-8 text-center"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
-            <CheckCircle2 className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-xs font-medium text-[#C41E3A]">Your Journey</span>
-          </div>
-          <ScrollFloat
-            animationDuration={1.1}
-            ease="back.inOut(1.8)"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.015}
-            containerClassName="text-center !my-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
-          >
-            Your Application Roadmap
-          </ScrollFloat>
-          <p className="mx-auto max-w-2xl text-base text-gray-600">
+          <h2 className="font-serif text-[clamp(2.1rem,3.8vw,3.4rem)] font-extrabold leading-[1] tracking-[-0.04em]">
+            <span className="text-[#071225]">
+              Your Application
+            </span>{' '}
+            <span className="text-[#C41E3A]">
+              Roadmap
+            </span>
+          </h2>
+
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
             We guide you through every step of your international education journey
           </p>
         </motion.div>
@@ -135,7 +127,7 @@ export default function ApplicationRoadmap() {
                     {/* Content */}
                     <div className="space-y-2 text-center">
                       <h3 className="font-bold text-gray-900">{step.title}</h3>
-                      <p className="text-sm text-gray-600">{step.description}</p>
+                      <p className="text-sm leading-relaxed text-gray-600">{step.description}</p>
                     </div>
                   </motion.div>
                 )
@@ -181,7 +173,7 @@ export default function ApplicationRoadmap() {
                 {/* Content */}
                 <div className="flex-1 pt-2">
                   <h3 className="font-bold text-gray-900">{step.title}</h3>
-                  <p className="mt-1 text-sm text-gray-600">{step.description}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-gray-600">{step.description}</p>
                 </div>
               </motion.div>
             )
@@ -197,7 +189,7 @@ export default function ApplicationRoadmap() {
           className="mt-12 space-y-4 text-center"
         >
           <h3 className="text-xl font-bold text-gray-900">Estimated Timeline: 3-4 Months</h3>
-          <p className="mx-auto max-w-2xl text-gray-600">
+          <p className="mx-auto max-w-2xl text-base leading-7 text-gray-600">
             Our streamlined process ensures you're ready to start your international education
             journey on time, every time.
           </p>
