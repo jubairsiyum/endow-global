@@ -252,9 +252,9 @@ function DestinationCard({ destination }: { destination: Destination }) {
 
 export default function CountryExplorer() {
   return (
-    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
+    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 pt-6 pb-12 sm:px-6 lg:px-8 lg:pt-8 lg:pb-16">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D7B46A] to-transparent" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D7A8] to-transparent" />
         <div className="absolute -right-28 top-10 h-[420px] w-[420px] rounded-full bg-[#C41E3A]/[0.08] blur-3xl" />
         <div className="absolute -left-32 bottom-10 h-[360px] w-[360px] rounded-full bg-white blur-3xl" />
       </div>
@@ -266,20 +266,19 @@ export default function CountryExplorer() {
         viewport={{ once: true, margin: "-80px" }}
         className="relative mx-auto max-w-[1320px]"
       >
-        <div className="mx-auto mb-10 max-w-4xl text-center">
+        <div className="mx-auto mb-8 max-w-4xl text-center">
 
 
-          <ScrollFloat
-            animationDuration={1.1}
-            ease="back.inOut(1.8)"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.015}
-            containerClassName="mt-2 text-center !mb-0"
-            textClassName="text-[clamp(2rem,3.5vw,3.4rem)] font-serif font-extrabold tracking-tight leading-none text-[#071225]"
-          >
-            Find Your Ideal Study Destination
-          </ScrollFloat>
+          <div className="mt-2 text-center">
+            <h2 className="text-[clamp(2rem,3.5vw,3.4rem)] font-serif font-extrabold tracking-tight leading-none">
+              <span className="text-[#071225]">
+                Find Your Ideal Study
+              </span>{" "}
+              <span className="text-[#C41E3A]">
+                Destination
+              </span>
+            </h2>
+          </div>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
             Discover the world&apos;s best education destinations and find the
