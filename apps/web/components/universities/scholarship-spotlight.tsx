@@ -2,9 +2,8 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowRight, Award, MapPin } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { scholarships, universities } from "@/lib/universities/data";
-import ScrollFloat from "@/components/animations/ScrollFloat";
 import { universityDesign as ds } from "./design-system";
 
 const featuredScholarships = scholarships.slice(0, 3);
@@ -32,33 +31,21 @@ export default function ScholarshipSpotlight() {
   };
 
   return (
-    <section className={ds.section}>
-      <div className={ds.container}>
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FCFCFD] via-[#F8FAFC] to-[#F1F5F9] px-4 pt-0 pb-14 sm:px-6 lg:px-8 lg:pt-0 lg:pb-16">
+      <div className="mx-auto max-w-[1440px] px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className={ds.header}
+          className="mx-auto mb-6 max-w-5xl text-center"
         >
-          <div className={ds.badge}>
-            <Award className="h-3.5 w-3.5" />
-            <span>Financial Aid</span>
-          </div>
+          <h2 className="font-serif text-[clamp(2.1rem,3.8vw,3.4rem)] font-extrabold leading-[1] tracking-[-0.04em]">
+            <span className="text-[#071225]">Exclusive Scholarship</span>{" "}
+            <span className="text-[#C41E3A]">Opportunities</span>
+          </h2>
 
-          <ScrollFloat
-            animationDuration={1.1}
-            ease="back.inOut(1.8)"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.015}
-            containerClassName="scroll-title-highlight-scholarship mt-6 text-center !mb-0"
-            textClassName={ds.heading}
-          >
-            Exclusive Scholarship Opportunities
-          </ScrollFloat>
-
-          <p className={ds.description}>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
             Reduce your tuition burden with partner-university scholarships and
             expert financial aid guidance.
           </p>
@@ -78,46 +65,79 @@ export default function ScholarshipSpotlight() {
               <motion.article
                 key={scholarship.id}
                 variants={itemVariants}
-                whileHover={{ y: -4, transition: { duration: 0.3 } }}
-                className={ds.card}
+                whileHover={{
+                  y: -8,
+                  scale: 1.02,
+                }}
+                transition={{
+                  duration: 0.35,
+                  ease: [0.22, 1, 0.36, 1],
+                }}
+                className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-gradient-to-b from-white via-white to-[#FCFCFD] p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-500 ease-out hover:border-[#C41E3A]/20 hover:shadow-[0_30px_80px_rgba(196,30,58,0.12)]"
               >
-                <div className="flex items-start gap-4">
-                  <div className={ds.iconBox}>
+                {/* University watermark/silhouette */}
+                <div className="pointer-events-none absolute bottom-0 left-0 right-0 top-0 bg-[url('/images/university-silhouette.svg')] bg-[length:170%] bg-bottom bg-no-repeat opacity-[0.02]" />
+
+                {/* Glow effect */}
+                <div className="absolute -right-20 -top-20 h-40 w-40 rounded-full bg-[#C41E3A]/10 blur-3xl opacity-0 transition-all duration-700 group-hover:opacity-100" />
+
+                {/* Floating arrow button */}
+                <button
+                  className="absolute right-5 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-[#F1D5DB] bg-[#FAF1F3] transition-all duration-500 group-hover:scale-110 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:shadow-[0_10px_25px_rgba(196,30,58,0.35)]"
+                  aria-label="View scholarship details"
+                >
+                  <ArrowRight className="h-4 w-4 text-[#C41E3A] transition-all duration-500 group-hover:translate-x-1 group-hover:text-white" />
+                </button>
+
+                {/* Header Section */}
+                <div className="relative z-10 mb-5 flex items-start gap-4">
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-500 group-hover:scale-105 group-hover:shadow-md">
                     <Image
                       src={university?.logo ?? fallbackUniversityImage}
                       alt={`${scholarship.universityName} logo`}
-                      fill
-                      sizes="48px"
-                      className="object-contain p-2"
+                      width={42}
+                      height={42}
+                      className="h-10 w-10 object-contain"
                     />
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <h3 className={ds.cardTitle}>
-                      {scholarship.universityName}
-                    </h3>
-                    <p className="mt-2 flex items-center gap-2 text-xs font-bold uppercase text-[#64748B]">
-                      <MapPin className="h-3.5 w-3.5 text-[#C41E3A]" />
-                      <span className="line-clamp-1">
-                        {university?.country ?? "International"}
+                  <div>
+                    <div className="inline-flex rounded-full bg-[#FFF3F5] px-3 py-1">
+                      <span className="text-[11px] font-semibold tracking-wider text-[#C41E3A]">
+                        SCHOLARSHIP
                       </span>
+                    </div>
+
+                    <p className="mt-2 flex items-center gap-1 text-sm text-slate-500">
+                      <MapPin className="h-3.5 w-3.5 text-[#C41E3A]" />
+                      {university?.country}
                     </p>
                   </div>
                 </div>
 
-                <div className="my-8 text-center">
-                  <p className="font-serif text-[56px] font-bold leading-none text-[#C41E3A]">
+                {/* Percentage Section */}
+                <div className="relative z-10 mb-6">
+                  <h3 className="font-serif text-[46px] font-bold leading-none tracking-[-0.04em] text-[#C41E3A] lg:text-[52px]">
                     {scholarship.percentage}%
-                  </p>
-                  <p className="mt-2 text-xs font-bold uppercase text-[#64748B]">
-                    Scholarship
+                  </h3>
+
+                  <p className="mt-2 text-sm text-slate-500">
+                    Tuition Coverage
                   </p>
                 </div>
 
-                <button type="button" className={`${ds.primaryButton} mt-auto w-full`}>
-                  Check Eligibility
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+                {/* Bottom Section */}
+                <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
+                  <div className="pr-16">
+                    <h3 className="font-serif text-[1.45rem] font-bold leading-tight text-[#071225]">
+                      {scholarship.universityName}
+                    </h3>
+
+                    <p className="mt-2 text-sm text-slate-500">
+                      Merit Based Award
+                    </p>
+                  </div>
+                </div>
               </motion.article>
             );
           })}
