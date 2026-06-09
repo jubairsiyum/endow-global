@@ -165,7 +165,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
         y: -6,
         transition: { duration: 0.28, ease: "easeOut" },
       }}
-      className="group relative h-[300px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#D9B873] hover:shadow-[0_22px_58px_rgba(139,14,26,0.12)]"
+      className="group relative h-[300px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
     >
       <div className="relative h-[110px] overflow-hidden">
         <Image
@@ -183,9 +183,42 @@ function DestinationCard({ destination }: { destination: Destination }) {
       </div>
 
       <div className="flex h-[190px] flex-col px-5 pb-4 pt-4">
-        <h3 className="truncate font-serif text-2xl font-bold leading-none tracking-normal text-[#071225]">
-          {destination.name}
-        </h3>
+        <div className="flex items-start justify-between gap-3">
+          <h3 className="truncate font-serif text-2xl font-bold leading-none tracking-normal text-[#071225]">
+            {destination.name}
+          </h3>
+
+          <div
+            className="
+      flex
+      h-10
+      w-10
+      shrink-0
+      items-center
+      justify-center
+      rounded-full
+      border
+      border-[#C41E3A]/20
+      bg-[#FFF5F6]
+      transition-all
+      duration-300
+      group-hover:border-[#C41E3A]
+      group-hover:bg-[#C41E3A]
+    "
+          >
+            <ArrowRight
+              className="
+        h-4
+        w-4
+        text-[#C41E3A]
+        transition-all
+        duration-300
+        group-hover:translate-x-0.5
+        group-hover:text-white
+      "
+            />
+          </div>
+        </div>
 
         <p className="mt-1.5 line-clamp-2 min-h-9 text-sm leading-[1.3] text-slate-600">
           {destination.description}
@@ -211,13 +244,6 @@ function DestinationCard({ destination }: { destination: Destination }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="mt-auto inline-flex h-11 w-full items-center justify-center gap-2 rounded-full border border-[#C41E3A] bg-white px-4 text-sm font-bold text-[#8B0E1A] shadow-[0_8px_20px_rgba(15,23,42,0.04)] transition-all duration-300 hover:border-[#8B0E1A] hover:bg-[#8B0E1A] hover:text-white"
-        >
-          Explore Destination
-          <ArrowRight className="h-4 w-4" />
-        </button>
       </div>
     </motion.article>
   );
