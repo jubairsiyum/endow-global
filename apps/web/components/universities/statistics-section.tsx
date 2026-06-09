@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { TrendingUp, Users, Globe, Award } from 'lucide-react'
-import ScrollFloat from "@/components/animations/ScrollFloat";
 
 interface StatConfig {
   value: number
@@ -85,7 +84,7 @@ export default function StatisticsSection() {
   }
 
   return (
-    <section className="relative overflow-x-hidden bg-[#F8FAFC] py-16 lg:py-20">
+    <section className="relative overflow-x-hidden bg-[#F8FAFC] pt-0 pb-12 lg:pt-0 lg:pb-14">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -97,20 +96,15 @@ export default function StatisticsSection() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-12 space-y-3 text-center"
+          className="mb-6 text-center"
         >
-          <ScrollFloat
-            animationDuration={1.1}
-            ease="back.inOut(1.8)"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.015}
-            containerClassName="scroll-title-highlight-success text-center !my-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
-          >
-            Global Success by Numbers
-          </ScrollFloat>
-          <p className="mx-auto max-w-2xl text-base text-gray-600">
+          <h2 className="font-serif text-[clamp(2.75rem,4.5vw,5rem)] font-bold tracking-[-0.05em] leading-[0.95]">
+            <span className="text-[#071225]">Global</span>{' '}
+            <span className="text-[#C41E3A]">Success</span>{' '}
+            <span className="text-[#071225]">by Numbers</span>
+          </h2>
+          
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
             Join thousands of students who have successfully pursued their education dreams globally
           </p>
         </motion.div>
