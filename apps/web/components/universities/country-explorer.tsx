@@ -165,9 +165,9 @@ function DestinationCard({ destination }: { destination: Destination }) {
         y: -6,
         transition: { duration: 0.28, ease: "easeOut" },
       }}
-      className="group relative h-[300px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
+      className="group relative mx-auto h-[285px] max-w-[300px] overflow-hidden rounded-[24px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
     >
-      <div className="relative h-[110px] overflow-hidden">
+      <div className="relative h-[95px] overflow-hidden">
         <Image
           src={destination.image}
           alt={destination.imageAlt}
@@ -182,14 +182,15 @@ function DestinationCard({ destination }: { destination: Destination }) {
         </div>
       </div>
 
-      <div className="flex h-[190px] flex-col px-5 pb-4 pt-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="truncate font-serif text-2xl font-bold leading-none tracking-normal text-[#071225]">
+      <div className="flex h-[180px] flex-col px-4 pb-4 pt-3">
+        <div className="min-h-[48px] flex items-start gap-3">
+          <h3 className="flex-1 font-serif text-[20px] font-bold leading-[1.1] text-[#071225]">
             {destination.name}
           </h3>
 
           <div
             className="
+      ml-auto
       flex
       h-10
       w-10
@@ -220,11 +221,11 @@ function DestinationCard({ destination }: { destination: Destination }) {
           </div>
         </div>
 
-        <p className="mt-1.5 line-clamp-2 min-h-9 text-sm leading-[1.3] text-slate-600">
+        <p className="mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-5 leading-[1.3] text-slate-600">
           {destination.description}
         </p>
 
-        <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[#EDF0F4] pt-2.5">
+        <div className="mt-auto grid grid-cols-2 gap-3 border-t border-[#EDF0F4] pt-2.5">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Building2 className="h-3.5 w-3.5" />
@@ -251,7 +252,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
 
 export default function CountryExplorer() {
   return (
-    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 py-20 sm:px-6 lg:px-8 lg:py-24">
+    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#D7B46A] to-transparent" />
         <div className="absolute -right-28 top-10 h-[420px] w-[420px] rounded-full bg-[#C41E3A]/[0.08] blur-3xl" />
@@ -263,15 +264,10 @@ export default function CountryExplorer() {
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
         viewport={{ once: true, margin: "-80px" }}
-        className="relative mx-auto max-w-[1440px]"
+        className="relative mx-auto max-w-[1320px]"
       >
-        <div className="mx-auto mb-14 max-w-4xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#F0C9D0] bg-white px-4 py-2 shadow-[0_10px_24px_rgba(15,23,42,0.04)]">
-            <Globe2 className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-[#8B0E1A]">
-              Explore Destinations
-            </span>
-          </div>
+        <div className="mx-auto mb-10 max-w-4xl text-center">
+
 
           <ScrollFloat
             animationDuration={1.1}
@@ -279,10 +275,10 @@ export default function CountryExplorer() {
             scrollStart="top bottom-=15%"
             scrollEnd="center center"
             stagger={0.015}
-            containerClassName="scroll-title-highlight-worldwide mt-6 text-center !mb-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-extrabold tracking-tight leading-none text-[#071225]"
+            containerClassName="mt-2 text-center !mb-0"
+            textClassName="text-[clamp(2rem,3.5vw,3.4rem)] font-serif font-extrabold tracking-tight leading-none text-[#071225]"
           >
-            Study Destinations Worldwide
+            Find Your Ideal Study Destination
           </ScrollFloat>
 
           <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
@@ -296,7 +292,7 @@ export default function CountryExplorer() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-7"
         >
           {destinations.map((destination) => (
             <DestinationCard key={destination.name} destination={destination} />
