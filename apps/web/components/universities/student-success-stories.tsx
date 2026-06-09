@@ -1,10 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Star, Award } from 'lucide-react'
+import { Star } from 'lucide-react'
 import { studentStories } from '@/lib/universities/data'
 import Image from 'next/image'
-import ScrollFloat from "@/components/animations/ScrollFloat";
 
 export default function StudentSuccessStories() {
   const containerVariants = {
@@ -25,7 +24,7 @@ export default function StudentSuccessStories() {
   }
 
   return (
-    <section className="relative overflow-x-hidden bg-white py-16 lg:py-20">
+    <section className="relative overflow-x-hidden bg-white pt-0 pb-14 lg:pt-2 lg:pb-16">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -left-20 top-1/2 h-[400px] w-[400px] rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -37,24 +36,14 @@ export default function StudentSuccessStories() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-12 space-y-3 text-center"
+          className="mb-8 text-center"
         >
-          <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-3 py-1.5">
-            <Award className="h-3.5 w-3.5 text-[#C41E3A]" />
-            <span className="text-xs font-medium text-[#C41E3A]">Student Success</span>
-          </div>
-          <ScrollFloat
-            animationDuration={1.1}
-            ease="back.inOut(1.8)"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.015}
-            containerClassName="text-center !my-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
-          >
-            Success Stories from Our Students
-          </ScrollFloat>
-          <p className="mx-auto max-w-2xl text-base text-gray-600">
+          <h2 className="font-serif text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-[-0.05em] leading-[0.95]">
+            <span className="text-[#071225]">Success </span>
+            <span className="text-[#C41E3A]">Stories </span>
+            <span className="text-[#071225]">from Our Students</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
             Real stories of transformation from students who achieved their dreams through our
             platform
           </p>
