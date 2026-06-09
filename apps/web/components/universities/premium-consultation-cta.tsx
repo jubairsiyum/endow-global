@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Calendar, CheckCircle2, MessageCircle, Phone, Sparkles } from 'lucide-react'
+import { Calendar, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
 
 export default function PremiumConsultationCTA() {
   const containerVariants = {
@@ -22,7 +22,7 @@ export default function PremiumConsultationCTA() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white py-16 lg:py-20">
+    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white pt-6 pb-14 lg:pt-8 lg:pb-16">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -42,31 +42,28 @@ export default function PremiumConsultationCTA() {
           viewport={{ once: true }}
           className="space-y-7 text-center"
         >
-          {/* Badge */}
-          <motion.div variants={itemVariants}>
-            <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-white/80 px-3 py-1.5 shadow-sm backdrop-blur-md">
-              <Sparkles className="h-3.5 w-3.5 text-[#C41E3A]" />
-              <span className="text-xs font-medium text-[#C41E3A]">Limited Time Offer</span>
-            </div>
-          </motion.div>
-
           {/* Main Heading */}
           <motion.div variants={itemVariants} className="space-y-4">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-950 lg:text-4xl">
-              Ready to Transform Your
+            <h2 className="font-serif text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-[-0.05em] leading-[0.95]">
+              <span className="text-[#071225]">
+                Ready to Transform Your
+              </span>
               <br />
-              <span className="text-[#C41E3A]">Educational Future?</span>
+              <span className="text-[#C41E3A]">
+                Educational Future?
+              </span>
             </h2>
-            <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600">
-              Get a free profile evaluation from our education experts. Receive personalized
-              university recommendations and exclusive scholarship opportunities.
+            <p className="mx-auto max-w-2xl text-base leading-7 text-slate-600">
+              Get a free profile evaluation from our education experts. Receive 
+              personalized university recommendations and exclusive scholarship 
+              opportunities.
             </p>
           </motion.div>
 
           {/* CTA Buttons Grid */}
           <motion.div
             variants={containerVariants}
-            className="mx-auto grid max-w-3xl gap-5 pt-1 sm:grid-cols-2 lg:grid-cols-3"
+            className="mx-auto max-w-3xl pt-1 grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
           >
             {/* WhatsApp */}
             <motion.a
