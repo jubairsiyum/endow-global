@@ -134,7 +134,7 @@ export default function ScholarshipSpotlight() {
 
                 {/* Bottom Section */}
                 <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
-                  <div className="pr-16">
+                  <div>
                     <h3 className="font-serif text-[1.45rem] font-bold leading-tight text-[#071225]">
                       {scholarship.universityName}
                     </h3>
@@ -144,12 +144,12 @@ export default function ScholarshipSpotlight() {
                     </p>
                   </div>
 
-                  <div className="absolute inset-x-4 bottom-4">
-                    <div className="mb-3 grid grid-cols-2 gap-2 text-[13px] font-semibold text-slate-600">
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    <div className="grid grid-cols-2 gap-2 text-[13px] font-semibold text-slate-600">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
                         <span className="line-clamp-1">
-                          {university?.country ?? 'International'}
+                          {university?.country ?? "International"}
                         </span>
                       </div>
                       <div className="flex min-w-0 items-center justify-end gap-1.5 text-right">
@@ -157,14 +157,6 @@ export default function ScholarshipSpotlight() {
                         <span className="line-clamp-1">{deadlineLabel}</span>
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#8B0E1A] px-5 text-sm font-bold text-white shadow-[0_10px_22px_rgba(139,14,26,0.2)] transition-all duration-300 hover:bg-[#760B16] hover:shadow-[0_14px_28px_rgba(139,14,26,0.28)]"
-                    >
-                      Check Eligibility
-                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                    </button>
                   </div>
                 </div>
               </motion.article>
