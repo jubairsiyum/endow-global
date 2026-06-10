@@ -28,6 +28,13 @@ export default function ScholarshipSpotlight() {
     },
   }
 
+  const itemVariantsHover = {
+    hover: {
+      y: -4,
+      transition: { duration: 0.25 },
+    },
+  }
+
   return (
     <section className="relative overflow-x-hidden bg-white py-12 lg:py-14">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
