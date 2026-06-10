@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { ArrowRight, Award, MapPin } from 'lucide-react'
+import { ArrowRight, Award, CalendarDays, MapPin } from 'lucide-react'
 import { scholarships, universities } from '@/lib/universities/data'
 import ScrollFloat from '@/components/animations/ScrollFloat'
 
@@ -73,7 +73,14 @@ export default function ScholarshipSpotlight() {
           className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
         >
           {featuredScholarships.map((scholarship) => {
-            const university = universityById.get(scholarship.universityId);
+            const university = universityById.get(scholarship.universityId)
+            const deadlineLabel = scholarship.deadline
+              ? new Date(scholarship.deadline).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })
+              : 'Rolling'
 
             return (
               <motion.div
@@ -104,7 +111,7 @@ export default function ScholarshipSpotlight() {
                       <p className="mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-slate-500">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
                         <span className="line-clamp-1">
-                          {university?.country ?? "International"}
+                          {university?.country ?? 'International'}
                         </span>
                       </p>
                     </div>
@@ -133,13 +140,14 @@ export default function ScholarshipSpotlight() {
                       </div>
                     </div>
 
-                  <button
-                    type="button"
-                    className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#8B0E1A] px-5 text-sm font-bold text-white shadow-[0_10px_22px_rgba(139,14,26,0.2)] transition-all duration-300 hover:bg-[#760B16] hover:shadow-[0_14px_28px_rgba(139,14,26,0.28)]"
-                  >
-                    Check Eligibility
-                    <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-                  </button>
+                    <button
+                      type="button"
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#8B0E1A] px-5 text-sm font-bold text-white shadow-[0_10px_22px_rgba(139,14,26,0.2)] transition-all duration-300 hover:bg-[#760B16] hover:shadow-[0_14px_28px_rgba(139,14,26,0.28)]"
+                    >
+                      Check Eligibility
+                      <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                    </button>
+                  </div>
                 </div>
               </motion.div>
             )
