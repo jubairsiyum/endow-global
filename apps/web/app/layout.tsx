@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from 'next'
-import { Quicksand } from 'next/font/google'
 
 import { TRPCReactProvider } from '@/lib/trpc-client'
 
@@ -8,15 +7,7 @@ import { Toaster } from 'sonner'
 import ThemeProvider from '@/components/providers/ThemeProvider'
 import ClickSpark from '@/components/effects/ClickSpark'
 
-import '@fontsource/inter'
-
 import './globals.css'
-
-const quicksand = Quicksand({
-  subsets: ['latin'],
-  variable: '--font-quicksand',
-  display: 'swap',
-})
 
 const appUrlRaw = process.env.NEXT_PUBLIC_APP_URL
 const appUrl = (() => {
@@ -88,7 +79,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={quicksand.variable}>
+    <html lang="en" suppressHydrationWarning>
       <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#ffffff] dark:text-white">
         <ClickSpark />
 

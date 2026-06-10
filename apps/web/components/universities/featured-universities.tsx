@@ -168,7 +168,7 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
         </div>
 
         <div className="min-w-0 self-center overflow-hidden pr-1">
-          <h3 className="line-clamp-2 max-w-full overflow-hidden font-serif text-lg font-bold leading-[1.2] tracking-normal text-[#111827]">
+          <h3 className="line-clamp-2 max-w-full overflow-hidden text-lg font-semibold leading-[1.2] tracking-normal text-[#111827]">
             {opportunity.program}
           </h3>
 
@@ -233,7 +233,7 @@ export default function FeaturedUniversities() {
             scrollEnd="center center"
             stagger={0.015}
             containerClassName="scroll-title-highlight-university text-center !my-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-serif font-bold tracking-tight leading-none text-[#111827]"
+            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-bold tracking-normal leading-none text-[#111827]"
           >
             University Opportunities
           </ScrollFloat>

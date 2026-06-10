@@ -38,7 +38,7 @@ export default function StudentSuccessStories() {
           viewport={{ once: true }}
           className="mb-8 text-center"
         >
-          <h2 className="font-serif text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-[-0.05em] leading-[0.95]">
+          <h2 className="text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-normal leading-[1.05]">
             <span className="text-[#071225]">Success </span>
             <span className="text-[#C41E3A]">Stories </span>
             <span className="text-[#071225]">from Our Students</span>

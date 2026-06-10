@@ -72,7 +72,7 @@ export default function ApplicationRoadmap() {
           viewport={{ once: true }}
           className="mb-8 text-center"
         >
-          <h2 className="font-serif text-[clamp(2.1rem,3.8vw,3.4rem)] font-extrabold leading-[1] tracking-[-0.04em]">
+          <h2 className="text-[clamp(2.1rem,3.8vw,3.4rem)] font-bold leading-[1.05] tracking-normal">
             <span className="text-[#071225]">
               Your Application
             </span>{' '}

@@ -40,7 +40,7 @@ export default function ScholarshipSpotlight() {
           viewport={{ once: true }}
           className="mx-auto mb-6 max-w-5xl text-center"
         >
-          <h2 className="font-serif text-[clamp(2.1rem,3.8vw,3.4rem)] font-extrabold leading-[1] tracking-[-0.04em]">
+          <h2 className="text-[clamp(2.1rem,3.8vw,3.4rem)] font-bold leading-[1.05] tracking-normal">
             <span className="text-[#071225]">Exclusive Scholarship</span>{" "}
             <span className="text-[#C41E3A]">Opportunities</span>
           </h2>
@@ -123,7 +123,7 @@ export default function ScholarshipSpotlight() {
 
                 {/* Percentage Section */}
                 <div className="relative z-10 mb-6">
-                  <h3 className="font-serif text-[46px] font-bold leading-none tracking-[-0.04em] text-[#C41E3A] lg:text-[52px]">
+                  <h3 className="text-[46px] font-bold leading-none tracking-normal text-[#C41E3A] lg:text-[52px]">
                     {scholarship.percentage}%
                   </h3>
 
@@ -135,7 +135,7 @@ export default function ScholarshipSpotlight() {
                 {/* Bottom Section */}
                 <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
                   <div>
-                    <h3 className="font-serif text-[1.45rem] font-bold leading-tight text-[#071225]">
+                    <h3 className="text-[1.45rem] font-semibold leading-tight text-[#071225]">
                       {scholarship.universityName}
                     </h3>
 

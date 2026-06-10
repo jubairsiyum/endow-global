@@ -44,7 +44,7 @@ export default function PremiumConsultationCTA() {
         >
           {/* Main Heading */}
           <motion.div variants={itemVariants} className="space-y-4">
-            <h2 className="font-serif text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-[-0.05em] leading-[0.95]">
+            <h2 className="text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-normal leading-[1.05]">
               <span className="text-[#071225]">
                 Ready to Transform Your
               </span>

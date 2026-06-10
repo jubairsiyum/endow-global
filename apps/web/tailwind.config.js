@@ -29,13 +29,29 @@ module.exports = {
 
       fontFamily: {
         sans: [
-          "system-ui",
           "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          "system-ui",
           "sans-serif",
         ],
 
         heading: [
-          "var(--font-quicksand)",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          "system-ui",
+          "sans-serif",
+        ],
+
+        body: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          "system-ui",
           "sans-serif",
         ],
       },
@@ -50,11 +66,6 @@ module.exports = {
       },
     },
   },
-
-  fontFamily: {
-  sans: ["Inter", "sans-serif"],
-  heading: ["var(--font-quicksand)", "sans-serif"],
-},
 
   plugins: [],
 };

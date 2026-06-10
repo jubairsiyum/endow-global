@@ -98,7 +98,7 @@ export default function StatisticsSection() {
           viewport={{ once: true }}
           className="mb-6 text-center"
         >
-          <h2 className="font-serif text-[clamp(2.75rem,4.5vw,5rem)] font-bold tracking-[-0.05em] leading-[0.95]">
+          <h2 className="text-[clamp(2.75rem,4.5vw,5rem)] font-bold tracking-normal leading-[1.05]">
             <span className="text-[#071225]">Global</span>{' '}
             <span className="text-[#C41E3A]">Success</span>{' '}
             <span className="text-[#071225]">by Numbers</span>
