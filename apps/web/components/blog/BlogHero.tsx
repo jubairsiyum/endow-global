@@ -19,7 +19,7 @@ export function BlogHero() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FAFAFA] via-[#F8F9FB] to-white pb-10 pt-24 lg:pb-14 lg:pt-28">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FAFAFA] via-[#F8F9FB] to-white pb-10 pt-32 lg:pb-14 lg:pt-36">
       {/* BACKGROUND GLOW */}
       <div className="pointer-events-none absolute right-0 top-0 -mr-48 -mt-48 h-[420px] w-[420px] rounded-full bg-[#FEF2F2] opacity-40 blur-3xl" />
       <div className="pointer-events-none absolute bottom-0 left-0 -mb-48 -ml-48 h-[420px] w-[420px] rounded-full bg-[#F8FAFC] opacity-60 blur-3xl" />
@@ -30,11 +30,11 @@ export function BlogHero() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-1 items-center gap-8 lg:grid-cols-[45%_55%] xl:gap-12"
+          className="grid grid-cols-1 items-start gap-12 lg:grid-cols-[42%_58%] xl:gap-16"
         >
           {/* LEFT CONTENT */}
           <div>
-            <motion.div variants={itemVariants} className="mb-5">
+            <motion.div variants={itemVariants} className="mb-4">
               <div className="inline-block">
                 <div className="flex h-9 items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#FEF2F2] px-3.5">
                   <Zap className="h-3.5 w-3.5 text-[#C41E3A]" />
@@ -47,16 +47,16 @@ export function BlogHero() {
 
             <motion.h1
               variants={itemVariants}
-              className="mb-5 max-w-[580px] text-[32px] font-extrabold leading-[1.0] tracking-[-1.5px] md:text-[40px] lg:text-[52px]"
+              className="mb-4 max-w-[700px] text-[34px] font-extrabold leading-[0.92] tracking-[-1.5px] md:text-[40px] lg:text-[52px]"
             >
-              <div className="mb-6 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
-              <span className="text-[#111827]">Global Education</span>
+              <div className="mb-4 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
+              <div className="text-[#111827]">
+                Global Education
+              </div>
 
-              <br />
-
-              <span className="bg-gradient-to-r from-[#C41E3A] to-[#EF4444] bg-clip-text text-transparent">
-                Insights & Guides
-              </span>
+              <div className="bg-gradient-to-r from-[#C41E3A] to-[#EF4444] bg-clip-text text-transparent">
+                Insights &amp; Guides
+              </div>
             </motion.h1>
 
             <motion.p
@@ -69,7 +69,7 @@ export function BlogHero() {
 
             {/* STATISTICS */}
             <motion.div variants={itemVariants} className="grid max-w-[580px] grid-cols-3 gap-4">
-              <div className="min-h-[115px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
+              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
                 <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">500+</p>
                 <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
@@ -77,7 +77,7 @@ export function BlogHero() {
                 </p>
               </div>
 
-              <div className="min-h-[115px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
+              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
                 <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">25K+</p>
                 <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
@@ -85,7 +85,7 @@ export function BlogHero() {
                 </p>
               </div>
 
-              <div className="min-h-[115px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
+              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
                 <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">20+</p>
                 <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
@@ -101,34 +101,30 @@ export function BlogHero() {
             whileHover={{ y: -8 }}
             className="relative ml-auto w-full"
           >
-            <div className="overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-shadow duration-300">
+            <div className="group overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,23,42,0.15)]">
               {/* CARD IMAGE */}
-              <div className="relative h-[260px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
+              <div className="relative h-[220px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
+
                 <Image
-                  src="https://images.unsplash.com/photo-1491841573634-28e1ad7dc246?w=600&h=400&fit=crop"
-                  alt="Featured article"
+                  src="/blog/gks-scholarship-guide.jpg"
+                  alt="Complete GKS Scholarship Guide 2024"
                   fill
-                  className="object-cover"
+                  priority
+                  className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+
+
               </div>
 
               {/* CARD CONTENT */}
-              <div className="p-5">
-                {/* CATEGORY BADGE */}
-                <div className="mb-3 inline-block">
-                  <span className="inline-flex h-9 items-center rounded-full border border-red-100 bg-red-50 px-3.5 text-xs font-bold uppercase tracking-wider text-[#C41E3A]">
-                    Scholarship Guide
-                  </span>
-                </div>
-
+              <div className="p-4">
                 {/* TITLE */}
-                <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827] lg:text-[22px]">
+                <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827] lg:text-[20px]">
                   Complete GKS Scholarship Guide 2024
                 </h3>
 
                 {/* DESCRIPTION */}
-                <p className="mb-5 line-clamp-3 text-sm leading-relaxed text-[#6B7280]">
+                <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
                   Everything you need to know about applying for the Global Korea Scholarship, from
                   eligibility requirements to tips for a winning application.
                 </p>
@@ -143,7 +139,7 @@ export function BlogHero() {
                 </div>
 
                 {/* CTA */}
-                <div className="mt-5">
+                <div className="mt-3">
                   <button className="flex h-11 items-center gap-2 rounded-full bg-[#C41E3A] px-4 text-sm font-semibold text-white transition-all hover:bg-[#B11A33]">
                     Read Article
                     <ArrowRight className="h-3.5 w-3.5" />
