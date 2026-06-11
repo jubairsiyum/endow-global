@@ -22,6 +22,12 @@ const transition = {
   mass: 0.5,
 }
 
+const pillTransition = {
+  type: 'spring' as const,
+  stiffness: 380,
+  damping: 32,
+}
+
 const containerVariants = {
   hero: {
     maxWidth: 1140,
@@ -100,7 +106,6 @@ export function Navbar() {
       <motion.nav
         aria-label="Primary"
         initial={false}
-        layout
         animate={navMotion}
         transition={transition}
         className={[
@@ -150,9 +155,9 @@ export function Navbar() {
                 >
                   {isActive ? (
                     <motion.span
-                      layoutId="navbar-pill"
+                      layoutId="active-pill"
                       className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
-                      transition={transition}
+                      transition={pillTransition}
                     />
                   ) : null}
                   <span className="relative z-10">{item.label}</span>
@@ -164,7 +169,6 @@ export function Navbar() {
 
         <div className={`hidden items-center ${isHero ? 'gap-2' : 'gap-2'} md:flex`}>
           <motion.div
-            layout
             initial={{ opacity: 1 }}
             animate={isHero ? { opacity: 1, x: 0 } : { opacity: 0, x: -10, pointerEvents: 'none' }}
             transition={transition}
