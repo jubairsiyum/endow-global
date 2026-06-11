@@ -61,7 +61,30 @@ export default function StudentsPage() {
 
           {/* TABLE ROWS */}
           {isLoading ? (
-            <div className="py-10 text-center">Loading...</div>
+            <div className="py-10">
+              <div className="flex justify-center pb-4">
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+              </div>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="grid min-w-[900px] grid-cols-5 items-center border-b border-gray-100 px-6 py-5 dark:border-gray-800"
+                >
+                  <div className="space-y-2">
+                    <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+                    <div className="h-3 w-40 animate-pulse rounded bg-gray-100 dark:bg-[#222530]" />
+                  </div>
+                  <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+                  <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+                  <div>
+                    <div className="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-[#222530]" />
+                  </div>
+                  <div>
+                    <div className="h-9 w-20 animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
+                  </div>
+                </div>
+              ))}
+            </div>
           ) : data?.items.length === 0 ? (
             <div className="py-10 text-center">No students found</div>
           ) : (

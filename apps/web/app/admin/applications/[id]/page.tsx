@@ -28,7 +28,55 @@ export default function ApplicationDetailPage() {
   })
 
   if (isLoading) {
-    return <div className="py-20 text-center">Loading application details...</div>
+    return (
+      <div className="space-y-6" aria-busy="true">
+        <div className="flex items-center gap-4">
+          <div className="h-10 w-20 animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
+          <div className="flex-1 space-y-2">
+            <div className="h-9 w-64 animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
+            <div className="h-4 w-72 animate-pulse rounded-lg bg-gray-100 dark:bg-[#222530]" />
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="col-span-2 space-y-6">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
+              <div className="mb-4 h-5 w-44 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+              <div className="grid grid-cols-2 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-100 dark:bg-[#222530]" />
+                    <div className="h-4 w-36 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 space-y-2">
+                <div className="h-3 w-36 animate-pulse rounded bg-gray-100 dark:bg-[#222530]" />
+                <div className="h-20 w-full animate-pulse rounded-lg bg-gray-100 dark:bg-[#222530]" />
+              </div>
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
+              <div className="mb-4 h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+              <div className="space-y-2">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="h-4 w-48 animate-pulse rounded bg-gray-100 dark:bg-[#222530]" />
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="space-y-6">
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
+              <div className="mb-4 h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+              <div className="mb-4 h-6 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-[#222530]" />
+              <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
+            </div>
+            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
+              <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
+              <div className="h-24 w-full animate-pulse rounded-lg bg-gray-100 dark:bg-[#222530]" />
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (!app) {
