@@ -120,13 +120,12 @@ export function BlogHero() {
               <div className="p-4">
                 {/* TITLE */}
                 <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827] lg:text-[20px]">
-                  Complete GKS Scholarship Guide 2024
+                  From Dream University to Acceptance Letter
                 </h3>
 
                 {/* DESCRIPTION */}
                 <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
-                  Everything you need to know about applying for the Global Korea Scholarship, from
-                  eligibility requirements to tips for a winning application.
+                 Discover proven strategies, scholarship opportunities, and application insights that help students achieve international education success.
                 </p>
 
                 {/* META */}
