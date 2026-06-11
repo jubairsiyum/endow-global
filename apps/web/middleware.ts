@@ -9,6 +9,7 @@ function getSessionCookie(request: NextRequest) {
 
 const PROTECTED_STUDENT_PATHS = [
   '/dashboard',
+  '/onboarding',
   '/explore',
   '/match',
   '/shortlist',
