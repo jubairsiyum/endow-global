@@ -69,10 +69,10 @@ export default function ScholarshipSpotlight() {
             const university = universityById.get(scholarship.universityId)
             const deadlineLabel = scholarship.deadline
               ? new Date(scholarship.deadline).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  year: 'numeric',
-                })
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })
               : 'Rolling'
 
             return (
@@ -80,14 +80,14 @@ export default function ScholarshipSpotlight() {
                 key={scholarship.id}
                 variants={itemVariants}
                 whileHover={{
-                  y: -8,
-                  scale: 1.02,
+                  y: -4,
+                  scale: 1.01,
                 }}
                 transition={{
                   duration: 0.35,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="group relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-gradient-to-b from-white via-white to-[#FCFCFD] p-5 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-500 ease-out hover:border-[#C41E3A]/20 hover:shadow-[0_30px_80px_rgba(196,30,58,0.12)]"
+                className="group relative min-h-[240px] overflow-hidden rounded-[24px] border border-slate-200/70 bg-gradient-to-b from-white via-white to-[#FCFCFD] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-500 ease-out hover:border-[#C41E3A]/20 hover:shadow-[0_30px_80px_rgba(196,30,58,0.12)]"
               >
                 {/* University watermark/silhouette */}
                 <div className="pointer-events-none absolute bottom-0 left-0 right-0 top-0 bg-[url('/images/university-silhouette.svg')] bg-[length:170%] bg-bottom bg-no-repeat opacity-[0.02]" />
@@ -97,39 +97,39 @@ export default function ScholarshipSpotlight() {
 
                 {/* Floating arrow button */}
                 <button
-                  className="absolute right-5 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-[#F1D5DB] bg-[#FAF1F3] transition-all duration-500 group-hover:scale-110 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:shadow-[0_10px_25px_rgba(196,30,58,0.35)]"
+                  className="absolute right-4 top-1/2 z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-[#F1D5DB] bg-[#FAF1F3] transition-all duration-500 group-hover:scale-110 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:shadow-[0_10px_25px_rgba(196,30,58,0.35)]"
                   aria-label="View scholarship details"
                 >
                   <ArrowRight className="h-4 w-4 text-[#C41E3A] transition-all duration-500 group-hover:translate-x-1 group-hover:text-white" />
                 </button>
 
                 {/* Header Section */}
-                <div className="relative z-10 mb-5 flex items-start gap-4">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-500 group-hover:scale-105 group-hover:shadow-md">
+                <div className="relative z-10 mb-3 flex items-start gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-slate-100 bg-white shadow-sm transition-all duration-500 group-hover:scale-105 group-hover:shadow-md">
                     <Image
                       src={university?.logo ?? fallbackUniversityImage}
                       alt={`${scholarship.universityName} logo`}
-                      width={42}
-                      height={42}
-                      className="h-10 w-10 object-contain"
+                      width={38}
+                      height={38}
+                      className="h-8 w-8 object-contain"
                     />
                   </div>
 
-                    <div className="min-w-0 flex-1 pt-0.5">
-                      <h3 className="line-clamp-1 text-[19px] font-bold leading-6 tracking-normal text-[#111827]">
-                        {scholarship.universityName}
-                      </h3>
-                      <p className="mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-slate-500">
-                        <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
-                        <span className="line-clamp-1">
-                          {university?.country ?? 'International'}
-                        </span>
-                      </p>
-                    </div>
+                  <div className="min-w-0 flex-1 pt-0.5">
+                    <h3 className="line-clamp-1 text-[19px] font-bold leading-6 tracking-normal text-[#111827]">
+                      {scholarship.universityName}
+                    </h3>
+                    <p className="mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-slate-500">
+                      <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
+                      <span className="line-clamp-1">
+                        {university?.country ?? 'International'}
+                      </span>
+                    </p>
                   </div>
+                </div>
 
                 {/* Percentage Section */}
-                <div className="relative z-10 mb-6">
+                <div className="relative z-10 mb-4">
                   <h3 className="text-[46px] font-bold leading-none tracking-normal text-[#C41E3A] lg:text-[52px]">
                     {scholarship.percentage}%
                   </h3>
@@ -142,12 +142,8 @@ export default function ScholarshipSpotlight() {
                 {/* Bottom Section */}
                 <div className="relative z-10 mt-5 border-t border-slate-100 pt-4">
                   <div>
-                    <h3 className="text-[1.45rem] font-semibold leading-tight text-[#071225]">
-                      {scholarship.universityName}
-                    </h3>
-
-                    <p className="mt-2 text-sm text-slate-500">
-                      Merit Based Award
+                    <p className="text-sm font-medium text-slate-500">
+                      Merit Based Scholarship
                     </p>
                   </div>
 
