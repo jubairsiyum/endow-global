@@ -15,6 +15,7 @@
   "dependencies": {
     "@endow/db": "workspace:*",
     "@endow/types": "workspace:*",
+    "drizzle-orm": "^0.45.0",
     "openai": "^4.50.0",
     "@pinecone-database/pinecone": "^2.2.0"
   },
