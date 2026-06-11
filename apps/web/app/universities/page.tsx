@@ -2,7 +2,6 @@
 
 import { Navbar } from '@/components/layout/Navbar'
 import HeroSection from '@/components/universities/hero-section'
-import UniversityMarquee from '@/components/universities/university-marquee'
 import FeaturedUniversities from '@/components/universities/featured-universities'
 import StatisticsSection from '@/components/universities/statistics-section'
 import CountryExplorer from '@/components/universities/country-explorer'
@@ -11,18 +10,16 @@ import StudentSuccessStories from '@/components/universities/student-success-sto
 import ApplicationRoadmap from '@/components/universities/application-roadmap'
 import PremiumConsultationCTA from '@/components/universities/premium-consultation-cta'
 import UniversitiesFooter from '@/components/universities/footer'
-import StickyFilterBar from '@/components/universities/sticky-filter-bar'
 
 export default function UniversitiesPage() {
   return (
     <div className="flex w-full flex-col overflow-x-hidden">
       <Navbar />
-      <section className="relative overflow-x-hidden bg-white pt-24">
+      <section className="relative overflow-x-hidden bg-white pt-24 pb-16 lg:pb-20">
         <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
           <HeroSection />
         </div>
       </section>
-      <UniversityMarquee />
       <FeaturedUniversities />
       <CountryExplorer />
       <ScholarshipSpotlight />
@@ -31,7 +28,6 @@ export default function UniversitiesPage() {
       <StudentSuccessStories />
       <PremiumConsultationCTA />
       <UniversitiesFooter />
-      <StickyFilterBar />
     </div>
   )
 }

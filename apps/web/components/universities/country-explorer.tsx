@@ -184,7 +184,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
 
       <div className="flex h-[180px] flex-col px-4 pb-4 pt-3">
         <div className="min-h-[48px] flex items-start gap-3">
-          <h3 className="flex-1 font-serif text-[20px] font-bold leading-[1.1] text-[#071225]">
+          <h3 className="flex-1 text-[20px] font-semibold leading-[1.1] text-[#071225]">
             {destination.name}
           </h3>
 
@@ -270,7 +270,7 @@ export default function CountryExplorer() {
 
 
           <div className="mt-2 text-center">
-            <h2 className="text-[clamp(2rem,3.5vw,3.4rem)] font-serif font-extrabold tracking-tight leading-none">
+            <h2 className="text-[clamp(2rem,3.5vw,3.4rem)] font-bold tracking-normal leading-[1.05]">
               <span className="text-[#071225]">
                 Find Your Ideal Study
               </span>{" "}
@@ -312,7 +312,7 @@ export default function CountryExplorer() {
               </div>
 
               <div className="min-w-0">
-                <h3 className="font-serif text-xl font-bold leading-tight text-[#071225] sm:text-2xl">
+                <h3 className="text-xl font-semibold leading-tight text-[#071225] sm:text-2xl">
                   Can&apos;t decide where to study?
                 </h3>
                 <p className="mt-1 text-sm font-medium text-slate-600">
