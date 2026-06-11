@@ -30,6 +30,13 @@ export default function ScholarshipSpotlight() {
     },
   };
 
+  const itemVariantsHover = {
+    hover: {
+      y: -4,
+      transition: { duration: 0.25 },
+    },
+  }
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#FCFCFD] via-[#F8FAFC] to-[#F1F5F9] px-4 pt-0 pb-14 sm:px-6 lg:px-8 lg:pt-0 lg:pb-16">
       <div className="mx-auto max-w-[1440px] px-6">

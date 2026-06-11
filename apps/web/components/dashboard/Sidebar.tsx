@@ -14,8 +14,10 @@ import {
   Settings,
 } from 'lucide-react'
 
+import { useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
+import Spinner from '@/components/ui/Spinner'
 
 interface NavItem {
   name: string
@@ -51,7 +53,11 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
   const isRail = variant === 'rail'
   const compact = !isFull
 
+  const [isSigningOut, setIsSigningOut] = useState(false)
+
   const handleSignOut = async () => {
+    if (isSigningOut) return
+    setIsSigningOut(true)
     try {
       await authClient.signOut()
     } finally {
@@ -152,18 +158,23 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
         <button
           type="button"
           onClick={handleSignOut}
+          disabled={isSigningOut}
           title={compact ? 'Sign out' : undefined}
           className={cn(
-            'group flex w-full items-center rounded-2xl text-sm font-medium text-gray-600 transition-all duration-300 hover:bg-red-50 hover:text-primary',
+            'group flex w-full items-center rounded-2xl text-sm font-medium text-gray-600 transition-all duration-300 hover:bg-red-50 hover:text-primary disabled:pointer-events-none disabled:opacity-50',
             isFull ? 'gap-3 px-3 py-2.5' : 'h-11 justify-center'
           )}
         >
-          <LogOut
-            size={18}
-            className="shrink-0 text-gray-500 group-hover:text-primary"
-            aria-hidden
-          />
-          {isFull && <span>Sign out</span>}
+          {isSigningOut ? (
+            <Spinner size={18} className="shrink-0 text-primary" />
+          ) : (
+            <LogOut
+              size={18}
+              className="shrink-0 text-gray-500 group-hover:text-primary"
+              aria-hidden
+            />
+          )}
+          {isFull && <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>}
         </button>
       </div>
 

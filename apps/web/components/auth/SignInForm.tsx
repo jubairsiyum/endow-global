@@ -1,13 +1,52 @@
 'use client'
 
-import SocialButtons from './SocialButtons'
-
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Mail, LockKeyhole } from 'lucide-react'
 
-export default function SignInForm() {
-  return (
-    <div className="flex h-full flex-col justify-center">
+import SocialButtons from './SocialButtons'
+import Spinner from '@/components/ui/Spinner'
+import { authClient } from '@/lib/auth-client'
 
+export default function SignInForm() {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (isLoading) return
+
+    if (!email || !password) {
+      toast.error('Please fill in all fields')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { error } = await authClient.signIn.email({
+        email,
+        password,
+        callbackURL: '/dashboard',
+      })
+
+      if (error) {
+        toast.error(error.message || 'Invalid email or password')
+        return
+      }
+
+      router.push('/dashboard')
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex h-full flex-col justify-center">
       <div className="text-left">
         <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-700">
           Student portal
@@ -31,8 +70,11 @@ export default function SignInForm() {
 
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter your email"
-              className="h-full w-full bg-transparent px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+              disabled={isLoading}
+              className="h-full w-full bg-transparent px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
             />
           </div>
         </div>
@@ -47,8 +89,11 @@ export default function SignInForm() {
 
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className="h-full w-full bg-transparent px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400"
+              disabled={isLoading}
+              className="h-full w-full bg-transparent px-4 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
             />
           </div>
         </div>
@@ -66,10 +111,12 @@ export default function SignInForm() {
       </div>
 
       <button
-        type="button"
-        className="mt-5 flex h-[52px] min-h-[52px] w-full items-center justify-center rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)]"
+        type="submit"
+        disabled={isLoading}
+        className="mt-5 flex h-[52px] min-h-[52px] w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-black tracking-wide text-white shadow-[0_18px_36px_rgba(127,29,29,0.24)] transition-all hover:-translate-y-0.5 hover:shadow-[0_22px_42px_rgba(127,29,29,0.30)] disabled:pointer-events-none disabled:opacity-60"
       >
-        Sign In
+        {isLoading && <Spinner size={18} className="text-white" />}
+        {isLoading ? 'Signing in...' : 'Sign In'}
       </button>
 
       <div className="mt-5 flex items-center gap-3">
@@ -81,6 +128,6 @@ export default function SignInForm() {
       </div>
 
       <SocialButtons />
-    </div>
+    </form>
   )
 }
