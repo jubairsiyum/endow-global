@@ -22,20 +22,18 @@ export default function SocialButtons() {
   }
 
   return (
-    <div className="mt-4">
-      <button
-        onClick={handleGoogleSignIn}
-        type="button"
-        disabled={isLoading}
-        className="flex h-12 w-full items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white text-sm font-bold text-slate-800 shadow-[0_10px_24px_rgba(15,23,42,0.06)] backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_16px_30px_rgba(15,23,42,0.09)] disabled:pointer-events-none disabled:opacity-60"
-      >
-        {isLoading ? (
-          <Spinner size={18} className="text-slate-600" />
-        ) : (
-          <Image src="https://www.google.com/favicon.ico" alt="Google" width={18} height={18} />
-        )}
-        {isLoading ? 'Redirecting...' : 'Continue with Google'}
-      </button>
-    </div>
+    <button
+      onClick={handleGoogleSignIn}
+      type="button"
+      disabled={isLoading}
+      className="flex h-[48px] w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white text-sm font-semibold text-slate-700 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-all hover:border-slate-300 hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-60"
+    >
+      {isLoading ? (
+        <Spinner size={16} className="text-slate-600" />
+      ) : (
+        <Image src="https://www.google.com/favicon.ico" alt="Google" width={16} height={16} />
+      )}
+      {isLoading ? 'Redirecting...' : 'Continue with Google'}
+    </button>
   )
 }
