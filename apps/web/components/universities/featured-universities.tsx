@@ -208,7 +208,7 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
 
 export default function FeaturedUniversities() {
   return (
-    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 pb-16 pt-24 sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 pb-16 pt-2 lg:pt-4 sm:px-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-28 -top-28 h-[420px] w-[420px] rounded-full bg-white/90 blur-3xl" />
         <div className="absolute -right-24 top-8 h-[520px] w-[520px] rounded-full bg-[#F7EBD5]/70 blur-3xl" />
@@ -224,7 +224,7 @@ export default function FeaturedUniversities() {
             ease: 'easeOut',
           }}
           viewport={{ once: true, margin: '-80px' }}
-          className="mx-auto mb-12 max-w-4xl text-center"
+          className="mx-auto mb-6 max-w-4xl text-center"
         >
           <ScrollFloat
             animationDuration={1.1}
