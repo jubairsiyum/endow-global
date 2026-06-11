@@ -87,6 +87,9 @@ export const verificationTokens = mysqlTable('verification', {
 export const studentProfiles = mysqlTable('student_profile', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
   userId: varchar('user_id', { length: 25 }).notNull().unique(),
+  phone: varchar('phone', { length: 50 }),
+  nationality: varchar('nationality', { length: 100 }),
+  countryOfResidence: varchar('country_of_residence', { length: 100 }),
   targetCountries: json('target_countries').default('[]').notNull(),
   targetSubjects: json('target_subjects').default('[]').notNull(),
   budgetMin: int('budget_min'),
@@ -99,7 +102,6 @@ export const studentProfiles = mysqlTable('student_profile', {
   completionPercent: int('completion_percent').default(0).notNull(),
   preferredIntakeMonth: varchar('preferred_intake_month', { length: 50 }),
   preferredIntakeYear: int('preferred_intake_year'),
-  nationality: varchar('nationality', { length: 100 }),
   highestEducation: mysqlEnum('highest_education', ['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD'])
     .default('HIGH_SCHOOL')
     .notNull(),

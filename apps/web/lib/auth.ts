@@ -1,9 +1,10 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
-import { customSession } from 'better-auth/plugins'
+import { customSession, emailOTP } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
 import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
+import { sendEmail } from './resend'
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -60,6 +61,35 @@ export const auth = betterAuth({
     },
   },
   plugins: [
+    emailOTP({
+      otpLength: 6,
+      expiresIn: 300,
+      allowedAttempts: 5,
+      sendVerificationOnSignUp: false,
+      disableSignUp: false,
+      async sendVerificationOTP({ email, otp, type }) {
+        const subject =
+          type === 'sign-in'
+            ? 'Sign in to Endow Global'
+            : type === 'email-verification'
+              ? 'Verify your email - Endow Global'
+              : type === 'forget-password'
+                ? 'Reset your password - Endow Global'
+                : 'Verify your email change - Endow Global'
+
+        try {
+          const result = await sendEmail({
+            to: email,
+            subject,
+            text: `Your verification code is: ${otp}. It expires in 5 minutes.`,
+          })
+          console.log('[emailOTP] Email sent successfully:', JSON.stringify(result))
+        } catch (err) {
+          console.error('[emailOTP] Failed to send OTP email:', err)
+          throw err
+        }
+      },
+    }),
     customSession(async ({ user, session }) => {
       return {
         user: {
