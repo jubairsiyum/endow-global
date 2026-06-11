@@ -153,13 +153,19 @@ export function Navbar() {
                     isActive ? 'text-white' : textMuted
                   } ${isActive ? '' : textHover} ${isHero ? 'px-3.5 py-1.5' : 'px-3 py-1.5'}`}
                 >
-                  {isActive ? (
-                    <motion.span
-                      layoutId="active-pill"
-                      className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
-                      transition={pillTransition}
-                    />
-                  ) : null}
+                  <AnimatePresence mode="wait">
+                    {isActive ? (
+                      <motion.span
+                        key={isScrolled ? 'scrolled' : 'hero'}
+                        layoutId="active-pill"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.25, ease: 'easeOut' }}
+                        className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
+                      />
+                    ) : null}
+                  </AnimatePresence>
                   <span className="relative z-10">{item.label}</span>
                 </Link>
               )
