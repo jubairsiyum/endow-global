@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUniversityMarquee'
 import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import VideoBackground from '@/components/home/VideoBackground'
+import ApplicationRoadmap from '@/components/universities/application-roadmap'
 
 const universities = [
   {
@@ -306,6 +307,7 @@ export default function HomePage() {
         <HeroSection />
         <DiagnosticUniversityMarquee universities={universities} />
         <FeaturesSection />
+        <ApplicationRoadmap />
       </main>
 
       <Footer />
