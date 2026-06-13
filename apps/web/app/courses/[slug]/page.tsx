@@ -8,6 +8,8 @@ import { appRouter } from '@/server/root'
 import { createTRPCContext } from '@/lib/trpc'
 import CourseDetailContent from './CourseDetailContent'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CourseDetailPage({
   params,
 }: {

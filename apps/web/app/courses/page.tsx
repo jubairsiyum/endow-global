@@ -2,6 +2,8 @@ import { appRouter } from '@/server/root'
 import { createTRPCContext } from '@/lib/trpc'
 import CoursesListContent from './CoursesListContent'
 
+export const dynamic = 'force-dynamic'
+
 export default async function CoursesPage() {
   const context = await createTRPCContext({ headers: new Headers() })
   const caller = appRouter.createCaller(context)
