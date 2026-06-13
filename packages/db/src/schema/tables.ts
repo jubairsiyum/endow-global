@@ -9,6 +9,7 @@ import {
   json,
   boolean,
   uniqueIndex,
+  index,
   timestamp,
 } from 'drizzle-orm/mysql-core'
 
@@ -155,37 +156,50 @@ export const universities = mysqlTable('university', {
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
-export const courses = mysqlTable('course', {
-  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  universityId: varchar('university_id', { length: 25 }).notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 255 }).notNull().unique(),
-  subject: varchar('subject', { length: 255 }).notNull(),
-  level: mysqlEnum('level', [
-    'UNDERGRADUATE',
-    'POSTGRADUATE',
-    'PHD',
-    'DIPLOMA',
-    'CERTIFICATE',
-    'FOUNDATION',
-  ]).notNull(),
-  duration: int('duration').notNull(),
-  durationUnit: varchar('duration_unit', { length: 10 }).default('YEARS').notNull(),
-  tuitionFee: int('tuition_fee').notNull(),
-  currency: varchar('currency', { length: 3 }).default('USD').notNull(),
-  applicationDeadline: datetime('application_deadline', { mode: 'date' }),
-  startDate: datetime('start_date', { mode: 'date' }),
-  language: varchar('language', { length: 50 }).default('English').notNull(),
-  requirements: json('requirements').default('[]').notNull(),
-  hasScholarship: boolean('has_scholarship').default(false).notNull(),
-  scholarshipDetails: text('scholarship_details'),
-  description: text('description').notNull(),
-  isActive: boolean('is_active').default(true).notNull(),
-  vectorId: varchar('vector_id', { length: 255 }),
-  typesenseId: varchar('typesense_id', { length: 255 }),
-  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
-})
+export const courses = mysqlTable(
+  'course',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    universityId: varchar('university_id', { length: 25 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    subject: varchar('subject', { length: 255 }).notNull(),
+    level: mysqlEnum('level', [
+      'UNDERGRADUATE',
+      'POSTGRADUATE',
+      'PHD',
+      'DIPLOMA',
+      'CERTIFICATE',
+      'FOUNDATION',
+    ]).notNull(),
+    duration: int('duration').notNull(),
+    durationUnit: varchar('duration_unit', { length: 10 }).default('YEARS').notNull(),
+    tuitionFee: int('tuition_fee').notNull(),
+    currency: varchar('currency', { length: 3 }).default('USD').notNull(),
+    applicationDeadline: datetime('application_deadline', { mode: 'date' }),
+    startDate: datetime('start_date', { mode: 'date' }),
+    language: varchar('language', { length: 50 }).default('English').notNull(),
+    requirements: json('requirements').default('[]').notNull(),
+    hasScholarship: boolean('has_scholarship').default(false).notNull(),
+    scholarshipDetails: text('scholarship_details'),
+    description: text('description').notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    vectorId: varchar('vector_id', { length: 255 }),
+    typesenseId: varchar('typesense_id', { length: 255 }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    isActiveIdx: index('idx_courses_is_active').on(table.isActive),
+    subjectIdx: index('idx_courses_subject').on(table.subject),
+    levelIdx: index('idx_courses_level').on(table.level),
+    hasScholarshipIdx: index('idx_courses_has_scholarship').on(table.hasScholarship),
+    universityIdx: index('idx_courses_university').on(table.universityId),
+    createdAtIdx: index('idx_courses_created_at').on(table.createdAt),
+    activeSubjectIdx: index('idx_courses_active_subject').on(table.isActive, table.subject),
+    activeLevelIdx: index('idx_courses_active_level').on(table.isActive, table.level),
+  })
+)
 
 // ─── Application ──────────────────────────────────────────
 
