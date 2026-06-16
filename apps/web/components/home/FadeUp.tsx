@@ -4,13 +4,13 @@ import { motion, useReducedMotion } from 'framer-motion'
 import type { HTMLMotionProps, Variants } from 'framer-motion'
 import type { ReactNode } from 'react'
 
-function buildFadeUpVariants(reducedMotion: boolean): Variants {
+function buildFadeUpVariants(_reducedMotion: boolean): Variants {
   return {
-    hidden: { opacity: 0, y: reducedMotion ? 0 : 30 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.6, ease: 'easeOut' },
+      transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
     },
   }
 }
@@ -22,7 +22,7 @@ type DivMotionProps = Omit<
 
 export function FadeUp({
   children,
-  amount = 0.2,
+  amount = 0.15,
   className,
   ...rest
 }: DivMotionProps & { children: ReactNode; amount?: number }) {
@@ -31,10 +31,10 @@ export function FadeUp({
 
   return (
     <motion.div
-      variants={variants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount }}
+      variants={prefersReducedMotion ? undefined : variants}
+      initial={prefersReducedMotion ? undefined : 'hidden'}
+      whileInView={prefersReducedMotion ? undefined : 'visible'}
+      viewport={prefersReducedMotion ? undefined : { once: true, amount, margin: '0px 0px -50px 0px' }}
       className={className}
       {...rest}
     >
@@ -45,8 +45,8 @@ export function FadeUp({
 
 export function FadeUpStagger({
   children,
-  amount = 0.2,
-  staggerChildren = 0.1,
+  amount = 0.15,
+  staggerChildren = 0.08,
   className,
   ...rest
 }: DivMotionProps & {
@@ -55,22 +55,25 @@ export function FadeUpStagger({
   staggerChildren?: number
 }) {
   const prefersReducedMotion = useReducedMotion()
-  const variants: Variants = {
-    hidden: {},
-    visible: {
-      transition: {
-        staggerChildren: prefersReducedMotion ? 0 : staggerChildren,
-        delayChildren: 0,
-      },
-    },
-  }
+
+  const variants: Variants = prefersReducedMotion
+    ? {}
+    : {
+        hidden: {},
+        visible: {
+          transition: {
+            staggerChildren,
+            delayChildren: 0,
+          },
+        },
+      }
 
   return (
     <motion.div
-      variants={variants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount }}
+      variants={prefersReducedMotion ? undefined : variants}
+      initial={prefersReducedMotion ? undefined : 'hidden'}
+      whileInView={prefersReducedMotion ? undefined : 'visible'}
+      viewport={prefersReducedMotion ? undefined : { once: true, amount, margin: '0px 0px -50px 0px' }}
       className={className}
       {...rest}
     >
@@ -88,7 +91,11 @@ export function FadeUpItem({
   const variants = buildFadeUpVariants(!!prefersReducedMotion)
 
   return (
-    <motion.div variants={variants} className={className} {...rest}>
+    <motion.div
+      variants={prefersReducedMotion ? undefined : variants}
+      className={className}
+      {...rest}
+    >
       {children}
     </motion.div>
   )
