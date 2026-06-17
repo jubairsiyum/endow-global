@@ -8,7 +8,6 @@ import PremiumHero from '@/components/home/PremiumHero'
 import UniversityFinder from '@/components/home/UniversityFinder'
 import TrustStats from '@/components/home/TrustStats'
 import ServiceTimeline from '@/components/home/ServiceTimeline'
-import VisualHowItWorks from '@/components/home/VisualHowItWorks'
 import CountryCards from '@/components/home/CountryCards'
 import TrendingCourses from '@/components/home/TrendingCourses'
 import ApplicationRoadmap from '@/components/universities/application-roadmap'
@@ -178,7 +177,6 @@ export default function HomePage() {
           <TrustStats />
           <DiagnosticUniversityMarquee universities={universities} />
           <ServiceTimeline />
-          <VisualHowItWorks />
           <CountryCards />
           <TrendingCourses />
           <ApplicationRoadmap />
