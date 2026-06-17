@@ -1,92 +1,145 @@
+'use client'
+
 import Link from 'next/link'
-import { ArrowRight, GraduationCap, BookOpen } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, GraduationCap, MapPin } from 'lucide-react'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
+import Noise from '@/components/ui/Noise'
 
 const destinations = [
   {
     country: 'South Korea',
     slug: 'south-korea',
-    flag: '🇰🇷',
+    code: 'KR',
     tagline: 'Where tradition meets innovation',
-    description: 'World-class universities, cutting-edge research facilities, and a vibrant campus life in one of Asia\'s most dynamic countries.',
+    description: 'World-class universities, cutting-edge research, and a vibrant campus life in one of Asia\'s most dynamic countries.',
     unis: '10+',
-    programs: 'Engineering, Business, IT, Design',
-    color: '#3b82f6',
-    bg: 'from-blue-50 to-indigo-50',
+    programs: ['Engineering', 'Business', 'IT', 'Design'],
+    accent: '#3b82f6',
+    accentLight: '#60a5fa',
   },
   {
     country: 'Australia',
     slug: 'australia',
-    flag: '🇦🇺',
+    code: 'AU',
     tagline: 'Learn where opportunity grows',
-    description: 'Globally ranked institutions, post-study work pathways, and a welcoming multicultural environment across major cities.',
+    description: 'Globally ranked institutions, post-study work pathways, and a welcoming multicultural environment.',
     unis: '8+',
-    programs: 'Healthcare, Engineering, IT, Business',
-    color: '#f59e0b',
-    bg: 'from-amber-50 to-orange-50',
+    programs: ['Healthcare', 'Engineering', 'IT', 'Business'],
+    accent: '#f59e0b',
+    accentLight: '#fbbf24',
   },
 ] as const
 
 export default function CountryCards() {
   return (
-    <section className="bg-white py-20 lg:py-28">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden bg-black py-24 lg:py-32">
+      {/* Crimson radial glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_30%,rgba(196,30,58,0.2),transparent_70%)]" />
+
+      {/* Soft white vignette from top */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_0%,rgba(255,255,255,0.03),transparent_60%)]" />
+
+      {/* Grid lines */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_60%_40%_at_50%_30%,#000_50%,transparent_100%)] [-webkit-mask-image:radial-gradient(ellipse_60%_40%_at_50%_30%,#000_50%,transparent_100%)]" />
+
+      {/* Noise */}
+      <Noise patternAlpha={8} />
+
+      <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <FadeUp>
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-            <div>
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-gray-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500">
-                Study Destinations
+          <div className="text-center">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/70 backdrop-blur-sm">
+              <MapPin size={13} className="text-[#C41E3A]" />
+              Study Destinations
+            </span>
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+              Choose your{' '}
+              <span className="bg-gradient-to-r from-[#C41E3A] to-rose-400 bg-clip-text text-transparent">
+                destination
               </span>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                Choose your <span className="text-[#C41E3A]">destination</span>
-              </h2>
-            </div>
-            <Link href="/universities" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] hover:text-[#A01830]">
-              View all universities
-              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-base text-white/70">
+              Two countries, endless possibilities. We specialize in helping
+              students navigate education in South Korea and Australia.
+            </p>
           </div>
         </FadeUp>
 
-        <FadeUpStagger className="mt-12 grid gap-6 sm:grid-cols-2" amount={0.08}>
+        <FadeUpStagger className="mt-14 grid gap-6 sm:grid-cols-2" amount={0.08}>
           {destinations.map((dest) => (
             <FadeUpItem key={dest.slug}>
               <Link href={`/universities?country=${dest.slug}`}>
-                <article className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-                  {/* Top color accent */}
-                  <div className={`h-1.5 w-full bg-gradient-to-r ${dest.bg}`} />
+                <article className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.05] p-8 backdrop-blur-sm transition-all duration-300 hover:border-white/[0.15] hover:bg-white/[0.08] sm:p-9">
+                  {/* Top accent line */}
+                  <div
+                    className="absolute left-0 top-0 h-[2px] w-full opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+                    style={{ background: `linear-gradient(to right, transparent, ${dest.accent}, transparent)` }}
+                  />
 
-                  <div className="flex h-full min-h-[320px] flex-col p-7 sm:p-8">
+                  {/* Large watermark country code in background */}
+                  <div
+                    className="pointer-events-none absolute -right-4 -top-6 select-none text-[10rem] font-black leading-none opacity-[0.03] transition-opacity duration-300 group-hover:opacity-[0.06]"
+                    style={{ color: dest.accentLight }}
+                  >
+                    {dest.code}
+                  </div>
+
+                  <div className="relative flex h-full flex-col">
                     {/* Header */}
                     <div className="mb-6 flex items-start justify-between">
-                      <span className="text-5xl">{dest.flag}</span>
+                      <div className="flex items-center gap-3">
+                        {/* Country flag */}
+                        <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-white/10">
+                          <Image
+                            src={`/flags/${dest.code.toLowerCase()}.png`}
+                            alt={`${dest.country} flag`}
+                            fill
+                            sizes="56px"
+                            className="object-cover"
+                          />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-white">{dest.country}</h3>
+                          <p className="mt-0.5 text-sm font-medium text-white/50">{dest.tagline}</p>
+                        </div>
+                      </div>
                       <span
-                        className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-                        style={{ backgroundColor: `${dest.color}10`, color: dest.color }}
+                        className="shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+                        style={{
+                          borderColor: `${dest.accent}40`,
+                          backgroundColor: `${dest.accent}15`,
+                          color: dest.accent,
+                        }}
                       >
                         <GraduationCap size={13} />
-                        {dest.unis} universities
+                        {dest.unis}
                       </span>
                     </div>
 
-                    {/* Content */}
-                    <div className="flex flex-1 flex-col">
-                      <h3 className="text-2xl font-bold text-gray-900">{dest.country}</h3>
-                      <p className="mt-1 text-sm font-medium text-gray-400">{dest.tagline}</p>
-                      <p className="mt-3 text-sm leading-relaxed text-gray-500">{dest.description}</p>
+                    {/* Description */}
+                    <p className="text-sm leading-relaxed text-white/70">{dest.description}</p>
 
-                      {/* Programs */}
-                      <div className="mt-auto pt-6">
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                          <BookOpen size={13} />
-                          <span>{dest.programs}</span>
-                        </div>
+                    {/* Programs */}
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {dest.programs.map((p) => (
+                        <span
+                          key={p}
+                          className="rounded-md border border-white/[0.1] bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-white/70"
+                        >
+                          {p}
+                        </span>
+                      ))}
+                    </div>
 
-                        {/* CTA */}
-                        <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] group-hover:gap-2.5 transition-all">
-                          Explore programs
-                          <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-                        </div>
+                    {/* CTA */}
+                    <div className="mt-auto pt-6">
+                      <div
+                        className="inline-flex items-center gap-1.5 text-sm font-semibold transition-all group-hover:gap-2.5"
+                        style={{ color: dest.accentLight }}
+                      >
+                        Explore programs
+                        <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
                       </div>
                     </div>
                   </div>
