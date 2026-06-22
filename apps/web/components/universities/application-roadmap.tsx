@@ -83,15 +83,15 @@ const desktopWaypoints = [
   { x: 915, y: 235 },
 ]
 
-/* Mobile/tablet waypoints — vertical S-curve */
+/* Mobile/tablet waypoints — vertical S-curve, wider viewBox */
 const mobileWaypoints = [
-  { x: 200, y: 60  },
-  { x: 100, y: 175 },
-  { x: 280, y: 290 },
-  { x: 120, y: 405 },
-  { x: 260, y: 520 },
-  { x: 110, y: 635 },
-  { x: 200, y: 750 },
+  { x: 250, y: 60  },
+  { x: 120, y: 180 },
+  { x: 340, y: 300 },
+  { x: 140, y: 420 },
+  { x: 320, y: 540 },
+  { x: 130, y: 660 },
+  { x: 250, y: 780 },
 ]
 
 function buildPath(pts: { x: number; y: number }[]): string {
@@ -142,11 +142,11 @@ function FlightPathScene({
     ? Math.atan2(nextWp.y - currentWp.y, nextWp.x - currentWp.x) * (180 / Math.PI)
     : 0
 
-  const cardW = isMobile ? 130 : 140
-  const cardH = isMobile ? 105 : 120
-  const nodeR = isMobile ? 14 : 16
-  const dotR = isMobile ? 4 : 5
-  const planeR = isMobile ? 12 : 14
+  const cardW = isMobile ? 135 : 140
+  const cardH = isMobile ? 100 : 120
+  const nodeR = isMobile ? 13 : 16
+  const dotR = isMobile ? 3.5 : 5
+  const planeR = isMobile ? 11 : 14
 
   return (
     <svg viewBox={viewBox} className="w-full" style={{ height: 'auto', overflow: 'visible' }}>
@@ -399,10 +399,10 @@ export default function ApplicationRoadmap() {
 
         {/* Mobile & Tablet */}
         <div className="lg:hidden">
-          <div className="relative mx-auto" style={{ maxWidth: 500, overflow: 'visible' }}>
+          <div className="relative mx-auto w-full overflow-visible px-2">
             <FlightPathScene
               waypoints={mobileWaypoints}
-              viewBox="0 0 400 830"
+              viewBox="0 0 500 860"
               activeStep={activeStep}
               onStepClick={handleStepClick}
               isMobile={true}
