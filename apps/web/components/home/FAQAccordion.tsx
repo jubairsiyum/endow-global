@@ -7,8 +7,8 @@ import { FadeUp } from '@/components/home/FadeUp'
 
 const faqs = [
   { q: 'Is Endow Global free for students?', a: 'Yes. Our core services — university matching, course discovery, and counselor consultations — are completely free for students. We earn from university partnerships, not from you.' },
-  { q: 'Which countries can I apply to?', a: "We currently support applications to South Korea, the United Kingdom, Finland, Australia, the United States, and Canada. We're expanding to more destinations every year." },
-  { q: 'How does the AI course matching work?', a: 'Our AI analyzes your academic background, career goals, budget, and preferences — then matches you against 500+ universities and thousands of programs to find the best fits.' },
+  { q: 'Which countries can I apply to?', a: "We specialize in South Korea and Australia — two of the best destinations for international students. Both offer world-class universities, generous scholarships, and post-study work opportunities." },
+  { q: 'How does the AI course matching work?', a: 'Our AI analyzes your academic background, career goals, budget, and preferences — then matches you against 50+ partner universities and hundreds of programs in South Korea and Australia to find the best fits.' },
   { q: 'What documents do I need to apply?', a: "Typically you'll need academic transcripts, a passport copy, English proficiency scores (IELTS/TOEFL), a statement of purpose, and recommendation letters. Requirements vary by university." },
   { q: 'How long does the application process take?', a: 'From initial consultation to departure, the average timeline is 3-4 months. This includes university selection, application submission, offer acceptance, and visa processing.' },
   { q: 'Do you help with visa applications?', a: 'Absolutely. We provide complete visa support including document preparation, mock interview coaching, and embassy coordination. Our visa success rate is over 98%.' },

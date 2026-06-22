@@ -3,11 +3,8 @@ import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
 
 const stories = [
   { name: 'Priya Sharma', uni: 'Kyung Hee University', program: 'MBA', country: 'South Korea', quote: "Endow Global made my dream of studying in Korea a reality. The counselors helped me navigate scholarships I didn't even know existed.", rating: 5, initials: 'PS', gradient: 'from-rose-400 to-pink-500' },
-  { name: 'Ahmed Hassan', uni: 'Univ. of Manchester', program: 'Computer Science', country: 'UK', quote: "From university selection to visa prep, every step was handled professionally. The AI matching found perfect programs.", rating: 5, initials: 'AH', gradient: 'from-blue-400 to-indigo-500' },
-  { name: 'Li Wei', uni: 'Aalto University', program: 'Design Engineering', country: 'Finland', quote: "I was overwhelmed by the application process. Endow's platform organized everything — documents, deadlines, interviews.", rating: 5, initials: 'LW', gradient: 'from-cyan-400 to-blue-500' },
   { name: 'Maria Santos', uni: 'Univ. of Melbourne', program: 'Data Science', country: 'Australia', quote: "The counselor support was incredible. They reviewed my SOP three times and helped me ace the visa interview.", rating: 5, initials: 'MS', gradient: 'from-amber-400 to-orange-500' },
-  { name: 'James Kim', uni: 'UC Berkeley', program: 'Electrical Engineering', country: 'USA', quote: "I applied to 5 universities through Endow and got into 3. The platform made it so easy to track everything.", rating: 5, initials: 'JK', gradient: 'from-violet-400 to-purple-500' },
-  { name: 'Fatima Al-Rashid', uni: 'Univ. of Toronto', program: 'Public Health', country: 'Canada', quote: "The scholarship guidance alone was worth it. Endow helped me find and apply to 4 scholarships — I got 2 of them.", rating: 5, initials: 'FA', gradient: 'from-emerald-400 to-teal-500' },
+  { name: 'Jun-seo Park', uni: 'Yonsei University', program: 'International Business', country: 'South Korea', quote: "From university selection to visa prep, every step was handled professionally. The AI matching found programs I hadn't considered.", rating: 5, initials: 'JP', gradient: 'from-blue-400 to-indigo-500' },
 ] as const
 
 export default function Testimonials() {

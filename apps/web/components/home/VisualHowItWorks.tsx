@@ -2,7 +2,7 @@ import { Search, FileText, MessageSquare, Send, Plane } from 'lucide-react'
 import { FadeUp } from '@/components/home/FadeUp'
 
 const processSteps = [
-  { icon: Search, title: 'Discover Programs', desc: 'Browse 500+ universities and courses. Filter by country, degree, budget, and career goals.', bg: 'bg-violet-500' },
+  { icon: Search, title: 'Discover Programs', desc: 'Browse 50+ universities and courses in South Korea and Australia. Filter by degree, budget, and career goals.', bg: 'bg-violet-500' },
   { icon: FileText, title: 'Build Application', desc: 'Upload documents, write SOPs with AI assistance, and get counselor feedback.', bg: 'bg-blue-500' },
   { icon: MessageSquare, title: 'Expert Review', desc: 'Your dedicated counselor reviews your application and optimizes your profile.', bg: 'bg-amber-500' },
   { icon: Send, title: 'Submit & Track', desc: 'Submit applications across multiple universities. Track status in one dashboard.', bg: 'bg-emerald-500' },

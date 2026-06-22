@@ -14,12 +14,12 @@ const faqs = [
   {
     question: 'Which countries can I apply to?',
     answer:
-      'We currently support applications to South Korea, the United Kingdom, Finland, Australia, the United States, and Canada. We\'re expanding to more destinations every year.',
+      'We specialize in South Korea and Australia — two of the best destinations for international students. Both offer world-class universities, generous scholarships, and post-study work opportunities.',
   },
   {
     question: 'How does the AI course matching work?',
     answer:
-      'Our AI analyzes your academic background, career goals, budget, and preferences — then matches you against 500+ universities and thousands of programs to find the best fits.',
+      'Our AI analyzes your academic background, career goals, budget, and preferences — then matches you against 50+ partner universities and hundreds of programs in South Korea and Australia to find the best fits.',
   },
   {
     question: 'What documents do I need to apply?',

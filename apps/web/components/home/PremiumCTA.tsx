@@ -21,7 +21,7 @@ export default function PremiumCTA() {
             starts with one step
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
-            Join 10,000+ students who found their perfect university match. Free consultation, zero hidden fees.
+            Join thousands of students who found their perfect university match in South Korea and Australia. Free consultation, zero hidden fees.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Link href="/register" className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-white px-7 text-[15px] font-bold text-gray-950 shadow-[0_0_40px_rgba(255,255,255,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]">

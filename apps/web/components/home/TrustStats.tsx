@@ -6,9 +6,9 @@ import { useCountUp } from '@/lib/hooks/useCountUp'
 import { Users, GraduationCap, Globe2, Award } from 'lucide-react'
 
 const stats = [
-  { icon: Users, value: 10000, suffix: '+', label: 'Students Placed', desc: 'Across 25+ countries worldwide', color: 'text-[#C41E3A]', bg: 'bg-rose-50' },
-  { icon: GraduationCap, value: 500, suffix: '+', label: 'Partner Universities', desc: 'Top-ranked institutions globally', color: 'text-amber-500', bg: 'bg-amber-50' },
-  { icon: Globe2, value: 25, suffix: '+', label: 'Countries', desc: 'Study destinations available', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+  { icon: Users, value: 2000, suffix: '+', label: 'Students Placed', desc: 'Successfully enrolled in South Korea & Australia', color: 'text-[#C41E3A]', bg: 'bg-rose-50' },
+  { icon: GraduationCap, value: 50, suffix: '+', label: 'Partner Universities', desc: 'Top-ranked institutions in SK & AU', color: 'text-amber-500', bg: 'bg-amber-50' },
+  { icon: Globe2, value: 2, suffix: '', label: 'Countries', desc: 'South Korea & Australia specialists', color: 'text-emerald-500', bg: 'bg-emerald-50' },
   { icon: Award, value: 98, suffix: '%', label: 'Success Rate', desc: 'Visa approval & admission', color: 'text-blue-500', bg: 'bg-blue-50' },
 ] as const
 

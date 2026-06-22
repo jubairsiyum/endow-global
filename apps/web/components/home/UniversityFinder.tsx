@@ -5,7 +5,7 @@ import { Search, ChevronDown, ArrowRight } from 'lucide-react'
 import { FadeUp } from '@/components/home/FadeUp'
 import { ShineBorder } from '@/components/ui/shine-border'
 
-const countries = ['Any Country', 'South Korea', 'United Kingdom', 'Finland', 'Australia', 'United States', 'Canada']
+const countries = ['Any Country', 'South Korea', 'Australia']
 const degrees = ['Any Level', "Bachelor's Degree", "Master's Degree", 'PhD / Doctorate', 'Diploma']
 const budgets = ['Any Budget', 'Under $5,000/yr', '$5,000 - $15,000/yr', '$15,000 - $30,000/yr', 'Over $30,000/yr']
 const intakes = ['Any Intake', 'Spring 2026', 'Fall 2026', 'Spring 2027', 'Fall 2027']
@@ -32,7 +32,7 @@ export default function UniversityFinder() {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-gray-900">Find Your University</h2>
-                  <p className="text-xs text-gray-400">Search across 500+ programs worldwide</p>
+                  <p className="text-xs text-gray-400">Search across 50+ programs in SK & AU</p>
                 </div>
               </div>
 

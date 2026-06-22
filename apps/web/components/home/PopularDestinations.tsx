@@ -7,55 +7,19 @@ const destinations = [
     country: 'South Korea',
     slug: 'south-korea',
     tagline: 'Tech-forward education',
-    universities: '130+',
+    universities: '30+',
     gradient: 'from-blue-500/10 to-rose-500/10',
     flag: '🇰🇷',
     color: 'text-blue-600',
   },
   {
-    country: 'United Kingdom',
-    slug: 'uk',
-    tagline: 'World-class research',
-    universities: '160+',
-    gradient: 'from-indigo-500/10 to-purple-500/10',
-    flag: '🇬🇧',
-    color: 'text-indigo-600',
-  },
-  {
-    country: 'Finland',
-    slug: 'finland',
-    tagline: 'Innovation hub of Europe',
-    universities: '40+',
-    gradient: 'from-cyan-500/10 to-blue-500/10',
-    flag: '🇫🇮',
-    color: 'text-cyan-600',
-  },
-  {
     country: 'Australia',
     slug: 'australia',
     tagline: 'Global research leader',
-    universities: '43',
+    universities: '20+',
     gradient: 'from-amber-500/10 to-orange-500/10',
     flag: '🇦🇺',
     color: 'text-amber-600',
-  },
-  {
-    country: 'United States',
-    slug: 'usa',
-    tagline: 'Unlimited possibilities',
-    universities: '4000+',
-    gradient: 'from-red-500/10 to-blue-500/10',
-    flag: '🇺🇸',
-    color: 'text-red-600',
-  },
-  {
-    country: 'Canada',
-    slug: 'canada',
-    tagline: 'Welcoming & affordable',
-    universities: '100+',
-    gradient: 'from-rose-500/10 to-pink-500/10',
-    flag: '🇨🇦',
-    color: 'text-rose-600',
   },
 ] as const
 
@@ -84,7 +48,7 @@ export default function PopularDestinations() {
           </div>
         </FadeUp>
 
-        <FadeUpStagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
+        <FadeUpStagger className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-2" amount={0.08}>
           {destinations.map((dest) => (
             <FadeUpItem key={dest.slug}>
               <Link href={`/universities?country=${dest.slug}`}>

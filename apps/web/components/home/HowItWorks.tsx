@@ -7,7 +7,7 @@ const steps = [
     number: '01',
     title: 'Discover',
     description:
-      'Browse universities and courses across 12+ countries. Use our AI-powered matching to find programs that fit your goals, budget, and career plans.',
+      'Browse universities and courses in South Korea and Australia. Use our AI-powered matching to find programs that fit your goals, budget, and career plans.',
   },
   {
     icon: FileCheck,

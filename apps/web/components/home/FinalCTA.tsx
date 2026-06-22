@@ -32,7 +32,7 @@ export default function FinalCTA() {
           </h2>
 
           <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-white/70 sm:text-lg">
-            Join 2,500+ students who found their perfect university match. Free consultation,
+            Join thousands of students who found their perfect university match. Free consultation,
             zero hidden fees.
           </p>
 
