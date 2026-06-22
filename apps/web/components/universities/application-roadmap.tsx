@@ -217,7 +217,6 @@ function FlightPathScene({
               style={{ pointerEvents: 'all', overflow: 'visible' }}
             >
               <div
-                xmlns="http://www.w3.org/1999/xhtml"
                 onClick={() => onStepClick(step.number)}
                 style={{
                   cursor: 'pointer',
@@ -325,7 +324,7 @@ function FlightPathScene({
         <circle cx={0} cy={0} r={planeR + 4} fill="#C41E3A" opacity={0.1} filter={`url(#glow-${isMobile ? 'm' : 'd'})`} />
         <circle cx={0} cy={0} r={planeR} fill="white" stroke="#C41E3A" strokeWidth={2.5} />
         <foreignObject x={-8} y={-8} width={16} height={16}>
-          <div xmlns="http://www.w3.org/1999/xhtml" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <PlaneSvg className="h-3.5 w-3.5 text-[#C41E3A]" />
           </div>
         </foreignObject>
