@@ -49,11 +49,11 @@ export function ResourceCenter() {
       opacity: 1,
       transition: { staggerChildren: 0.1 },
     },
-  }
+  } as const
 
   const itemVariants = {
     hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 80, damping: 15 } },
+    show: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 80, damping: 15 } },
   }
 
   return (
