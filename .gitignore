@@ -10,5 +10,7 @@ dist/
 .vercel/
 coverage/
 drizzle/
+.puku/puku-embeddings.db-shm
+.puku/puku-embeddings.db-wal
 *.tsbuildinfo 
 *.tsbuildinfo 
