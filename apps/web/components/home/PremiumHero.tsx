@@ -48,8 +48,8 @@ export default function PremiumHero() {
               transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
               className="text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
             >
-              Where you study{' '}
-              <span className="text-[#C41E3A]">changes everything</span>
+              Study Abroad With{' '}
+              <span className="text-[#C41E3A]">Endow Guidance</span>
             </motion.h1>
 
             <motion.p
