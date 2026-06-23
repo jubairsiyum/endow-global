@@ -1,85 +1,26 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import Image from 'next/image'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, Menu, X, ChevronDown } from 'lucide-react'
 
 const navItems = [
   { label: 'Home', href: '/' },
   { label: 'Universities', href: '/universities' },
+  { label: 'Countries', href: '/universities' },
   { label: 'Courses', href: '/courses' },
-  { label: 'Blog', href: '/blog' },
-  { label: 'About', href: '/about' },
+  { label: 'Resources', href: '/blog' },
 ] as const
-
-const transition = {
-  type: 'spring' as const,
-  stiffness: 340,
-  damping: 28,
-  mass: 0.5,
-}
-
-const pillTransition = {
-  type: 'spring' as const,
-  stiffness: 380,
-  damping: 32,
-}
-
-const containerVariants = {
-  hero: {
-    maxWidth: 1140,
-    minHeight: 80,
-    paddingLeft: 22,
-    paddingRight: 22,
-    paddingTop: 10,
-    paddingBottom: 10,
-    borderRadius: 18,
-    y: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0)',
-    borderColor: 'rgba(255, 255, 255, 0)',
-    boxShadow: '0 0 0 rgba(0,0,0,0)',
-    backdropFilter: 'blur(0px)',
-  },
-  scrolled: {
-    maxWidth: 980,
-    minHeight: 80,
-    paddingLeft: 22,
-    paddingRight: 22,
-    paddingTop: 8,
-    paddingBottom: 8,
-    borderRadius: 12,
-    y: -8,
-    backgroundColor: 'rgba(255, 255, 255, 0.78)',
-    borderColor: 'rgba(229, 231, 235, 0.86)',
-    boxShadow: '0 16px 42px rgba(15,23,42,0.12)',
-    backdropFilter: 'blur(22px)',
-  },
-}
 
 export function Navbar() {
   const pathname = usePathname()
-  const isHome = pathname === '/'
   const isAuthRoute = pathname === '/login' || pathname === '/register'
   const authMode: 'signin' | 'signup' = pathname === '/register' ? 'signup' : 'signin'
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const isHero = !isScrolled
-  const textPrimary = 'text-gray-900'
-  const textMuted = 'text-gray-700'
-  const textHover = 'hover:text-gray-900'
-  const navRailBg = isHero ? 'rgba(255, 255, 255, 0)' : 'rgba(255, 255, 255, 0.65)'
-  const pillActiveBg = 'bg-[#C41E3A]'
-  const pillActiveShadow = 'shadow-[0_10px_30px_rgba(196,30,58,0.25)]'
 
-  const navMotion = isHero ? containerVariants.hero : containerVariants.scrolled
-
-  // When already on an auth route, the Navbar's Sign In / Sign Up buttons
-  // must toggle the form in-page (via the AuthContext) rather than performing
-  // a Next.js route navigation, which would remount the page and kill the
-  // smooth form-switch animation.
   const handleAuthClick = useCallback(
     (mode: 'signin' | 'signup') => (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (isAuthRoute && authMode !== mode) {
@@ -91,7 +32,7 @@ export function Navbar() {
   )
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 50)
+    const onScroll = () => setIsScrolled(window.scrollY > 20)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -102,46 +43,27 @@ export function Navbar() {
   }, [pathname])
 
   return (
-    <div className="fixed left-0 right-0 top-4 z-50 flex justify-center px-4 sm:px-6">
-      <motion.nav
-        aria-label="Primary"
-        initial={false}
-        animate={navMotion}
-        transition={transition}
-        className={[
-          `relative ${isHero ? 'flex w-full' : 'inline-flex'} items-center ${isHero ? 'justify-between gap-5 md:gap-8' : 'gap-6'} border ${isScrolled ? 'rounded-[10px]' : ''}`,
-        ].join(' ')}
+    <>
+      <header
+        className={`fixed left-0 right-0 top-0 z-50 transition-all duration-300 ${
+          isScrolled
+            ? 'border-b border-gray-100 bg-white/95 shadow-[0_1px_3px_rgba(0,0,0,0.04)] backdrop-blur-xl'
+            : 'bg-white'
+        }`}
       >
-        <Link
-          href="/"
-          aria-label="Endow Global Education home"
-          className={`flex h-14 shrink-0 items-center gap-3.5 rounded-full pr-2 font-semibold transition sm:h-16 md:pr-4 ${textPrimary}`}
-        >
-          <span className="flex h-12 shrink-0 items-center">
-            <Image
-              src="/logo/endoedu.svg"
-              alt=""
-              aria-hidden="true"
-              width={616}
-              height={504}
-              priority
-              sizes="59px"
-              className="h-12 w-auto shrink-0 object-contain object-center"
-            />
-          </span>
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5" aria-label="Endow Global Education home">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#C41E3A]">
+              <span className="text-sm font-bold leading-none text-white">E</span>
+            </div>
+            <span className="text-[15px] font-bold tracking-tight text-gray-900">
+              Endow<span className="text-[#C41E3A]">Global</span>
+            </span>
+          </Link>
 
-          <span className="flex shrink-0 flex-col justify-center leading-[1.1] tracking-tight">
-            <span className="whitespace-nowrap text-lg font-bold text-[#DC143C]">Endow Global</span>
-            <span className="whitespace-nowrap text-lg font-bold text-[#111827]">Education</span>
-          </span>
-        </Link>
-
-        <motion.div
-          className={`relative hidden items-center md:flex ${isHero ? 'gap-1.5 rounded-full p-1' : 'gap-1 p-0'}`}
-          animate={{ backgroundColor: isHero ? navRailBg : 'transparent' }}
-          transition={transition}
-        >
-          <div className={`flex items-center ${isHero ? 'gap-1' : 'gap-0.5'}`}>
+          {/* Desktop Nav */}
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Primary">
             {navItems.map((item) => {
               const isActive = pathname === item.href
               return (
@@ -149,128 +71,72 @@ export function Navbar() {
                   key={item.href}
                   href={item.href}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative rounded-full text-sm font-medium transition ${
-                    isActive ? 'text-white' : textMuted
-                  } ${isActive ? '' : textHover} ${isHero ? 'px-3.5 py-1.5' : 'px-3 py-1.5'}`}
+                  className={`relative flex items-center gap-1 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors ${
+                    isActive
+                      ? 'text-[#C41E3A]'
+                      : 'text-gray-500 hover:text-gray-900'
+                  }`}
                 >
-                  <AnimatePresence mode="wait">
-                    {isActive ? (
-                      <motion.span
-                        key={isScrolled ? 'scrolled' : 'hero'}
-                        layoutId="active-pill"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.25, ease: 'easeOut' }}
-                        className={`absolute inset-0 rounded-full ${pillActiveBg} ${pillActiveShadow}`}
-                      />
-                    ) : null}
-                  </AnimatePresence>
-                  <span className="relative z-10">{item.label}</span>
+                  {item.label}
+                  {(item.label === 'Countries' || item.label === 'Courses') && (
+                    <ChevronDown size={13} className="text-gray-400" />
+                  )}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-indicator"
+                      className="absolute inset-x-1 -bottom-[1px] h-0.5 rounded-full bg-[#C41E3A]"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                    />
+                  )}
                 </Link>
               )
             })}
-          </div>
-        </motion.div>
+          </nav>
 
-        <div className={`hidden items-center ${isHero ? 'gap-2' : 'gap-2'} md:flex`}>
-          <motion.div
-            initial={{ opacity: 1 }}
-            animate={isHero ? { opacity: 1, x: 0 } : { opacity: 0, x: -10, pointerEvents: 'none' }}
-            transition={transition}
-            className={isHero ? '' : 'hidden'}
-          >
+          {/* Desktop CTA */}
+          <div className="hidden items-center gap-3 md:flex">
             <Link
               href="/login"
               prefetch={false}
               onClick={handleAuthClick('signin')}
-              className={`inline-flex items-center justify-center rounded-full text-sm font-semibold transition ${textPrimary} ${textHover} ${
-                isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
-              }`}
+              className="rounded-lg px-3 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900"
             >
-              Sign In
+              Sign in
             </Link>
-          </motion.div>
-
-          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }}>
             <Link
               href="/register"
               prefetch={false}
               onClick={handleAuthClick('signup')}
-              className={`group inline-flex items-center justify-center rounded-full transition ${
-                isScrolled
-                  ? 'gap-2 bg-gradient-to-r from-red-600 to-rose-500 px-5 py-2.5 font-semibold tracking-tight text-white shadow-[0_10px_24px_rgba(196,30,58,0.20)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-red-200'
-                  : `bg-[#C41E3A] text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)] ${
-                      isHero ? 'px-4 py-1.5' : 'px-4 py-1.5'
-                    }`
-              }`}
+              className="group inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_16px_rgba(196,30,58,0.3)] hover:-translate-y-px"
             >
-              {isScrolled ? (
-                <>
-                  <span>Get Started</span>
-                  <motion.div
-                    animate={{
-                      x: [0, 1.5, 0],
-                      opacity: [0.95, 1, 0.95],
-                    }}
-                    transition={{
-                      duration: 2.5,
-                      repeat: Infinity,
-                      ease: 'easeInOut',
-                    }}
-                    className="group/arrow relative inline-flex items-center justify-center"
-                  >
-                    <ArrowRight
-                      strokeWidth={1.5}
-                      className="h-5 w-5 text-white transition-all duration-300 ease-out group-hover:-translate-y-[1px] group-hover:translate-x-1.5"
-                    />
-                  </motion.div>
-                </>
-              ) : (
-                'Sign Up'
-              )}
+              Get Started
+              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
             </Link>
-          </motion.div>
+          </div>
+
+          {/* Mobile Toggle */}
+          <button
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-gray-600 transition-colors hover:bg-gray-100 md:hidden"
+            aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
+            onClick={() => setIsMobileOpen((prev) => !prev)}
+          >
+            {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
+          </button>
         </div>
+      </header>
 
-        <button
-          className={`relative flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 transition md:hidden ${textPrimary}`}
-          aria-label="Toggle menu"
-          onClick={() => setIsMobileOpen((prev) => !prev)}
-        >
-          <motion.span
-            animate={isMobileOpen ? { rotate: 45, y: 3 } : { rotate: 0, y: -3 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute h-[2px] w-5 rounded-full bg-current"
-          />
-          <motion.span
-            animate={isMobileOpen ? { rotate: -45, y: -3 } : { rotate: 0, y: 3 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute h-[2px] w-5 rounded-full bg-current"
-          />
-        </button>
-      </motion.nav>
-
+      {/* Mobile Menu */}
       <AnimatePresence>
-        {isMobileOpen ? (
+        {isMobileOpen && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.35, ease: 'easeOut' }}
-            className="absolute top-14 w-full max-w-[980px] px-4 sm:px-6 md:hidden"
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            className="fixed inset-x-0 top-16 z-50 border-b border-gray-100 bg-white/95 backdrop-blur-xl md:hidden"
           >
-            <motion.div
-              animate={{
-                backgroundColor: isHero ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.30)',
-                borderColor: isHero ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.30)',
-                boxShadow: isHero ? '0 24px 60px rgba(0,0,0,0.08)' : '0 24px 60px rgba(0,0,0,0.12)',
-                backdropFilter: isHero ? 'blur(10px)' : 'blur(22px)',
-              }}
-              transition={transition}
-              className="rounded-3xl border p-4 backdrop-blur-2xl"
-            >
-              <div className="flex flex-col gap-2">
+            <div className="mx-auto max-w-7xl px-5 py-4">
+              <div className="flex flex-col gap-1">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href
                   return (
@@ -278,44 +144,35 @@ export function Navbar() {
                       key={item.href}
                       href={item.href}
                       aria-current={isActive ? 'page' : undefined}
-                      className={[
-                        'rounded-2xl px-4 py-3 text-sm font-medium transition',
+                      className={`rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                         isActive
-                          ? isHero
-                            ? 'bg-white/20 text-gray-900 shadow-[0_12px_30px_rgba(15,23,42,0.12)]'
-                            : 'bg-[#C41E3A] text-white shadow-[0_12px_30px_rgba(196,30,58,0.25)]'
-                          : isHero
-                            ? 'text-gray-700 hover:bg-white/20 hover:text-gray-900'
-                            : 'text-gray-700 hover:bg-neutral-100 hover:text-gray-900',
-                      ].join(' ')}
+                          ? 'bg-[#C41E3A]/5 text-[#C41E3A]'
+                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
                     >
                       {item.label}
                     </Link>
                   )
                 })}
               </div>
-              <div className="mt-4 flex flex-col gap-2">
+              <div className="mt-4 flex flex-col gap-2 border-t border-gray-100 pt-4">
                 <Link
                   href="/login"
-                  prefetch={false}
-                  onClick={handleAuthClick('signin')}
-                  className="flex items-center justify-center rounded-full border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition hover:bg-gray-100"
+                  className="flex items-center justify-center rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
                 >
-                  Sign In
+                  Sign in
                 </Link>
                 <Link
                   href="/register"
-                  prefetch={false}
-                  onClick={handleAuthClick('signup')}
-                  className="flex items-center justify-center rounded-full bg-[#C41E3A] px-5 py-3 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(196,30,58,0.35)]"
+                  className="flex items-center justify-center rounded-full bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)]"
                 >
-                  Sign Up
+                  Get Started
                 </Link>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
-        ) : null}
+        )}
       </AnimatePresence>
-    </div>
+    </>
   )
 }

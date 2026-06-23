@@ -1,0 +1,134 @@
+'use client'
+
+import { motion, useReducedMotion } from 'framer-motion'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Search, Star } from 'lucide-react'
+
+const students = [
+  { src: '/student-1.jpg', alt: 'Student studying abroad', rotate: -3, y: 12 },
+  { src: '/student-2.jpg', alt: 'International student', rotate: -1, y: 4 },
+  { src: '/student-3.jpg', alt: 'University student', rotate: 0, y: 0 },
+  { src: '/student-4.jpg', alt: 'Graduate student', rotate: 1, y: 4 },
+  { src: '/student-5.jpg', alt: 'Exchange student', rotate: 3, y: 12 },
+]
+
+export default function PremiumHero() {
+  const prefersReducedMotion = useReducedMotion()
+
+  return (
+    <section id="hero-section" className="relative flex min-h-[85vh] items-center overflow-hidden bg-white">
+      <div className="mx-auto w-full max-w-7xl px-5 py-28 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
+          {/* Left — Content */}
+          <div className="relative z-10 max-w-xl">
+            <motion.h1
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
+              className="text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
+            >
+              Where you study{' '}
+              <span className="text-[#C41E3A]">changes everything</span>
+            </motion.h1>
+
+            <motion.p
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
+              className="mt-5 max-w-md text-lg leading-relaxed text-gray-500"
+            >
+              Personalized counseling for students pursuing higher education
+              in South Korea and Australia — from university selection to
+              visa approval.
+            </motion.p>
+
+            {/* Search bar */}
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="mt-8"
+            >
+              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
+                <div className="flex items-center gap-3 rounded-full bg-white px-5 py-3.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+                  <Search size={20} className="shrink-0 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search for courses, universities..."
+                    className="w-full bg-transparent text-[15px] text-gray-700 outline-none placeholder:text-gray-400"
+                  />
+                  <Link
+                    href="/universities"
+                    className="shrink-0 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#A01830]"
+                  >
+                    Search
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Trust */}
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+              className="mt-6 flex items-center gap-2 text-sm text-gray-500"
+            >
+              <span className="font-semibold text-gray-700">Rated 4.7</span>
+              <div className="flex items-center gap-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
+                ))}
+              </div>
+              <span className="text-gray-400">on Google</span>
+            </motion.div>
+          </div>
+
+          {/* Right — Overlapping student cards */}
+          <div className="relative hidden h-[480px] lg:block">
+            {students.map((s, i) => {
+              const offset = (i - 2) * 64
+              const isCenter = i === 2
+              return (
+                <motion.div
+                  key={i}
+                  initial={prefersReducedMotion ? false : { opacity: 0, x: 40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{
+                    duration: 0.7,
+                    delay: 0.2 + i * 0.08,
+                    ease: [0.25, 0.1, 0.25, 1],
+                  }}
+                  className="absolute top-0"
+                  style={{
+                    left: `calc(50% + ${offset}px)`,
+                    transform: `translateX(-50%) rotate(${s.rotate}deg) translateY(${s.y}px)`,
+                    zIndex: isCenter ? 10 : 5 - Math.abs(i - 2),
+                  }}
+                >
+                  <div
+                    className={`relative overflow-hidden rounded-2xl shadow-xl transition-transform duration-300 hover:scale-[1.03] ${
+                      isCenter
+                        ? 'h-[360px] w-[220px]'
+                        : 'h-[320px] w-[190px]'
+                    }`}
+                  >
+                    <Image
+                      src={s.src}
+                      alt={s.alt}
+                      fill
+                      sizes="(max-width: 1024px) 0px 220px"
+                      className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                  </div>
+                </motion.div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}

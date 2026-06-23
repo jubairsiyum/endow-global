@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence, useReducedMotion, useInView } from 'framer-motion'
 import {
   MessageSquare,
   Search,
@@ -11,23 +11,24 @@ import {
   Shield,
   Plane,
   ArrowRight,
-  Sparkles,
 } from 'lucide-react'
 
-const roadmapSteps = [
+const steps = [
   {
     number: 1,
     title: 'Consultation',
     description: 'Discuss your academic goals with our experienced counselors.',
     detail: 'Free 30-minute session to understand your aspirations, background, and timeline.',
     icon: MessageSquare,
+    color: '#8b5cf6',
   },
   {
     number: 2,
     title: 'University Matching',
-    description: 'Get personalized university recommendations powered by AI.',
-    detail: 'Our algorithm analyzes your profile against 500+ universities worldwide.',
+    description: 'Get personalized university recommendations.',
+    detail: 'Our algorithm analyzes your profile against partner universities in South Korea and Australia.',
     icon: Search,
+    color: '#3b82f6',
   },
   {
     number: 3,
@@ -35,6 +36,7 @@ const roadmapSteps = [
     description: 'Prepare all required documents with expert guidance.',
     detail: 'SOPs, LORs, transcripts, and financial documents — we review every page.',
     icon: FileText,
+    color: '#f59e0b',
   },
   {
     number: 4,
@@ -42,13 +44,15 @@ const roadmapSteps = [
     description: 'Submit complete applications to your selected universities.',
     detail: 'We ensure every application is polished and submitted before deadlines.',
     icon: Send,
+    color: '#10b981',
   },
   {
     number: 5,
-    title: 'Interview',
+    title: 'Interview Prep',
     description: 'Prepare and ace your university interviews with mock sessions.',
     detail: 'One-on-one coaching with feedback from former admissions officers.',
     icon: Video,
+    color: '#ef4444',
   },
   {
     number: 6,
@@ -56,6 +60,7 @@ const roadmapSteps = [
     description: 'Navigate the visa application process with full support.',
     detail: 'Document checklist, mock visa interviews, and embassy coordination.',
     icon: Shield,
+    color: '#6366f1',
   },
   {
     number: 7,
@@ -63,258 +68,366 @@ const roadmapSteps = [
     description: 'Final preparations and welcome to your new chapter abroad.',
     detail: 'Pre-departure briefing, accommodation help, and airport pickup coordination.',
     icon: Plane,
+    color: '#C41E3A',
   },
 ]
 
-export default function ApplicationRoadmap() {
-  const [activeStep, setActiveStep] = useState<number | null>(null)
+/* Desktop waypoints — horizontal S-curve */
+const desktopWaypoints = [
+  { x: 85,  y: 250 },
+  { x: 210, y: 130 },
+  { x: 360, y: 220 },
+  { x: 500, y: 95  },
+  { x: 640, y: 200 },
+  { x: 790, y: 125 },
+  { x: 915, y: 235 },
+]
+
+/* Mobile/tablet waypoints — vertical S-curve, wider viewBox */
+const mobileWaypoints = [
+  { x: 250, y: 60  },
+  { x: 120, y: 180 },
+  { x: 340, y: 300 },
+  { x: 140, y: 420 },
+  { x: 320, y: 540 },
+  { x: 130, y: 660 },
+  { x: 250, y: 780 },
+]
+
+function buildPath(pts: { x: number; y: number }[]): string {
+  if (pts.length < 2) return ''
+  let d = `M ${pts[0].x} ${pts[0].y}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(i - 1, 0)]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[Math.min(i + 2, pts.length - 1)]
+    const t = 0.3
+    d += ` C ${p1.x + (p2.x - p0.x) * t} ${p1.y + (p2.y - p0.y) * t}, ${p2.x - (p3.x - p1.x) * t} ${p2.y - (p3.y - p1.y) * t}, ${p2.x} ${p2.y}`
+  }
+  return d
+}
+
+function PlaneSvg({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className}>
+      <path
+        d="M21 16v-2l-8-5V3.5A1.5 1.5 0 0 0 11.5 2 1.5 1.5 0 0 0 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"
+        fill="currentColor"
+      />
+    </svg>
+  )
+}
+
+/* Shared SVG path scene — used for both desktop and mobile */
+function FlightPathScene({
+  waypoints,
+  viewBox,
+  activeStep,
+  onStepClick,
+  isMobile,
+}: {
+  waypoints: { x: number; y: number }[]
+  viewBox: string
+  activeStep: number
+  onStepClick: (n: number) => void
+  isMobile: boolean
+}) {
+  const pathD = buildPath(waypoints)
+  const progress = activeStep / steps.length
+
+  const currentWp = waypoints[Math.min(activeStep - 1, waypoints.length - 1)]
+  const nextWp = waypoints[Math.min(activeStep, waypoints.length - 1)]
+  const angleDeg = activeStep < steps.length
+    ? Math.atan2(nextWp.y - currentWp.y, nextWp.x - currentWp.x) * (180 / Math.PI)
+    : 0
+
+  const cardW = isMobile ? 135 : 140
+  const cardH = isMobile ? 100 : 120
+  const nodeR = isMobile ? 13 : 16
+  const dotR = isMobile ? 3.5 : 5
+  const planeR = isMobile ? 11 : 14
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#fdf8f4] via-white to-[#fdf8f4] py-20 lg:py-28">
-      {/* Background decor */}
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[-10%] top-[10%] h-[500px] w-[500px] rounded-full bg-[#C41E3A]/[0.04] blur-[100px]" />
-        <div className="absolute bottom-[5%] right-[-5%] h-[400px] w-[400px] rounded-full bg-amber-100/40 blur-[80px]" />
+    <svg viewBox={viewBox} className="w-full" style={{ height: 'auto', overflow: 'visible' }}>
+      <defs>
+        <filter id={`glow-${isMobile ? 'm' : 'd'}`} x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+          <feComposite in="SourceGraphic" in2="blur" operator="over" />
+        </filter>
+        <filter id={`shadow-${isMobile ? 'm' : 'd'}`} x="-40%" y="-40%" width="180%" height="180%">
+          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.08" />
+        </filter>
+        <linearGradient id={`grad-${isMobile ? 'm' : 'd'}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#C41E3A" />
+          <stop offset="100%" stopColor="#f43f5e" />
+        </linearGradient>
+      </defs>
+
+      {/* Dashed route */}
+      <path d={pathD} fill="none" stroke="#e5e7eb" strokeWidth={isMobile ? 5 : 5} strokeDasharray="12 7" strokeLinecap="round" />
+
+      {/* Solid dark route */}
+      <motion.path
+        d={pathD}
+        fill="none"
+        stroke="#1f2937"
+        strokeWidth={isMobile ? 6 : 7}
+        strokeLinecap="round"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: progress }}
+        transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
+      />
+
+      {/* Crimson glow */}
+      <motion.path
+        d={pathD}
+        fill="none"
+        stroke={`url(#grad-${isMobile ? 'm' : 'd'})`}
+        strokeWidth={isMobile ? 10 : 12}
+        strokeLinecap="round"
+        strokeOpacity={0.2}
+        filter={`url(#glow-${isMobile ? 'm' : 'd'})`}
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: progress }}
+        transition={{ duration: 1.5, ease: [0.25, 0.1, 0.25, 1] }}
+      />
+
+      {/* Connector lines + cards */}
+      {waypoints.map((wp, idx) => {
+        const step = steps[idx]
+        const isActive = activeStep === step.number
+        const isPast = step.number < activeStep
+        const cardX = wp.x - cardW / 2
+        const cardY = wp.y + (isMobile ? 28 : 38)
+        return (
+          <g key={step.number}>
+            <line
+              x1={wp.x} y1={wp.y + (isActive ? nodeR + 2 : nodeR)}
+              x2={wp.x} y2={cardY}
+              stroke={isActive ? `${step.color}40` : '#e5e7eb'}
+              strokeWidth={1}
+              strokeDasharray={isActive ? 'none' : '3 2'}
+            />
+            <circle cx={wp.x} cy={cardY} r={2} fill={isActive ? step.color : '#d1d5db'} />
+
+            <foreignObject
+              x={cardX} y={cardY + 4}
+              width={cardW} height={cardH}
+              style={{ pointerEvents: 'all', overflow: 'visible' }}
+            >
+              <div
+                onClick={() => onStepClick(step.number)}
+                style={{
+                  cursor: 'pointer',
+                  height: '100%',
+                  borderRadius: 10,
+                  border: `1px solid ${isActive ? `${step.color}25` : '#f3f4f6'}`,
+                  background: isActive ? `linear-gradient(135deg, ${step.color}08, white)` : 'white',
+                  boxShadow: isActive ? `0 4px 20px ${step.color}12, 0 1px 4px rgba(0,0,0,0.04)` : '0 1px 3px rgba(0,0,0,0.03)',
+                  padding: isMobile ? '8px 8px 6px' : '10px 10px 8px',
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <div style={{ height: 2, borderRadius: 1, background: isActive ? `linear-gradient(to right, ${step.color}, ${step.color}60)` : '#f3f4f6', marginBottom: isMobile ? 4 : 6 }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                  <div style={{
+                    width: isMobile ? 18 : 20, height: isMobile ? 18 : 20, borderRadius: 5,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    backgroundColor: isActive ? `${step.color}15` : '#f9fafb', flexShrink: 0,
+                  }}>
+                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                    <step.icon size={isMobile ? 9 : 10} color={isActive ? step.color : '#d1d5db'} />
+                  </div>
+                  <span style={{
+                    fontSize: isMobile ? 7 : 8, fontWeight: 800,
+                    textTransform: 'uppercase' as const, letterSpacing: '0.06em',
+                    color: isActive ? step.color : isPast ? `${step.color}70` : '#d1d5db',
+                  }}>
+                    Stop {step.number}
+                  </span>
+                </div>
+                <h4 style={{
+                  fontSize: isMobile ? 11 : 12, fontWeight: 700, lineHeight: 1.25,
+                  color: isActive ? '#111827' : isPast ? '#6b7280' : '#9ca3af', margin: 0,
+                }}>
+                  {step.title}
+                </h4>
+                {isActive && (
+                  <p style={{ fontSize: isMobile ? 9 : 10, lineHeight: 1.4, color: '#6b7280', marginTop: 3, marginBottom: 0 }}>
+                    {step.description}
+                  </p>
+                )}
+              </div>
+            </foreignObject>
+          </g>
+        )
+      })}
+
+      {/* Waypoint nodes */}
+      {waypoints.map((wp, idx) => {
+        const step = steps[idx]
+        const isActive = activeStep === step.number
+        const isPast = step.number < activeStep
+        return (
+          <g key={`node-${step.number}`}>
+            {isActive && (
+              <motion.circle
+                cx={wp.x} cy={wp.y} r={nodeR + 4}
+                fill="none" stroke={step.color} strokeWidth={1.5} strokeOpacity={0.25}
+                animate={{ r: [nodeR + 1, nodeR + 6, nodeR + 1], opacity: [0.25, 0.08, 0.25] }}
+                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              />
+            )}
+            <circle
+              cx={wp.x} cy={wp.y}
+              r={isActive ? nodeR : nodeR - 3}
+              fill="white"
+              stroke={isActive ? step.color : isPast ? `${step.color}60` : '#e5e7eb'}
+              strokeWidth={isActive ? 2.5 : 2}
+              filter={`url(#shadow-${isMobile ? 'm' : 'd'})`}
+              style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+              onClick={() => onStepClick(step.number)}
+            />
+            <circle
+              cx={wp.x} cy={wp.y}
+              r={isActive ? dotR : dotR - 1.5}
+              fill={isActive ? step.color : isPast ? `${step.color}80` : '#e5e7eb'}
+              style={{ pointerEvents: 'none', transition: 'all 0.3s ease' }}
+            />
+            <text
+              x={wp.x} y={wp.y + 0.5}
+              textAnchor="middle" dominantBaseline="central"
+              fill="white" fontSize={isMobile ? 5 : 6} fontWeight={800}
+              style={{ pointerEvents: 'none' }}
+            >
+              {step.number}
+            </text>
+          </g>
+        )
+      })}
+
+      {/* Airplane */}
+      <motion.g
+        initial={false}
+        animate={{
+          x: waypoints[activeStep - 1]?.x ?? waypoints[0].x,
+          y: waypoints[activeStep - 1]?.y ?? waypoints[0].y,
+          rotate: angleDeg,
+        }}
+        transition={{
+          x: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] },
+          y: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1] },
+          rotate: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] },
+        }}
+      >
+        <circle cx={0} cy={0} r={planeR + 4} fill="#C41E3A" opacity={0.1} filter={`url(#glow-${isMobile ? 'm' : 'd'})`} />
+        <circle cx={0} cy={0} r={planeR} fill="white" stroke="#C41E3A" strokeWidth={2.5} />
+        <foreignObject x={-8} y={-8} width={16} height={16}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <PlaneSvg className="h-3.5 w-3.5 text-[#C41E3A]" />
+          </div>
+        </foreignObject>
+      </motion.g>
+    </svg>
+  )
+}
+
+export default function ApplicationRoadmap() {
+  const [activeStep, setActiveStep] = useState<number>(1)
+  const [autoPlaying, setAutoPlaying] = useState(true)
+  const sectionRef = useRef<HTMLDivElement>(null)
+  const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
+  const prefersReducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    if (prefersReducedMotion || !autoPlaying || !isInView) return
+    const id = setInterval(() => {
+      setActiveStep((prev) => {
+        if (prev >= steps.length) { setAutoPlaying(false); return prev }
+        return prev + 1
+      })
+    }, 2000)
+    return () => clearInterval(id)
+  }, [autoPlaying, isInView, prefersReducedMotion])
+
+  const handleStepClick = (num: number) => {
+    setAutoPlaying(false)
+    setActiveStep(activeStep === num ? 0 : num)
+  }
+
+  return (
+    <section ref={sectionRef} className="relative bg-white py-24 lg:py-32">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.02]">
+        <div className="h-full w-full" style={{ backgroundImage: 'radial-gradient(circle, #000 0.5px, transparent 0.5px)', backgroundSize: '20px 20px' }} />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
-        {/* Section Header */}
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           viewport={{ once: true }}
-          className="mb-16 text-center"
+          className="mb-12 text-center"
         >
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/10 bg-[#C41E3A]/5 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-[#C41E3A]">
-            <Sparkles size={14} />
-            Your Journey
-          </div>
-          <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.05] tracking-tight text-slate-950">
-            Application{' '}
-            <span className="text-[#C41E3A]">Roadmap</span>
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-gray-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
+            <Plane size={13} />
+            Your Flight Path
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
+            Application <span className="text-[#C41E3A]">roadmap</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-slate-500">
-            Seven clear steps from consultation to departure. We guide you through every milestone.
+          <p className="mx-auto mt-4 max-w-xl text-base text-gray-400">
+            Follow the flight from your first consultation to departure day.
           </p>
         </motion.div>
 
-        {/* Desktop: Winding Road */}
+        {/* Desktop */}
         <div className="hidden lg:block">
-          <div className="relative">
-            {/* Road SVG */}
-            <svg
-              className="absolute left-0 top-0 h-full w-full"
-              viewBox="0 0 1200 420"
-              fill="none"
-              preserveAspectRatio="none"
-            >
-              {/* Road body */}
-              <path
-                d="M 60 210 C 200 210, 200 70, 340 70 C 480 70, 480 210, 620 210 C 760 210, 760 350, 900 350 C 1040 350, 1040 210, 1140 210"
-                stroke="#e2d6cc"
-                strokeWidth="40"
-                strokeLinecap="round"
-                fill="none"
-              />
-              {/* Center dashed line */}
-              <path
-                d="M 60 210 C 200 210, 200 70, 340 70 C 480 70, 480 210, 620 210 C 760 210, 760 350, 900 350 C 1040 350, 1040 210, 1140 210"
-                stroke="#C41E3A"
-                strokeWidth="2"
-                strokeDasharray="10 8"
-                strokeLinecap="round"
-                fill="none"
-                opacity="0.35"
-              />
-            </svg>
-
-            {/* Step markers */}
-            <div className="relative grid grid-cols-7 gap-2">
-              {roadmapSteps.map((step, idx) => {
-                const Icon = step.icon
-                const isActive = activeStep === step.number
-                const positions = [
-                  'mt-32',
-                  'mt-0',
-                  'mt-32',
-                  'mt-0',
-                  'mt-32',
-                  'mt-0',
-                  'mt-32',
-                ]
-
-                return (
-                  <motion.div
-                    key={step.number}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: idx * 0.08 }}
-                    viewport={{ once: true }}
-                    className={`relative flex flex-col items-center ${positions[idx]}`}
-                    onMouseEnter={() => setActiveStep(step.number)}
-                    onMouseLeave={() => setActiveStep(null)}
-                  >
-                    {/* Connector */}
-                    <div className={`h-8 w-px transition-colors duration-300 ${
-                      isActive ? 'bg-[#C41E3A]' : 'bg-slate-200'
-                    }`} />
-
-                    {/* Card */}
-                    <motion.div
-                      whileHover={{ y: -6 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                      className={`relative w-full cursor-pointer rounded-2xl border p-5 transition-all duration-300 ${
-                        isActive
-                          ? 'border-[#C41E3A]/20 bg-white shadow-[0_8px_40px_rgba(196,30,58,0.1)]'
-                          : 'border-slate-100 bg-white/80 shadow-[0_4px_20px_rgba(15,23,42,0.04)] hover:border-slate-200 hover:shadow-[0_8px_30px_rgba(15,23,42,0.08)]'
-                      }`}
-                    >
-                      {/* Number */}
-                      <div className={`absolute -top-3 left-5 flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-black transition-all duration-300 ${
-                        isActive
-                          ? 'bg-[#C41E3A] text-white shadow-[0_4px_12px_rgba(196,30,58,0.3)]'
-                          : 'bg-slate-100 text-slate-500'
-                      }`}>
-                        {step.number}
-                      </div>
-
-                      {/* Icon */}
-                      <div className={`mb-3 flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-300 ${
-                        isActive
-                          ? 'bg-[#C41E3A]/10 text-[#C41E3A]'
-                          : 'bg-slate-50 text-slate-400'
-                      }`}>
-                        <Icon size={20} />
-                      </div>
-
-                      {/* Text */}
-                      <h3 className={`mb-1 text-sm font-bold transition-colors duration-300 ${
-                        isActive ? 'text-slate-950' : 'text-slate-700'
-                      }`}>
-                        {step.title}
-                      </h3>
-                      <p className={`text-xs leading-relaxed transition-colors duration-300 ${
-                        isActive ? 'text-slate-500' : 'text-slate-400'
-                      }`}>
-                        {step.description}
-                      </p>
-
-                      {/* Expanded detail */}
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="mt-3 border-t border-slate-100 pt-3">
-                              <p className="text-xs leading-relaxed text-[#C41E3A]/70">
-                                {step.detail}
-                              </p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  </motion.div>
-                )
-              })}
-            </div>
+          <div className="relative mx-auto" style={{ maxWidth: 1100, overflow: 'visible' }}>
+            <FlightPathScene
+              waypoints={desktopWaypoints}
+              viewBox="0 0 1000 500"
+              activeStep={activeStep}
+              onStepClick={handleStepClick}
+              isMobile={false}
+            />
           </div>
         </div>
 
-        {/* Mobile: Vertical Road */}
+        {/* Mobile & Tablet */}
         <div className="lg:hidden">
-          <div className="relative">
-            {/* Vertical road */}
-            <div className="absolute left-[23px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-[#C41E3A]/20 via-[#C41E3A]/10 to-transparent" />
-            <div className="absolute left-[23px] top-0 bottom-0 w-[2px] bg-[repeating-linear-gradient(to_bottom,rgba(196,30,58,0.2)_0px,rgba(196,30,58,0.2)_6px,transparent_6px,transparent_12px)]" />
-
-            <div className="space-y-3">
-              {roadmapSteps.map((step, idx) => {
-                const Icon = step.icon
-                const isActive = activeStep === step.number
-
-                return (
-                  <motion.div
-                    key={step.number}
-                    initial={{ opacity: 0, x: -16 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.4, delay: idx * 0.06 }}
-                    viewport={{ once: true }}
-                    className="relative flex gap-4"
-                    onClick={() => setActiveStep(isActive ? null : step.number)}
-                  >
-                    {/* Road marker */}
-                    <div className="relative z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center">
-                      <div className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all duration-300 ${
-                        isActive
-                          ? 'border-[#C41E3A] bg-[#C41E3A] shadow-[0_0_16px_rgba(196,30,58,0.25)]'
-                          : 'border-slate-200 bg-white'
-                      }`}>
-                        <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400'} />
-                      </div>
-                    </div>
-
-                    {/* Card */}
-                    <div className={`flex-1 rounded-xl border p-4 transition-all duration-300 ${
-                      isActive
-                        ? 'border-[#C41E3A]/15 bg-white shadow-[0_4px_20px_rgba(196,30,58,0.08)]'
-                        : 'border-slate-100 bg-white/60'
-                    }`}>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-black ${isActive ? 'text-[#C41E3A]' : 'text-slate-300'}`}>
-                          STEP {step.number}
-                        </span>
-                        <span className="text-[10px] text-slate-300">/ 7</span>
-                      </div>
-                      <h3 className="mt-1 text-sm font-bold text-slate-800">{step.title}</h3>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-400">{step.description}</p>
-
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden"
-                          >
-                            <p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-relaxed text-[#C41E3A]/70">
-                              {step.detail}
-                            </p>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                )
-              })}
-            </div>
+          <div className="relative mx-auto w-full overflow-visible px-2">
+            <FlightPathScene
+              waypoints={mobileWaypoints}
+              viewBox="0 0 500 860"
+              activeStep={activeStep}
+              onStepClick={handleStepClick}
+              isMobile={true}
+            />
           </div>
         </div>
 
-        {/* Bottom CTA */}
+        {/* CTA */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.3 }}
           viewport={{ once: true }}
           className="mt-16 text-center"
         >
-          <div className="inline-flex flex-col items-center gap-4 rounded-2xl border border-slate-100 bg-white px-8 py-6 shadow-[0_4px_24px_rgba(15,23,42,0.05)] sm:flex-row sm:gap-6">
+          <div className="inline-flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white px-8 py-6 shadow-[0_1px_6px_rgba(0,0,0,0.03)] sm:flex-row sm:gap-6">
             <div className="text-left">
-              <p className="text-sm font-bold text-slate-800">Ready to start your journey?</p>
-              <p className="text-xs text-slate-400">Average timeline: 3–4 months to departure</p>
+              <p className="text-sm font-bold text-gray-900">Ready to start your journey?</p>
+              <p className="text-xs text-gray-400">Average timeline: 3–4 months to departure</p>
             </div>
             <a
               href="/register"
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-gradient-to-r from-[#C41E3A] to-red-600 px-5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(196,30,58,0.2)] transition-all hover:shadow-[0_6px_24px_rgba(196,30,58,0.3)]"
+              className="group inline-flex h-10 items-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-bold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.3)]"
             >
-              Get Started
-              <ArrowRight size={16} />
+              Board Now
+              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
             </a>
           </div>
         </motion.div>

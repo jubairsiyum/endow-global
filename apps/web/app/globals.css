@@ -4,119 +4,314 @@
 
 /* =========================
    ROOT VARIABLES
-========================= */
+======================== */
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #09090b;
+  --brand: #C41E3A;
+  --brand-dark: #A01830;
+  --brand-light: #fef2f4;
+  --surface-0: #ffffff;
+  --surface-50: #fafafa;
+  --surface-100: #f4f4f5;
+  --surface-200: #e4e4e7;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-medium: rgba(0, 0, 0, 0.1);
+  --text-primary: #09090b;
+  --text-secondary: #52525b;
+  --text-tertiary: #a1a1aa;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --surface-0: #18181b;
+  --surface-50: #27272a;
+  --surface-100: #3f3f46;
+  --surface-200: #52525b;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-medium: rgba(255, 255, 255, 0.1);
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-tertiary: #71717a;
 }
 
 /* =========================
-   BODY
-========================= */
+   BASE STYLES
+======================== */
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family:
-    -apple-system,
-    BlinkMacSystemFont,
-    "SF Pro Display",
-    "SF Pro Text",
-    system-ui,
-    sans-serif;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+.dark body {
+  background: #09090b;
+  color: #fafafa;
 }
 
 /* =========================
    PREMIUM SCROLLBAR
-========================= */
+======================== */
 
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(
-    to bottom,
-    #dc143c,
-    #c41e3a
-  );
-
+  background: rgba(0, 0, 0, 0.12);
   border-radius: 999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(
-    to bottom,
-    #b91c1c,
-    #9f1239
-  );
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 /* =========================
    SELECTION
-========================= */
+======================== */
 
 ::selection {
-  background: rgba(196, 30, 58, 0.18);
-  color: #111827;
+  background: rgba(196, 30, 58, 0.12);
+  color: #09090b;
+}
+
+.dark ::selection {
+  background: rgba(196, 30, 58, 0.3);
+  color: #fafafa;
 }
 
 /* =========================
-   SCROLL FLOAT TITLES
-========================= */
-
-.scroll-title-highlight-university .word:nth-child(-n + 10),
-.scroll-title-highlight-worldwide .word:nth-child(n + 20):nth-child(-n + 28),
-.scroll-title-highlight-scholarship .word:nth-child(n + 11):nth-child(-n + 21),
-.scroll-title-highlight-success .word:nth-child(n + 8):nth-child(-n + 14) {
-  color: #C41E3A;
-}
-
-.scroll-title-highlight-worldwide .word:nth-child(n + 20):nth-child(-n + 28) {
-  background: linear-gradient(90deg, #7A0713 0%, #C41E3A 52%, #E05266 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* =========================
-   BUTTON TRANSITIONS
-========================= */
+   UNIVERSAL TRANSITIONS
+======================== */
 
 button,
 a {
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
-
-/* =========================
-   INPUT STYLES
-========================= */
 
 input,
 select,
 textarea {
-  transition: all 0.25s ease;
+  transition: all 0.2s ease;
+}
+
+/* =========================
+   PREMIUM GLASS EFFECTS
+======================== */
+
+.glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dark .glass {
+  background: rgba(24, 24, 27, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(40px) saturate(200%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.dark .glass-strong {
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-dark {
+  background: rgba(9, 9, 11, 0.72);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* =========================
+   SHINE BORDER
+======================== */
+
+@property --shine-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.shine-border-wrapper {
+  position: relative;
+  padding: var(--shine-border, 2px);
+  border-radius: 1rem;
+}
+
+.shine-border-gradient {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--shine-border, 2px);
+  background: conic-gradient(
+    from var(--shine-angle),
+    #C41E3A,
+    #f97316,
+    #eab308,
+    #22c55e,
+    #3b82f6,
+    #8b5cf6,
+    #C41E3A
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: shine-rotate var(--shine-duration, 4s) linear infinite;
+}
+
+@keyframes shine-rotate {
+  to {
+    --shine-angle: 360deg;
+  }
+}
+
+/* =========================
+   PREMIUM CARD
+======================== */
+
+.card-premium {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .card-premium {
+  background: #18181b;
+  border-color: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-premium:hover {
+  border-color: rgba(196, 30, 58, 0.12);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(196, 30, 58, 0.06);
+  transform: translateY(-2px);
+}
+
+.dark .card-premium:hover {
+  border-color: rgba(196, 30, 58, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(196, 30, 58, 0.1);
+}
+
+/* =========================
+   GRADIENT TEXT
+======================== */
+
+.text-gradient-brand {
+  background: linear-gradient(135deg, #C41E3A 0%, #E05266 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* =========================
+   GLOW EFFECTS
+======================== */
+
+.glow-brand {
+  position: relative;
+}
+
+.glow-brand::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(196, 30, 58, 0.2), rgba(196, 30, 58, 0.05));
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.dark .glow-brand::before {
+  background: linear-gradient(135deg, rgba(196, 30, 58, 0.3), rgba(196, 30, 58, 0.1));
+}
+
+.glow-brand:hover::before {
+  opacity: 1;
+}
+
+/* =========================
+   GRID BACKGROUND
+======================== */
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.dark .bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* =========================
+   IMAGE QUALITY
+======================== */
+
+img {
+  image-rendering: auto;
 }
 
 /* =========================
    UNIVERSITY MARQUEE
-========================= */
+======================== */
 
 .university-marquee {
   display: flex;
@@ -147,6 +342,10 @@ textarea {
   transform: translate3d(0, 0, 0);
 }
 
+.dark .university-marquee-half {
+  filter: brightness(1.2);
+}
+
 .university-logo-cell {
   display: flex;
   flex: 0 0 72px;
@@ -156,10 +355,12 @@ textarea {
   justify-content: center;
   opacity: 0.82;
   transform: translate3d(0, 0, 0);
-  transition:
-    opacity 180ms ease,
-    transform 180ms ease;
+  transition: opacity 180ms ease, transform 180ms ease;
   backface-visibility: hidden;
+}
+
+.dark .university-logo-cell {
+  opacity: 0.7;
 }
 
 .university-logo-cell:hover {
@@ -167,394 +368,31 @@ textarea {
   transform: translate3d(0, 0, 0) scale(1.08);
 }
 
-/* =========================
-   MARQUEE ANIMATION
-========================= */
-
 @keyframes universityScroll {
-
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }
 
 /* =========================
-   PREMIUM FADE MASK
-========================= */
+   FADE MASK
+======================== */
 
 .marquee-fade {
+  mask-image: linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+}
 
-  mask-image:
-    linear-gradient(
-      to right,
-      transparent,
-      white 8%,
-      white 92%,
-      transparent
-    );
-
-  -webkit-mask-image:
-    linear-gradient(
-      to right,
-      transparent,
-      white 8%,
-      white 92%,
-      transparent
-    );
+.dark .marquee-fade {
+  mask-image: linear-gradient(to right, transparent, #fafafa 8%, #fafafa 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #fafafa 8%, #fafafa 92%, transparent);
 }
 
 /* =========================
-   GLASS STRIP
-========================= */
-
-.glass-strip {
-
-  position: relative;
-
-  background:
-    rgba(255,255,255,0.24);
-
-  backdrop-filter:
-    blur(24px);
-
-  -webkit-backdrop-filter:
-    blur(24px);
-
-  border:
-    1px solid rgba(255,255,255,0.42);
-
-  box-shadow:
-    0 10px 40px rgba(255,255,255,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.55);
-
-  overflow: hidden;
-}
-
-/* =========================
-   UNIVERSITY ITEM
-========================= */
-
-.university-item {
-
-  position: relative;
-
-  z-index: 2;
-
-  display: flex;
-  align-items: center;
-
-  opacity: 0.82;
-
-  transition:
-    transform 0.4s ease,
-    opacity 0.4s ease;
-}
-
-.university-item:hover {
-
-  transform:
-    scale(1.03);
-
-  opacity:
-    1;
-}
-
-/* =========================
-   UNIVERSITY IMAGE
-========================= */
-
-.university-item img {
-
-  transition:
-    transform 0.4s ease;
-
-  object-fit:
-    contain;
-}
-
-.university-item:hover img {
-
-  transform:
-    scale(1.06);
-}
-
-/* =========================
-   FLOATING GLASS ORB
-========================= */
-
-.top-university-orb {
-
-  position: absolute;
-
-  width: 240px;
-  height: 240px;
-
-  border-radius: 9999px;
-
-  background:
-    rgba(255,255,255,0.16);
-
-  backdrop-filter:
-    blur(20px);
-
-  -webkit-backdrop-filter:
-    blur(20px);
-
-  border:
-    1.5px solid rgba(255,255,255,0.85);
-
-  box-shadow:
-    inset 0 2px 14px rgba(255,255,255,0.95),
-    0 20px 60px rgba(255,255,255,0.18),
-    0 10px 30px rgba(0,0,0,0.04);
-
-  overflow: hidden;
-
-  pointer-events: none;
-
-  z-index: 50;
-}
-
-/* =========================
-   ORB REFLECTION
-========================= */
-
-.orb-reflection {
-
-  position: absolute;
-
-  top: 28px;
-  left: 32px;
-
-  width: 95px;
-  height: 24px;
-
-  border-radius: 999px;
-
-  background:
-    rgba(255,255,255,0.94);
-
-  transform:
-    rotate(-24deg);
-
-  filter:
-    blur(6px);
-}
-
-.orb-reflection::after {
-
-  content: "";
-
-  position: absolute;
-
-  top: 32px;
-  left: 16px;
-
-  width: 38px;
-  height: 12px;
-
-  border-radius: 999px;
-
-  background:
-    rgba(255,255,255,0.72);
-
-  filter:
-    blur(5px);
-}
-
-/* =========================
-   PINK GLOW
-========================= */
-
-.orb-pink-glow {
-
-  position: absolute;
-
-  right: -10px;
-  bottom: -10px;
-
-  width: 120px;
-  height: 120px;
-
-  border-radius: 999px;
-
-  background:
-    rgba(255, 90, 150, 0.34);
-
-  filter:
-    blur(36px);
-
-  opacity: 0.92;
-}
-
-/* =========================
-   PREMIUM GLASS EFFECT
-========================= */
-
-.glass-effect {
-
-  background:
-    rgba(255, 255, 255, 0.45);
-
-  backdrop-filter:
-    blur(18px);
-
-  -webkit-backdrop-filter:
-    blur(18px);
-
-  border:
-    1px solid rgba(255, 255, 255, 0.35);
-
-  box-shadow:
-    0 10px 40px rgba(255, 255, 255, 0.25),
-    0 10px 60px rgba(0, 0, 0, 0.04);
-}
-
-/* =========================
-   PREMIUM GLOW
-========================= */
-
-.red-glow {
-
-  box-shadow:
-    0 0 20px rgba(220, 20, 60, 0.25),
-    0 0 50px rgba(220, 20, 60, 0.12);
-}
-
-/* =========================
-   HOVER FLOAT
-========================= */
-
-.hover-float {
-
-  transition:
-    transform 0.35s ease,
-    box-shadow 0.35s ease;
-}
-
-.hover-float:hover {
-
-  transform:
-    translateY(-6px);
-
-  box-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.08);
-}
-
-/* =========================
-   PREMIUM TEXT GRADIENT
-========================= */
-
-.text-gradient {
-
-  background:
-    linear-gradient(
-      90deg,
-      #dc143c,
-      #ff4d6d
-    );
-
-  -webkit-background-clip:
-    text;
-
-  -webkit-text-fill-color:
-    transparent;
-}
-
-/* =========================
-   SOFT BACKGROUND GLOW
-========================= */
-
-.soft-bg-glow {
-
-  position:
-    absolute;
-
-  inset:
-    0;
-
-  pointer-events:
-    none;
-
-  background:
-    radial-gradient(
-      circle at top right,
-      rgba(255, 0, 80, 0.08),
-      transparent 35%
-    );
-}
-
-/* =========================
-   IMAGE QUALITY
-========================= */
-
-img {
-  image-rendering: auto;
-}
-
-/* =========================
-   IMAGE uniVERSITY MARQUEE
-========================= */
-
-.marquee-container {
-  overflow: hidden;
-  width: 100%;
-  position: relative;
-}
-
-.marquee-content {
-  display: flex;
-  width: max-content;
-  flex-wrap: nowrap;
-  /* Seamless animation using CSS variables for exact pixel distance */
-  animation: marquee var(--marquee-animation-duration, 60s) linear infinite;
-  will-change: transform;
-  /* 3D acceleration for smooth rendering */
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.marquee-track {
-  display: flex;
-  align-items: center;
-  gap: 60px;
-  flex-shrink: 0;
-  padding-right: 60px;
-  /* Ensure minimum width for proper spacing */
-  min-width: max-content;
-}
-
-.marquee-content:hover {
-  animation-play-state: paused;
-}
-
-/* 
-  SEAMLESS MARQUEE KEYFRAME
-  The animation translates by exactly one track width (measured dynamically).
-  With 3 duplicated tracks, when the first track scrolls off-screen, 
-  the second one appears, creating a seamless loop.
-  The animation-delay trick ensures instant reset at end happens during 
-  the scroll, not visible to the user.
-*/
-@keyframes marquee {
-  from {
-    transform: translateX(0) translateZ(0);
-  }
-
-  to {
-    /* Calculate: -(width of 1 track) */
-    transform: translateX(calc(-1 * var(--marquee-track-width, 1px))) translateZ(0);
-  }
-}
-
-/* Optional: Add fade effect at edges for polish */
-@media (prefers-reduced-motion: no-preference) {
-  .marquee-content {
-    /* Smooth GPU acceleration */
-    transition: none;
+   RESPONSIVE UTILITIES
+======================== */
+
+@media (max-width: 640px) {
+  .hero-split {
+    grid-template-columns: 1fr !important;
   }
 }

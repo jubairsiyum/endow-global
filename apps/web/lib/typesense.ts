@@ -1,15 +1,30 @@
 import Typesense from 'typesense'
 
-export const typesense = new Typesense.Client({
-  nodes: [
-    {
-      host: process.env.TYPESENSE_HOST || 'localhost',
-      port: parseInt(process.env.TYPESENSE_PORT || '8108'),
-      protocol: 'http',
-    },
-  ],
-  apiKey: process.env.TYPESENSE_API_KEY!,
-  connectionTimeoutSeconds: 2,
+let _client: Typesense.Client | null = null
+
+function getClient(): Typesense.Client {
+  if (!_client) {
+    _client = new Typesense.Client({
+      nodes: [
+        {
+          host: process.env.TYPESENSE_HOST || 'localhost',
+          port: parseInt(process.env.TYPESENSE_PORT || '8108'),
+          protocol: 'http',
+        },
+      ],
+      apiKey: process.env.TYPESENSE_API_KEY!,
+      connectionTimeoutSeconds: 2,
+    })
+  }
+  return _client
+}
+
+export const typesense = new Proxy({} as Typesense.Client, {
+  get(_target, prop) {
+    const client = getClient()
+    const val = (client as Record<string | symbol, unknown>)[prop]
+    return typeof val === 'function' ? val.bind(client) : val
+  },
 })
 
 export const COURSES_COLLECTION = 'courses'
