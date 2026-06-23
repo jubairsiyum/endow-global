@@ -5,6 +5,7 @@ import { TRPCReactProvider } from '@/lib/trpc-client'
 import { Toaster } from 'sonner'
 
 import ThemeProvider from '@/components/providers/ThemeProvider'
+import SmoothScroll from '@/components/providers/SmoothScroll'
 import ClickSpark from '@/components/effects/ClickSpark'
 
 import './globals.css'
@@ -84,11 +85,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ClickSpark />
 
         <ThemeProvider>
-          <TRPCReactProvider>
-            {children}
+          <SmoothScroll>
+            <TRPCReactProvider>
+              {children}
 
-            <Toaster position="top-right" richColors closeButton />
-          </TRPCReactProvider>
+              <Toaster position="top-right" richColors closeButton />
+            </TRPCReactProvider>
+          </SmoothScroll>
         </ThemeProvider>
       </body>
     </html>
