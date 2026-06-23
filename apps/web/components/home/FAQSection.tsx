@@ -7,44 +7,44 @@ import { FadeUp } from '@/components/home/FadeUp'
 
 const faqs = [
   {
-    question: 'Is Endow Global free for students?',
+    question: 'How can I apply to study in South Korea or Australia?',
     answer:
-      'Yes. Our core services — university matching, course discovery, and counselor consultations — are completely free for students. We earn from university partnerships, not from you.',
+      'You can apply directly through the university website or with the help of our expert consultants at Endow Global Education. We guide you through the entire admission process — from choosing the right university and program to preparing your documents and submitting your application.',
   },
   {
-    question: 'Which countries can I apply to?',
+    question: 'Can I work while studying abroad?',
     answer:
-      'We specialize in South Korea and Australia — two of the best destinations for international students. Both offer world-class universities, generous scholarships, and post-study work opportunities.',
+      'Yes. In South Korea, international students can work part-time up to 20 hours per week during semesters and unlimited hours during vacations with immigration permission. In Australia, student visa holders can work up to 48 hours per fortnight during term time and unlimited hours during scheduled breaks.',
   },
   {
-    question: 'How does the AI course matching work?',
+    question: 'What are the student visa requirements for South Korea and Australia?',
     answer:
-      'Our AI analyzes your academic background, career goals, budget, and preferences — then matches you against 50+ partner universities and hundreds of programs in South Korea and Australia to find the best fits.',
+      'For South Korea, you typically need an admission letter, bank statement, passport, medical checkup, and academic documents for a D-2 (degree) or D-4 (language) visa. For Australia, you need a Confirmation of Enrolment (CoE), proof of financial capacity, English proficiency scores, and health insurance (OSHC). Requirements vary by university and program.',
   },
   {
-    question: 'What documents do I need to apply?',
+    question: 'What are the tuition fees for international students?',
     answer:
-      'Typically you\'ll need academic transcripts, a passport copy, English proficiency scores (IELTS/TOEFL), a statement of purpose, and recommendation letters. Requirements vary by university and country.',
+      'In South Korea, tuition typically ranges from $3,000 to $8,000 per semester for undergraduate programs and $4,000 to $12,000 for graduate programs. In Australia, undergraduate fees range from AUD 20,000 to 45,000 per year, and postgraduate from AUD 22,000 to 50,000. Many universities offer generous scholarships to reduce these costs.',
   },
   {
-    question: 'How long does the application process take?',
+    question: 'Can I get a scholarship to study in South Korea or Australia?',
     answer:
-      'From initial consultation to departure, the average timeline is 3-4 months. This includes university selection, application submission, offer acceptance, and visa processing.',
+      'Absolutely. South Korea offers the prestigious GKS (Global Korea Scholarship) covering full tuition, living expenses, and airfare. Many Korean universities also provide merit-based scholarships. In Australia, universities offer international merit scholarships, research grants, and government-funded awards like Australia Awards and Destination Australia.',
   },
   {
-    question: 'Do you help with visa applications?',
+    question: 'How long does the visa process take?',
     answer:
-      'Absolutely. We provide complete visa support including document preparation, mock interview coaching, and embassy coordination. Our visa success rate is over 98%.',
+      'For South Korea, visa processing usually takes 4 to 8 weeks depending on the embassy and application volume. For Australia, the student visa (subclass 500) typically takes 4 to 12 weeks. We recommend applying early to avoid delays, and our team ensures your paperwork is complete to speed up the process.',
   },
   {
-    question: 'Can I apply to multiple universities at once?',
+    question: 'Do I need to know Korean or learn English to study abroad?',
     answer:
-      'Yes. We recommend applying to 3-5 universities to maximize your chances. Our counselors will help you build a balanced list of reach, match, and safety schools.',
+      'It depends on the program. Many South Korean universities offer courses taught entirely in English, especially at the graduate level. For Korean-taught programs, TOPIK (Korean Proficiency Test) may be required. In Australia, all programs are in English, and you will need IELTS, TOEFL, or PTE scores as proof of proficiency.',
   },
   {
-    question: 'What if my application gets rejected?',
+    question: 'What accommodation options are available for international students?',
     answer:
-      'We\'ll analyze the rejection, strengthen your application, and help you reapply or pivot to alternative universities. Our goal is to ensure you get accepted somewhere that\'s the right fit.',
+      'In South Korea, most universities offer affordable on-campus dormitories. Students can also rent apartments or share rooms outside campus. In Australia, options include university-managed residences, private student accommodations, homestays, and shared apartments. We help you find the best option based on your budget and preferences.',
   },
 ] as const
 
