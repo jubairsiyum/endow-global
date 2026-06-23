@@ -57,12 +57,12 @@ export function ResourceCenter() {
   }
 
   return (
-    // Padding py-12 কমানো হয়েছে
+    
     <section className="relative bg-[#FAFAFA] py-12 lg:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* HEADER */}
-        {/* mb-10 এ কমিয়ে আনা হয়েছে */}
+        
         <motion.div
           initial={{ opacity: 0, y: 15 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -93,13 +93,13 @@ export function ResourceCenter() {
                 variants={itemVariants}
                 whileHover={{ y: -4, scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                // p-5 দিয়ে কার্ডের ভেতরের স্পেসও কমানো হয়েছে
+                
                 className="group relative flex flex-col justify-between overflow-hidden rounded-[20px] border border-gray-200/60 bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-shadow duration-300 hover:shadow-[0_15px_40px_rgba(196,30,58,0.08)]"
               >
                 <div className="absolute -left-[100%] top-0 z-0 h-full w-full bg-gradient-to-r from-transparent via-white/40 to-transparent opacity-0 transition-all duration-700 ease-in-out group-hover:left-[100%] group-hover:opacity-100" />
 
                 <div className="relative z-10">
-                  {/* mb-3 এ কমিয়ে আনা হয়েছে */}
+                  
                   <div className="mb-3 flex items-center justify-between">
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-50/80 text-gray-500 ring-1 ring-gray-100 transition-all duration-300 group-hover:bg-[#C41E3A] group-hover:text-white group-hover:ring-[#C41E3A]">
                       <Icon className="h-5 w-5" />
@@ -119,7 +119,7 @@ export function ResourceCenter() {
                   </p>
                 </div>
 
-                {/* mt-4 এ কমিয়ে আনা হয়েছে */}
+                
                 <div className="relative z-10 mt-4 border-t border-gray-100 pt-3">
                   <button className="flex w-full items-center justify-between text-sm font-semibold text-[#111827] transition-colors duration-300 group-hover:text-[#C41E3A]">
                     Download Now
