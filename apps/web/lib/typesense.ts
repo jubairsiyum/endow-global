@@ -1,8 +1,9 @@
 import Typesense from 'typesense'
 
-let _client: Typesense.Client | null = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _client: InstanceType<typeof Typesense.Client> | null = null
 
-function getClient(): Typesense.Client {
+function getClient(): InstanceType<typeof Typesense.Client> {
   if (!_client) {
     _client = new Typesense.Client({
       nodes: [
