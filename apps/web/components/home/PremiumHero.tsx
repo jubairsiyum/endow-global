@@ -1,20 +1,40 @@
 'use client'
 
-import { motion, useReducedMotion } from 'framer-motion'
+import { useState } from 'react'
+import { motion, useReducedMotion, PanInfo } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Search, Star } from 'lucide-react'
 
 const students = [
-  { src: '/student-1.jpg', alt: 'Student studying abroad', rotate: -3, y: 12 },
-  { src: '/student-2.jpg', alt: 'International student', rotate: -1, y: 4 },
-  { src: '/student-3.jpg', alt: 'University student', rotate: 0, y: 0 },
-  { src: '/student-4.jpg', alt: 'Graduate student', rotate: 1, y: 4 },
-  { src: '/student-5.jpg', alt: 'Exchange student', rotate: 3, y: 12 },
+  { src: '/student-1.jpg', alt: 'Student studying abroad' },
+  { src: '/student-2.jpg', alt: 'International student' },
+  { src: '/student-3.jpg', alt: 'University student' },
+  { src: '/student-4.jpg', alt: 'Graduate student' },
+  { src: '/student-5.jpg', alt: 'Exchange student' },
 ]
+
+const COUNT = students.length
+
+const slotX = [-128, -64, 0, 64, 128]
+const slotRotate = [-3, -1, 0, 1, 3]
+const slotY = [12, 4, 0, 4, 12]
+
+function getSlot(i: number, activeIndex: number) {
+  const raw = ((i - activeIndex) % COUNT + COUNT) % COUNT
+  return raw > 2 ? raw - COUNT : raw
+}
 
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
+  const [activeIndex, setActiveIndex] = useState(2)
+  const [isDragging, setIsDragging] = useState(false)
+
+  function handleDragEnd(_: unknown, info: PanInfo) {
+    setIsDragging(false)
+    if (Math.abs(info.offset.x) < 40) return
+    setActiveIndex((p) => (info.offset.x > 0 ? (p - 1 + COUNT) % COUNT : (p + 1) % COUNT))
+  }
 
   return (
     <section id="hero-section" className="relative flex min-h-[85vh] items-center overflow-hidden bg-white">
@@ -86,25 +106,43 @@ export default function PremiumHero() {
           </div>
 
           {/* Right — Overlapping student cards */}
-          <div className="relative hidden h-[480px] lg:block">
+          <div
+            className={`relative hidden h-[480px] lg:block ${
+              isDragging ? 'cursor-grabbing' : 'cursor-grab'
+            }`}
+          >
             {students.map((s, i) => {
-              const offset = (i - 2) * 64
-              const isCenter = i === 2
+              const slot = getSlot(i, activeIndex)
+              const isCenter = slot === 0
+              const slotIdx = slot + 2
+
               return (
                 <motion.div
                   key={i}
                   initial={prefersReducedMotion ? false : { opacity: 0, x: 40 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{
-                    duration: 0.7,
-                    delay: 0.2 + i * 0.08,
-                    ease: [0.25, 0.1, 0.25, 1],
+                  animate={{
+                    opacity: 1,
+                    x: slotX[slotIdx],
+                    rotate: slotRotate[slotIdx],
+                    y: slotY[slotIdx],
+                    scale: isCenter ? 1 : 0.96,
                   }}
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 30,
+                    mass: 0.8,
+                  }}
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.15}
+                  onDragStart={() => setIsDragging(true)}
+                  onDragEnd={handleDragEnd}
                   className="absolute top-0"
                   style={{
-                    left: `calc(50% + ${offset}px)`,
-                    transform: `translateX(-50%) rotate(${s.rotate}deg) translateY(${s.y}px)`,
-                    zIndex: isCenter ? 10 : 5 - Math.abs(i - 2),
+                    left: 'calc(50%)',
+                    transform: 'translateX(-50%)',
+                    zIndex: isCenter ? 10 : 5 - Math.abs(slot),
                   }}
                 >
                   <div
