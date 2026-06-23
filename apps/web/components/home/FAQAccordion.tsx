@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FadeUp } from '@/components/home/FadeUp'
+import Image from 'next/image'
 
 const faqs = [
   { q: 'How can I apply to study in South Korea or Australia?', a: 'You can apply directly through the university website or with the help of our expert consultants at Endow Global Education. We guide you through the entire admission process — from choosing the right university and program to preparing your documents and submitting your application.' },
@@ -16,44 +17,143 @@ const faqs = [
   { q: 'What accommodation options are available for international students?', a: 'In South Korea, most universities offer affordable on-campus dormitories. Students can also rent apartments or share rooms outside campus. In Australia, options include university-managed residences, private student accommodations, homestays, and shared apartments. We help you find the best option based on your budget and preferences.' },
 ] as const
 
-function FAQItem({ q, a }: { q: string; a: string }) {
+function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [isOpen, setIsOpen] = useState(false)
   return (
-    <div className="border-b border-gray-100 last:border-b-0">
-      <button onClick={() => setIsOpen(!isOpen)} className="flex w-full items-center justify-between gap-4 py-5 text-left" aria-expanded={isOpen}>
-        <span className="text-[15px] font-semibold text-gray-900">{q}</span>
-        <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }} className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-50 text-gray-400">
-          <ChevronDown size={14} />
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: index * 0.04 }}
+      viewport={{ once: true }}
+      className="group border-b border-gray-100 last:border-b-0"
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors"
+        aria-expanded={isOpen}
+      >
+        <span className={`text-sm font-semibold transition-colors ${isOpen ? 'text-[#C41E3A]' : 'text-gray-800 group-hover:text-gray-950'}`}>
+          {q}
+        </span>
+        <motion.span
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+            isOpen ? 'bg-[#C41E3A] text-white shadow-md shadow-[#C41E3A]/20' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600'
+          }`}
+        >
+          <ChevronDown size={13} />
         </motion.span>
       </button>
       <AnimatePresence initial={false}>
         {isOpen && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
-            <p className="pb-5 text-sm leading-relaxed text-gray-500">{a}</p>
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="pb-4 text-[13px] leading-relaxed text-gray-500">{a}</p>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
   )
 }
 
 export default function FAQAccordion() {
   return (
-    <section className="bg-gray-50 py-20 lg:py-28">
-      <div className="mx-auto max-w-3xl px-5 sm:px-6 lg:px-8">
-        <FadeUp>
-          <div className="text-center">
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">FAQ</span>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              Common <span className="text-gradient-brand">questions</span>
-            </h2>
-          </div>
-        </FadeUp>
-        <FadeUp>
-          <div className="mt-12 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-7">
-            {faqs.map((faq) => <FAQItem key={faq.q} {...faq} />)}
-          </div>
-        </FadeUp>
+    <section className="relative overflow-hidden bg-[#f6f7fb] py-20 lg:py-28">
+      {/* Subtle dot pattern */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000 0.6px, transparent 0.6px)', backgroundSize: '20px 20px' }} />
+
+      {/* Floating accent blobs */}
+      <div className="pointer-events-none absolute -right-24 top-[10%] h-72 w-72 rounded-full bg-[#C41E3A]/[0.03] blur-3xl" />
+      <div className="pointer-events-none absolute -left-20 bottom-[15%] h-56 w-56 rounded-full bg-[#C41E3A]/[0.02] blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* Left column — image + decorative */}
+          <FadeUp>
+            <div className="relative">
+              {/* Main image */}
+              <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-gray-200/60">
+                <Image
+                  src="/hero-1.jpg"
+                  alt="Students studying abroad"
+                  width={600}
+                  height={500}
+                  className="h-[360px] w-full object-cover sm:h-[420px] lg:h-[480px]"
+                />
+                {/* Gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+              </div>
+
+              {/* Floating stat card — bottom left */}
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                viewport={{ once: true }}
+                className="absolute -bottom-5 left-4 rounded-xl border border-gray-100/80 bg-white/95 px-4 py-3 shadow-xl shadow-gray-200/50 backdrop-blur-sm sm:left-6"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#C41E3A]/10">
+                    <svg className="h-4.5 w-4.5 text-[#C41E3A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-base font-bold text-gray-900">2,000+</p>
+                    <p className="text-[11px] font-medium text-gray-400">Students placed</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Floating badge — top right */}
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                viewport={{ once: true }}
+                className="absolute right-4 top-6 rounded-xl border border-gray-100/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-gray-200/50 backdrop-blur-sm sm:right-6"
+              >
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#C41E3A]/10">
+                    <svg className="h-3.5 w-3.5 text-[#C41E3A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-gray-900">South Korea & Australia</p>
+                    <p className="text-[9px] font-medium text-gray-400">2 countries, endless possibilities</p>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Decorative ring */}
+              <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full border border-[#C41E3A]/10" />
+              <div className="pointer-events-none absolute -bottom-8 right-8 h-16 w-16 rounded-full border border-[#C41E3A]/[0.06]" />
+            </div>
+          </FadeUp>
+
+          {/* Right column — FAQ */}
+          <FadeUp>
+            <div>
+              <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/10 bg-[#C41E3A]/[0.04] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
+                FAQ
+              </span>
+              <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+                Frequently asked{' '}
+                <span className="text-gradient-brand">questions</span>
+              </h2>
+              <p className="mt-3 max-w-md text-sm text-gray-400">
+                Everything you need to know about studying in South Korea and Australia.
+              </p>
+
+              <div className="mt-8 overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
+                {faqs.map((faq, i) => <FAQItem key={faq.q} {...faq} index={i} />)}
+              </div>
+            </div>
+          </FadeUp>
+        </div>
       </div>
     </section>
   )
