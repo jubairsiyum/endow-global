@@ -32,8 +32,16 @@ const pathways = [
 
 export function CareerPathwayHub() {
   return (
-    <section className="relative border-y border-[#E5E7EB] bg-[#FEF2F2] py-24 lg:py-32">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="relative border-y border-[#E5E7EB] bg-[#FEF2F2] py-24 lg:py-32 overflow-hidden">
+      <div className="absolute inset-0">
+        <img
+          src="/images/career-pathway-bg.png"
+          alt="Career Pathway Background"
+          className="h-full w-full object-cover"
+        />
+      </div>
+      <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" />
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
