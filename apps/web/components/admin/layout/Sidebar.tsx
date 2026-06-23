@@ -14,6 +14,7 @@ import {
   BarChart3,
   Bell,
   Settings,
+  Star,
 } from 'lucide-react'
 
 const menuItems = [
@@ -57,6 +58,12 @@ const menuItems = [
     name: 'Analytics',
     icon: BarChart3,
     href: '/admin/analytics',
+  },
+
+  {
+    name: 'Testimonials',
+    icon: Star,
+    href: '/admin/testimonials',
   },
 
   {

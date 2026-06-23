@@ -260,3 +260,18 @@ export interface NotificationPayload {
   data?: Record<string, string>
   imageUrl?: string
 }
+
+// ─── Testimonial ───────────────────────────────────────────────
+export interface Testimonial {
+  id: string
+  name: string
+  program: string
+  university: string
+  country: string
+  quote: string
+  rating: number
+  initials: string
+  isPublished: boolean
+  createdAt: Date
+  updatedAt: Date
+}

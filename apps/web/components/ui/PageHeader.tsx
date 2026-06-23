@@ -2,9 +2,10 @@ interface Props {
   title: string
   description: string
   buttonText?: string
+  onButtonClick?: () => void
 }
 
-export default function PageHeader({ title, description, buttonText }: Props) {
+export default function PageHeader({ title, description, buttonText, onButtonClick }: Props) {
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -14,7 +15,10 @@ export default function PageHeader({ title, description, buttonText }: Props) {
       </div>
 
       {buttonText && (
-        <button className="rounded-2xl bg-primary px-5 py-3 text-sm font-medium text-white transition-all hover:bg-[#920715]">
+        <button
+          onClick={onButtonClick}
+          className="rounded-2xl bg-primary px-5 py-3 text-sm font-medium text-white transition-all hover:bg-[#920715]"
+        >
           {buttonText}
         </button>
       )}

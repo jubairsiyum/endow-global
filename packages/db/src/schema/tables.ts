@@ -373,3 +373,19 @@ export const chatHistory = mysqlTable('chat_history', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
+
+// ─── Testimonials ──────────────────────────────────────────
+
+export const testimonials = mysqlTable('testimonials', {
+  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+  name: varchar('name', { length: 255 }).notNull(),
+  program: varchar('program', { length: 255 }).notNull(),
+  university: varchar('university', { length: 255 }).notNull(),
+  country: varchar('country', { length: 100 }).notNull(),
+  quote: text('quote').notNull(),
+  rating: int('rating').notNull().default(5),
+  initials: varchar('initials', { length: 4 }).notNull(),
+  isPublished: boolean('is_published').notNull().default(true),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+})

@@ -1,13 +1,40 @@
+'use client'
+
 import { Star, Quote } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
 
-const stories = [
-  { name: 'Priya Sharma', uni: 'Kyung Hee University', program: 'MBA', country: 'South Korea', quote: "Endow Global made my dream of studying in Korea a reality. The counselors helped me navigate scholarships I didn't even know existed.", rating: 5, initials: 'PS', gradient: 'from-rose-400 to-pink-500' },
-  { name: 'Maria Santos', uni: 'Univ. of Melbourne', program: 'Data Science', country: 'Australia', quote: "The counselor support was incredible. They reviewed my SOP three times and helped me ace the visa interview.", rating: 5, initials: 'MS', gradient: 'from-amber-400 to-orange-500' },
-  { name: 'Jun-seo Park', uni: 'Yonsei University', program: 'International Business', country: 'South Korea', quote: "From university selection to visa prep, every step was handled professionally. The AI matching found programs I hadn't considered.", rating: 5, initials: 'JP', gradient: 'from-blue-400 to-indigo-500' },
-] as const
+const fallbackStories = [
+  { name: 'Priya Sharma', university: 'Kyung Hee University', program: 'MBA', country: 'South Korea', quote: "Endow Global made my dream of studying in Korea a reality. The counselors helped me navigate scholarships I didn't even know existed.", rating: 5, initials: 'PS', gradient: 'from-rose-400 to-pink-500' },
+  { name: 'Maria Santos', university: 'Univ. of Melbourne', program: 'Data Science', country: 'Australia', quote: 'The counselor support was incredible. They reviewed my SOP three times and helped me ace the visa interview.', rating: 5, initials: 'MS', gradient: 'from-amber-400 to-orange-500' },
+  { name: 'Jun-seo Park', university: 'Yonsei University', program: 'International Business', country: 'South Korea', quote: "From university selection to visa prep, every step was handled professionally. The AI matching found programs I hadn't considered.", rating: 5, initials: 'JP', gradient: 'from-blue-400 to-indigo-500' },
+]
+
+const gradients = [
+  'from-rose-400 to-pink-500',
+  'from-amber-400 to-orange-500',
+  'from-blue-400 to-indigo-500',
+  'from-violet-400 to-purple-500',
+  'from-emerald-400 to-teal-500',
+  'from-cyan-400 to-blue-500',
+]
 
 export default function Testimonials() {
+  const { data } = trpc.testimonial.published.useQuery()
+
+  const stories = data && data.length > 0
+    ? data.map((t, i) => ({
+        name: t.name,
+        university: t.university,
+        program: t.program,
+        country: t.country,
+        quote: t.quote,
+        rating: t.rating,
+        initials: t.initials,
+        gradient: gradients[i % gradients.length],
+      }))
+    : fallbackStories
+
   return (
     <section className="bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
@@ -45,7 +72,7 @@ export default function Testimonials() {
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <span>{s.program}</span>
                       <span>·</span>
-                      <span>{s.uni}</span>
+                      <span>{s.university}</span>
                     </div>
                   </div>
                 </div>
