@@ -1,9 +1,9 @@
 import Typesense from 'typesense'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _client: InstanceType<typeof Typesense.Client> | null = null
+let _client: any = null
 
-function getClient(): InstanceType<typeof Typesense.Client> {
+function getClient() {
   if (!_client) {
     _client = new Typesense.Client({
       nodes: [
@@ -20,7 +20,8 @@ function getClient(): InstanceType<typeof Typesense.Client> {
   return _client
 }
 
-export const typesense = new Proxy({} as Typesense.Client, {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const typesense: any = new Proxy({} as any, {
   get(_target, prop) {
     const client = getClient()
     const val = (client as Record<string | symbol, unknown>)[prop]
