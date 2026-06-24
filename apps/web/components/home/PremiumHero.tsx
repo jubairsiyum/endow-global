@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { motion, useReducedMotion, PanInfo } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Search, Star } from 'lucide-react'
+import { Search, Star, ArrowRight, Users, GraduationCap, Globe } from 'lucide-react'
 
 const students = [
   { src: '/student-1.jpg', alt: 'Student studying abroad' },
@@ -37,9 +37,129 @@ export default function PremiumHero() {
   }
 
   return (
-    <section id="hero-section" className="relative flex min-h-[85vh] items-center overflow-hidden bg-white">
-      <div className="mx-auto w-full max-w-7xl px-5 py-28 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-8">
+    <section id="hero-section" className="relative overflow-hidden bg-white">
+      <div className="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8">
+        {/* Mobile Layout */}
+        <div className="flex min-h-[70vh] flex-col justify-center py-20 lg:hidden">
+          <div className="relative z-10">
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/[0.06] px-3 py-1"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
+              <span className="text-[11px] font-semibold text-[#C41E3A]">Trusted by 5,000+ students</span>
+            </motion.div>
+
+            <motion.h1
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.05 }}
+              className="text-[2rem] font-extrabold leading-[1.1] tracking-tight text-gray-900"
+            >
+              Study Abroad With{' '}
+              <span className="text-[#C41E3A]">Endow Guidance</span>
+            </motion.h1>
+
+            <motion.p
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="mt-3 max-w-md text-[15px] leading-relaxed text-gray-500"
+            >
+              Expert guidance from university selection to visa approval for
+              South Korea and Australia.
+            </motion.p>
+
+            {/* Trust row */}
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.15 }}
+              className="mt-4 flex items-center gap-4"
+            >
+              <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                <span className="font-semibold text-gray-700">4.7</span>
+                <div className="flex items-center gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <span className="text-gray-400">Google</span>
+              </div>
+              <div className="h-3 w-px bg-gray-200" />
+              <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                <Users size={13} className="text-gray-400" />
+                <span><span className="font-semibold text-gray-700">5,000+</span> students</span>
+              </div>
+            </motion.div>
+
+            {/* Search bar */}
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="mt-6"
+            >
+              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
+                <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+                  <Search size={18} className="shrink-0 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search courses, universities..."
+                    className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
+                  />
+                  <Link
+                    href="/universities"
+                    className="shrink-0 rounded-full bg-[#C41E3A] px-4 py-1.5 text-[12px] font-semibold text-white"
+                  >
+                    Search
+                  </Link>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Quick stats */}
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25 }}
+              className="mt-6 grid grid-cols-3 gap-3"
+            >
+              {[
+                { icon: GraduationCap, label: 'Partner Unis', value: '250+' },
+                { icon: Globe, label: 'Countries', value: '10+' },
+                { icon: Users, label: 'Placed', value: '5,000+' },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5 text-center">
+                  <stat.icon size={16} className="mx-auto mb-1 text-[#C41E3A]" />
+                  <div className="text-sm font-bold text-gray-900">{stat.value}</div>
+                  <div className="text-[10px] text-gray-400">{stat.label}</div>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* CTA */}
+            <motion.div
+              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="mt-6"
+            >
+              <Link
+                href="/register"
+                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830]"
+              >
+                Start Your Journey
+                <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Desktop Layout */}
+        <div className="hidden min-h-[85vh] items-center py-28 lg:grid lg:grid-cols-2 lg:gap-8">
           {/* Left — Content */}
           <div className="relative z-10 max-w-xl">
             <motion.h1

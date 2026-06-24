@@ -128,14 +128,22 @@ export function Navbar() {
             </Link>
           </div>
 
-          {/* Mobile Toggle */}
-          <button
-            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100/60 lg:hidden"
-            aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
-            onClick={() => setIsMobileOpen((prev) => !prev)}
-          >
-            {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
-          </button>
+          {/* Mobile CTA + Toggle */}
+          <div className="flex items-center gap-2 lg:hidden">
+            <Link
+              href="/register"
+              className="inline-flex items-center rounded-full bg-[#C41E3A] px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)]"
+            >
+              Get Started
+            </Link>
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100/60"
+              aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
+              onClick={() => setIsMobileOpen((prev) => !prev)}
+            >
+              {isMobileOpen ? <X size={18} /> : <Menu size={18} />}
+            </button>
+          </div>
         </motion.header>
       </div>
 
