@@ -5,15 +5,14 @@ import { motion, type Variants } from "framer-motion";
 import {
   ArrowRight,
   Building2,
-  Globe2,
   Landmark,
   Wallet,
 } from "lucide-react";
-import ScrollFloat from "@/components/animations/ScrollFloat";
 
 type Destination = {
   name: string;
   flag: string;
+  flagAlt: string;
   image: string;
   imageAlt: string;
   description: string;
@@ -24,7 +23,8 @@ type Destination = {
 const destinations: Destination[] = [
   {
     name: "South Korea",
-    flag: "\uD83C\uDDF0\uD83C\uDDF7",
+    flag: "/flags/kr.png",
+    flagAlt: "South Korea flag",
     image:
       "https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?auto=format&fit=crop&w=1200&q=85",
     imageAlt: "Seoul city skyline in South Korea",
@@ -34,41 +34,9 @@ const destinations: Destination[] = [
     avgTuition: "$5,000/year",
   },
   {
-    name: "USA",
-    flag: "\uD83C\uDDFA\uD83C\uDDF8",
-    image:
-      "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "New York skyline and Statue of Liberty in the United States",
-    description:
-      "Global leader in higher education with diverse opportunities.",
-    universities: "4,000+",
-    avgTuition: "$35,000/year",
-  },
-  {
-    name: "United Kingdom",
-    flag: "\uD83C\uDDEC\uD83C\uDDE7",
-    image:
-      "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Big Ben and London skyline in the United Kingdom",
-    description:
-      "Prestigious universities with globally respected academic pathways.",
-    universities: "160+",
-    avgTuition: "$28,000/year",
-  },
-  {
-    name: "Canada",
-    flag: "\uD83C\uDDE8\uD83C\uDDE6",
-    image:
-      "https://images.unsplash.com/photo-1517935706615-2717063c2225?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Toronto skyline in Canada",
-    description:
-      "Welcoming campuses, strong work pathways, and excellent quality of life.",
-    universities: "100+",
-    avgTuition: "$16,000/year",
-  },
-  {
     name: "Australia",
-    flag: "\uD83C\uDDE6\uD83C\uDDFA",
+    flag: "/flags/au.png",
+    flagAlt: "Australia flag",
     image:
       "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=85",
     imageAlt: "Sydney Opera House and harbor in Australia",
@@ -76,61 +44,6 @@ const destinations: Destination[] = [
       "Research-led education with practical careers and coastal student life.",
     universities: "90+",
     avgTuition: "$20,000/year",
-  },
-  {
-    name: "Japan",
-    flag: "\uD83C\uDDEF\uD83C\uDDF5",
-    image:
-      "https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Mount Fuji and pagoda in Japan",
-    description:
-      "Advanced learning, rich culture, and affordable global study routes.",
-    universities: "780+",
-    avgTuition: "$5,000/year",
-  },
-  {
-    name: "Germany",
-    flag: "\uD83C\uDDE9\uD83C\uDDEA",
-    image:
-      "https://images.unsplash.com/photo-1560969184-10fe8719e047?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Berlin city landmark in Germany",
-    description:
-      "World-class public universities with strong engineering and research.",
-    universities: "420+",
-    avgTuition: "$3,000/year",
-  },
-  {
-    name: "France",
-    flag: "\uD83C\uDDEB\uD83C\uDDF7",
-    image:
-      "https://images.unsplash.com/photo-1502602898657-3e91760cbb34?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Paris skyline and Eiffel Tower in France",
-    description:
-      "Elite business schools, design programs, and European culture.",
-    universities: "250+",
-    avgTuition: "$12,000/year",
-  },
-  {
-    name: "Ireland",
-    flag: "\uD83C\uDDEE\uD83C\uDDEA",
-    image:
-      "https://images.unsplash.com/photo-1590089415225-401ed6f9db8e?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Dublin city architecture in Ireland",
-    description:
-      "English-taught programs with technology careers and post-study routes.",
-    universities: "30+",
-    avgTuition: "$15,000/year",
-  },
-  {
-    name: "Finland",
-    flag: "\uD83C\uDDEB\uD83C\uDDEE",
-    image:
-      "https://images.unsplash.com/photo-1538332576228-eb5b4c4de6f5?auto=format&fit=crop&w=1200&q=85",
-    imageAlt: "Helsinki waterfront and architecture in Finland",
-    description:
-      "Future-focused education with safe cities and innovation-led campuses.",
-    universities: "40+",
-    avgTuition: "$13,000/year",
   },
 ];
 
@@ -177,8 +90,14 @@ function DestinationCard({ destination }: { destination: Destination }) {
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#071225]/20 via-[#071225]/15 to-[#071225]/62" />
 
-        <div className="absolute left-4 top-4 flex h-10 min-w-10 items-center justify-center rounded-2xl border border-white/55 bg-white/82 px-2.5 text-xl shadow-[0_10px_24px_rgba(15,23,42,0.16)] backdrop-blur-xl">
-          {destination.flag}
+        <div className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl border border-white/55 bg-white/82 shadow-[0_10px_24px_rgba(15,23,42,0.16)] backdrop-blur-xl">
+          <Image
+            src={destination.flag}
+            alt={destination.flagAlt}
+            fill
+            sizes="40px"
+            className="object-cover"
+          />
         </div>
       </div>
 
