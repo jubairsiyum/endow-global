@@ -10,7 +10,7 @@ const featuredScholarships = scholarships.slice(0, 3);
 const universityById = new Map(
   universities.map((university) => [university.id, university])
 );
-const fallbackUniversityImage = "/universities/Hanseo University.png";
+const fallbackUniversityImage = "/universities/hanseo-university.png";
 
 export default function ScholarshipSpotlight() {
   const containerVariants = {

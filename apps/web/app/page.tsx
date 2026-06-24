@@ -84,19 +84,19 @@ export const metadata: Metadata = {
 /* -------------------------------------------------------------------------- */
 
 const universities = [
-  { name: 'Busan University', logo: '/universities/Busan University.png' },
-  { name: 'Hanseo University', logo: '/universities/Hanseo University.png' },
-  { name: 'Daejin University', logo: '/universities/Daejin University.png' },
-  { name: 'Chungwoon University', logo: '/universities/Chungwoon University.png' },
-  { name: 'Yeungjin University', logo: '/universities/Yeungjin University.png' },
-  { name: 'Sahmyook University', logo: '/universities/Sahmyook University.png' },
-  { name: 'Sejong University', logo: '/universities/Sejong University.png' },
-  { name: 'Kyung Hee University', logo: '/universities/Kyung Hee University.png' },
-  { name: 'Sun Moon University', logo: '/universities/Sun Moon University.png' },
-  { name: 'Turku University', logo: '/universities/Turku University.png' },
-  { name: 'Helsinki University', logo: '/universities/Helsinki University.png' },
-  { name: 'Aalto University', logo: '/universities/Aalto University.png' },
-  { name: 'Dong-Eui University', logo: '/universities/Dong-Eui University.png' },
+  { name: 'Busan University', logo: '/universities/busan-university.png' },
+  { name: 'Hanseo University', logo: '/universities/hanseo-university.png' },
+  { name: 'Daejin University', logo: '/universities/daejin-university.png' },
+  { name: 'Chungwoon University', logo: '/universities/chungwoon-university.png' },
+  { name: 'Yeungjin University', logo: '/universities/yeungjin-university.png' },
+  { name: 'Sahmyook University', logo: '/universities/sahmyook-university.png' },
+  { name: 'Sejong University', logo: '/universities/sejong-university.png' },
+  { name: 'Kyung Hee University', logo: '/universities/kyung-hee-university.png' },
+  { name: 'Sun Moon University', logo: '/universities/sun-moon-university.png' },
+  { name: 'Turku University', logo: '/universities/turku-university.png' },
+  { name: 'Helsinki University', logo: '/universities/helsinki-university.png' },
+  { name: 'Aalto University', logo: '/universities/aalto-university.png' },
+  { name: 'Dong-Eui University', logo: '/universities/dong-eui-university.png' },
 ] as const
 
 /* -------------------------------------------------------------------------- */
