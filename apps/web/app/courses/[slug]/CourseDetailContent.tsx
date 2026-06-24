@@ -89,7 +89,7 @@ export default function CourseDetailContent({ course }: CourseDetailContentProps
               </Link>
             </FadeUp>
 
-            <FadeUp delay={0.05}>
+            <FadeUp>
               <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -179,7 +179,7 @@ export default function CourseDetailContent({ course }: CourseDetailContentProps
 
                 {/* Requirements */}
                 {requirements.length > 0 && (
-                  <FadeUp delay={0.1}>
+                  <FadeUp>
                     <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                       <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#10b981] to-transparent opacity-60" />
                       <div className="p-6">
@@ -202,7 +202,7 @@ export default function CourseDetailContent({ course }: CourseDetailContentProps
 
                 {/* Scholarship Details */}
                 {course.hasScholarship && course.scholarshipDetails && (
-                  <FadeUp delay={0.2}>
+                  <FadeUp>
                     <div className="overflow-hidden rounded-2xl border border-green-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                       <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#10b981] to-transparent opacity-60" />
                       <div className="p-6">
@@ -222,7 +222,7 @@ export default function CourseDetailContent({ course }: CourseDetailContentProps
               {/* Sidebar */}
               <div className="space-y-6">
                 {/* Apply Card */}
-                <FadeUp delay={0.1}>
+                <FadeUp>
                   <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                     <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#C41E3A] to-transparent opacity-60" />
                     <div className="p-6">
@@ -241,7 +241,7 @@ export default function CourseDetailContent({ course }: CourseDetailContentProps
                 </FadeUp>
 
                 {/* Key Details */}
-                <FadeUp delay={0.15}>
+                <FadeUp>
                   <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                     <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#3b82f6] to-transparent opacity-60" />
                     <div className="p-6">
@@ -286,7 +286,7 @@ export default function CourseDetailContent({ course }: CourseDetailContentProps
 
                 {/* University Card */}
                 {course.universityName && (
-                  <FadeUp delay={0.2}>
+                  <FadeUp>
                     <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
                       <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#f59e0b] to-transparent opacity-60" />
                       <div className="p-6">

@@ -118,7 +118,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
             </FadeUp>
 
             {/* Search Bar */}
-            <FadeUp delay={0.1}>
+            <FadeUp>
               <div className="mx-auto mt-8 max-w-3xl">
                 <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
                   <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:px-5 sm:py-3">
