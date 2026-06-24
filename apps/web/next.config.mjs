@@ -24,6 +24,17 @@ const nextConfig = {
       "@pinecone-database/pinecone",
     ],
   },
+  headers: async () => [
+    {
+      source: '/(.*)',
+      headers: [
+        {
+          key: 'Permissions-Policy',
+          value: 'identity-credentials-get=(), publickey-credentials-get=(), publickey-credentials-create=()',
+        },
+      ],
+    },
+  ],
 };
 
 export default nextConfig;
