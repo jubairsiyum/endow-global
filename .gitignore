@@ -12,3 +12,6 @@ coverage/
 drizzle/
 .puku/puku-embeddings.db-shm
 .puku/puku-embeddings.db-wal
+CLAUDE.md
+AGENTS.md
+skills/
