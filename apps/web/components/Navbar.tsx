@@ -66,7 +66,7 @@ export function Navbar() {
               className="h-8 w-8 shrink-0 sm:h-9 sm:w-9"
               priority
             />
-            <div className="hidden w-fit leading-none sm:block">
+            <div className="w-fit leading-none">
               <span className="block text-[13px] font-bold tracking-tight text-gray-900">
                 Endow Global
               </span>
