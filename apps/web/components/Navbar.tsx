@@ -1,16 +1,21 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Menu, X, ChevronDown } from 'lucide-react'
+import { ArrowRight, Menu, X, ChevronDown, Globe } from 'lucide-react'
+
+const countries = [
+  { label: 'South Korea', href: '/universities/country/south-korea', flag: '🇰🇷' },
+  { label: 'Australia', href: '/universities/country/australia', flag: '🇦🇺' },
+] as const
 
 const navItems = [
   { label: 'Home', href: '/' },
   { label: 'Universities', href: '/universities' },
-  { label: 'Countries', href: '/universities' },
+  { label: 'Countries', href: '/universities', hasDropdown: true },
   { label: 'Courses', href: '/courses' },
   { label: 'Resources', href: '/blog' },
 ] as const
@@ -21,6 +26,9 @@ export function Navbar() {
   const authMode: 'signin' | 'signup' = pathname === '/register' ? 'signup' : 'signin'
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isCountriesOpen, setIsCountriesOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleAuthClick = useCallback(
     (mode: 'signin' | 'signup') => (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -41,7 +49,30 @@ export function Navbar() {
 
   useEffect(() => {
     setIsMobileOpen(false)
+    setIsCountriesOpen(false)
   }, [pathname])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsCountriesOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleDropdownEnter = () => {
+    if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current)
+    setIsCountriesOpen(true)
+  }
+
+  const handleDropdownLeave = () => {
+    closeTimeoutRef.current = setTimeout(() => setIsCountriesOpen(false), 150)
+  }
+
+  const isCountriesActive = pathname.startsWith('/universities/country/')
 
   return (
     <>
@@ -79,6 +110,67 @@ export function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Primary">
             {navItems.map((item) => {
+              if (item.hasDropdown) {
+                return (
+                  <div
+                    key={item.label}
+                    ref={dropdownRef}
+                    onMouseEnter={handleDropdownEnter}
+                    onMouseLeave={handleDropdownLeave}
+                    className="relative"
+                  >
+                    <button
+                      onClick={() => setIsCountriesOpen(!isCountriesOpen)}
+                      className={`relative flex items-center gap-1 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                        isCountriesActive
+                          ? 'text-[#C41E3A]'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      {item.label}
+                      <ChevronDown
+                        size={12}
+                        className={`text-gray-400 transition-transform duration-200 ${isCountriesOpen ? 'rotate-180' : ''}`}
+                      />
+                      {isCountriesActive && (
+                        <motion.span
+                          layoutId="nav-pill"
+                          className="absolute inset-0 rounded-full bg-[#C41E3A]/[0.06]"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                    </button>
+
+                    {/* Desktop Dropdown */}
+                    <AnimatePresence>
+                      {isCountriesOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 6, scale: 0.96 }}
+                          transition={{ duration: 0.15, ease: 'easeOut' }}
+                          className="absolute left-0 top-full mt-1 w-56 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
+                        >
+                          <div className="p-1.5">
+                            {countries.map((country) => (
+                              <Link
+                                key={country.href}
+                                href={country.href}
+                                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
+                              >
+                                <span className="text-lg">{country.flag}</span>
+                                <span>{country.label}</span>
+                                <ArrowRight size={14} className="ml-auto text-gray-300 transition-transform group-hover:translate-x-0.5" />
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )
+              }
+
               const isActive = pathname === item.href
               return (
                 <Link
@@ -92,9 +184,6 @@ export function Navbar() {
                   }`}
                 >
                   {item.label}
-                  {(item.label === 'Countries' || item.label === 'Courses') && (
-                    <ChevronDown size={12} className="text-gray-400" />
-                  )}
                   {isActive && (
                     <motion.span
                       layoutId="nav-pill"
@@ -155,28 +244,108 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed inset-x-0 top-[72px] z-50 mx-4 overflow-hidden rounded-2xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-sm backdrop-saturate-[1.8] lg:hidden"
+            className="fixed inset-x-0 top-[72px] z-50 mx-4 max-h-[80vh] overflow-y-auto rounded-2xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-sm backdrop-saturate-[1.8] lg:hidden"
           >
             <div className="p-3">
               <div className="flex flex-col gap-0.5">
-                {navItems.map((item) => {
-                  const isActive = pathname === item.href
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      aria-current={isActive ? 'page' : undefined}
-                      className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                          : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  )
-                })}
+                {/* Home */}
+                <Link
+                  href="/"
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                    pathname === '/'
+                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                  }`}
+                >
+                  Home
+                </Link>
+
+                {/* Universities */}
+                <Link
+                  href="/universities"
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                    pathname === '/universities'
+                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                  }`}
+                >
+                  Universities
+                </Link>
+
+                {/* Countries */}
+                <div className="rounded-xl bg-gray-50/50">
+                  <button
+                    onClick={() => setIsCountriesOpen(!isCountriesOpen)}
+                    className={`flex w-full items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
+                      isCountriesActive
+                        ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Globe size={16} />
+                      Countries
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`text-gray-400 transition-transform duration-200 ${isCountriesOpen ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  <AnimatePresence>
+                    {isCountriesOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-1 pl-4">
+                          {countries.map((country) => (
+                            <Link
+                              key={country.href}
+                              href={country.href}
+                              className={`flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                                pathname === country.href
+                                  ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                                  : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                              }`}
+                            >
+                              <span className="text-lg">{country.flag}</span>
+                              {country.label}
+                            </Link>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Courses */}
+                <Link
+                  href="/courses"
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                    pathname.startsWith('/courses')
+                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                  }`}
+                >
+                  Courses
+                </Link>
+
+                {/* Resources */}
+                <Link
+                  href="/blog"
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                    pathname.startsWith('/blog')
+                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                  }`}
+                >
+                  Resources
+                </Link>
               </div>
+
               <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3">
                 <Link
                   href="/login"
