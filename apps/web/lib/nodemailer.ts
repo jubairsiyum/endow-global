@@ -1,11 +1,20 @@
 import nodemailer from 'nodemailer'
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-})
+let _transporter: ReturnType<typeof nodemailer.createTransport> | null = null
 
-export default transporter
+export function getTransporter() {
+  if (!_transporter) {
+    const user = process.env.GMAIL_USER
+    const pass = process.env.GMAIL_APP_PASSWORD
+    if (!user || !pass) {
+      throw new Error(
+        'GMAIL_USER and GMAIL_APP_PASSWORD must be set in environment variables'
+      )
+    }
+    _transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass },
+    })
+  }
+  return _transporter
+}
