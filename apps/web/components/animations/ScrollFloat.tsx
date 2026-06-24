@@ -6,8 +6,14 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
+interface TextSegment {
+  text: string
+  className?: string
+}
+
 interface ScrollFloatProps {
-  children: ReactNode;
+  children?: ReactNode;
+  segments?: TextSegment[];
   scrollContainerRef?: RefObject<HTMLElement>;
   containerClassName?: string;
   textClassName?: string;
@@ -20,6 +26,7 @@ interface ScrollFloatProps {
 
 const ScrollFloat: React.FC<ScrollFloatProps> = ({
   children,
+  segments,
   scrollContainerRef,
   containerClassName = '',
   textClassName = '',
@@ -32,13 +39,22 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
   const containerRef = useRef<HTMLHeadingElement>(null);
 
   const splitText = useMemo(() => {
+    if (segments && segments.length > 0) {
+      return segments.map((segment, segIdx) => {
+        return segment.text.split('').map((char, i) => (
+          <span className={`scroll-char inline-block${segment.className ? ` ${segment.className}` : ''}`} key={`${segIdx}-${i}`}>
+            {char === ' ' ? '\u00A0' : char}
+          </span>
+        ))
+      })
+    }
     const text = typeof children === 'string' ? children : '';
     return text.split('').map((char, index) => (
-      <span className="inline-block word" key={index}>
+      <span className="scroll-char inline-block" key={index}>
         {char === ' ' ? '\u00A0' : char}
       </span>
     ));
-  }, [children]);
+  }, [children, segments]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -47,7 +63,7 @@ const ScrollFloat: React.FC<ScrollFloatProps> = ({
     const scroller = scrollContainerRef && scrollContainerRef.current ? scrollContainerRef.current : window;
 
     const ctx = gsap.context(() => {
-      const charElements = el.querySelectorAll('.inline-block');
+      const charElements = el.querySelectorAll('.scroll-char');
 
       gsap.fromTo(
         charElements,

@@ -1,117 +1,15 @@
 'use client'
 
-import Image from "next/image";
-import { motion, type Variants } from "framer-motion";
-import { ArrowRight, Landmark, MapPin } from "lucide-react";
-import ScrollFloat from "@/components/animations/ScrollFloat";
-
-type UniversityOpportunity = {
-  id: string
-  program: string
-  university: string
-  location: string
-  price: string
-  logo: string
-}
-
-const universityOpportunities: UniversityOpportunity[] = [
-  {
-    id: 'aalto-business',
-    program: 'Global Business Leadership',
-    university: 'Aalto University',
-    location: 'Finland',
-    price: 'A$ 26,880',
-    logo: '/universities/Aalto University.png',
-  },
-  {
-    id: 'helsinki-data',
-    program: 'Data Science & AI',
-    university: 'Helsinki University',
-    location: 'Finland',
-    price: 'A$ 28,450',
-    logo: '/universities/Helsinki University.png',
-  },
-  {
-    id: 'turku-health',
-    program: 'Health Innovation',
-    university: 'Turku University',
-    location: 'Finland',
-    price: 'A$ 25,970',
-    logo: '/universities/Turku University.png',
-  },
-  {
-    id: 'kyunghee-hospitality',
-    program: 'Hospitality Management',
-    university: 'Kyung Hee University',
-    location: 'South Korea',
-    price: 'A$ 18,620',
-    logo: '/universities/Kyung Hee University.png',
-  },
-  {
-    id: 'sejong-engineering',
-    program: 'Smart Systems Engineering',
-    university: 'Sejong University',
-    location: 'South Korea',
-    price: 'A$ 20,140',
-    logo: '/universities/Sejong University.png',
-  },
-  {
-    id: 'busan-maritime',
-    program: 'Maritime Business',
-    university: 'Busan University',
-    location: 'South Korea',
-    price: 'A$ 17,900',
-    logo: '/universities/Busan University.png',
-  },
-  {
-    id: 'sunmoon-global',
-    program: 'International Relations',
-    university: 'Sun Moon University',
-    location: 'South Korea',
-    price: 'A$ 16,780',
-    logo: '/universities/Sun Moon University.png',
-  },
-  {
-    id: 'hanseo-aviation',
-    program: 'Aviation Operations',
-    university: 'Hanseo University',
-    location: 'South Korea',
-    price: 'A$ 19,360',
-    logo: '/universities/Hanseo University.png',
-  },
-  {
-    id: 'sahmyook-biotech',
-    program: 'Biotechnology',
-    university: 'Sahmyook University',
-    location: 'South Korea',
-    price: 'A$ 18,240',
-    logo: '/universities/Sahmyook University.png',
-  },
-  {
-    id: 'daejin-design',
-    program: 'Digital Media Design',
-    university: 'Daejin University',
-    location: 'South Korea',
-    price: 'A$ 15,980',
-    logo: '/universities/Daejin University.png',
-  },
-  {
-    id: 'dongeui-robotics',
-    program: 'Robotics Engineering',
-    university: 'Dong-Eui University',
-    location: 'South Korea',
-    price: 'A$ 17,420',
-    logo: '/universities/Dong-Eui University.png',
-  },
-  {
-    id: 'yeungjin-computing',
-    program: 'Cloud Computing',
-    university: 'Yeungjin University',
-    location: 'South Korea',
-    price: 'A$ 14,890',
-    logo: '/universities/Yeungjin University.png',
-  },
-]
+import Link from "next/link"
+import Image from "next/image"
+import { motion, type Variants } from "framer-motion"
+import { ArrowRight, Landmark, MapPin } from "lucide-react"
+import ScrollFloat from "@/components/animations/ScrollFloat"
+import { ROUTES } from "@/lib/config/routes"
+import {
+  universityOpportunities,
+  type UniversityOpportunity,
+} from "@/lib/data/university-opportunities"
 
 const containerVariants: Variants = {
   hidden: {
@@ -177,7 +75,7 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
           </p>
 
           <div className="mt-1.5 flex max-w-full items-center gap-1 overflow-hidden text-[11px] font-semibold uppercase leading-4 tracking-wider text-slate-400">
-            <MapPin className="h-3 w-3 shrink-0 text-[#C9A15B]" />
+            <MapPin aria-hidden="true" className="h-3 w-3 shrink-0 text-[#C9A15B]" />
             <span className="line-clamp-1 min-w-0 overflow-hidden text-ellipsis">
               {opportunity.location}
             </span>
@@ -193,13 +91,13 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
             </p>
           </div>
 
-          <button
-            type="button"
+          <Link
+            href={ROUTES.universities}
             aria-label={`View ${opportunity.program} at ${opportunity.university}`}
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#8B0E1A] text-[#8B0E1A] transition-all duration-300 group-hover:bg-[#8B0E1A] group-hover:text-white"
           >
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
-          </button>
+            <ArrowRight aria-hidden="true" className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </Link>
         </div>
       </div>
     </motion.article>
@@ -234,9 +132,11 @@ export default function FeaturedUniversities() {
             stagger={0.015}
             containerClassName="scroll-title-highlight-university text-center !my-0"
             textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-bold tracking-normal leading-none text-[#111827]"
-          >
-            University Opportunities
-          </ScrollFloat>
+            segments={[
+              { text: 'University ' },
+              { text: 'Opportunities', className: 'text-[#C41E3A]' },
+            ]}
+          />
 
           <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
             Handpicked universities offering world-class education, exclusive scholarships, and
@@ -267,14 +167,15 @@ export default function FeaturedUniversities() {
           viewport={{ once: true }}
           className="mt-12 flex justify-center"
         >
-          <button
-            type="button"
+          <Link
+            href={ROUTES.universities}
+            aria-label="View all universities"
             className="group inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#760B16] via-[#8B0E1A] to-[#A91324] px-9 py-4 text-sm font-bold text-white shadow-[0_18px_45px_rgba(201,161,91,0.34)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-[0_24px_60px_rgba(201,161,91,0.48)] sm:px-11"
           >
-            <Landmark className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
+            <Landmark aria-hidden="true" className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
             <span>View All Universities</span>
-            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </button>
+            <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
         </motion.div>
       </div>
     </section>
