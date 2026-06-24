@@ -5,7 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Menu, X, ChevronDown, Globe } from 'lucide-react'
+import { ArrowRight, Menu, X, ChevronDown } from 'lucide-react'
 
 const countries = [
   { label: 'South Korea', href: '/universities/country/south-korea', flag: '🇰🇷' },
@@ -149,7 +149,7 @@ export function Navbar() {
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: 6, scale: 0.96 }}
                           transition={{ duration: 0.15, ease: 'easeOut' }}
-                          className="absolute left-0 top-full mt-1 w-56 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
+                          className="absolute left-0 top-full z-[60] mt-1 w-56 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-[0_16px_48px_rgba(0,0,0,0.12)]"
                         >
                           <div className="p-1.5">
                             {countries.map((country) => (
@@ -283,7 +283,6 @@ export function Navbar() {
                     }`}
                   >
                     <span className="flex items-center gap-2">
-                      <Globe size={16} />
                       Countries
                     </span>
                     <ChevronDown
