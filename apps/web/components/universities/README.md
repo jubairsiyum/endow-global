@@ -136,7 +136,6 @@ components/universities/
 ├── statistics-section.tsx           # Animated stats
 ├── country-explorer.tsx             # Country cards
 ├── scholarship-spotlight.tsx        # Scholarship opportunities
-├── student-success-stories.tsx      # Testimonials
 ├── application-roadmap.tsx          # Application timeline
 ├── premium-consultation-cta.tsx     # CTA section
 ├── university-marquee.tsx           # Scrolling logos

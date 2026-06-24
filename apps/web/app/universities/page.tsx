@@ -6,7 +6,6 @@ import FeaturedUniversities from '@/components/universities/featured-universitie
 import StatisticsSection from '@/components/universities/statistics-section'
 import CountryExplorer from '@/components/universities/country-explorer'
 import ScholarshipSpotlight from '@/components/universities/scholarship-spotlight'
-import StudentSuccessStories from '@/components/universities/student-success-stories'
 import ApplicationRoadmap from '@/components/universities/application-roadmap'
 import PremiumConsultationCTA from '@/components/universities/premium-consultation-cta'
 import UniversitiesFooter from '@/components/universities/footer'
@@ -25,7 +24,6 @@ export default function UniversitiesPage() {
       <ScholarshipSpotlight />
       <ApplicationRoadmap />
       <StatisticsSection />
-      <StudentSuccessStories />
       <PremiumConsultationCTA />
       <UniversitiesFooter />
     </div>
