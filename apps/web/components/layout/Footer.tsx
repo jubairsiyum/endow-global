@@ -28,40 +28,12 @@ const socials = [
 export function Footer() {
   return (
     <footer className="bg-[#f6f7fb]">
-      {/* Newsletter Section */}
-      <div className="border-b border-gray-200/80">
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8">
-          <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-12">
-            <div className="space-y-3">
-              <h4 className="max-w-md text-lg font-semibold leading-snug text-gray-900">
-                Signup our newsletter to get updated admission information, news, insights, or promotions.
-              </h4>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                type="text"
-                placeholder="Name"
-                className="h-11 flex-1 rounded-full border border-gray-200 bg-white px-5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-[#C41E3A]/40 focus:ring-2 focus:ring-[#C41E3A]/10"
-              />
-              <input
-                type="email"
-                placeholder="Email"
-                className="h-11 flex-1 rounded-full border border-gray-200 bg-white px-5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors focus:border-[#C41E3A]/40 focus:ring-2 focus:ring-[#C41E3A]/10"
-              />
-              <button className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#E05266] px-6 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.25)] transition-all hover:shadow-[0_6px_24px_rgba(196,30,58,0.35)] hover:-translate-y-0.5">
-                <Mail size={15} />
-                Sign Up
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Main Footer */}
-      <div className="mx-auto max-w-7xl px-5 py-14 sm:px-6 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
-          {/* Brand Column */}
-          <div className="sm:col-span-2 lg:col-span-1">
+      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-14 lg:px-8">
+        {/* Mobile: stacked layout | lg: 4-column grid */}
+        <div className="grid gap-6 lg:grid-cols-4 lg:gap-8">
+          {/* Brand Column — full width on mobile */}
+          <div className="lg:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2.5">
               <Image
                 src="/logo/endoedu.svg"
@@ -79,10 +51,10 @@ export function Footer() {
                 </span>
               </div>
             </Link>
-            <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-gray-500">
+            <p className="mt-3 text-[13px] leading-relaxed text-gray-500 text-justify sm:mt-4 lg:max-w-xs">
               Endow Global Education is dedicated to guiding students toward international academic success. With our personalized approach and experienced consultants, we provide comprehensive support for your educational journey.
             </p>
-            <div className="mt-5 flex gap-2">
+            <div className="mt-4 flex gap-2 sm:mt-5">
               {socials.map((social) => (
                 <a
                   key={social.label}
@@ -100,62 +72,62 @@ export function Footer() {
             </div>
           </div>
 
-          {/* About Endow */}
-          <div>
-            <h5 className="text-sm font-bold text-gray-900">About Endow</h5>
-            <div className="mt-3 mb-4 h-px w-8 bg-[#C41E3A]" />
-            <ul className="space-y-2.5">
-              {aboutLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
-                  >
-                    <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+          {/* 2-column wrapper for About + Helpful on mobile */}
+          <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:col-span-2 lg:grid-cols-2 lg:gap-8">
+            {/* About Endow */}
+            <div>
+              <h5 className="text-sm font-bold text-gray-900">About Endow</h5>
+              <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
+              <ul className="space-y-1.5 sm:space-y-2.5">
+                {aboutLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                    >
+                      <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Helpful Links */}
+            <div>
+              <h5 className="text-sm font-bold text-gray-900">Helpful Links</h5>
+              <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
+              <ul className="space-y-1.5 sm:space-y-2.5">
+                {helpfulLinks.map((link) => (
+                  <li key={link.label}>
+                    <Link
+                      href={link.href}
+                      className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                    >
+                      <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Helpful Links */}
-          <div>
-            <h5 className="text-sm font-bold text-gray-900">Helpful Links</h5>
-            <div className="mt-3 mb-4 h-px w-8 bg-[#C41E3A]" />
-            <ul className="space-y-2.5">
-              {helpfulLinks.map((link) => (
-                <li key={link.label}>
-                  <Link
-                    href={link.href}
-                    className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
-                  >
-                    <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Get in Touch */}
-          <div>
+          {/* Get in Touch — full width on mobile */}
+          <div className="sm:col-span-2 lg:col-span-1">
             <h5 className="text-sm font-bold text-gray-900">Get in Touch</h5>
-            <div className="mt-3 mb-4 h-px w-8 bg-[#C41E3A]" />
-            <ul className="space-y-3">
-              <li className="flex items-start gap-2.5">
+            <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
+            <ul className="space-y-2 sm:space-y-3">
+              <li className="flex items-start gap-2">
                 <MapPin size={14} className="mt-0.5 shrink-0 text-[#C41E3A]" />
                 <span className="text-[13px] leading-relaxed text-gray-500">
-                  3rd floor, House -17, Road - 01,<br />
-                  Mohammadia Housing Society,<br />
-                  Mohammadpur, Adabor,<br />
-                  Dhaka-1207
+                  3rd floor, House -17, Road - 01, Mohammadia Housing Society, Mohammadpur, Adabor, Dhaka-1207
                 </span>
               </li>
               <li>
                 <a
                   href="mailto:contact@endowglobaledu.com"
-                  className="group flex items-center gap-2.5 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                  className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
                 >
                   <Mail size={14} className="shrink-0 text-[#C41E3A]" />
                   contact@endowglobaledu.com
@@ -164,7 +136,7 @@ export function Footer() {
               <li>
                 <a
                   href="tel:+8801901463200"
-                  className="group flex items-center gap-2.5 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                  className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
                 >
                   <Phone size={14} className="shrink-0 text-[#C41E3A]" />
                   +880 190146 3204
@@ -173,7 +145,7 @@ export function Footer() {
               <li>
                 <a
                   href="tel:+821057672559"
-                  className="group flex items-center gap-2.5 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                  className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
                 >
                   <Phone size={14} className="shrink-0 text-[#C41E3A]" />
                   +82 1057 6725 59
@@ -186,18 +158,18 @@ export function Footer() {
 
       {/* Bottom Bar */}
       <div className="border-t border-gray-200/80">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-5 py-6 sm:px-6 md:flex-row lg:px-8">
-          <p className="text-[13px] text-gray-400">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-4 sm:flex-row sm:gap-4 sm:py-6 sm:px-6 lg:px-8">
+          <p className="text-[12px] text-gray-400 sm:text-[13px]">
             &copy; {new Date().getFullYear()} Endow Global Education. All rights reserved.
           </p>
-          <div className="flex items-center gap-5">
-            <Link href="#" className="text-[12px] text-gray-400 transition-colors hover:text-gray-700">
+          <div className="flex items-center gap-4 sm:gap-5">
+            <Link href="#" className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]">
               Terms of Service
             </Link>
-            <Link href="#" className="text-[12px] text-gray-400 transition-colors hover:text-gray-700">
+            <Link href="#" className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]">
               Privacy Policy
             </Link>
-            <Link href="#" className="text-[12px] text-gray-400 transition-colors hover:text-gray-700">
+            <Link href="#" className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]">
               Cookie Policy
             </Link>
           </div>
