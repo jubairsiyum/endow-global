@@ -1,30 +1,29 @@
 'use client'
 
-import Image from "next/image";
-import { motion, type Variants } from "framer-motion";
-import {
-  ArrowRight,
-  Building2,
-  Landmark,
-  Wallet,
-} from "lucide-react";
+import Link from "next/link"
+import Image from "next/image"
+import { motion, type Variants } from "framer-motion"
+import { ArrowRight, Building2, Landmark, Wallet } from "lucide-react"
+import { ROUTES } from "@/lib/config/routes"
 
 type Destination = {
-  name: string;
-  flag: string;
-  flagAlt: string;
-  image: string;
-  imageAlt: string;
-  description: string;
-  universities: string;
-  avgTuition: string;
-};
+  name: string
+  flag: string
+  flagAlt: string
+  href: string
+  image: string
+  imageAlt: string
+  description: string
+  universities: string
+  avgTuition: string
+}
 
 const destinations: Destination[] = [
   {
     name: "South Korea",
     flag: "/flags/kr.png",
     flagAlt: "South Korea flag",
+    href: ROUTES.countries.southKorea,
     image:
       "https://images.unsplash.com/photo-1534274867514-d5b47ef89ed7?auto=format&fit=crop&w=1200&q=85",
     imageAlt: "Seoul city skyline in South Korea",
@@ -37,6 +36,7 @@ const destinations: Destination[] = [
     name: "Australia",
     flag: "/flags/au.png",
     flagAlt: "Australia flag",
+    href: ROUTES.countries.australia,
     image:
       "https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?auto=format&fit=crop&w=1200&q=85",
     imageAlt: "Sydney Opera House and harbor in Australia",
@@ -45,7 +45,7 @@ const destinations: Destination[] = [
     universities: "90+",
     avgTuition: "$20,000/year",
   },
-];
+]
 
 const containerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -56,7 +56,7 @@ const containerVariants: Variants = {
       delayChildren: 0.16,
     },
   },
-};
+}
 
 const cardVariants: Variants = {
   hidden: { opacity: 0, y: 28 },
@@ -68,7 +68,7 @@ const cardVariants: Variants = {
       ease: "easeOut",
     },
   },
-};
+}
 
 function DestinationCard({ destination }: { destination: Destination }) {
   return (
@@ -78,14 +78,14 @@ function DestinationCard({ destination }: { destination: Destination }) {
         y: -6,
         transition: { duration: 0.28, ease: "easeOut" },
       }}
-      className="group relative mx-auto h-[285px] max-w-[300px] overflow-hidden rounded-[24px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
+      className="group relative mx-auto h-[285px] max-w-[300px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
     >
       <div className="relative h-[95px] overflow-hidden">
         <Image
           src={destination.image}
           alt={destination.imageAlt}
           fill
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          sizes="50vw"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#071225]/20 via-[#071225]/15 to-[#071225]/62" />
@@ -107,47 +107,26 @@ function DestinationCard({ destination }: { destination: Destination }) {
             {destination.name}
           </h3>
 
-          <div
-            className="
-      ml-auto
-      flex
-      h-10
-      w-10
-      shrink-0
-      items-center
-      justify-center
-      rounded-full
-      border
-      border-[#C41E3A]/20
-      bg-[#FFF5F6]
-      transition-all
-      duration-300
-      group-hover:border-[#C41E3A]
-      group-hover:bg-[#C41E3A]
-    "
+          <Link
+            href={destination.href}
+            aria-label={`Explore universities in ${destination.name}`}
+            className="ml-auto flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#C41E3A]/20 bg-[#FFF5F6] transition-all duration-300 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A]"
           >
             <ArrowRight
-              className="
-        h-4
-        w-4
-        text-[#C41E3A]
-        transition-all
-        duration-300
-        group-hover:translate-x-0.5
-        group-hover:text-white
-      "
+              aria-hidden="true"
+              className="h-4 w-4 text-[#C41E3A] transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white"
             />
-          </div>
+          </Link>
         </div>
 
-        <p className="mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-5 leading-[1.3] text-slate-600">
+        <p className="mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-[1.3] text-slate-600">
           {destination.description}
         </p>
 
         <div className="mt-auto grid grid-cols-2 gap-3 border-t border-[#EDF0F4] pt-2.5">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
-              <Building2 className="h-3.5 w-3.5" />
+              <Building2 aria-hidden="true" className="h-3.5 w-3.5" />
             </span>
             <p className="text-[13px] font-semibold leading-4 text-[#071225]">
               {destination.universities} Universities
@@ -156,17 +135,16 @@ function DestinationCard({ destination }: { destination: Destination }) {
 
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
-              <Wallet className="h-3.5 w-3.5" />
+              <Wallet aria-hidden="true" className="h-3.5 w-3.5" />
             </span>
             <p className="text-[13px] font-semibold leading-4 text-[#071225]">
               {destination.avgTuition}
             </p>
           </div>
         </div>
-
       </div>
     </motion.article>
-  );
+  )
 }
 
 export default function CountryExplorer() {
@@ -186,16 +164,10 @@ export default function CountryExplorer() {
         className="relative mx-auto max-w-[1320px]"
       >
         <div className="mx-auto mb-8 max-w-4xl text-center">
-
-
           <div className="mt-2 text-center">
             <h2 className="text-[clamp(2rem,3.5vw,3.4rem)] font-bold tracking-normal leading-[1.05]">
-              <span className="text-[#071225]">
-                Find Your Ideal Study
-              </span>{" "}
-              <span className="text-[#C41E3A]">
-                Destination
-              </span>
+              <span className="text-[#071225]">Find Your Ideal Study</span>{" "}
+              <span className="text-[#C41E3A]">Destination</span>
             </h2>
           </div>
 
@@ -210,7 +182,7 @@ export default function CountryExplorer() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:gap-7"
+          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:gap-7"
         >
           {destinations.map((destination) => (
             <DestinationCard key={destination.name} destination={destination} />
@@ -227,7 +199,7 @@ export default function CountryExplorer() {
           <div className="flex min-h-[90px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#FFF5F6] text-[#C41E3A]">
-                <Landmark className="h-5 w-5" />
+                <Landmark aria-hidden="true" className="h-5 w-5" />
               </div>
 
               <div className="min-w-0">
@@ -240,13 +212,14 @@ export default function CountryExplorer() {
               </div>
             </div>
 
-            <button
-              type="button"
+            <Link
+              href={ROUTES.home}
+              aria-label="Get free consultation with our education experts"
               className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B11226] via-[#8B0E1A] to-[#5F0710] px-6 text-sm font-bold text-white shadow-[0_14px_30px_rgba(139,14,26,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(139,14,26,0.32)]"
             >
               Get Free Consultation
-              <ArrowRight className="h-4 w-4" />
-            </button>
+              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
           </div>
         </motion.div>
       </motion.div>

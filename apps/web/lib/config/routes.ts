@@ -11,4 +11,8 @@ export const ROUTES = {
   terms: '/terms',
   privacy: '/privacy',
   cookies: '/cookies',
+  countries: {
+    southKorea: '/universities/country/south-korea',
+    australia: '/universities/country/australia',
+  },
 } as const
