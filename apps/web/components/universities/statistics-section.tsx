@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { TrendingUp, Users, Globe, Award } from 'lucide-react'
 
 interface StatConfig {
@@ -13,28 +13,43 @@ interface StatConfig {
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
   const [displayValue, setDisplayValue] = useState(0)
+  const ref = useRef<HTMLSpanElement>(null)
+  const startedRef = useRef(false)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !startedRef.current) {
+          startedRef.current = true
+          const start = performance.now()
+          let raf: number
+          const tick = (now: number) => {
+            const t = Math.min(1, (now - start) / (duration * 1000))
+            const eased = 1 - Math.pow(1 - t, 3)
+            setDisplayValue(Math.floor(value * eased))
+            if (t < 1) {
+              raf = requestAnimationFrame(tick)
+            } else {
+              setDisplayValue(value)
+            }
+          }
+          raf = requestAnimationFrame(tick)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.3 },
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [value, duration])
 
   return (
-    <motion.span
-      initial={{ opacity: 0 }}
-      whileInView={{ opacity: 1 }}
-      onViewportEnter={() => {
-        const increment = value / (duration * 60)
-        let current = 0
-        const timer = setInterval(() => {
-          current += increment
-          if (current >= value) {
-            setDisplayValue(value)
-            clearInterval(timer)
-          } else {
-            setDisplayValue(Math.floor(current))
-          }
-        }, 16)
-      }}
-      viewport={{ once: true }}
-    >
-      {Math.floor(displayValue).toLocaleString()}
-    </motion.span>
+    <span ref={ref}>
+      {displayValue.toLocaleString()}
+    </span>
   )
 }
 

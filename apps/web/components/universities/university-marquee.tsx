@@ -34,7 +34,7 @@ export default function UniversityMarquee() {
     }
 
     // Fallback resize listener
-    window.addEventListener('resize', measureWidth)
+    window.addEventListener('resize', measureWidth, { passive: true })
 
     return () => {
       resizeObserver.disconnect()

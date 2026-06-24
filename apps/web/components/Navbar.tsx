@@ -52,8 +52,8 @@ export function Navbar() {
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
           className={`flex w-full max-w-6xl items-center justify-between gap-4 rounded-full px-4 py-2.5 transition-all duration-300 sm:px-5 sm:py-3 ${
             isScrolled
-              ? 'bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-xl backdrop-saturate-[1.8] ring-1 ring-black/[0.04]'
-              : 'bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-xl backdrop-saturate-[1.5] ring-1 ring-white/40'
+              ? 'bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.8] ring-1 ring-black/[0.04]'
+              : 'bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.5] ring-1 ring-white/40'
           }`}
         >
           {/* Logo */}
@@ -147,7 +147,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed inset-x-0 top-[72px] z-50 mx-4 overflow-hidden rounded-2xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-xl backdrop-saturate-[1.8] lg:hidden"
+            className="fixed inset-x-0 top-[72px] z-50 mx-4 overflow-hidden rounded-2xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-sm backdrop-saturate-[1.8] lg:hidden"
           >
             <div className="p-3">
               <div className="flex flex-col gap-0.5">

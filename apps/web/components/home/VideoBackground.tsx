@@ -5,15 +5,15 @@ import { motion, useReducedMotion } from 'framer-motion'
 const heroVideos = [
   {
     label: 'Campus study',
-    src: 'https://videos.pexels.com/video-files/7969378/7969378-uhd_1440_2732_25fps.mp4',
+    src: 'https://videos.pexels.com/video-files/7969378/7969378-hd_720_1364_25fps.mp4',
   },
   {
     label: 'Students walking',
-    src: 'https://videos.pexels.com/video-files/7969427/7969427-uhd_1440_2732_25fps.mp4',
+    src: 'https://videos.pexels.com/video-files/7969427/7969427-hd_720_1364_25fps.mp4',
   },
   {
     label: 'Outdoor collaboration',
-    src: 'https://videos.pexels.com/video-files/6145420/6145420-uhd_1440_2732_25fps.mp4',
+    src: 'https://videos.pexels.com/video-files/6145420/6145420-hd_720_1364_25fps.mp4',
   },
 ] as const
 
@@ -32,11 +32,11 @@ export default function VideoBackground() {
     >
       <video
         aria-label="Students exploring study options on campus"
-        autoPlay
+        autoPlay={!prefersReducedMotion}
         loop
         muted
         playsInline
-        preload="metadata"
+        preload="none"
         className="h-full w-full object-cover"
       >
         {heroVideos.map((video) => (
