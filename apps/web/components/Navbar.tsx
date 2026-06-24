@@ -8,8 +8,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, Menu, X, ChevronDown } from 'lucide-react'
 
 const countries = [
-  { label: 'South Korea', href: '/universities/country/south-korea', flag: '🇰🇷' },
-  { label: 'Australia', href: '/universities/country/australia', flag: '🇦🇺' },
+  { label: 'South Korea', href: '/universities/country/south-korea', flag: 'https://flagcdn.com/w40/kr.png' },
+  { label: 'Australia', href: '/universities/country/australia', flag: 'https://flagcdn.com/w40/au.png' },
 ] as const
 
 const navItems = [
@@ -158,7 +158,7 @@ export function Navbar() {
                                 href={country.href}
                                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
                               >
-                                <span className="text-lg">{country.flag}</span>
+                                <img src={country.flag} alt="" className="h-5 w-7 rounded-sm object-cover" />
                                 <span>{country.label}</span>
                                 <ArrowRight size={14} className="ml-auto text-gray-300 transition-transform group-hover:translate-x-0.5" />
                               </Link>
@@ -310,7 +310,7 @@ export function Navbar() {
                                   : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
                               }`}
                             >
-                              <span className="text-lg">{country.flag}</span>
+                              <img src={country.flag} alt="" className="h-5 w-7 rounded-sm object-cover" />
                               {country.label}
                             </Link>
                           ))}
