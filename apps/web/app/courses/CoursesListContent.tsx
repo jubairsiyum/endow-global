@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, BookOpen, ArrowRight } from 'lucide-react'
 
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc-client'
 import { formatCurrency } from '@/lib/utils'
+import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
 
 const levelLabels: Record<string, string> = {
   UNDERGRADUATE: 'Undergraduate',
@@ -17,6 +18,15 @@ const levelLabels: Record<string, string> = {
   DIPLOMA: 'Diploma',
   CERTIFICATE: 'Certificate',
   FOUNDATION: 'Foundation',
+}
+
+const subjectAccents: Record<string, string> = {
+  'Computer Science': '#3b82f6',
+  'Business': '#f59e0b',
+  'Engineering': '#10b981',
+  'Healthcare': '#ef4444',
+  'Data Science': '#8b5cf6',
+  'Arts': '#ec4899',
 }
 
 type CourseListData = {
@@ -75,114 +85,138 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
 
   const displayData = data ?? initialData
 
+  function getAccent(subj: string): string {
+    for (const [key, color] of Object.entries(subjectAccents)) {
+      if (subj.toLowerCase().includes(key.toLowerCase())) return color
+    }
+    return '#C41E3A'
+  }
+
   return (
     <div className="w-full flex flex-col overflow-x-hidden">
-      <section className="relative overflow-x-hidden bg-white">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-white">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
           <div className="pt-4 pb-6 lg:pb-8">
             <Navbar />
           </div>
 
           <div className="py-16 lg:py-24">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
-                Find Your <span className="text-[#C41E3A]">Perfect Course</span>
-              </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-600 sm:text-lg">
-                Browse thousands of programs from partner universities worldwide
-              </p>
-            </div>
+            <FadeUp>
+              <div className="text-center">
+                <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm">
+                  <BookOpen size={13} />
+                  Course Catalog
+                </span>
+                <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+                  Find Your <span className="text-[#C41E3A]">Perfect Course</span>
+                </h1>
+                <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-gray-500 sm:text-lg">
+                  Browse thousands of programs from partner universities worldwide
+                </p>
+              </div>
+            </FadeUp>
 
             {/* Search Bar */}
-            <div className="mx-auto mt-8 max-w-3xl">
-              <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white p-2 shadow-[0_16px_45px_rgba(15,23,42,0.08)]">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search courses, subjects..."
-                    value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                    className="h-12 w-full rounded-xl border-0 bg-gray-50 pl-10 pr-4 text-sm outline-none focus:ring-2 focus:ring-[#C41E3A]/20"
-                  />
+            <FadeUp delay={0.1}>
+              <div className="mx-auto mt-8 max-w-3xl">
+                <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
+                  <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:px-5 sm:py-3">
+                    <Search size={18} className="shrink-0 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search courses, subjects..."
+                      value={search}
+                      onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                      className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400 sm:text-[15px]"
+                    />
+                    <Button
+                      onClick={() => setPage(1)}
+                      className="shrink-0 rounded-full px-5 text-[13px]"
+                    >
+                      Search
+                    </Button>
+                  </div>
                 </div>
-                <Button
-                  onClick={() => setPage(1)}
-                  className="h-12 rounded-xl px-6"
-                >
-                  Search
-                </Button>
               </div>
-            </div>
+            </FadeUp>
           </div>
         </div>
       </section>
 
-      <main className="flex-grow">
+      <main className="flex-grow bg-gray-50">
         {/* Filters + Results */}
-        <section className="py-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <select
-                value={subject}
-                onChange={(e) => { setSubject(e.target.value); setPage(1) }}
-                className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none focus:border-[#C41E3A]"
-              >
-                <option value="">All Subjects</option>
-                {subjects?.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
+        <section className="py-12 lg:py-20">
+          <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+            {/* Filters */}
+            <FadeUp>
+              <div className="flex flex-wrap items-center gap-3">
+                <select
+                  value={subject}
+                  onChange={(e) => { setSubject(e.target.value); setPage(1) }}
+                  className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
+                >
+                  <option value="">All Subjects</option>
+                  {subjects?.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
 
-              <select
-                value={level}
-                onChange={(e) => { setLevel(e.target.value); setPage(1) }}
-                className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none focus:border-[#C41E3A]"
-              >
-                <option value="">All Levels</option>
-                <option value="UNDERGRADUATE">Undergraduate</option>
-                <option value="POSTGRADUATE">Postgraduate</option>
-                <option value="PHD">PhD</option>
-                <option value="DIPLOMA">Diploma</option>
-                <option value="CERTIFICATE">Certificate</option>
-                <option value="FOUNDATION">Foundation</option>
-              </select>
+                <select
+                  value={level}
+                  onChange={(e) => { setLevel(e.target.value); setPage(1) }}
+                  className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
+                >
+                  <option value="">All Levels</option>
+                  <option value="UNDERGRADUATE">Undergraduate</option>
+                  <option value="POSTGRADUATE">Postgraduate</option>
+                  <option value="PHD">PhD</option>
+                  <option value="DIPLOMA">Diploma</option>
+                  <option value="CERTIFICATE">Certificate</option>
+                  <option value="FOUNDATION">Foundation</option>
+                </select>
 
-              <button
-                onClick={() => { setScholarship(!scholarship); setPage(1) }}
-                className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                  scholarship
-                    ? 'border-[#C41E3A] bg-rose-50 text-[#C41E3A]'
-                    : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                <Award size={16} />
-                Scholarships
-              </button>
+                <button
+                  onClick={() => { setScholarship(!scholarship); setPage(1) }}
+                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
+                    scholarship
+                      ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
+                      : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <Award size={16} />
+                  Scholarships
+                </button>
 
-              {displayData && (
-                <span className="ml-auto text-sm text-gray-500">
-                  {displayData.total} course{displayData.total !== 1 ? 's' : ''} found
-                </span>
-              )}
-            </div>
+                {displayData && (
+                  <span className="ml-auto text-sm text-gray-500">
+                    {displayData.total} course{displayData.total !== 1 ? 's' : ''} found
+                  </span>
+                )}
+              </div>
+            </FadeUp>
 
             {/* Results Grid */}
             <div className="mt-8">
               {isLoading ? (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="animate-pulse rounded-lg border border-gray-100 bg-white p-5">
-                      <div className="h-4 w-3/4 rounded bg-gray-200" />
-                      <div className="mt-3 h-3 w-1/2 rounded bg-gray-200" />
-                      <div className="mt-4 h-20 rounded bg-gray-100" />
-                      <div className="mt-4 flex gap-2">
-                        <div className="h-8 w-20 rounded-full bg-gray-200" />
-                        <div className="h-8 w-24 rounded-full bg-gray-200" />
+                    <FadeUpItem key={i}>
+                      <div className="animate-pulse overflow-hidden rounded-2xl border border-gray-100 bg-white">
+                        <div className="h-[2px] w-full bg-gray-200" />
+                        <div className="p-6">
+                          <div className="h-4 w-3/4 rounded-lg bg-gray-200" />
+                          <div className="mt-3 h-3 w-1/2 rounded-lg bg-gray-200" />
+                          <div className="mt-4 h-16 rounded-lg bg-gray-100" />
+                          <div className="mt-5 flex gap-2">
+                            <div className="h-7 w-20 rounded-full bg-gray-200" />
+                            <div className="h-7 w-24 rounded-full bg-gray-200" />
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    </FadeUpItem>
                   ))}
-                </div>
+                </FadeUpStagger>
               ) : displayData?.hits.length === 0 ? (
                 <div className="py-20 text-center">
                   <GraduationCap className="mx-auto h-16 w-16 text-gray-300" />
@@ -190,107 +224,137 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                   <p className="mt-2 text-sm text-gray-500">Try adjusting your filters or search terms</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {displayData?.hits.map((course) => (
-                    <Link
-                      key={course.id}
-                      href={`/courses/${course.slug}`}
-                      className="group rounded-lg border border-gray-100 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition-all hover:-translate-y-1 hover:shadow-[0_15px_40px_rgba(15,23,42,0.1)]"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#C41E3A] transition-colors">
-                            {course.name}
-                          </h3>
-                          <p className="mt-1 text-sm font-medium text-gray-500">
-                            {course.universityName}
-                          </p>
-                        </div>
-                        {course.universityLogo && (
-                          <img
-                            src={course.universityLogo}
-                            alt={course.universityName ?? ''}
-                            className="h-10 w-10 rounded-lg object-contain"
-                          />
-                        )}
-                      </div>
+                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
+                  {displayData?.hits.map((course) => {
+                    const accent = getAccent(course.subject)
+                    return (
+                      <FadeUpItem key={course.id}>
+                        <Link href={`/courses/${course.slug}`}>
+                          <article className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
+                            {/* Top accent line */}
+                            <div
+                              className="h-[2px] w-full opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+                              style={{ background: `linear-gradient(to right, transparent, ${accent}, transparent)` }}
+                            />
 
-                      <p className="mt-3 line-clamp-2 text-sm text-gray-600">
-                        {course.description}
-                      </p>
+                            <div className="flex h-full flex-col p-6">
+                              {/* Header */}
+                              <div className="mb-4 flex items-start justify-between">
+                                <span
+                                  className="inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold"
+                                  style={{
+                                    borderColor: `${accent}20`,
+                                    backgroundColor: `${accent}08`,
+                                    color: accent,
+                                  }}
+                                >
+                                  {levelLabels[course.level] ?? course.level}
+                                </span>
+                                {course.universityLogo && (
+                                  <img
+                                    src={course.universityLogo}
+                                    alt={course.universityName ?? ''}
+                                    className="h-9 w-9 rounded-lg object-contain"
+                                  />
+                                )}
+                              </div>
 
-                      <div className="mt-4 flex flex-wrap gap-2">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-[#C41E3A]">
-                          <GraduationCap size={12} />
-                          {levelLabels[course.level] ?? course.level}
-                        </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                          <Clock size={12} />
-                          {course.duration} {course.durationUnit?.toLowerCase()}
-                        </span>
-                        {course.universityCountry && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">
-                            <MapPin size={12} />
-                            {course.universityCountry}
-                          </span>
-                        )}
-                      </div>
+                              {/* Content */}
+                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#C41E3A] transition-colors">
+                                {course.name}
+                              </h3>
+                              <p className="mt-1 text-sm font-medium text-gray-500">
+                                {course.universityName}
+                              </p>
+                              <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-500">
+                                {course.description}
+                              </p>
 
-                      <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
-                        <div>
-                          <span className="text-lg font-bold text-gray-900">
-                            {formatCurrency(course.tuitionFee, course.currency)}
-                          </span>
-                          <span className="text-xs text-gray-500"> / year</span>
-                        </div>
-                        {course.hasScholarship && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                            <Award size={12} />
-                            Scholarship
-                          </span>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+                              {/* Tags */}
+                              <div className="mt-3 flex flex-wrap gap-1.5">
+                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                                  <Clock size={10} />
+                                  {course.duration} {course.durationUnit?.toLowerCase()}
+                                </span>
+                                {course.universityCountry && (
+                                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
+                                    <MapPin size={10} />
+                                    {course.universityCountry}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Footer */}
+                              <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
+                                <div>
+                                  <span className="text-base font-bold text-gray-900">
+                                    {formatCurrency(course.tuitionFee, course.currency)}
+                                  </span>
+                                  <span className="text-xs text-gray-400"> / year</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {course.hasScholarship && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                                      <Award size={10} />
+                                      Scholarship
+                                    </span>
+                                  )}
+                                  <span
+                                    className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2"
+                                    style={{ color: accent }}
+                                  >
+                                    View
+                                    <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </article>
+                        </Link>
+                      </FadeUpItem>
+                    )
+                  })}
+                </FadeUpStagger>
               )}
             </div>
 
             {/* Pagination */}
             {displayData && displayData.totalPages > 1 && (
-              <div className="mt-10 flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                >
-                  <ChevronLeft size={16} />
-                </Button>
-                {Array.from({ length: Math.min(5, displayData.totalPages) }, (_, i) => {
-                  const start = Math.max(1, Math.min(page - 2, displayData.totalPages - 4))
-                  const p = start + i
-                  if (p > displayData.totalPages) return null
-                  return (
-                    <Button
-                      key={p}
-                      variant={p === page ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPage(p)}
-                    >
-                      {p}
-                    </Button>
-                  )
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setPage((p) => Math.min(displayData.totalPages, p + 1))}
-                  disabled={page === displayData.totalPages}
-                >
-                  <ChevronRight size={16} />
-                </Button>
-              </div>
+              <FadeUp>
+                <div className="mt-10 flex items-center justify-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                  >
+                    <ChevronLeft size={16} />
+                  </Button>
+                  {Array.from({ length: Math.min(5, displayData.totalPages) }, (_, i) => {
+                    const start = Math.max(1, Math.min(page - 2, displayData.totalPages - 4))
+                    const p = start + i
+                    if (p > displayData.totalPages) return null
+                    return (
+                      <Button
+                        key={p}
+                        variant={p === page ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setPage(p)}
+                      >
+                        {p}
+                      </Button>
+                    )
+                  })}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setPage((p) => Math.min(displayData.totalPages, p + 1))}
+                    disabled={page === displayData.totalPages}
+                  >
+                    <ChevronRight size={16} />
+                  </Button>
+                </div>
+              </FadeUp>
             )}
           </div>
         </section>

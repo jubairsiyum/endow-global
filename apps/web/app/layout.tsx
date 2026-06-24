@@ -7,6 +7,7 @@ import { Toaster } from 'sonner'
 import ThemeProvider from '@/components/providers/ThemeProvider'
 import SmoothScroll from '@/components/providers/SmoothScroll'
 import ClickSpark from '@/components/effects/ClickSpark'
+import RouteProgress from '@/components/effects/RouteProgress'
 
 import './globals.css'
 
@@ -83,6 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#09090b] dark:text-white">
         <ClickSpark />
+        <RouteProgress />
 
         <ThemeProvider>
           <SmoothScroll>
