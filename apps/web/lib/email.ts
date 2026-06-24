@@ -1,4 +1,4 @@
-import transporter from './nodemailer'
+import { getTransporter } from './nodemailer'
 
 export async function sendEmail({
   to,
@@ -15,6 +15,7 @@ export async function sendEmail({
   if (!user) throw new Error('GMAIL_USER is not set')
 
   const from = `Endow Global Education <${user}>`
+  const transporter = getTransporter()
 
   console.log('[email] Sending email:', { from, to, subject })
   const result = await transporter.sendMail({
