@@ -182,7 +182,7 @@ export default function CountryExplorer() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:gap-7"
+          className="mx-auto grid max-w-[700px] grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-8"
         >
           {destinations.map((destination) => (
             <DestinationCard key={destination.name} destination={destination} />
