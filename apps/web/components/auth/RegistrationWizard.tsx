@@ -152,9 +152,9 @@ export default function RegistrationWizard() {
       })
       if (error) { toast.error(error.message || 'Failed to create account'); return }
 
-      const signInResult = await authClient.signIn.emailOtp({
+      const signInResult = await authClient.signIn.email({
         email,
-        otp: otp.join(''),
+        password: randomPassword,
       })
 
       if (!signInResult.error) {
@@ -174,6 +174,7 @@ export default function RegistrationWizard() {
           }
         )
       } else {
+        toast.error(signInResult.error.message || 'Account created but sign-in failed. Please sign in manually.')
         router.push('/login')
       }
     } catch {
@@ -181,7 +182,7 @@ export default function RegistrationWizard() {
     } finally {
       setIsLoading(false)
     }
-  }, [email, otp, name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
+  }, [email, name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
 
   const handleOtpInput = (index: number, value: string) => {
     if (value.length > 1) value = value.slice(-1)
