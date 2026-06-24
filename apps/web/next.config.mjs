@@ -22,6 +22,7 @@ const nextConfig = {
       "@langchain/openai",
       "@langchain/pinecone",
       "@pinecone-database/pinecone",
+      "nodemailer",
     ],
   },
   headers: async () => [

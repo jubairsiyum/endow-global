@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { db, schema } from '@/lib/db'
 import { eq } from 'drizzle-orm'
 import { sendPushNotification } from '@/lib/firebase-admin'
-import { sendEmail } from '@/lib/resend'
+import { sendEmail } from '@/lib/email'
 import SessionReminder from '@/emails/SessionReminder'
 
 export async function POST(req: Request) {
