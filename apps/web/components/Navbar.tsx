@@ -110,7 +110,7 @@ export function Navbar() {
           {/* Desktop Nav */}
           <nav className="hidden items-center gap-0.5 lg:flex" aria-label="Primary">
             {navItems.map((item) => {
-              if (item.hasDropdown) {
+              if ('hasDropdown' in item && item.hasDropdown) {
                 return (
                   <div
                     key={item.label}
