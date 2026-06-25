@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   },
 
   description:
-    "Your trusted partner for international education. Find the perfect university, get AI-powered course matching, and expert counselor support.",
+    "Endow Global Education helps Bangladeshi students pursue higher education in South Korea with expert guidance, transparent support, and a guided path forward.",
 
   keywords: [
     "study abroad",
@@ -45,8 +45,9 @@ export const metadata: Metadata = {
     "education counseling",
     "scholarship",
     "international students",
-    "UK universities",
-    "Australia universities",
+    "South Korea universities",
+    "Bangladeshi students in Korea",
+    "study in Korea",
   ],
 
   authors: [

@@ -11,6 +11,7 @@ const navItems = [
   { label: 'Universities', href: '/universities' },
   { label: 'Courses', href: '/courses' },
   { label: 'Blog', href: '/blog' },
+  { label: 'Why Endow', href: '/why-endow-global' },
   { label: 'About', href: '/about' }
 ] as const
 

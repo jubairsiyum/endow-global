@@ -2,13 +2,17 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
-  BookOpen,
+  Award,
   CheckCircle2,
+  FileCheck2,
   Globe2,
   GraduationCap,
+  HeartHandshake,
+  Plane,
   Search,
   ShieldCheck,
   Sparkles,
+  Users,
 } from 'lucide-react'
 
 import { Footer } from '@/components/layout/Footer'
@@ -34,19 +38,34 @@ const universities = [
 
 const features = [
   {
-    icon: Globe2,
-    title: 'Matched destinations',
-    copy: 'Compare countries, universities, scholarships, and intake timelines from one focused view.',
+    icon: Users,
+    title: 'Personalized guidance',
+    copy: 'Choose programs and universities that match your academic profile, goals, and interests.',
   },
   {
-    icon: BookOpen,
-    title: 'Course clarity',
-    copy: 'Shortlist programs by level, subject, eligibility, and long-term career fit.',
+    icon: Globe2,
+    title: 'South Korea focus',
+    copy: 'Plan your study journey around Korean universities, intakes, scholarships, and student life.',
   },
   {
     icon: ShieldCheck,
-    title: 'Application control',
-    copy: 'Track documents, counselor notes, deadlines, and next steps without losing momentum.',
+    title: 'Visa process clarity',
+    copy: 'Understand requirements, timelines, and documentation with calm step-by-step support.',
+  },
+  {
+    icon: Award,
+    title: 'Scholarship guidance',
+    copy: 'Explore scholarship opportunities that may reduce financial pressure for your family.',
+  },
+  {
+    icon: FileCheck2,
+    title: 'Simplified documents',
+    copy: 'Prepare applications, statements, and supporting documents with organized counselor input.',
+  },
+  {
+    icon: Plane,
+    title: 'Post-arrival readiness',
+    copy: 'Get practical guidance for accommodation, cultural adjustment, and student life in Korea.',
   },
 ] as const
 
@@ -56,9 +75,9 @@ function HeroSearchPanel() {
       <div className="mb-4 flex items-center justify-between gap-3 text-left">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#C41E3A]">
-            Smart search
+            South Korea course finder
           </p>
-          <h2 className="mt-1 text-xl font-bold text-gray-950">Find your dream course</h2>
+          <h2 className="mt-1 text-xl font-bold text-gray-950">Find your Korea-fit program</h2>
         </div>
         <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-rose-50 text-[#C41E3A]">
           <Search size={20} />
@@ -74,7 +93,7 @@ function HeroSearchPanel() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Computer Science, Business..."
+              placeholder="Computer Science, Business, Korean Language..."
               className="h-11 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm outline-none transition focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20"
             />
           </div>
@@ -84,11 +103,10 @@ function HeroSearchPanel() {
           <label className="block">
             <span className="mb-1 block text-sm font-medium text-gray-700">Destination</span>
             <select className="h-11 w-full rounded-lg border border-gray-200 bg-white px-3 text-sm outline-none transition focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/20">
-              <option>Any Country</option>
-              <option>United Kingdom</option>
-              <option>United States</option>
-              <option>Australia</option>
-              <option>Canada</option>
+              <option>South Korea</option>
+              <option>Seoul</option>
+              <option>Busan</option>
+              <option>Any Korean city</option>
             </select>
           </label>
 
@@ -127,18 +145,19 @@ function HeroSection() {
             </div>
 
             <h1 className="mx-auto max-w-4xl text-4xl font-bold leading-[1.06] tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
-              Your journey to <span className="text-[#C41E3A]">global education</span> starts here.
+              Study in <span className="text-[#C41E3A]">South Korea</span> with confidence.
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-700 sm:text-lg">
-              Discover universities, compare courses, and move through every application step with
-              expert counseling in one compact platform.
+              Endow Global Education helps Bangladeshi students turn international study goals into
+              real university opportunities through expert guidance, transparent support, and a clear
+              path forward.
             </p>
 
             <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="h-12 gap-2 px-6">
                 <Link href="/register">
-                  Start Your Application
+                  Apply Now
                   <ArrowRight size={18} />
                 </Link>
               </Button>
@@ -148,9 +167,9 @@ function HeroSection() {
                 variant="white"
                 className="h-12 gap-2 border border-white/70 px-6 shadow-sm"
               >
-                <Link href="/universities">
-                  Explore Universities
-                  <Globe2 size={18} />
+                <Link href="/about">
+                  Start Your Journey
+                  <GraduationCap size={18} />
                 </Link>
               </Button>
             </div>
@@ -208,21 +227,21 @@ function FeaturesSection() {
             <div>
               <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#C41E3A] shadow-sm">
                 <GraduationCap size={16} />
-                Built for study abroad decisions
+                Why choose us
               </div>
               <h2 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                Everything you need to move with confidence
+                Your trusted partner for South Korean higher education
               </h2>
             </div>
             <p className="max-w-2xl text-base leading-7 text-gray-600">
-              We turn the complex application process into a clear sequence: discover the right fit,
-              prepare the strongest application, and stay aligned with counselors from first shortlist
-              to submission.
+              We turn a complex study abroad process into a clear sequence: choose the right program,
+              prepare strong documents, understand visa steps, and get ready for student life in
+              South Korea.
             </p>
           </div>
         </FadeUp>
 
-        <FadeUpStagger className="mt-9 grid gap-4 md:grid-cols-3" amount={0.15}>
+        <FadeUpStagger className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-3" amount={0.15}>
           {features.map((feature) => {
             const Icon = feature.icon
 
@@ -242,7 +261,12 @@ function FeaturesSection() {
 
         <FadeUp>
           <div className="mt-8 flex flex-wrap items-center gap-4 rounded-lg border border-gray-100 bg-white px-5 py-4 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-            {['Eligibility checks', 'Document reminders', 'Counselor updates'].map((item) => (
+            {[
+              'Eligibility checks',
+              'Document reminders',
+              'Visa preparation',
+              'Post-arrival guidance',
+            ].map((item) => (
               <span
                 key={item}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700"
@@ -258,6 +282,42 @@ function FeaturesSection() {
   )
 }
 
+function MissionOverviewSection() {
+  return (
+    <section className="bg-white py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <FadeUp>
+          <div className="grid gap-10 rounded-lg border border-gray-100 bg-[#f7f8fb] p-6 sm:p-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-sm font-semibold text-[#C41E3A] shadow-sm">
+                <HeartHandshake size={16} />
+                Our mission
+              </div>
+              <h2 className="text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+                Empowering students, opening global doors
+              </h2>
+              <p className="mt-4 text-base leading-7 text-gray-600">
+                Our mission is to empower Bangladeshi students with reliable guidance,
+                student-centered support, and access to quality higher education opportunities in
+                South Korea.
+              </p>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {['Excellence', 'Integrity', 'Student-centered support'].map((value) => (
+                <div key={value} className="rounded-lg bg-white p-4 shadow-sm">
+                  <CheckCircle2 className="mb-3 h-5 w-5 text-[#C41E3A]" />
+                  <h3 className="text-sm font-bold text-gray-950">{value}</h3>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeUp>
+      </div>
+    </section>
+  )
+}
+
 export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col font-sans">
@@ -265,6 +325,7 @@ export default function HomePage() {
         <HeroSection />
         <UniversityMarquee />
         <FeaturesSection />
+        <MissionOverviewSection />
       </main>
 
       <Footer />
