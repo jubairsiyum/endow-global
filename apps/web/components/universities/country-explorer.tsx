@@ -5,6 +5,7 @@ import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Building2, Landmark, Wallet } from "lucide-react"
 import { ROUTES } from "@/lib/config/routes"
+import { universityDesign as ds } from './design-system'
 
 type Destination = {
   name: string
@@ -149,7 +150,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
 
 export default function CountryExplorer() {
   return (
-    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 pt-6 pb-12 sm:px-6 lg:px-8 lg:pt-8 lg:pb-16">
+    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 pt-14 pb-12 sm:px-6 lg:px-8 lg:pt-24 lg:pb-16">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D7A8] to-transparent" />
         <div className="absolute -right-28 top-10 h-[420px] w-[420px] rounded-full bg-[#C41E3A]/[0.08] blur-3xl" />
@@ -163,15 +164,13 @@ export default function CountryExplorer() {
         viewport={{ once: true, margin: "-80px" }}
         className="relative mx-auto max-w-[1320px]"
       >
-        <div className="mx-auto mb-8 max-w-4xl text-center">
-          <div className="mt-2 text-center">
-            <h2 className="text-[clamp(2rem,3.5vw,3.4rem)] font-bold tracking-normal leading-[1.05]">
-              <span className="text-[#071225]">Find Your Ideal Study</span>{" "}
-              <span className="text-[#C41E3A]">Destination</span>
-            </h2>
-          </div>
+        <div className="mx-auto mb-6 max-w-4xl text-center">
+          <h2 className={ds.heading}>
+            <span className="text-[#071225]">Find Your Ideal Study</span>{" "}
+            <span className="text-[#C41E3A]">Destination</span>
+          </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
             Discover the world&apos;s best education destinations and find the
             perfect fit for your future.
           </p>

@@ -38,7 +38,7 @@ export default function ScholarshipSpotlight() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FCFCFD] via-[#F8FAFC] to-[#F1F5F9] px-4 pt-0 pb-14 sm:px-6 lg:px-8 lg:pt-0 lg:pb-16">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FCFCFD] via-[#F8FAFC] to-[#F1F5F9] px-4 pt-14 pb-14 sm:px-6 lg:px-8 lg:pt-24 lg:pb-16">
       <div className="mx-auto max-w-[1440px] px-6">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -47,7 +47,7 @@ export default function ScholarshipSpotlight() {
           viewport={{ once: true }}
           className="mx-auto mb-6 max-w-5xl text-center"
         >
-          <h2 className="text-[clamp(2.1rem,3.8vw,3.4rem)] font-bold leading-[1.05] tracking-normal">
+          <h2 className={ds.heading}>
             <span className="text-[#071225]">Exclusive Scholarship</span>{" "}
             <span className="text-[#C41E3A]">Opportunities</span>
           </h2>

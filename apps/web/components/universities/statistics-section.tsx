@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import { TrendingUp, Users, Globe, Award } from 'lucide-react'
+import { universityDesign as ds } from './design-system'
 
 interface StatConfig {
   value: number
@@ -99,7 +100,7 @@ export default function StatisticsSection() {
   }
 
   return (
-    <section className="relative overflow-x-hidden bg-[#F8FAFC] pt-0 pb-12 lg:pt-0 lg:pb-14">
+    <section className="relative overflow-x-hidden bg-[#F8FAFC] pt-14 pb-12 lg:pt-24 lg:pb-14">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -113,7 +114,7 @@ export default function StatisticsSection() {
           viewport={{ once: true }}
           className="mb-6 text-center"
         >
-          <h2 className="text-[clamp(2.75rem,4.5vw,5rem)] font-bold tracking-normal leading-[1.05]">
+          <h2 className={ds.heading}>
             <span className="text-[#071225]">Global</span>{' '}
             <span className="text-[#C41E3A]">Success</span>{' '}
             <span className="text-[#071225]">by Numbers</span>

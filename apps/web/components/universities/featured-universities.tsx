@@ -6,6 +6,7 @@ import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Landmark, MapPin } from "lucide-react"
 import ScrollFloat from "@/components/animations/ScrollFloat"
 import { ROUTES } from "@/lib/config/routes"
+import { universityDesign as ds } from './design-system'
 import {
   universityOpportunities,
   type UniversityOpportunity,
@@ -106,7 +107,7 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
 
 export default function FeaturedUniversities() {
   return (
-    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 pb-16 pt-2 lg:pt-4 sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 pt-14 pb-16 sm:px-6 lg:px-8 lg:pt-24 lg:pb-16">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute -left-28 -top-28 h-[420px] w-[420px] rounded-full bg-white/90 blur-3xl" />
         <div className="absolute -right-24 top-8 h-[520px] w-[520px] rounded-full bg-[#F7EBD5]/70 blur-3xl" />
@@ -131,14 +132,14 @@ export default function FeaturedUniversities() {
             scrollEnd="center center"
             stagger={0.015}
             containerClassName="scroll-title-highlight-university text-center !my-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-bold tracking-normal leading-none text-[#111827]"
+            textClassName={`${ds.heading} text-[#111827]`}
             segments={[
               { text: 'University ' },
               { text: 'Opportunities', className: 'text-[#C41E3A]' },
             ]}
           />
 
-          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
             Handpicked universities offering world-class education, exclusive scholarships, and
             guaranteed visa support — all in one place
           </p>

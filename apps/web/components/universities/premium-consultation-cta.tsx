@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Calendar, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
+import { universityDesign as ds } from './design-system'
 
 export default function PremiumConsultationCTA() {
   const containerVariants = {
@@ -22,7 +23,7 @@ export default function PremiumConsultationCTA() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white pt-6 pb-14 lg:pt-8 lg:pb-16">
+    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white pt-14 pb-14 lg:pt-24 lg:pb-16">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -43,8 +44,8 @@ export default function PremiumConsultationCTA() {
           className="space-y-7 text-center"
         >
           {/* Main Heading */}
-          <motion.div variants={itemVariants} className="space-y-4">
-            <h2 className="text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-normal leading-[1.05]">
+          <motion.div variants={itemVariants} className="mb-6">
+            <h2 className={ds.heading}>
               <span className="text-[#071225]">
                 Ready to Transform Your
               </span>
@@ -53,7 +54,7 @@ export default function PremiumConsultationCTA() {
                 Educational Future?
               </span>
             </h2>
-            <p className="mx-auto max-w-2xl text-base leading-7 text-slate-600">
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
               Get a free profile evaluation from our education experts. Receive 
               personalized university recommendations and exclusive scholarship 
               opportunities.
