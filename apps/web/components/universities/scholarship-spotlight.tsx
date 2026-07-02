@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowRight, CalendarDays, MapPin } from "lucide-react";
 import { scholarships, universities } from "@/lib/universities/data";
-import { universityDesign as ds } from "./design-system";
+import { designSystem as ds } from '@/lib/design-system'
 
 const featuredScholarships = scholarships.slice(0, 3);
 const universityById = new Map(

@@ -6,7 +6,7 @@ import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Landmark, MapPin } from "lucide-react"
 import ScrollFloat from "@/components/animations/ScrollFloat"
 import { ROUTES } from "@/lib/config/routes"
-import { universityDesign as ds } from './design-system'
+import { designSystem as ds } from '@/lib/design-system'
 import {
   universityOpportunities,
   type UniversityOpportunity,

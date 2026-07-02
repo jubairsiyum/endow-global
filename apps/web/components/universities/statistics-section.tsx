@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import { TrendingUp, Users, Globe, Award } from 'lucide-react'
-import { universityDesign as ds } from './design-system'
+import { designSystem as ds } from '@/lib/design-system'
 
 interface StatConfig {
   value: number

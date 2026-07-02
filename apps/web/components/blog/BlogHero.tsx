@@ -3,145 +3,107 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { ArrowRight, Zap } from 'lucide-react'
+import { ds } from '@/lib/design-system'
+import { staggerContainer, fadeUp } from './animations'
 
 export function BlogHero() {
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  }
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-  }
-
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FAFAFA] via-[#F8F9FB] to-white pb-10 pt-32 lg:pb-14 lg:pt-36">
-      {/* BACKGROUND GLOW */}
-      <div className="pointer-events-none absolute right-0 top-0 -mr-48 -mt-48 h-[420px] w-[420px] rounded-full bg-[#FEF2F2] opacity-40 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-0 -mb-48 -ml-48 h-[420px] w-[420px] rounded-full bg-[#F8FAFC] opacity-60 blur-3xl" />
-      <div className="bg-[#C41E3A]/4 absolute left-1/2 top-32 h-[380px] w-[380px] -translate-x-1/2 rounded-full blur-[120px]" />
-      <div className="relative z-10 mx-auto max-w-[1380px] px-6 lg:px-10 xl:px-12">
+    <section className={`${ds.section.base} overflow-hidden bg-gradient-to-b from-[var(--bg-lighter)] via-[var(--bg-light)] to-white pb-10 pt-32 lg:pb-14 lg:pt-36`}>
+      <div className="pointer-events-none absolute right-0 top-0 -mr-48 -mt-48 h-[420px] w-[420px] rounded-full bg-[var(--brand-light)] opacity-40 blur-3xl" aria-hidden="true" />
+      <div className="pointer-events-none absolute bottom-0 left-0 -mb-48 -ml-48 h-[420px] w-[420px] rounded-full bg-[var(--bg-light)] opacity-60 blur-3xl" aria-hidden="true" />
+      <div className="bg-[var(--brand)]/4 absolute left-1/2 top-32 h-[380px] w-[380px] -translate-x-1/2 rounded-full blur-[120px]" aria-hidden="true" />
+      <div className={`${ds.container.wide} relative z-10`}>
         <motion.div
-          variants={containerVariants}
+          variants={staggerContainer}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-100px' }}
           className="grid grid-cols-1 items-start gap-12 lg:grid-cols-[42%_58%] xl:gap-16"
         >
-          {/* LEFT CONTENT */}
           <div>
-            <motion.div variants={itemVariants} className="mb-4">
+            <motion.div variants={fadeUp} className="mb-4">
               <div className="inline-block">
-                <div className="flex h-9 items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#FEF2F2] px-3.5">
-                  <Zap className="h-3.5 w-3.5 text-[#C41E3A]" />
-                  <span className="text-xs font-semibold tracking-wide text-[#C41E3A]">
-                    Education Knowledge Hub
-                  </span>
+                <div className={`${ds.badge.sm} text-xs font-semibold tracking-wide text-[var(--brand)]`}>
+                  <Zap className="h-3.5 w-3.5 text-[var(--brand)]" aria-hidden="true" />
+                  Education Knowledge Hub
                 </div>
               </div>
             </motion.div>
 
             <motion.h1
-              variants={itemVariants}
-              className="mb-4 max-w-[700px] text-[34px] font-extrabold leading-[0.92] tracking-[-1.5px] md:text-[40px] lg:text-[52px]"
+              variants={fadeUp}
+              className={`${ds.headings.hero} mb-4 max-w-[700px]`}
             >
-              <div className="mb-4 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
-              <div className="text-[#111827]">
+              <div className={`${ds.accent.strip} mb-4`} aria-hidden="true" />
+              <div className={ds.body.primary}>
                 Global Education
               </div>
-
-              <div className="bg-gradient-to-r from-[#C41E3A] to-[#EF4444] bg-clip-text text-transparent">
+              <div className="bg-gradient-to-r from-[var(--brand)] to-[var(--accent-red-gradient)] bg-clip-text text-transparent">
                 Insights &amp; Guides
               </div>
             </motion.h1>
 
             <motion.p
-              variants={itemVariants}
-              className="mb-7 max-w-[520px] text-base leading-relaxed text-[#6B7280]"
+              variants={fadeUp}
+              className={`${ds.body.base} mb-7 max-w-[520px]`}
             >
               Study abroad guides, scholarship opportunities, visa updates, university insights, and
               real student success journeys.
             </motion.p>
 
-            {/* STATISTICS */}
-            <motion.div variants={itemVariants} className="grid max-w-[580px] grid-cols-3 gap-4">
-              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
-                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
-                <p className="text-xl font-bold text-[#111827]">500+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
-                  Expert Articles
-                </p>
+            <motion.div variants={fadeUp} className={ds.grid.stats3}>
+              <div className={`min-h-[95px] ${ds.card.rounded} border border-[var(--border-light)] bg-white p-4 ${ds.shadow.stat} ${ds.shadow.statHover}`}>
+                <div className={`${ds.accent.line} mb-3`} aria-hidden="true" />
+                <p className={`text-xl font-bold ${ds.body.primary}`}>500+</p>
+                <p className={`${ds.body.muted} mt-1.5 uppercase tracking-wider`}>Expert Articles</p>
               </div>
-
-              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
-                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
-                <p className="text-xl font-bold text-[#111827]">25K+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
-                  Monthly Readers
-                </p>
+              <div className={`min-h-[95px] ${ds.card.rounded} border border-[var(--border-light)] bg-white p-4 ${ds.shadow.stat} ${ds.shadow.statHover}`}>
+                <div className={`${ds.accent.line} mb-3`} aria-hidden="true" />
+                <p className={`text-xl font-bold ${ds.body.primary}`}>25K+</p>
+                <p className={`${ds.body.muted} mt-1.5 uppercase tracking-wider`}>Monthly Readers</p>
               </div>
-
-              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
-                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
-                <p className="text-xl font-bold text-[#111827]">20+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
-                  Partner Universities
-                </p>
+              <div className={`min-h-[95px] ${ds.card.rounded} border border-[var(--border-light)] bg-white p-4 ${ds.shadow.stat} ${ds.shadow.statHover}`}>
+                <div className={`${ds.accent.line} mb-3`} aria-hidden="true" />
+                <p className={`text-xl font-bold ${ds.body.primary}`}>20+</p>
+                <p className={`${ds.body.muted} mt-1.5 uppercase tracking-wider`}>Partner Universities</p>
               </div>
             </motion.div>
           </div>
 
-          {/* RIGHT - FEATURED ARTICLE CARD */}
           <motion.div
-            variants={itemVariants}
+            variants={fadeUp}
             whileHover={{ y: -8 }}
             className="relative ml-auto w-full"
           >
-            <div className="group overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,23,42,0.15)]">
-              {/* CARD IMAGE */}
-              <div className="relative h-[220px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
-
+            <div className={`group overflow-hidden ${ds.card.roundedXl} border border-[var(--border-light)] bg-white ${ds.shadow.hero} transition-all duration-500 ${ds.shadow.heroHover}`}>
+              <div className="relative h-[220px] w-full overflow-hidden bg-[var(--bg-light)] lg:h-[300px]">
                 <Image
                   src="/blog/gks-scholarship-guide.jpg"
                   alt="Complete GKS Scholarship Guide 2024"
                   fill
                   priority
+                  sizes="(max-width: 1024px) 100vw, 50vw"
                   className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
                 />
-
-
               </div>
-
-              {/* CARD CONTENT */}
               <div className="p-4">
-                {/* TITLE */}
-                <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827] lg:text-[20px]">
+                <h3 className={`${ds.headings.card} mb-2.5 line-clamp-2 text-[20px] leading-snug`}>
                   From Dream University to Acceptance Letter
                 </h3>
-
-                {/* DESCRIPTION */}
-                <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
+                <p className={`${ds.body.sm} mb-3 line-clamp-2`}>
                  Discover proven strategies, scholarship opportunities, and application insights that help students achieve international education success.
                 </p>
-
-                {/* META */}
-                <div className="flex items-center justify-between border-t border-[#E5E7EB] pt-4 text-xs text-[#6B7280]">
+                <div className={`flex items-center justify-between ${ds.divider.border} pt-4 text-xs ${ds.body.muted}`}>
                   <div className="flex items-center gap-3">
                     <span>By Endow Team</span>
                     <span>•</span>
                     <span>3 min read</span>
                   </div>
                 </div>
-
-                {/* CTA */}
                 <div className="mt-3">
-                  <button className="flex h-11 items-center gap-2 rounded-full bg-[#C41E3A] px-4 text-sm font-semibold text-white transition-all hover:bg-[#B11A33]">
+                  <button type="button" aria-label="Read article: From Dream University to Acceptance Letter" className={`${ds.button.primary} h-11 rounded-full px-4`}>
                     Read Article
-                    <ArrowRight className="h-3.5 w-3.5" />
+                    <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
                   </button>
                 </div>
               </div>

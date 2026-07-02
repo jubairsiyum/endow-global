@@ -5,7 +5,7 @@ import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Building2, Landmark, Wallet } from "lucide-react"
 import { ROUTES } from "@/lib/config/routes"
-import { universityDesign as ds } from './design-system'
+import { designSystem as ds } from '@/lib/design-system'
 
 type Destination = {
   name: string

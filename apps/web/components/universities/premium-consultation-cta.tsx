@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Calendar, CheckCircle2, MessageCircle, Phone } from 'lucide-react'
-import { universityDesign as ds } from './design-system'
+import { designSystem as ds } from '@/lib/design-system'
 
 export default function PremiumConsultationCTA() {
   const containerVariants = {
