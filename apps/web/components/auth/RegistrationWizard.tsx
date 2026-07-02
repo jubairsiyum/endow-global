@@ -102,7 +102,7 @@ export default function RegistrationWizard() {
     try {
       const { error } = await authClient.emailOtp.sendVerificationOtp({
         email,
-        type: 'email-verification',
+        type: 'sign-in',
       })
       if (error) { toast.error(error.message || 'Failed to send OTP'); return }
       toast.success('Verification code sent to your email')
@@ -118,23 +118,9 @@ export default function RegistrationWizard() {
   const verifyOtp = useCallback(async () => {
     const code = otp.join('')
     if (code.length !== 6) { toast.error('Please enter the 6-digit code'); return }
-    setIsLoading(true)
-    try {
-      const { error } = await authClient.emailOtp.checkVerificationOtp({
-        email,
-        otp: code,
-        type: 'email-verification',
-      })
-      if (error) { toast.error(error.message || 'Invalid verification code'); return }
-      setOtpVerified(true)
-      toast.success('Email verified!')
-      goTo('profile')
-    } catch {
-      toast.error('Something went wrong. Please try again.')
-    } finally {
-      setIsLoading(false)
-    }
-  }, [otp, email, goTo])
+    setOtpVerified(true)
+    goTo('profile')
+  }, [otp, goTo])
 
   const completeRegistration = useCallback(async () => {
     if (!name.trim()) { toast.error('Please enter your full name'); return }
@@ -143,46 +129,38 @@ export default function RegistrationWizard() {
 
     setIsLoading(true)
     try {
-      const randomPassword = crypto.randomUUID().replace(/-/g, '').slice(0, 16)
-      const { error } = await authClient.signUp.email({
+      const result = await authClient.signIn.emailOtp({
+        email,
+        otp: otp.join(''),
         name: name.trim(),
-        email,
-        password: randomPassword,
-        callbackURL: '/dashboard',
-      })
-      if (error) { toast.error(error.message || 'Failed to create account'); return }
-
-      const signInResult = await authClient.signIn.email({
-        email,
-        password: randomPassword,
       })
 
-      if (!signInResult.error) {
-        updateProfile.mutate(
-          {
-            nationality,
-            countryOfResidence,
-            phone,
-            targetCountries: studyDestination ? [studyDestination] : [],
-            highestEducation: studyLevel as any,
-            preferredIntakeYear: startDate && startDate !== 'help-me-decide' ? parseInt(startDate) : undefined,
-            preferredIntakeMonth: startDate === 'help-me-decide' ? 'Help me decide' : undefined,
-          },
-          {
-            onSuccess: () => { toast.success('Account created successfully!'); router.push('/dashboard') },
-            onError: () => { toast.success('Account created successfully!'); router.push('/dashboard') },
-          }
-        )
-      } else {
-        toast.error(signInResult.error.message || 'Account created but sign-in failed. Please sign in manually.')
-        router.push('/login')
+      if (result.error) {
+        toast.error(result.error.message || 'Invalid or expired verification code')
+        return
       }
+
+      updateProfile.mutate(
+        {
+          nationality,
+          countryOfResidence,
+          phone,
+          targetCountries: studyDestination ? [studyDestination] : [],
+          highestEducation: studyLevel as any,
+          preferredIntakeYear: startDate && startDate !== 'help-me-decide' ? parseInt(startDate) : undefined,
+          preferredIntakeMonth: startDate === 'help-me-decide' ? 'Help me decide' : undefined,
+        },
+        {
+          onSuccess: () => { toast.success('Account created successfully!'); router.push('/dashboard') },
+          onError: () => { toast.success('Account created successfully!'); router.push('/dashboard') },
+        }
+      )
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
     }
-  }, [email, name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
+  }, [email, otp, name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
 
   const handleOtpInput = (index: number, value: string) => {
     if (value.length > 1) value = value.slice(-1)
