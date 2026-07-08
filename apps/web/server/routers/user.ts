@@ -14,6 +14,7 @@ export const userRouter = createTRPCRouter({
   updateProfile: protectedProcedure
     .input(
       z.object({
+        name: z.string().optional(),
         nationality: z.string().optional(),
         countryOfResidence: z.string().optional(),
         phone: z.string().optional(),
@@ -25,6 +26,14 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id
+
+      // Update user name if provided
+      if (input.name) {
+        await ctx.db
+          .update(schema.users)
+          .set({ name: input.name })
+          .where(eq(schema.users.id, userId))
+      }
 
       // Find or create student profile
       const existing = await ctx.db.query.studentProfiles.findFirst({

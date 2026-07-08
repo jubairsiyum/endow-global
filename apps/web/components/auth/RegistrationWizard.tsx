@@ -118,9 +118,24 @@ export default function RegistrationWizard() {
   const verifyOtp = useCallback(async () => {
     const code = otp.join('')
     if (code.length !== 6) { toast.error('Please enter the 6-digit code'); return }
-    setOtpVerified(true)
-    goTo('profile')
-  }, [otp, goTo])
+    setIsLoading(true)
+    try {
+      const result = await authClient.signIn.emailOtp({
+        email,
+        otp: code,
+      })
+      if (result.error) {
+        toast.error(result.error.message || 'Invalid or expired verification code')
+        return
+      }
+      setOtpVerified(true)
+      goTo('profile')
+    } catch {
+      toast.error('Something went wrong. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [otp, email, goTo])
 
   const completeRegistration = useCallback(async () => {
     if (!name.trim()) { toast.error('Please enter your full name'); return }
@@ -129,19 +144,9 @@ export default function RegistrationWizard() {
 
     setIsLoading(true)
     try {
-      const result = await authClient.signIn.emailOtp({
-        email,
-        otp: otp.join(''),
-        name: name.trim(),
-      })
-
-      if (result.error) {
-        toast.error(result.error.message || 'Invalid or expired verification code')
-        return
-      }
-
       updateProfile.mutate(
         {
+          name: name.trim(),
           nationality,
           countryOfResidence,
           phone,
@@ -160,7 +165,7 @@ export default function RegistrationWizard() {
     } finally {
       setIsLoading(false)
     }
-  }, [email, otp, name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
+  }, [name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
 
   const handleOtpInput = (index: number, value: string) => {
     if (value.length > 1) value = value.slice(-1)
@@ -364,7 +369,7 @@ export default function RegistrationWizard() {
                   className="mt-7 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {isLoading ? <Spinner size={16} className="text-white" /> : <ArrowRight size={16} />}
-                  {isLoading ? 'Verifying...' : 'Verify'}
+                  {isLoading ? 'Signing in...' : 'Verify'}
                 </button>
 
                 <div className="mt-4 flex items-center justify-between">
