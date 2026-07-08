@@ -22,7 +22,7 @@ export default function PremiumConsultationCTA() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white pt-6 pb-14 lg:pt-8 lg:pb-16">
+    <section className="relative overflow-hidden bg-gradient-to-br from-white via-red-50/60 to-white px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
@@ -34,7 +34,7 @@ export default function PremiumConsultationCTA() {
         <div className="absolute left-1/2 top-1/2 h-[480px] w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/70 bg-white/20 blur-2xl" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div
           variants={containerVariants}
           initial="hidden"

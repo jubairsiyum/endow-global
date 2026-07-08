@@ -149,7 +149,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
 
 export default function CountryExplorer() {
   return (
-    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 pt-6 pb-12 sm:px-6 lg:px-8 lg:pt-8 lg:pb-16">
+    <section className="relative overflow-hidden bg-[#F8FAFC] px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D7A8] to-transparent" />
         <div className="absolute -right-28 top-10 h-[420px] w-[420px] rounded-full bg-[#C41E3A]/[0.08] blur-3xl" />

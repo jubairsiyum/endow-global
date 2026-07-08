@@ -99,12 +99,12 @@ export default function StatisticsSection() {
   }
 
   return (
-    <section className="relative overflow-x-hidden bg-[#F8FAFC] pt-0 pb-12 lg:pt-0 lg:pb-14">
+    <section className="relative overflow-x-hidden bg-[#F8FAFC] px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute left-1/2 top-0 h-[400px] w-[400px] -translate-x-1/2 rounded-full bg-red-500/10 opacity-20 blur-3xl" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="relative mx-auto max-w-7xl">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

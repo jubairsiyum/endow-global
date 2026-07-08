@@ -2,6 +2,7 @@
 
 import { Navbar } from '@/components/layout/Navbar'
 import HeroSection from '@/components/universities/hero-section'
+import UniversityMarquee from '@/components/universities/university-marquee'
 import FeaturedUniversities from '@/components/universities/featured-universities'
 import StatisticsSection from '@/components/universities/statistics-section'
 import CountryExplorer from '@/components/universities/country-explorer'
@@ -14,17 +15,16 @@ export default function UniversitiesPage() {
   return (
     <div className="flex w-full flex-col overflow-x-hidden">
       <Navbar />
-      <section className="relative overflow-x-hidden bg-white pt-24 pb-16 lg:pb-20">
-        <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
-          <HeroSection />
-        </div>
-      </section>
-      <FeaturedUniversities />
-      <CountryExplorer />
-      <ScholarshipSpotlight />
-      <ApplicationRoadmap />
-      <StatisticsSection />
-      <PremiumConsultationCTA />
+      <main className="flex-grow">
+        <HeroSection />
+        <UniversityMarquee />
+        <FeaturedUniversities />
+        <CountryExplorer />
+        <ScholarshipSpotlight />
+        <ApplicationRoadmap />
+        <StatisticsSection />
+        <PremiumConsultationCTA />
+      </main>
       <UniversitiesFooter />
     </div>
   )

@@ -38,8 +38,8 @@ export default function ScholarshipSpotlight() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FCFCFD] via-[#F8FAFC] to-[#F1F5F9] px-4 pt-0 pb-14 sm:px-6 lg:px-8 lg:pt-0 lg:pb-16">
-      <div className="mx-auto max-w-[1440px] px-6">
+    <section className="relative overflow-hidden bg-gradient-to-b from-[#FCFCFD] via-[#F8FAFC] to-[#F1F5F9] px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
+      <div className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}

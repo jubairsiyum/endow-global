@@ -284,12 +284,12 @@ export default function ApplicationRoadmap() {
           50% { opacity: 0.08; transform: scale(1.2); }
         }
       `}</style>
-      <section ref={sectionRef} className="relative bg-white py-24 lg:py-32">
+      <section ref={sectionRef} className="relative bg-white px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
         <div className="pointer-events-none absolute inset-0 opacity-[0.02]">
           <div className="h-full w-full" style={{ backgroundImage: 'radial-gradient(circle, #000 0.5px, transparent 0.5px)', backgroundSize: '20px 20px' }} />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        <div className="relative mx-auto max-w-7xl">
           {/* Header */}
           <div className="mb-12 text-center">
             <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-gray-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">

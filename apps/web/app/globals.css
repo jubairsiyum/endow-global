@@ -338,6 +338,36 @@ img {
    UNIVERSITY MARQUEE
 ======================== */
 
+.marquee-container {
+  position: relative;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, white 8%, white 92%, transparent);
+}
+
+.marquee-content {
+  display: flex;
+  width: max-content;
+}
+
+.marquee-track {
+  display: flex;
+  align-items: center;
+  animation: marqueeScroll var(--marquee-animation-duration, 60s) linear infinite;
+  backface-visibility: hidden;
+  contain: layout paint;
+  transform: translate3d(0, 0, 0);
+}
+
+.marquee-container:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@keyframes marqueeScroll {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-100%, 0, 0); }
+}
+
 .university-marquee {
   display: flex;
   align-items: center;

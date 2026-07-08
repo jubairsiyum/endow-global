@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { motion, type Variants } from "framer-motion";
 import { ArrowRight, Landmark, MapPin } from "lucide-react";
-import ScrollFloat from "@/components/animations/ScrollFloat";
 
 type UniversityOpportunity = {
   id: string
@@ -152,43 +151,41 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
           ease: 'easeOut',
         },
       }}
-      className="group relative h-[118px] overflow-hidden rounded-[20px] border border-[#F1F5F9] bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.055)] transition-shadow duration-300 hover:shadow-[0_20px_44px_rgba(139,14,26,0.14)]"
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.06)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_20px_60px_rgba(196,30,58,0.10)]"
     >
       <div className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-[#8B0E1A] via-[#A91324] to-[#C9A15B] transition-transform duration-500 ease-out group-hover:scale-x-100" />
 
-      <div className="grid h-full w-full grid-cols-[48px_minmax(0,1fr)_90px] items-center gap-3">
-        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center self-center">
-          <Image
-            src={opportunity.logo}
-            alt={`${opportunity.university} logo`}
-            fill
-            sizes="48px"
-            className="object-contain"
-          />
-        </div>
+      <div className="flex flex-1 flex-col p-5">
+        <div className="flex items-start gap-4">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm">
+            <Image
+              src={opportunity.logo}
+              alt={`${opportunity.university} logo`}
+              fill
+              sizes="56px"
+              className="object-contain p-1.5"
+            />
+          </div>
 
-        <div className="min-w-0 self-center overflow-hidden pr-1">
-          <h3 className="line-clamp-2 max-w-full overflow-hidden text-lg font-semibold leading-[1.2] tracking-normal text-[#111827]">
-            {opportunity.program}
-          </h3>
-
-          <p className="mt-1.5 line-clamp-1 max-w-full overflow-hidden text-ellipsis text-[13px] font-medium leading-4 text-slate-500">
-            {opportunity.university}
-          </p>
-
-          <div className="mt-1.5 flex max-w-full items-center gap-1 overflow-hidden text-[11px] font-semibold uppercase leading-4 tracking-wider text-slate-400">
-            <MapPin className="h-3 w-3 shrink-0 text-[#C9A15B]" />
-            <span className="line-clamp-1 min-w-0 overflow-hidden text-ellipsis">
-              {opportunity.location}
-            </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-bold leading-snug text-[#111827] line-clamp-2">
+              {opportunity.program}
+            </h3>
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              {opportunity.university}
+            </p>
           </div>
         </div>
 
-        <div className="flex h-full min-w-0 flex-col items-end justify-center gap-3 border-l border-[#EEF2F6] pl-3 text-right">
-          <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-slate-400">From</p>
+        <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+          <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
+          <span>{opportunity.location}</span>
+        </div>
 
-            <p className="mt-1 whitespace-nowrap text-base font-bold leading-none tracking-normal text-[#8B0E1A] transition-colors duration-300 group-hover:text-[#6F0914]">
+        <div className="mt-auto flex items-end justify-between border-t border-slate-100 pt-4">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">From</p>
+            <p className="mt-0.5 text-xl font-bold text-[#8B0E1A] transition-colors duration-300 group-hover:text-[#6F0914]">
               {opportunity.price}
             </p>
           </div>
@@ -196,9 +193,9 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
           <button
             type="button"
             aria-label={`View ${opportunity.program} at ${opportunity.university}`}
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[#8B0E1A] text-[#8B0E1A] transition-all duration-300 group-hover:bg-[#8B0E1A] group-hover:text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all duration-300 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white"
           >
-            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+            <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
           </button>
         </div>
       </div>
@@ -208,14 +205,13 @@ function UniversityCard({ opportunity }: { opportunity: UniversityOpportunity })
 
 export default function FeaturedUniversities() {
   return (
-    <section className="relative overflow-hidden bg-[#FBFAF7] px-4 pb-16 pt-2 lg:pt-4 sm:px-6 lg:px-8">
+    <section className="relative overflow-hidden bg-white px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -left-28 -top-28 h-[420px] w-[420px] rounded-full bg-white/90 blur-3xl" />
-        <div className="absolute -right-24 top-8 h-[520px] w-[520px] rounded-full bg-[#F7EBD5]/70 blur-3xl" />
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D5B1] to-transparent" />
+        <div className="absolute -left-28 -top-28 h-[420px] w-[420px] rounded-full bg-red-50/60 blur-3xl" />
+        <div className="absolute -right-24 top-8 h-[520px] w-[520px] rounded-full bg-rose-50/40 blur-3xl" />
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1500px]">
+      <div className="relative z-10 mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -224,21 +220,13 @@ export default function FeaturedUniversities() {
             ease: 'easeOut',
           }}
           viewport={{ once: true, margin: '-80px' }}
-          className="mx-auto mb-6 max-w-4xl text-center"
+          className="mx-auto mb-12 max-w-3xl text-center"
         >
-          <ScrollFloat
-            animationDuration={1.1}
-            ease="back.inOut(1.8)"
-            scrollStart="top bottom-=15%"
-            scrollEnd="center center"
-            stagger={0.015}
-            containerClassName="scroll-title-highlight-university text-center !my-0"
-            textClassName="text-[clamp(2.5rem,5vw,4.5rem)] font-bold tracking-normal leading-none text-[#111827]"
-          >
-            University Opportunities
-          </ScrollFloat>
+          <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-bold tracking-normal leading-[1.1] text-[#0F172A]">
+            University <span className="text-[#C41E3A]">Opportunities</span>
+          </h2>
 
-          <p className="mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-500 sm:text-lg">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
             Handpicked universities offering world-class education, exclusive scholarships, and
             guaranteed visa support — all in one place
           </p>
@@ -249,7 +237,7 @@ export default function FeaturedUniversities() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
-          className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
           {universityOpportunities.map((opportunity) => (
             <UniversityCard key={opportunity.id} opportunity={opportunity} />
