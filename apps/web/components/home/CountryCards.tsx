@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, GraduationCap, MapPin } from 'lucide-react'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
+import { TiltCard } from '@/components/ui/TiltCard'
 
 const destinations = [
   {
@@ -61,79 +62,81 @@ export default function CountryCards() {
         <FadeUpStagger className="mt-14 grid gap-6 sm:grid-cols-2" amount={0.08}>
           {destinations.map((dest) => (
             <FadeUpItem key={dest.slug}>
-              <Link href={`/universities?country=${dest.slug}`}>
-                <article className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#12121a] p-8 transition-all duration-300 hover:border-white/[0.15] hover:bg-[#16161f] sm:p-9">
-                  {/* Accent gradient overlay on hover */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${dest.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
-                  />
+              <TiltCard tiltDegree={4}>
+                <Link href={`/universities?country=${dest.slug}`}>
+                  <article className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#12121a] p-8 transition-all duration-300 hover:border-white/[0.15] hover:bg-[#16161f] sm:p-9">
+                    {/* Accent gradient overlay on hover */}
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${dest.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+                    />
 
-                  {/* Top accent line */}
-                  <div
-                    className="absolute left-0 top-0 h-[2px] w-full opacity-60 transition-opacity duration-300 group-hover:opacity-100"
-                    style={{ background: `linear-gradient(to right, transparent, ${dest.accent}, transparent)` }}
-                  />
+                    {/* Top accent line */}
+                    <div
+                      className="absolute left-0 top-0 h-[2px] w-full opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+                      style={{ background: `linear-gradient(to right, transparent, ${dest.accent}, transparent)` }}
+                    />
 
-                  <div className="relative flex h-full flex-col">
-                    {/* Header */}
-                    <div className="mb-6 flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        {/* Country flag */}
-                        <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-white/10 bg-white/5">
-                          <Image
-                            src={`/flags/${dest.code.toLowerCase()}.png`}
-                            alt={`${dest.country} flag`}
-                            fill
-                            sizes="56px"
-                            className="object-cover"
-                          />
+                    <div className="relative flex h-full flex-col">
+                      {/* Header */}
+                      <div className="mb-6 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          {/* Country flag */}
+                          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                            <Image
+                              src={`/flags/${dest.code.toLowerCase()}.png`}
+                              alt={`${dest.country} flag`}
+                              fill
+                              sizes="56px"
+                              className="object-cover"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold text-white">{dest.country}</h3>
+                            <p className="mt-0.5 text-sm font-medium text-white/50">{dest.tagline}</p>
+                          </div>
                         </div>
-                        <div>
-                          <h3 className="text-2xl font-bold text-white">{dest.country}</h3>
-                          <p className="mt-0.5 text-sm font-medium text-white/50">{dest.tagline}</p>
-                        </div>
-                      </div>
-                      <span
-                        className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
-                        style={{
-                          borderColor: `${dest.accent}30`,
-                          backgroundColor: `${dest.accent}10`,
-                          color: dest.accentLight,
-                        }}
-                      >
-                        <GraduationCap size={13} />
-                        {dest.unis}
-                      </span>
-                    </div>
-
-                    {/* Description */}
-                    <p className="text-sm leading-relaxed text-white/60">{dest.description}</p>
-
-                    {/* Programs */}
-                    <div className="mt-5 flex flex-wrap gap-2">
-                      {dest.programs.map((p) => (
                         <span
-                          key={p}
-                          className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-white/60"
+                          className="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold"
+                          style={{
+                            borderColor: `${dest.accent}30`,
+                            backgroundColor: `${dest.accent}10`,
+                            color: dest.accentLight,
+                          }}
                         >
-                          {p}
+                          <GraduationCap size={13} />
+                          {dest.unis}
                         </span>
-                      ))}
-                    </div>
+                      </div>
 
-                    {/* CTA */}
-                    <div className="mt-auto pt-6">
-                      <div
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold transition-all duration-300 group-hover:gap-2.5"
-                        style={{ color: dest.accentLight }}
-                      >
-                        Explore programs
-                        <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                      {/* Description */}
+                      <p className="text-sm leading-relaxed text-white/60">{dest.description}</p>
+
+                      {/* Programs */}
+                      <div className="mt-5 flex flex-wrap gap-2">
+                        {dest.programs.map((p) => (
+                          <span
+                            key={p}
+                            className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-white/60"
+                          >
+                            {p}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* CTA */}
+                      <div className="mt-auto pt-6">
+                        <div
+                          className="inline-flex items-center gap-1.5 text-sm font-semibold transition-all duration-300 group-hover:gap-2.5"
+                          style={{ color: dest.accentLight }}
+                        >
+                          Explore programs
+                          <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-0.5" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </article>
-              </Link>
+                  </article>
+                </Link>
+              </TiltCard>
             </FadeUpItem>
           ))}
         </FadeUpStagger>

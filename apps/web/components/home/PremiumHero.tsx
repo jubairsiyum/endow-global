@@ -102,7 +102,7 @@ export default function PremiumHero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6"
             >
-              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
+              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400 animate-gradient-pulse">
                 <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
                   <Search size={18} className="shrink-0 text-gray-400" />
                   <input
@@ -190,7 +190,7 @@ export default function PremiumHero() {
               transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="mt-8"
             >
-              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
+              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400 animate-gradient-pulse">
                 <div className="flex items-center gap-3 rounded-full bg-white px-5 py-3.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
                   <Search size={20} className="shrink-0 text-gray-400" />
                   <input

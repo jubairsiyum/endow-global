@@ -71,11 +71,36 @@ html.lenis body {
   html {
     scroll-behavior: auto;
   }
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .motion-safe\:animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+  .motion-safe\:animate-slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 body {
@@ -400,6 +425,23 @@ img {
   filter: brightness(1.2);
 }
 
+/* =========================
+   GRADIENT PULSE
+   Subtle colour shift for gradient border elements
+   (used on hero search bar wrapper)
+======================= */
+
+@keyframes gradient-pulse {
+  0%, 100% { filter: hue-rotate(0deg) saturate(1); }
+  50% { filter: hue-rotate(8deg) saturate(1.15); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .animate-gradient-pulse {
+    animation: gradient-pulse 4s ease-in-out infinite;
+  }
+}
+
 .university-logo-cell {
   display: flex;
   flex: 0 0 72px;
@@ -449,4 +491,24 @@ img {
   .hero-split {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* =========================
+   ACCESSIBLE FOCUS RINGS
+======================== */
+
+*:focus-visible {
+  outline: 2px solid #C41E3A;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+a[href]:focus-visible:not([class*="focus-visible"]),
+button:focus-visible:not([class*="focus-visible"]),
+input:focus-visible:not([class*="focus-visible"]),
+select:focus-visible:not([class*="focus-visible"]),
+textarea:focus-visible:not([class*="focus-visible"]),
+[tabindex]:focus-visible:not([class*="focus-visible"]) {
+  outline: 2px solid #C41E3A;
+  outline-offset: 2px;
 }
