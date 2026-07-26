@@ -57,7 +57,7 @@ export default function AnalyticsChart() {
         </div>
 
         {/* DROPDOWN */}
-        <select className="rounded-md border border-gray-200 bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 outline-none transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-[#222530] dark:text-white">
+        <select aria-label="Time period" className="rounded-md border border-gray-200 bg-white px-2.5 py-0.5 text-xs font-medium text-gray-700 outline-none transition-all hover:bg-gray-50 dark:border-gray-700 dark:bg-[#222530] dark:text-white">
           <option>This Week</option>
           <option>Last Week</option>
           <option>This Month</option>

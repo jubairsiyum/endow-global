@@ -165,6 +165,7 @@ export default function StudentDetailPage() {
             </h2>
             <div className="space-y-4">
               <select
+                aria-label="Assign counselor"
                 className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm dark:border-gray-700 dark:bg-[#222530]"
                 value={profile?.assignedCounselorId || ''}
                 onChange={(e) =>

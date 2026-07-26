@@ -152,6 +152,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
             <FadeUp>
               <div className="flex flex-wrap items-center gap-3">
                 <select
+                  aria-label="Filter by subject"
                   value={subject}
                   onChange={(e) => { setSubject(e.target.value); setPage(1) }}
                   className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
@@ -163,6 +164,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                 </select>
 
                 <select
+                  aria-label="Filter by study level"
                   value={level}
                   onChange={(e) => { setLevel(e.target.value); setPage(1) }}
                   className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"

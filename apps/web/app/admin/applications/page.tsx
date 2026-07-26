@@ -49,6 +49,7 @@ export default function ApplicationsPage() {
         />
 
         <select
+          aria-label="Filter by status"
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value)

@@ -425,6 +425,7 @@ export default function RegistrationWizard() {
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <InputField icon={Globe} label="Country You Live In">
                       <select
+                        aria-label="Country you live in"
                         value={countryOfResidence}
                         onChange={(e) => setCountryOfResidence(e.target.value)}
                         className={selectClass}
@@ -438,6 +439,7 @@ export default function RegistrationWizard() {
 
                     <InputField icon={Globe} label="Nationality">
                       <select
+                        aria-label="Nationality"
                         value={nationality}
                         onChange={(e) => setNationality(e.target.value)}
                         className={selectClass}
@@ -462,6 +464,7 @@ export default function RegistrationWizard() {
 
                   <InputField icon={Globe} label="Where Do You Wish to Study?">
                     <select
+                      aria-label="Study destination"
                       value={studyDestination}
                       onChange={(e) => setStudyDestination(e.target.value)}
                       className={selectClass}
@@ -551,6 +554,7 @@ export default function RegistrationWizard() {
 
                   <InputField icon={CalendarDays} label="Preferred Start Date">
                     <select
+                      aria-label="Preferred start date"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                       className={selectClass}

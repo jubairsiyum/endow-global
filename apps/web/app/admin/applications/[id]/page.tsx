@@ -188,6 +188,7 @@ export default function ApplicationDetailPage() {
 
             <p className="mb-2 text-sm text-gray-500">Change Status:</p>
             <select
+              aria-label="Change application status"
               className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm dark:border-gray-700 dark:bg-[#222530]"
               value={app.status}
               onChange={(e) => handleStatusChange(e.target.value)}

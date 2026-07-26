@@ -81,8 +81,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
           >
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {/* Country Filter */}
-              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
-                <option>All Countries</option>
+              <select aria-label="Filter by country" className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>South Korea</option>
                 <option>USA</option>
                 <option>UK</option>
@@ -91,7 +90,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               </select>
 
               {/* Budget Filter */}
-              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
+              <select aria-label="Filter by budget" className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Budgets</option>
                 <option>Under $20k</option>
                 <option>$20k - $40k</option>
@@ -100,7 +99,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               </select>
 
               {/* Scholarship Filter */}
-              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
+              <select aria-label="Filter by scholarship" className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Scholarships</option>
                 <option>50%+</option>
                 <option>75%+</option>
@@ -108,7 +107,7 @@ export default function StickyFilterBar({ onSearch }: StickyFilterBarProps) {
               </select>
 
               {/* Degree Level */}
-              <select className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
+              <select aria-label="Filter by degree level" className="h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-[#C41E3A] focus:outline-none">
                 <option>All Levels</option>
                 <option>Bachelor</option>
                 <option>Master</option>

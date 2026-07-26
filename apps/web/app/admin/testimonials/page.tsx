@@ -304,6 +304,7 @@ export default function TestimonialsPage() {
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Rating</label>
                   <select
+                    aria-label="Rating"
                     value={form.rating}
                     onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
                     className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100 dark:border-gray-800 dark:bg-[#11131a] dark:text-white"

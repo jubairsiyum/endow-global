@@ -138,6 +138,7 @@ export default function ProfileCompletion() {
                   <div className="mt-1 flex min-h-[48px] items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
                     <Globe className="shrink-0 text-slate-400" size={16} />
                     <select
+                      aria-label="Country you live in"
                       value={countryOfResidence}
                       onChange={(e) => setCountryOfResidence(e.target.value)}
                       className="h-full w-full bg-transparent px-2 text-sm font-medium text-slate-900 outline-none"
@@ -157,6 +158,7 @@ export default function ProfileCompletion() {
                   <div className="mt-1 flex min-h-[48px] items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
                     <Globe className="shrink-0 text-slate-400" size={16} />
                     <select
+                      aria-label="Nationality"
                       value={nationality}
                       onChange={(e) => setNationality(e.target.value)}
                       className="h-full w-full bg-transparent px-2 text-sm font-medium text-slate-900 outline-none"
@@ -193,6 +195,7 @@ export default function ProfileCompletion() {
                 <div className="mt-1 flex min-h-[48px] items-center rounded-2xl border border-slate-200 bg-white px-3 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
                   <Globe className="shrink-0 text-slate-400" size={16} />
                   <select
+                    aria-label="Study destination"
                     value={studyDestination}
                     onChange={(e) => setStudyDestination(e.target.value)}
                     className="h-full w-full bg-transparent px-2 text-sm font-medium text-slate-900 outline-none"
@@ -272,6 +275,7 @@ export default function ProfileCompletion() {
                 <div className="mt-1 flex min-h-[48px] items-center rounded-2xl border border-slate-200 bg-white px-4 shadow-[0_10px_24px_rgba(15,23,42,0.05)] backdrop-blur-xl transition-all focus-within:border-red-400 focus-within:ring-4 focus-within:ring-red-100/80">
                   <CalendarDays className="text-slate-400" size={18} />
                   <select
+                    aria-label="Preferred start date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
                     className="h-full w-full bg-transparent px-3 text-sm font-medium text-slate-900 outline-none"

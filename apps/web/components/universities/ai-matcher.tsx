@@ -158,8 +158,9 @@ export default function AIMatcher({ onClose }: AIMatcherProps) {
         </div>
 
         <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">Preferred Country</label>
+          <label htmlFor="ai-preferred-country" className="block text-sm font-semibold text-gray-700">Preferred Country</label>
           <select
+            id="ai-preferred-country"
             value={profile.preferredCountry}
             onChange={(e) => handleInputChange('preferredCountry', e.target.value)}
             className="h-10 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none transition-colors focus:border-[#C41E3A]"

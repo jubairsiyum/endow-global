@@ -43,12 +43,13 @@ export default function UniversityFinder() {
                   { label: 'Budget', value: budget, onChange: setBudget, options: budgets },
                   { label: 'Intake', value: intake, onChange: setIntake, options: intakes },
                 ].map((field) => (
-                  <div key={field.label}>
-                    <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    <div key={field.label}>
+                    <label htmlFor={`finder-${field.label}`} className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">
                       {field.label}
                     </label>
                     <div className="relative">
                       <select
+                        id={`finder-${field.label}`}
                         value={field.value}
                         onChange={(e) => field.onChange(e.target.value)}
                         className="h-11 w-full appearance-none rounded-xl border border-gray-200 bg-gray-50/50 px-3 pr-9 text-sm font-medium text-gray-800 outline-none transition-all focus:border-rose-300 focus:bg-white focus:ring-2 focus:ring-rose-100"
