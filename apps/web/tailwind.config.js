@@ -96,6 +96,8 @@ module.exports = {
         "marquee-slow": "marquee 40s linear infinite",
         "fade-in-up": "fade-in-up 0.6s ease-out forwards",
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
+        "logoGlow": "logoGlow 2.4s ease-in-out infinite",
+        "premiumBounce": "premiumBounce 1.2s ease-in-out infinite",
       },
 
       keyframes: {
@@ -114,6 +116,14 @@ module.exports = {
         "slide-in-right": {
           "0%": { opacity: "0", transform: "translateX(20px)" },
           "100%": { opacity: "1", transform: "translateX(0)" },
+        },
+        logoGlow: {
+          "0%, 100%": { opacity: "0.6", filter: "drop-shadow(0 0 4px rgba(196, 30, 58, 0))" },
+          "50%": { opacity: "1", filter: "drop-shadow(0 0 12px rgba(196, 30, 58, 0.3))" },
+        },
+        premiumBounce: {
+          "0%, 80%, 100%": { transform: "translateY(0) scale(1)", opacity: "0.4" },
+          "40%": { transform: "translateY(-12px) scale(1.15)", opacity: "1" },
         },
       },
     },

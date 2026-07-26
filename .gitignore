@@ -12,5 +12,9 @@ coverage/
 drizzle/
 .puku/puku-embeddings.db-shm
 .puku/puku-embeddings.db-wal
-*.tsbuildinfo 
-*.tsbuildinfo 
+*.tsbuildinfo
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/ 

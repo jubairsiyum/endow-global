@@ -15,7 +15,9 @@
     "db:studio": "cd packages/db && pnpm drizzle-kit studio"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@types/node": "^20.0.0",
+    "playwright": "^1.62.0",
     "prettier": "^3.2.0",
     "turbo": "^2.0.0",
     "typescript": "^5.4.0"

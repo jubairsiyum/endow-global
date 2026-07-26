@@ -76,8 +76,8 @@ export default function RouteProgress() {
       }`}
     >
       <div className="flex flex-col items-center gap-4">
-        {/* Spinning logo */}
-        <div className="relative h-20 w-20 animate-spin">
+        {/* Still logo with subtle glow */}
+        <div className="relative h-20 w-20 animate-logoGlow">
           <Image
             src="/logo/endoedu.svg"
             alt="Loading"
@@ -86,11 +86,11 @@ export default function RouteProgress() {
             priority
           />
         </div>
-        {/* Pulsing dots */}
-        <div className="flex gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-[#C41E3A] animate-bounce [animation-delay:0ms]" />
-          <span className="h-2 w-2 rounded-full bg-[#C41E3A] animate-bounce [animation-delay:150ms]" />
-          <span className="h-2 w-2 rounded-full bg-[#C41E3A] animate-bounce [animation-delay:300ms]" />
+        {/* Premium bouncing dots */}
+        <div className="flex gap-2">
+          <span className="h-2 w-2 rounded-full bg-[#C41E3A] animate-premiumBounce [animation-delay:0ms] [animation-duration:1.2s]" />
+          <span className="h-2 w-2 rounded-full bg-[#C41E3A] animate-premiumBounce [animation-delay:300ms] [animation-duration:1.2s]" />
+          <span className="h-2 w-2 rounded-full bg-[#C41E3A] animate-premiumBounce [animation-delay:600ms] [animation-duration:1.2s]" />
         </div>
       </div>
     </div>
