@@ -151,6 +151,7 @@ export function SuccessStories() {
               {stories.map((_, index) => (
                 <motion.button
                   key={index}
+                  aria-label={`Go to story ${index + 1}`}
                   onClick={() => setActiveIndex(index)}
                   whileHover={{ scale: 1.2 }}
                   whileTap={{ scale: 0.9 }}
@@ -163,6 +164,7 @@ export function SuccessStories() {
 
             <div className="flex gap-4">
               <motion.button
+                aria-label="Previous story"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={prevStory}
@@ -171,6 +173,7 @@ export function SuccessStories() {
                 <ChevronLeft className="h-5 w-5 text-[#111827]" />
               </motion.button>
               <motion.button
+                aria-label="Next story"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={nextStory}
