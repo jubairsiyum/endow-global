@@ -174,6 +174,27 @@ textarea {
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Eradicate any browser user-agent or default focus ring inner borders on input elements */
+input[type="text"],
+input[type="search"],
+input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+input[type="text"]:focus,
+input[type="search"]:focus,
+input:focus,
+input:focus-visible {
+  outline: 0 !important;
+  outline-style: none !important;
+  box-shadow: none !important;
+  --tw-ring-color: transparent !important;
+  --tw-ring-shadow: none !important;
+  --tw-shadow: none !important;
+}
+
 /* =========================
    PREMIUM GLASS EFFECTS
 ======================== */

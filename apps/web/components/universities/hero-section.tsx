@@ -79,26 +79,28 @@ export default function HeroSection() {
 
           {/* Search Bar */}
           <motion.div variants={itemVariants} className="mt-8 w-full max-w-xl">
-            <form action="/universities" method="GET" className="relative rounded-2xl p-[1.5px] bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 transition-all focus-within:from-[#C41E3A]/40 focus-within:via-[#C41E3A]/20 focus-within:to-transparent">
-              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] sm:px-5">
-                <Search size={18} className="shrink-0 text-gray-400" />
-                <label htmlFor="universities-hero-search" className="sr-only">Search universities, programs, or countries</label>
-                <input
-                  id="universities-hero-search"
-                  name="q"
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search universities, programs, or countries..."
-                  className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400 sm:text-[15px]"
-                />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#A01830] sm:px-5 sm:text-sm"
-                >
-                  Search
-                </button>
-              </div>
+            <form
+              action="/universities"
+              method="GET"
+              className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-colors focus-within:border-[#C41E3A] sm:px-5 sm:py-3"
+            >
+              <Search size={18} className="shrink-0 text-gray-400" />
+              <label htmlFor="universities-hero-search" className="sr-only">Search universities, programs, or countries</label>
+              <input
+                id="universities-hero-search"
+                name="q"
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search universities, programs, or countries..."
+                className="w-full border-0 border-none bg-transparent p-0 text-sm text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400 sm:text-[15px]"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#A01830] sm:px-5 sm:text-sm"
+              >
+                Search
+              </button>
             </form>
             {/* Popular searches */}
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">

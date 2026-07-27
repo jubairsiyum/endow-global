@@ -102,26 +102,27 @@ export default function PremiumHero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6"
             >
-              <form action="/universities" className="relative rounded-full border border-[#C41E3A]/30 bg-white p-[1.5px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
-                <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3">
-                  <Search size={18} className="shrink-0 text-gray-400" />
-                  <label htmlFor="mobile-hero-search" className="sr-only">
-                    Search courses and universities
-                  </label>
-                  <input
-                    id="mobile-hero-search"
-                    name="q"
-                    type="text"
-                    placeholder="Search courses, universities..."
-                    className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
-                  />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-full bg-[#C41E3A] px-4 py-1.5 text-[12px] font-semibold text-white"
-                  >
-                    Search
-                  </button>
-                </div>
+              <form
+                action="/universities"
+                className="flex items-center gap-3 rounded-full border border-[#C41E3A]/30 bg-white px-4 py-2.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] transition-colors focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10"
+              >
+                <Search size={18} className="shrink-0 text-gray-400" />
+                <label htmlFor="mobile-hero-search" className="sr-only">
+                  Search courses and universities
+                </label>
+                <input
+                  id="mobile-hero-search"
+                  name="q"
+                  type="text"
+                  placeholder="Search courses, universities..."
+                  className="w-full border-0 border-none bg-transparent p-0 text-sm text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400"
+                />
+                <button
+                  type="submit"
+                  className="shrink-0 rounded-full bg-[#C41E3A] px-4 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#A01830]"
+                >
+                  Search
+                </button>
               </form>
             </motion.div>
 
@@ -195,26 +196,27 @@ export default function PremiumHero() {
               transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="mt-8"
             >
-              <form action="/universities" className="relative rounded-full border border-[#C41E3A]/30 bg-white p-[1.5px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
-                <div className="flex items-center gap-3 rounded-full bg-white px-5 py-3.5">
-                  <Search size={20} className="shrink-0 text-gray-400" />
-                  <label htmlFor="desktop-hero-search" className="sr-only">
-                    Search courses and universities
-                  </label>
-                  <input
-                    id="desktop-hero-search"
-                    name="q"
-                    type="text"
-                    placeholder="Search for courses, universities..."
-                    className="w-full bg-transparent text-[15px] text-gray-700 outline-none placeholder:text-gray-400"
-                  />
-                  <button
-                    type="submit"
-                    className="shrink-0 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#A01830]"
-                  >
-                    Search
-                  </button>
-                </div>
+              <form
+                action="/universities"
+                className="flex items-center gap-3 rounded-full border border-[#C41E3A]/30 bg-white px-5 py-2.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] transition-colors focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10"
+              >
+                <Search size={20} className="shrink-0 text-gray-400" />
+                <label htmlFor="desktop-hero-search" className="sr-only">
+                  Search courses and universities
+                </label>
+                <input
+                  id="desktop-hero-search"
+                  name="q"
+                  type="text"
+                  placeholder="Search for courses, universities..."
+                  className="w-full border-0 border-none bg-transparent p-0 text-[15px] text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400"
+                />
+                <button
+                  type="submit"
+                  className="shrink-0 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#A01830]"
+                >
+                  Search
+                </button>
               </form>
             </motion.div>
 

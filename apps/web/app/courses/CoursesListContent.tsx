@@ -120,23 +120,21 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
             {/* Search Bar */}
             <FadeUp>
               <div className="mx-auto mt-8 max-w-3xl">
-                <div className="relative rounded-full border border-[#C41E3A]/30 bg-white p-[1.5px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
-                  <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 sm:px-5 sm:py-3">
-                    <Search size={18} className="shrink-0 text-gray-400" />
-                    <input
-                      type="text"
-                      placeholder="Search courses, subjects..."
-                      value={search}
-                      onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-                      className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400 sm:text-[15px]"
-                    />
-                    <Button
-                      onClick={() => setPage(1)}
-                      className="shrink-0 rounded-full bg-[#C41E3A] px-5 text-[13px] hover:bg-[#A01830]"
-                    >
-                      Search
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-3 rounded-full border border-[#C41E3A]/30 bg-white px-4 py-2 sm:px-5 sm:py-2.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] transition-colors focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
+                  <Search size={18} className="shrink-0 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search courses, subjects..."
+                    value={search}
+                    onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                    className="w-full border-0 border-none bg-transparent p-0 text-sm text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400 sm:text-[15px]"
+                  />
+                  <Button
+                    onClick={() => setPage(1)}
+                    className="shrink-0 rounded-full bg-[#C41E3A] px-5 text-[13px] hover:bg-[#A01830]"
+                  >
+                    Search
+                  </Button>
                 </div>
               </div>
             </FadeUp>

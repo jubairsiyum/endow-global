@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 type UniversityLogo = {
   name: string
@@ -42,9 +42,21 @@ function getDiagnosticConfig(): DiagnosticConfig {
   }
 }
 
+const defaultConfig: DiagnosticConfig = {
+  animationEnabled: true,
+  debug: false,
+  imageMode: 'next',
+  logoMode: 'all',
+  targetLogo: 'Kyung Hee University',
+}
+
 export function DiagnosticUniversityMarquee({ universities }: DiagnosticUniversityMarqueeProps) {
   const contentRef = useRef<HTMLDivElement>(null)
-  const config = getDiagnosticConfig()
+  const [config, setConfig] = useState<DiagnosticConfig>(defaultConfig)
+
+  useEffect(() => {
+    setConfig(getDiagnosticConfig())
+  }, [])
 
   const visibleUniversities = useMemo(() => {
     if (config.logoMode !== 'one') {
