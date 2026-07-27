@@ -1,6 +1,7 @@
 'use client'
 
 import Image from "next/image";
+import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { ArrowRight, Landmark, MapPin } from "lucide-react";
 
@@ -15,28 +16,28 @@ type UniversityOpportunity = {
 
 const universityOpportunities: UniversityOpportunity[] = [
   {
-    id: 'aalto-business',
+    id: 'chungwoon-business',
     program: 'Global Business Leadership',
-    university: 'Aalto University',
-    location: 'Finland',
-    price: 'A$ 26,880',
-    logo: '/universities/Aalto University.png',
+    university: 'Chungwoon University',
+    location: 'South Korea',
+    price: 'A$ 16,880',
+    logo: '/universities/Chungwoon University.png',
   },
   {
-    id: 'helsinki-data',
+    id: 'sejong-data',
     program: 'Data Science & AI',
-    university: 'Helsinki University',
-    location: 'Finland',
-    price: 'A$ 28,450',
-    logo: '/universities/Helsinki University.png',
+    university: 'Sejong University',
+    location: 'South Korea',
+    price: 'A$ 18,450',
+    logo: '/universities/Sejong University.png',
   },
   {
-    id: 'turku-health',
-    program: 'Health Innovation',
-    university: 'Turku University',
-    location: 'Finland',
-    price: 'A$ 25,970',
-    logo: '/universities/Turku University.png',
+    id: 'kyunghee-health',
+    program: 'Biomedical Innovation',
+    university: 'Kyung Hee University',
+    location: 'South Korea',
+    price: 'A$ 19,970',
+    logo: '/universities/Kyung Hee University.png',
   },
   {
     id: 'kyunghee-hospitality',
@@ -255,14 +256,14 @@ export default function FeaturedUniversities() {
           viewport={{ once: true }}
           className="mt-12 flex justify-center"
         >
-          <button
-            type="button"
+          <Link
+            href="/universities"
             className="group inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-[#760B16] via-[#8B0E1A] to-[#A91324] px-9 py-4 text-sm font-bold text-white shadow-[0_18px_45px_rgba(201,161,91,0.34)] transition-all duration-300 hover:-translate-y-1 hover:scale-[1.03] hover:shadow-[0_24px_60px_rgba(201,161,91,0.48)] sm:px-11"
           >
             <Landmark className="h-[18px] w-[18px] text-white" strokeWidth={2.2} />
             <span>View All Universities</span>
             <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-          </button>
+          </Link>
         </motion.div>
       </div>
     </section>

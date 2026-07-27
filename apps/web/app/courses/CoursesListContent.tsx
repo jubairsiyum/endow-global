@@ -21,12 +21,12 @@ const levelLabels: Record<string, string> = {
 }
 
 const subjectAccents: Record<string, string> = {
-  'Computer Science': '#3b82f6',
-  'Business': '#f59e0b',
-  'Engineering': '#10b981',
-  'Healthcare': '#ef4444',
-  'Data Science': '#8b5cf6',
-  'Arts': '#ec4899',
+  'Computer Science': '#C41E3A',
+  'Business': '#A01830',
+  'Engineering': '#8B0E1A',
+  'Healthcare': '#991B1B',
+  'Data Science': '#C41E3A',
+  'Arts': '#A01830',
 }
 
 type CourseListData = {
@@ -120,8 +120,8 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
             {/* Search Bar */}
             <FadeUp>
               <div className="mx-auto mt-8 max-w-3xl">
-                <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400">
-                  <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 shadow-[0_2px_16px_rgba(0,0,0,0.06)] sm:px-5 sm:py-3">
+                <div className="relative rounded-full border border-[#C41E3A]/30 bg-white p-[1.5px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
+                  <div className="flex items-center gap-3 rounded-full bg-white px-4 py-2 sm:px-5 sm:py-3">
                     <Search size={18} className="shrink-0 text-gray-400" />
                     <input
                       type="text"
@@ -132,7 +132,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                     />
                     <Button
                       onClick={() => setPage(1)}
-                      className="shrink-0 rounded-full px-5 text-[13px]"
+                      className="shrink-0 rounded-full bg-[#C41E3A] px-5 text-[13px] hover:bg-[#A01830]"
                     >
                       Search
                     </Button>
@@ -220,10 +220,43 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                   ))}
                 </FadeUpStagger>
               ) : displayData?.hits.length === 0 ? (
-                <div className="py-20 text-center">
-                  <GraduationCap className="mx-auto h-16 w-16 text-gray-300" />
-                  <h3 className="mt-4 text-lg font-semibold text-gray-900">No courses found</h3>
-                  <p className="mt-2 text-sm text-gray-500">Try adjusting your filters or search terms</p>
+                <div className="mx-auto max-w-xl rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-[#C41E3A]">
+                    <GraduationCap className="h-8 w-8" />
+                  </div>
+                  <h3 className="mt-4 text-xl font-bold text-gray-900">No courses match your criteria</h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    Try adjusting your filters or explore our popular study subjects below.
+                  </p>
+
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                    {['Computer Science', 'Business', 'Engineering', 'Healthcare'].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => { setSubject(s); setSearch(''); setLevel(''); setScholarship(false); setPage(1) }}
+                        className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => { setSearch(''); setSubject(''); setLevel(''); setScholarship(false); setPage(1) }}
+                      className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
+                    >
+                      Clear All Filters
+                    </button>
+                  </div>
+
+                  <div className="mt-8 rounded-2xl border border-rose-100 bg-rose-50/50 p-5">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#C41E3A]">Need Direct Assistance?</p>
+                    <p className="mt-1 text-sm font-medium text-gray-800">Our advisors can find & match courses directly for you in South Korea & Australia.</p>
+                    <Link
+                      href="/register"
+                      className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#A01830]"
+                    >
+                      Get Free Course Matching <ArrowRight size={13} />
+                    </Link>
+                  </div>
                 </div>
               ) : (
                 <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>

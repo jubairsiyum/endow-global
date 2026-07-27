@@ -7,9 +7,9 @@ import { useCountUp } from '@/lib/hooks/useCountUp'
 
 const stats = [
   { icon: Users, value: 2500, suffix: '+', label: 'Students Placed', color: 'text-[#C41E3A]' },
-  { icon: GraduationCap, value: 150, suffix: '+', label: 'Partner Universities', color: 'text-amber-500' },
-  { icon: Globe2, value: 12, suffix: '+', label: 'Countries', color: 'text-emerald-500' },
-  { icon: Award, value: 98, suffix: '%', label: 'Visa Success Rate', color: 'text-blue-500' },
+  { icon: GraduationCap, value: 50, suffix: '+', label: 'Partner Universities', color: 'text-[#C41E3A]' },
+  { icon: Globe2, value: 2, suffix: '', label: 'Countries', color: 'text-[#C41E3A]' },
+  { icon: Award, value: 98, suffix: '%', label: 'Visa Success Rate', color: 'text-[#C41E3A]' },
 ] as const
 
 function StatItem({
@@ -29,7 +29,7 @@ function StatItem({
 
   return (
     <div className="flex flex-col items-center gap-2 px-4 py-3 text-center sm:px-6">
-      <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 ${color}`}>
+      <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 ${color}`}>
         <Icon size={22} />
       </span>
       <div className="text-2xl font-black tracking-tight text-gray-950 sm:text-3xl">
@@ -60,11 +60,11 @@ export default function StatsBar() {
                 <StatItem {...stat} />
               ) : (
                 <div className="flex flex-col items-center gap-2 px-4 py-3 text-center sm:px-6">
-                  <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gray-50 ${stat.color}`}>
+                  <span className={`inline-flex h-11 w-11 items-center justify-center rounded-xl bg-rose-50 ${stat.color}`}>
                     <stat.icon size={22} />
                   </span>
                   <div className="text-2xl font-black tracking-tight text-gray-950 sm:text-3xl">
-                    0{stat.suffix}
+                    {stat.value.toLocaleString()}{stat.suffix}
                   </div>
                   <div className="text-xs font-medium uppercase tracking-widest text-gray-400 sm:text-sm">
                     {stat.label}

@@ -8,6 +8,8 @@ import ThemeProvider from '@/components/providers/ThemeProvider'
 import SmoothScroll from '@/components/providers/SmoothScroll'
 import ClickSpark from '@/components/effects/ClickSpark'
 import RouteProgress from '@/components/effects/RouteProgress'
+import SkipToContent from '@/components/ui/SkipToContent'
+import PageTransition from '@/components/providers/PageTransition'
 
 import './globals.css'
 
@@ -83,13 +85,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="font-body bg-[#f6f7fb] text-gray-900 antialiased transition-colors duration-300 dark:bg-[#09090b] dark:text-white">
+        <SkipToContent />
         <ClickSpark />
         <RouteProgress />
 
         <ThemeProvider>
           <SmoothScroll>
             <TRPCReactProvider>
-              {children}
+              <main id="main-content" tabIndex={-1} className="outline-none">
+                <PageTransition>{children}</PageTransition>
+              </main>
 
               <Toaster position="top-right" richColors closeButton />
             </TRPCReactProvider>

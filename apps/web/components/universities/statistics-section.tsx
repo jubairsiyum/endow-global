@@ -12,7 +12,7 @@ interface StatConfig {
 }
 
 const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: number }) => {
-  const [displayValue, setDisplayValue] = useState(0)
+  const [displayValue, setDisplayValue] = useState(value)
   const ref = useRef<HTMLSpanElement>(null)
   const startedRef = useRef(false)
 
@@ -62,15 +62,15 @@ export default function StatisticsSection() {
       icon: <Users className="h-6 w-6" />,
     },
     {
-      value: 250,
+      value: 50,
       suffix: '+',
       label: 'Partner Universities',
       icon: <Award className="h-6 w-6" />,
     },
     {
-      value: 45,
+      value: 2,
       suffix: '',
-      label: 'Countries Covered',
+      label: 'Specialist Destinations',
       icon: <Globe className="h-6 w-6" />,
     },
     {

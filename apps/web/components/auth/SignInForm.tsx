@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Mail, LockKeyhole, ArrowRight, Shield } from 'lucide-react'
+import { Mail, LockKeyhole, ArrowRight, Shield, Eye, EyeOff } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 import SocialButtons from './SocialButtons'
@@ -35,6 +35,7 @@ export default function SignInForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -112,39 +113,42 @@ export default function SignInForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   disabled={isLoading}
+                  autoComplete="email"
                   className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
                 />
               </InputField>
 
               <InputField icon={LockKeyhole} label="Password">
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   disabled={isLoading}
+                  autoComplete="current-password"
                   className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-1"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </InputField>
 
-              <div className="flex items-center justify-between pt-1">
-                <label className="flex items-center gap-2 text-sm font-medium text-slate-600">
-                  <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-red-700 focus:ring-red-200" />
-                  Remember me
-                </label>
-                <button type="button" className="text-sm font-bold text-red-600 hover:text-red-700">
-                  Forgot Password?
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isLoading || !email || !password}
+                  className="flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] motion-reduce:active:scale-100"
+                >
+                  {isLoading ? <Spinner size={16} className="text-white" /> : <ArrowRight size={16} />}
+                  {isLoading ? 'Signing in...' : 'Sign In'}
                 </button>
               </div>
-
-              <button
-                type="submit"
-                disabled={isLoading || !email || !password}
-                className="flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50"
-              >
-                {isLoading ? <Spinner size={16} className="text-white" /> : <ArrowRight size={16} />}
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </button>
             </form>
 
             <div className="my-5 flex items-center gap-3">

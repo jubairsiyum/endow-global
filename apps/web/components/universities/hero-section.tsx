@@ -79,30 +79,34 @@ export default function HeroSection() {
 
           {/* Search Bar */}
           <motion.div variants={itemVariants} className="mt-8 w-full max-w-xl">
-            <div className="relative rounded-2xl p-[1.5px] bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 transition-all focus-within:from-[#C41E3A]/40 focus-within:via-[#C41E3A]/20 focus-within:to-transparent">
+            <form action="/universities" method="GET" className="relative rounded-2xl p-[1.5px] bg-gradient-to-r from-gray-200 via-gray-200 to-gray-200 transition-all focus-within:from-[#C41E3A]/40 focus-within:via-[#C41E3A]/20 focus-within:to-transparent">
               <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] sm:px-5">
                 <Search size={18} className="shrink-0 text-gray-400" />
+                <label htmlFor="universities-hero-search" className="sr-only">Search universities, programs, or countries</label>
                 <input
+                  id="universities-hero-search"
+                  name="q"
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search universities, programs, or countries..."
                   className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400 sm:text-[15px]"
                 />
-                <Link
-                  href="/universities"
+                <button
+                  type="submit"
                   className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#A01830] sm:px-5 sm:text-sm"
                 >
                   Search
-                </Link>
+                </button>
               </div>
-            </div>
+            </form>
             {/* Popular searches */}
             <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
               {popularSearches.map((term) => (
                 <button
                   key={term}
                   type="button"
+                  onClick={() => setSearchQuery(term)}
                   className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-500 transition-colors hover:border-[#C41E3A]/30 hover:text-[#C41E3A]"
                 >
                   {term}
@@ -114,8 +118,8 @@ export default function HeroSection() {
           {/* Stats Row */}
           <motion.div variants={itemVariants} className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-10">
             {[
-              { icon: GraduationCap, value: '250+', label: 'Partner Unis' },
-              { icon: Globe, value: '45', label: 'Countries' },
+              { icon: GraduationCap, value: '50+', label: 'Partner Unis' },
+              { icon: Globe, value: '2', label: 'Destinations' },
               { icon: Award, value: '98%', label: 'Visa Success' },
             ].map((stat) => (
               <div key={stat.label} className="flex items-center gap-3">
@@ -136,7 +140,7 @@ export default function HeroSection() {
               <span className="font-bold text-gray-800">4.7</span>
               <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
+                  <Star key={i} size={11} className="fill-[#C41E3A] text-[#C41E3A]" />
                 ))}
               </div>
               <span className="text-gray-400">Google</span>

@@ -67,7 +67,9 @@ export default function PremiumConsultationCTA() {
           >
             {/* WhatsApp */}
             <motion.a
-              href="#"
+              href="https://wa.me/8801901463204"
+              target="_blank"
+              rel="noopener noreferrer"
               variants={itemVariants}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}
@@ -86,7 +88,7 @@ export default function PremiumConsultationCTA() {
 
             {/* Phone */}
             <motion.a
-              href="#"
+              href="tel:+8801901463204"
               variants={itemVariants}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}
@@ -100,12 +102,12 @@ export default function PremiumConsultationCTA() {
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">Phone Call</h3>
               <p className="mb-4 text-sm text-gray-600">Speak with an expert counselor</p>
-              <p className="text-xs font-semibold text-[#C41E3A]">+1 (800) 123-4567</p>
+              <p className="text-xs font-semibold text-[#C41E3A]">+880 190146 3204</p>
             </motion.a>
 
             {/* Calendar */}
             <motion.a
-              href="#"
+              href="/register"
               variants={itemVariants}
               whileHover={{ y: -4 }}
               whileTap={{ scale: 0.95 }}

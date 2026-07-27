@@ -8,18 +8,18 @@ const destinations = [
     slug: 'south-korea',
     tagline: 'Tech-forward education',
     universities: '30+',
-    gradient: 'from-blue-500/10 to-rose-500/10',
+    gradient: 'from-[#C41E3A]/10 to-rose-500/5',
     flag: '🇰🇷',
-    color: 'text-blue-600',
+    color: 'text-[#C41E3A]',
   },
   {
     country: 'Australia',
     slug: 'australia',
     tagline: 'Global research leader',
     universities: '20+',
-    gradient: 'from-amber-500/10 to-orange-500/10',
+    gradient: 'from-[#C41E3A]/10 to-rose-500/5',
     flag: '🇦🇺',
-    color: 'text-amber-600',
+    color: 'text-[#C41E3A]',
   },
 ] as const
 

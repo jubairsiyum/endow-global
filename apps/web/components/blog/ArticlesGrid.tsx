@@ -22,7 +22,7 @@ const articles = [
     title: 'GKS Scholarship Application Tips',
     description:
       'Insider tips and strategies to maximize your chances of getting accepted to the Global Korea Scholarship.',
-    image: 'https://images.unsplash.com/photo-1523050854058-f47bcaf00980?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=600&h=400&fit=crop',
     category: 'Scholarships',
     author: 'Scholarship Expert',
     date: '2024-05-28',
@@ -46,7 +46,7 @@ const articles = [
     title: 'Student Life at Hanseo University',
     description:
       'Discover campus facilities, student culture, and what makes Hanseo University a great place to study.',
-    image: 'https://images.unsplash.com/photo-1523318323282-e5b51eea6a79?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1562774053-701939374585?w=600&h=400&fit=crop',
     category: 'University News',
     author: 'Campus Reporter',
     date: '2024-05-22',
@@ -57,7 +57,7 @@ const articles = [
     title: 'Cost of Living in Seoul vs Busan',
     description:
       "Detailed breakdown of monthly expenses for students living in Korea's major cities.",
-    image: 'https://images.unsplash.com/photo-1461749280684-ddefd3083d60?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1519501025264-65ba15a82390?w=600&h=400&fit=crop',
     category: 'Study Abroad',
     author: 'Budget Advisor',
     date: '2024-05-20',
@@ -78,7 +78,7 @@ const articles = [
     id: 7,
     title: 'Korean Restaurants for International Students',
     description: 'Budget-friendly Korean dining spots loved by students. Learn local food culture.',
-    image: 'https://images.unsplash.com/photo-1504674900152-b8b613e4f92b?w=600&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1498654896293-37aacf113fd9?w=600&h=400&fit=crop',
     category: 'Student Life',
     author: 'Lifestyle Writer',
     date: '2024-05-15',

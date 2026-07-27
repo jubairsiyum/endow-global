@@ -2,11 +2,11 @@ import { Compass, FileSearch, Send, Shield, Plane } from 'lucide-react'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
 
 const steps = [
-  { icon: Compass, number: '01', title: 'Explore', desc: 'Discover universities, courses, and destinations that match your academic profile and career goals.', color: 'text-violet-500', bg: 'bg-violet-50', hover: 'hover:border-violet-200' },
-  { icon: FileSearch, number: '02', title: 'Shortlist', desc: 'Compare programs, scholarships, and costs. Build a balanced list of reach, match, and safety schools.', color: 'text-blue-500', bg: 'bg-blue-50', hover: 'hover:border-blue-200' },
-  { icon: Send, number: '03', title: 'Apply', desc: 'Submit polished applications with counselor-reviewed documents, SOPs, and recommendation letters.', color: 'text-amber-500', bg: 'bg-amber-50', hover: 'hover:border-amber-200' },
-  { icon: Shield, number: '04', title: 'Visa', desc: 'Navigate visa processing with complete support — document prep, mock interviews, and embassy coordination.', color: 'text-emerald-500', bg: 'bg-emerald-50', hover: 'hover:border-emerald-200' },
-  { icon: Plane, number: '05', title: 'Departure', desc: 'Pre-departure briefing, accommodation help, and airport pickup. Your new chapter begins.', color: 'text-rose-500', bg: 'bg-rose-50', hover: 'hover:border-rose-200' },
+  { icon: Compass, number: '01', title: 'Explore', desc: 'Discover universities, courses, and destinations that match your academic profile and career goals.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
+  { icon: FileSearch, number: '02', title: 'Shortlist', desc: 'Compare programs, scholarships, and costs. Build a balanced list of reach, match, and safety schools.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
+  { icon: Send, number: '03', title: 'Apply', desc: 'Submit polished applications with counselor-reviewed documents, SOPs, and recommendation letters.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
+  { icon: Shield, number: '04', title: 'Visa', desc: 'Navigate visa processing with complete support — document prep, mock interviews, and embassy coordination.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
+  { icon: Plane, number: '05', title: 'Departure', desc: 'Pre-departure briefing, accommodation help, and airport pickup. Your new chapter begins.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
 ] as const
 
 export default function ServiceTimeline() {

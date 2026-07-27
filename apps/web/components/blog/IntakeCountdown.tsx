@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Calendar, Clock } from 'lucide-react'
+import { Calendar, Clock, Lightbulb } from 'lucide-react'
 
 const intakes = [
   {
@@ -172,30 +172,31 @@ export function IntakeCountdown() {
           ))}
         </motion.div>
 
-        {/* PRO TIP */}
+        {/* SLIM PRO TIP BANNER */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mx-auto mt-16 max-w-4xl rounded-3xl border border-[#E5E7EB] bg-white p-8 shadow-[0_10px_40px_rgba(0,0,0,0.03)]"
+          transition={{ duration: 0.4 }}
+          className="mx-auto mt-12 max-w-3xl"
         >
-          <div className="flex items-start gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#C41E3A]/10">
-              <span className="text-xl">💡</span>
-            </div>
-
-            <div>
-              <h4 className="mb-2 text-xl font-bold text-[#111827]">
+          <div className="flex flex-col gap-3 rounded-2xl border border-rose-100/80 bg-gradient-to-r from-rose-50/60 via-white to-rose-50/30 p-4 sm:flex-row sm:items-center sm:gap-4 sm:px-6 sm:py-4 shadow-sm">
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#C41E3A]/10 text-[#C41E3A]">
+                <Lightbulb className="h-4.5 w-4.5" />
+              </div>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/10 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-[#C41E3A]">
                 Pro Tip
-              </h4>
-
-              <p className="leading-relaxed text-[#6B7280]">
-                Start preparing your application at least 3–4 months before
-                the deadline. This gives you enough time to prepare SOPs,
-                collect documents, secure recommendation letters, and improve
-                your chances of admission and scholarships.
-              </p>
+              </span>
             </div>
+
+            <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
+              Start preparing your application at least{' '}
+              <strong className="font-semibold text-gray-900">3–4 months</strong> before
+              the deadline. This gives you enough time to prepare SOPs,
+              collect documents, secure recommendation letters, and improve
+              your chances of admission and scholarships.
+            </p>
           </div>
         </motion.div>
       </div>

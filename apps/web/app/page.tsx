@@ -84,19 +84,19 @@ export const metadata: Metadata = {
 /* -------------------------------------------------------------------------- */
 
 const universities = [
-  { name: 'Busan University', logo: '/universities/Busan University.png' },
-  { name: 'Hanseo University', logo: '/universities/Hanseo University.png' },
-  { name: 'Daejin University', logo: '/universities/Daejin University.png' },
-  { name: 'Chungwoon University', logo: '/universities/Chungwoon University.png' },
-  { name: 'Yeungjin University', logo: '/universities/Yeungjin University.png' },
-  { name: 'Sahmyook University', logo: '/universities/Sahmyook University.png' },
-  { name: 'Sejong University', logo: '/universities/Sejong University.png' },
-  { name: 'Kyung Hee University', logo: '/universities/Kyung Hee University.png' },
-  { name: 'Sun Moon University', logo: '/universities/Sun Moon University.png' },
-  { name: 'Turku University', logo: '/universities/Turku University.png' },
-  { name: 'Helsinki University', logo: '/universities/Helsinki University.png' },
-  { name: 'Aalto University', logo: '/universities/Aalto University.png' },
-  { name: 'Dong-Eui University', logo: '/universities/Dong-Eui University.png' },
+  { name: 'Busan University', logo: '/universities/Busan University.png', city: 'Busan' },
+  { name: 'Hanseo University', logo: '/universities/Hanseo University.png', city: 'Seosan' },
+  { name: 'Daejin University', logo: '/universities/Daejin University.png', city: 'Pocheon' },
+  { name: 'Chungwoon University', logo: '/universities/Chungwoon University.png', city: 'Hongseong' },
+  { name: 'Yeungjin University', logo: '/universities/Yeungjin University.png', city: 'Daegu' },
+  { name: 'Sahmyook University', logo: '/universities/Sahmyook University.png', city: 'Seoul' },
+  { name: 'Sejong University', logo: '/universities/Sejong University.png', city: 'Seoul' },
+  { name: 'Kyung Hee University', logo: '/universities/Kyung Hee University.png', city: 'Seoul' },
+  { name: 'Sun Moon University', logo: '/universities/Sun Moon University.png', city: 'Asan' },
+  { name: 'Chungnam National University', logo: '/universities/Daejin University.png', city: 'Daejeon' },
+  { name: 'Namseoul University', logo: '/universities/Daejin University.png', city: 'Cheonan' },
+  { name: 'University of Sydney', logo: '/universities/Hanseo University.png', city: 'Sydney' },
+  { name: 'Dong-Eui University', logo: '/universities/Dong-Eui University.png', city: 'Busan' },
 ] as const
 
 /* -------------------------------------------------------------------------- */

@@ -83,7 +83,7 @@ export default function PremiumHero() {
                 <span className="font-semibold text-gray-700">4.7</span>
                 <div className="flex items-center gap-0.5">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={11} className="fill-amber-400 text-amber-400" />
+                    <Star key={i} size={11} className="fill-[#C41E3A] text-[#C41E3A]" />
                   ))}
                 </div>
                 <span className="text-gray-400">Google</span>
@@ -102,22 +102,27 @@ export default function PremiumHero() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="mt-6"
             >
-              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400 animate-gradient-pulse">
-                <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+              <form action="/universities" className="relative rounded-full border border-[#C41E3A]/30 bg-white p-[1.5px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
+                <div className="flex items-center gap-3 rounded-full bg-white px-4 py-3">
                   <Search size={18} className="shrink-0 text-gray-400" />
+                  <label htmlFor="mobile-hero-search" className="sr-only">
+                    Search courses and universities
+                  </label>
                   <input
+                    id="mobile-hero-search"
+                    name="q"
                     type="text"
                     placeholder="Search courses, universities..."
                     className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
                   />
-                  <Link
-                    href="/universities"
+                  <button
+                    type="submit"
                     className="shrink-0 rounded-full bg-[#C41E3A] px-4 py-1.5 text-[12px] font-semibold text-white"
                   >
                     Search
-                  </Link>
+                  </button>
                 </div>
-              </div>
+              </form>
             </motion.div>
 
             {/* Quick stats */}
@@ -128,8 +133,8 @@ export default function PremiumHero() {
               className="mt-6 grid grid-cols-3 gap-3"
             >
               {[
-                { icon: GraduationCap, label: 'Partner Unis', value: '250+' },
-                { icon: Globe, label: 'Countries', value: '10+' },
+                { icon: GraduationCap, label: 'Partners', value: '50+' },
+                { icon: Globe, label: 'Countries', value: '2' },
                 { icon: Users, label: 'Placed', value: '5,000+' },
               ].map((stat) => (
                 <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5 text-center">
@@ -190,22 +195,27 @@ export default function PremiumHero() {
               transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
               className="mt-8"
             >
-              <div className="relative rounded-full p-[1.5px] bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400 animate-gradient-pulse">
-                <div className="flex items-center gap-3 rounded-full bg-white px-5 py-3.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+              <form action="/universities" className="relative rounded-full border border-[#C41E3A]/30 bg-white p-[1.5px] shadow-[0_2px_16px_rgba(0,0,0,0.06)] focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
+                <div className="flex items-center gap-3 rounded-full bg-white px-5 py-3.5">
                   <Search size={20} className="shrink-0 text-gray-400" />
+                  <label htmlFor="desktop-hero-search" className="sr-only">
+                    Search courses and universities
+                  </label>
                   <input
+                    id="desktop-hero-search"
+                    name="q"
                     type="text"
                     placeholder="Search for courses, universities..."
                     className="w-full bg-transparent text-[15px] text-gray-700 outline-none placeholder:text-gray-400"
                   />
-                  <Link
-                    href="/universities"
+                  <button
+                    type="submit"
                     className="shrink-0 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#A01830]"
                   >
                     Search
-                  </Link>
+                  </button>
                 </div>
-              </div>
+              </form>
             </motion.div>
 
             {/* Trust */}
@@ -218,7 +228,7 @@ export default function PremiumHero() {
               <span className="font-semibold text-gray-700">Rated 4.7</span>
               <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={13} className="fill-amber-400 text-amber-400" />
+                  <Star key={i} size={13} className="fill-[#C41E3A] text-[#C41E3A]" />
                 ))}
               </div>
               <span className="text-gray-400">on Google</span>
@@ -278,6 +288,7 @@ export default function PremiumHero() {
                       fill
                       sizes="(max-width: 1024px) 0px 220px"
                       className="object-cover"
+                      priority={isCenter}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                   </div>

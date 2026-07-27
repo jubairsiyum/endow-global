@@ -165,13 +165,13 @@ body {
 
 button,
 a {
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
 }
 
 input,
 select,
 textarea {
-  transition: all 0.2s ease;
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 /* =========================
@@ -238,11 +238,9 @@ textarea {
   background: conic-gradient(
     from var(--shine-angle),
     #C41E3A,
-    #f97316,
-    #eab308,
-    #22c55e,
-    #3b82f6,
-    #8b5cf6,
+    #A01830,
+    #e4e4e7,
+    #18181b,
     #C41E3A
   );
   -webkit-mask:

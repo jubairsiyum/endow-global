@@ -10,7 +10,7 @@ const courses = [
     degree: 'Bachelors / Masters',
     duration: '3-4 years',
     demand: 'High demand',
-    color: 'bg-blue-50 text-blue-600',
+    color: 'bg-rose-50 text-[#C41E3A]',
   },
   {
     title: 'Business & Management',
@@ -18,7 +18,7 @@ const courses = [
     degree: 'Bachelors / MBA',
     duration: '2-4 years',
     demand: 'Most popular',
-    color: 'bg-amber-50 text-amber-600',
+    color: 'bg-rose-50 text-[#C41E3A]',
   },
   {
     title: 'Engineering',
@@ -26,7 +26,7 @@ const courses = [
     degree: 'Bachelors / Masters',
     duration: '3-5 years',
     demand: 'Top rated',
-    color: 'bg-emerald-50 text-emerald-600',
+    color: 'bg-rose-50 text-[#C41E3A]',
   },
   {
     title: 'Healthcare & Medicine',
@@ -34,7 +34,7 @@ const courses = [
     degree: 'MD / Nursing',
     duration: '4-6 years',
     demand: 'Growing fast',
-    color: 'bg-rose-50 text-rose-600',
+    color: 'bg-rose-50 text-[#C41E3A]',
   },
   {
     title: 'Arts & Design',
@@ -42,7 +42,7 @@ const courses = [
     degree: 'BFA / MFA',
     duration: '3-4 years',
     demand: 'Creative field',
-    color: 'bg-purple-50 text-purple-600',
+    color: 'bg-rose-50 text-[#C41E3A]',
   },
   {
     title: 'Data Science & AI',
@@ -50,7 +50,7 @@ const courses = [
     degree: 'Masters / PhD',
     duration: '2-4 years',
     demand: 'Trending now',
-    color: 'bg-cyan-50 text-cyan-600',
+    color: 'bg-rose-50 text-[#C41E3A]',
   },
 ] as const
 

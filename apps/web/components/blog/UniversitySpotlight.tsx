@@ -40,7 +40,7 @@ export function UniversitySpotlight() {
             {/* IMAGE */}
             <div className="relative h-96 overflow-hidden lg:h-full">
               <Image
-                src="https://images.unsplash.com/photo-1594897369641-d7aaf6be1767?w=800&h=600&fit=crop"
+                src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&h=600&fit=crop"
                 alt="Hanseo University"
                 fill
                 className="object-cover"

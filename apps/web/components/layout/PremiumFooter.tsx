@@ -11,11 +11,11 @@ const footerLinks = {
   ],
   Destinations: [
     { label: 'Study in South Korea', href: '/universities?country=south-korea' },
-    { label: 'Study in UK', href: '/universities?country=uk' },
-    { label: 'Study in Finland', href: '/universities?country=finland' },
     { label: 'Study in Australia', href: '/universities?country=australia' },
-    { label: 'Study in USA', href: '/universities?country=usa' },
-    { label: 'Study in Canada', href: '/universities?country=canada' },
+    { label: 'Universities in Seoul', href: '/universities?country=south-korea' },
+    { label: 'Universities in Sydney', href: '/universities?country=australia' },
+    { label: 'South Korea Scholarships', href: '/universities?country=south-korea' },
+    { label: 'Australia Scholarships', href: '/universities?country=australia' },
   ],
   Resources: [
     { label: 'Blog', href: '/blog' },
@@ -28,8 +28,8 @@ const footerLinks = {
     { label: 'About Us', href: '/about' },
     { label: 'Careers', href: '/about' },
     { label: 'Contact Support', href: '/about' },
-    { label: 'Privacy Policy', href: '/about' },
-    { label: 'Terms of Service', href: '/about' },
+    { label: 'Privacy Policy', href: '/privacy' },
+    { label: 'Terms of Service', href: '/terms' },
   ],
 } as const
 
@@ -104,25 +104,31 @@ export default function PremiumFooter() {
             {/* Trust badges */}
             <div className="flex items-center gap-2">
               <span className="inline-flex items-center gap-1 rounded-full border border-surface-100 bg-surface-50 px-2 py-0.5 text-[10px] font-semibold text-surface-500">
-                <span className="h-1 w-1 rounded-full bg-emerald-500" />
+                <span className="h-1 w-1 rounded-full bg-[#C41E3A]" />
                 SSL Secure
               </span>
               <span className="inline-flex items-center gap-1 rounded-full border border-surface-100 bg-surface-50 px-2 py-0.5 text-[10px] font-semibold text-surface-500">
-                <span className="h-1 w-1 rounded-full bg-emerald-500" />
-                FERPA Compliant
+                <span className="h-1 w-1 rounded-full bg-[#C41E3A]" />
+                Certified Counselors
               </span>
             </div>
 
             {/* Social */}
             <div className="flex gap-2">
-              {['LinkedIn', 'Facebook', 'Twitter'].map((social) => (
+              {[
+                { name: 'Facebook', href: 'https://www.facebook.com/endowglobaledu' },
+                { name: 'LinkedIn', href: 'https://www.linkedin.com/company/endow-global-education/' },
+                { name: 'Instagram', href: 'https://www.instagram.com/endowglobaledu' },
+              ].map((social) => (
                 <a
-                  key={social}
-                  href="#"
+                  key={social.name}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-50 text-[10px] font-bold text-surface-400 transition-colors hover:bg-[#C41E3A]/[0.06] hover:text-[#C41E3A]"
-                  aria-label={social}
+                  aria-label={social.name}
                 >
-                  {social[0]}
+                  {social.name[0]}
                 </a>
               ))}
             </div>

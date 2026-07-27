@@ -180,60 +180,74 @@ export function DiagnosticUniversityMarquee({ universities }: DiagnosticUniversi
 
   const renderLogo = (university: UniversityLogo, index: number, duplicate: boolean) => {
     const isFirstUniqueLogo = !duplicate && index < visibleUniversities.length
+    const city = 'city' in university && (university as any).city ? (university as any).city : 'Partner Institution'
 
     return (
       <div
-        className="university-logo-cell"
+        className="group flex cursor-pointer flex-col items-center gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-white"
         data-logo-name={university.name}
         key={`${duplicate ? 'duplicate' : 'original'}-${university.name}-${index}`}
       >
-        {config.imageMode === 'img' ? (
-          <img
-            src={university.logo}
-            alt={duplicate ? '' : university.name}
-            width={72}
-            height={72}
-            loading="eager"
-            decoding="async"
-            draggable={false}
-            className="h-16 w-16 object-contain"
-          />
-        ) : (
-          <Image
-            src={university.logo}
-            alt={duplicate ? '' : university.name}
-            width={72}
-            height={72}
-            sizes="64px"
-            priority={isFirstUniqueLogo}
-            loading={isFirstUniqueLogo ? undefined : 'eager'}
-            decoding="async"
-            draggable={false}
-            className="h-16 w-16 object-contain"
-          />
-        )}
+        <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-[0_8px_18px_rgba(196,30,58,0.10)]">
+          {config.imageMode === 'img' ? (
+            <img
+              src={university.logo}
+              alt={duplicate ? '' : university.name}
+              width={64}
+              height={64}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              className="h-full w-full object-contain p-2"
+            />
+          ) : (
+            <Image
+              src={university.logo}
+              alt={duplicate ? '' : university.name}
+              width={64}
+              height={64}
+              priority={isFirstUniqueLogo}
+              loading={isFirstUniqueLogo ? undefined : 'eager'}
+              decoding="async"
+              draggable={false}
+              className="h-full w-full object-contain p-2"
+            />
+          )}
+        </div>
+
+        <div className="hidden max-w-xs text-center text-xs text-gray-700 group-hover:block">
+          <p className="font-semibold">{university.name}</p>
+          <p className="text-gray-600">{city}</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <section className="overflow-hidden border-y border-gray-100 bg-white py-7">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,white_10%,white_90%,transparent)]">
+    <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-8 lg:py-10">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <p className="mb-5 text-center text-xs font-semibold tracking-wide text-gray-600">
+          TRUSTED BY 5000+ STUDENTS ACROSS
+        </p>
+
+        <div className="marquee-container relative">
           <div
             ref={contentRef}
-            className="university-marquee"
+            className="marquee-content"
             data-animation={config.animationEnabled ? 'on' : 'off'}
             data-image-mode={config.imageMode}
             data-logo-mode={config.logoMode}
           >
-            <div className="university-marquee-half" data-marquee-half="original">
+            <div className="marquee-track" data-marquee-half="original">
               {marqueeItems.map((university, index) => renderLogo(university, index, false))}
             </div>
-            <div className="university-marquee-half" data-marquee-half="duplicate">
+            <div className="marquee-track" data-marquee-half="duplicate">
               {marqueeItems.map((university, index) => renderLogo(university, index, true))}
             </div>
           </div>
+
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-[#F8FAFC] via-[#F8FAFC] to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-[#F8FAFC] via-[#F8FAFC] to-transparent" />
         </div>
       </div>
     </section>
