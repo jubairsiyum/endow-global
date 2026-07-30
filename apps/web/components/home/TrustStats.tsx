@@ -35,8 +35,22 @@ export default function TrustStats() {
   const isInView = useInView(ref, { once: true, amount: 0.3 })
 
   return (
-    <section ref={ref} className="border-y border-gray-100 bg-white">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+    <section ref={ref} className="relative overflow-hidden border-y border-gray-100 bg-gradient-to-b from-white via-rose-50/40 to-white">
+      {/* Background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.035]"
+        style={{
+          backgroundImage: `url('/images/education-pattern.svg')`,
+          backgroundSize: '200px 200px',
+          backgroundPosition: 'center top',
+        }}
+      />
+      
+      {/* Decorative gradient orbs */}
+      <div className="absolute left-1/4 -top-20 h-64 w-64 rounded-full bg-rose-100/25 blur-3xl" />
+      <div className="absolute right-1/4 -bottom-20 h-72 w-72 rounded-full bg-blue-50/20 blur-3xl" />
+      
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <div className="grid grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, i) => (
             <div key={stat.label} className={`${i < stats.length - 1 ? 'border-r border-gray-100' : ''} ${i < 2 ? 'border-b lg:border-b-0' : ''}`}>

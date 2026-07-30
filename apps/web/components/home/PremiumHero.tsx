@@ -37,7 +37,21 @@ export default function PremiumHero() {
   }
 
   return (
-    <section id="hero-section" className="relative overflow-hidden bg-white">
+    <section id="hero-section" className="relative overflow-hidden bg-gradient-to-b from-rose-50/50 via-white to-white">
+      {/* Background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `url('/images/education-pattern.svg')`,
+          backgroundSize: '200px 200px',
+          backgroundPosition: 'center top',
+        }}
+      />
+      
+      {/* Decorative gradient orbs */}
+      <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl" />
+      <div className="absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl" />
+      
       <div className="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8">
         {/* Mobile Layout */}
         <div className="flex min-h-[70vh] flex-col justify-center py-20 lg:hidden">
