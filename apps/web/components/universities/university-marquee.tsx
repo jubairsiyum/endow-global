@@ -43,10 +43,10 @@ export default function UniversityMarquee() {
   }, [])
 
   return (
-    <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-8 lg:py-10">
+    <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-10 lg:py-12">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <p className="mb-5 text-center text-xs font-semibold tracking-wide text-gray-600">
-          TRUSTED BY 5000+ STUDENTS ACROSS
+        <p className="mb-6 text-center text-sm font-semibold uppercase tracking-widest text-gray-600">
+          Trusted by <span className="text-gradient-brand">5000+</span> Students Across
         </p>
 
         <div className="marquee-container">
@@ -68,23 +68,24 @@ export default function UniversityMarquee() {
               {universities.map((uni) => (
                 <motion.div
                   key={`track1-${uni.id}`}
-                  whileHover={{ y: -2 }}
-                  className="group flex cursor-pointer flex-col items-center gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-white"
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="group flex cursor-pointer flex-col items-center gap-3 rounded-2xl px-6 py-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-white hover:shadow-lg"
                 >
-                  <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-[0_8px_18px_rgba(196,30,58,0.10)]">
+                  <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:border-brand/20 group-hover:shadow-[0_8px_24px_rgba(196,30,58,0.15)]">
                     <Image
                       src={uni.logo}
                       alt={uni.name}
                       width={64}
                       height={64}
-                      className="h-full w-full object-contain p-2"
+                      className="h-full w-full object-contain transition-transform duration-300 ease-out group-hover:scale-105"
                       priority={false}
                     />
                   </div>
 
-                  <div className="hidden max-w-xs text-center text-xs text-gray-700 group-hover:block">
-                    <p className="font-semibold">{uni.name}</p>
-                    <p className="text-gray-600">{uni.city}</p>
+                  <div className="hidden max-w-xs opacity-0 transition-all duration-300 ease-out group-hover:block group-hover:opacity-100">
+                    <p className="text-center text-sm font-semibold text-gray-900">{uni.name}</p>
+                    <p className="text-center text-xs text-gray-600">{uni.city}</p>
                   </div>
                 </motion.div>
               ))}
@@ -95,23 +96,24 @@ export default function UniversityMarquee() {
               {universities.map((uni) => (
                 <motion.div
                   key={`track2-${uni.id}`}
-                  whileHover={{ y: -2 }}
-                  className="group flex cursor-pointer flex-col items-center gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-white"
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="group flex cursor-pointer flex-col items-center gap-3 rounded-2xl px-6 py-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-white hover:shadow-lg"
                 >
-                  <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-[0_8px_18px_rgba(196,30,58,0.10)]">
+                  <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:border-brand/20 group-hover:shadow-[0_8px_24px_rgba(196,30,58,0.15)]">
                     <Image
                       src={uni.logo}
                       alt={uni.name}
                       width={64}
                       height={64}
-                      className="h-full w-full object-contain p-2"
+                      className="h-full w-full object-contain transition-transform duration-300 ease-out group-hover:scale-105"
                       priority={false}
                     />
                   </div>
 
-                  <div className="hidden max-w-xs text-center text-xs text-gray-700 group-hover:block">
-                    <p className="font-semibold">{uni.name}</p>
-                    <p className="text-gray-600">{uni.city}</p>
+                  <div className="hidden max-w-xs opacity-0 transition-all duration-300 ease-out group-hover:block group-hover:opacity-100">
+                    <p className="text-center text-sm font-semibold text-gray-900">{uni.name}</p>
+                    <p className="text-center text-xs text-gray-600">{uni.city}</p>
                   </div>
                 </motion.div>
               ))}
@@ -122,23 +124,24 @@ export default function UniversityMarquee() {
               {universities.map((uni) => (
                 <motion.div
                   key={`track3-${uni.id}`}
-                  whileHover={{ y: -2 }}
-                  className="group flex cursor-pointer flex-col items-center gap-2 rounded-xl px-4 py-3 transition-colors hover:bg-white"
+                  whileHover={{ y: -4, scale: 1.02 }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="group flex cursor-pointer flex-col items-center gap-3 rounded-2xl px-6 py-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-white hover:shadow-lg"
                 >
-                  <div className="relative h-11 w-11 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow group-hover:shadow-[0_8px_18px_rgba(196,30,58,0.10)]">
+                  <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-3 shadow-sm transition-all duration-300 ease-out group-hover:scale-110 group-hover:border-brand/20 group-hover:shadow-[0_8px_24px_rgba(196,30,58,0.15)]">
                     <Image
                       src={uni.logo}
                       alt={uni.name}
                       width={64}
                       height={64}
-                      className="h-full w-full object-contain p-2"
+                      className="h-full w-full object-contain transition-transform duration-300 ease-out group-hover:scale-105"
                       priority={false}
                     />
                   </div>
 
-                  <div className="hidden max-w-xs text-center text-xs text-gray-700 group-hover:block">
-                    <p className="font-semibold">{uni.name}</p>
-                    <p className="text-gray-600">{uni.city}</p>
+                  <div className="hidden max-w-xs opacity-0 transition-all duration-300 ease-out group-hover:block group-hover:opacity-100">
+                    <p className="text-center text-sm font-semibold text-gray-900">{uni.name}</p>
+                    <p className="text-center text-xs text-gray-600">{uni.city}</p>
                   </div>
                 </motion.div>
               ))}
