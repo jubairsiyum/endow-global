@@ -61,7 +61,21 @@ export default function UniversityFinder() {
   }
 
   return (
-    <section className="relative -mt-1 bg-white pb-20 pt-4 lg:-mt-8">
+    <section className="relative overflow-hidden bg-gradient-to-b from-white via-rose-50/30 to-white">
+      {/* Background pattern */}
+      <div 
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: `url('/images/education-pattern.svg')`,
+          backgroundSize: '180px 180px',
+          backgroundPosition: 'center top',
+        }}
+      />
+      
+      {/* Decorative gradient orbs */}
+      <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-rose-100/30 blur-3xl" />
+      <div className="absolute -right-20 bottom-0 h-64 w-64 rounded-full bg-blue-50/25 blur-3xl" />
+      
       <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <FadeUp>
           <ShineBorder
