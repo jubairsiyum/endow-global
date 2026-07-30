@@ -76,10 +76,10 @@ const HeroSection = () => {
               {/* Headline */}
               <motion.h1
                 variants={fadeUpVariants}
-                className="mb-6 text-5xl font-bold leading-tight text-gray-900 lg:text-6xl"
+                className="mb-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-6xl"
               >
                 Empowering Students For{' '}
-                <span className="bg-gradient-to-r from-[#C41E3A] via-red-500 to-red-600 bg-clip-text text-transparent">
+                <span className="text-gradient-brand">
                   Global Academic Success
                 </span>
               </motion.h1>
