@@ -54,7 +54,7 @@ export default function HeroSection() {
           <motion.div variants={itemVariants}>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C41E3A]">
+              <span className="text-[11px] font-semibold uppercase tracking-wider text-[#C41E3A]">
                 250+ Partner Universities
               </span>
             </div>
@@ -62,7 +62,7 @@ export default function HeroSection() {
 
           {/* Heading */}
           <motion.div variants={itemVariants}>
-            <h1 className="mx-auto max-w-3xl text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-gray-950 sm:text-5xl lg:text-[3.6rem]">
+            <h1 className="mx-auto max-w-3xl text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-950 sm:text-5xl lg:text-[3.4rem]">
               Find Your{' '}
               <span className="text-[#C41E3A]">Perfect</span>{' '}
               University
@@ -97,7 +97,7 @@ export default function HeroSection() {
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#A01830] sm:px-5 sm:text-sm"
+                className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#A01830] sm:px-5 sm:text-sm"
               >
                 Search
               </button>
@@ -139,7 +139,7 @@ export default function HeroSection() {
           {/* Trust Row */}
           <motion.div variants={itemVariants} className="mt-6 flex items-center gap-4">
             <div className="flex items-center gap-1.5 text-sm text-gray-500">
-              <span className="font-bold text-gray-800">4.7</span>
+              <span className="font-semibold text-gray-700">4.7</span>
               <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} size={11} className="fill-[#C41E3A] text-[#C41E3A]" />
@@ -151,7 +151,7 @@ export default function HeroSection() {
             <div className="flex items-center gap-1.5 text-sm text-gray-500">
               <Users size={13} className="text-gray-400" />
               <span>
-                <span className="font-bold text-gray-800">5,000+</span> students placed
+                <span className="font-semibold text-gray-700">5,000+</span> students placed
               </span>
             </div>
           </motion.div>
