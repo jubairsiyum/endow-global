@@ -115,10 +115,13 @@ export function CareerPathwayHub() {
           viewport={{ once: true }}
           className="mb-10 text-center"
         >
-          <h2 className="text-5xl lg:text-6xl font-bold tracking-tight leading-none text-[#0F172A]">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Career Guidance
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             Career <span className="text-[#C41E3A]">Pathway</span> Hub
           </h2>
-          <p className="mt-4 text-lg text-[#64748B]">
+          <p className="mt-4 text-base leading-relaxed text-gray-500">
             From student to career professional in four strategic steps
           </p>
         </motion.div>

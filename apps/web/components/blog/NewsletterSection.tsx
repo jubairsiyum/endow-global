@@ -55,7 +55,7 @@ export function NewsletterSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 }}
-                className="mb-4 text-4xl font-bold text-white lg:text-5xl"
+                className="mb-4 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl"
               >
                 Stay Updated
               </motion.h2>
@@ -66,7 +66,7 @@ export function NewsletterSection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.2 }}
-                className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-red-100"
+                className="mx-auto mb-12 max-w-xl text-base leading-relaxed text-red-100/90"
               >
                 Get the latest scholarship updates, visa news, and university insights delivered
                 straight to your inbox.

@@ -47,10 +47,10 @@ export function BlogHero() {
 
             <motion.h1
               variants={itemVariants}
-              className="mb-4 max-w-[700px] text-[34px] font-extrabold leading-[0.92] tracking-[-1.5px] md:text-[40px] lg:text-[52px]"
+              className="mb-4 max-w-[700px] text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
             >
               <div className="mb-4 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
-              <div className="text-[#111827]">
+              <div className="text-gray-950">
                 Global Education
               </div>
 
@@ -61,7 +61,7 @@ export function BlogHero() {
 
             <motion.p
               variants={itemVariants}
-              className="mb-7 max-w-[520px] text-base leading-relaxed text-[#6B7280]"
+              className="mb-7 max-w-[520px] text-base leading-relaxed text-gray-500"
             >
               Study abroad guides, scholarship opportunities, visa updates, university insights, and
               real student success journeys.

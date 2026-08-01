@@ -76,7 +76,7 @@ const HeroSection = () => {
               {/* Headline */}
               <motion.h1
                 variants={fadeUpVariants}
-                className="mb-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-6xl"
+                className="mb-6 text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
               >
                 Empowering Students For{' '}
                 <span className="text-gradient-brand">
@@ -190,9 +190,12 @@ const WhoWeAreSection = () => {
             variants={staggerContainer}
             viewport={{ once: true }}
           >
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+              About Us
+            </span>
             <motion.h2
               variants={fadeUpVariants}
-              className="mb-6 text-4xl font-bold text-gray-900 lg:text-5xl"
+              className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl"
             >
               Who We Are
             </motion.h2>
@@ -290,8 +293,13 @@ const WhyChooseUsSection = () => {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="mb-4 text-4xl font-bold text-gray-900 lg:text-5xl">Why Choose Us</h2>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Our Services
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            Why Choose Us
+          </h2>
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Comprehensive services designed to support every aspect of your international education
             journey.
           </p>
@@ -417,13 +425,11 @@ const FounderMessageSection = () => {
             variants={staggerContainer}
             viewport={{ once: true }}
           >
-            <motion.div variants={fadeUpVariants} className="mb-4 inline-block">
-              <p className="text-sm font-semibold uppercase tracking-wider text-[#C41E3A]">
-                From Our Founder
-              </p>
+            <motion.div variants={fadeUpVariants} className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+              From Our Founder
             </motion.div>
 
-            <motion.h2 variants={fadeUpVariants} className="mb-6 text-4xl font-bold text-gray-900">
+            <motion.h2 variants={fadeUpVariants} className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
               Transforming Dreams Into Reality
             </motion.h2>
 
@@ -502,10 +508,13 @@ const StudentSuccessSection = () => {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="mb-4 text-4xl font-bold text-gray-900 lg:text-5xl">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Testimonials
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             Student Success Stories
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-gray-600">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Real stories from students who transformed their futures with our guidance.
           </p>
         </motion.div>
@@ -578,10 +587,13 @@ const UniversityPartnersSection = () => {
           viewport={{ once: true }}
           className="mb-12 text-center"
         >
-          <h2 className="mb-4 text-4xl font-bold text-gray-900 lg:text-5xl">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Our Network
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             Our University Partners
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="mt-4 text-base leading-relaxed text-gray-500">
             Direct partnerships with 200+ institutions worldwide
           </p>
         </motion.div>
@@ -632,14 +644,14 @@ const ConsultationCTASection = () => {
         >
           <motion.h2
             variants={fadeUpVariants}
-            className="mb-6 text-4xl font-bold text-white lg:text-5xl"
+            className="mb-6 text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl"
           >
             Ready to Start Your Journey?
           </motion.h2>
 
           <motion.p
             variants={fadeUpVariants}
-            className="mb-10 text-xl leading-relaxed text-white/90"
+            className="mb-10 text-base leading-relaxed text-white/70 sm:text-lg"
           >
             Get personalized guidance from our expert consultants. Schedule a free consultation
             today and take the first step towards your global education success.

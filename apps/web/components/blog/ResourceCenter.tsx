@@ -69,10 +69,13 @@ export function ResourceCenter() {
           viewport={{ once: true, margin: '-50px' }}
           className="mb-10 text-center"
         >
-          <h2 className="mb-3 text-3xl font-extrabold tracking-tight text-[#111827] sm:text-4xl lg:text-5xl">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Resources
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             <span className="text-[#C41E3A]">Resource</span> Center
           </h2>
-          <p className="mx-auto max-w-2xl text-lg text-[#6B7280]">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Access exclusive templates and expert guides to elevate your university applications.
           </p>
         </motion.div>

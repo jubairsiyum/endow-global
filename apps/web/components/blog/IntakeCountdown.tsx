@@ -77,11 +77,14 @@ export function IntakeCountdown() {
           viewport={{ once: true }}
           className="mb-16 text-center"
         >
-          <h2 className="mb-4 text-4xl font-bold tracking-tight text-[#111827] lg:text-5xl">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Deadlines
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             Intake Countdown
           </h2>
 
-          <p className="mx-auto max-w-2xl text-lg text-[#6B7280] lg:text-xl">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Application deadlines for upcoming intakes
           </p>
         </motion.div>
