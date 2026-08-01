@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { createTRPCRouter, adminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq, desc, and, like, or, count, sql } from 'drizzle-orm'
+import { countries as catalogCountries, catalogUniversities, departments as catalogDepartments, scholarships as catalogScholarships, catalogCourses } from '@endow/db/schema'
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
@@ -36,11 +37,58 @@ export const adminRouter = createTRPCRouter({
         },
       })
 
+      // Top countries by student count
+      const topCountries = await db
+        .select({
+          country: schema.studentProfiles.nationality,
+          count: count(),
+        })
+        .from(schema.studentProfiles)
+        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL`)
+        .groupBy(schema.studentProfiles.nationality)
+        .orderBy(desc(count()))
+        .limit(5)
+
+      // Upcoming consultations
+      const upcomingConsultations = await db.query.bookingSessions.findMany({
+        where: and(
+          eq(schema.bookingSessions.status, 'SCHEDULED'),
+          sql`${schema.bookingSessions.scheduledAt} >= NOW()`
+        ),
+        orderBy: [schema.bookingSessions.scheduledAt],
+        limit: 5,
+        with: {
+          student: { with: { user: true } },
+          counselor: { with: { user: true } },
+        },
+      })
+
+      // Application trend (last 7 days)
+      const applicationTrend = await db
+        .select({
+          date: sql`DATE(${schema.applications.createdAt})`.as('date'),
+          count: count(),
+        })
+        .from(schema.applications)
+        .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)`)
+        .groupBy(sql`DATE(${schema.applications.createdAt})`)
+        .orderBy(sql`DATE(${schema.applications.createdAt})`)
+
+      // Total students count for top countries
+      const totalStudentsWithNationality = await db
+        .select({ value: count() })
+        .from(schema.studentProfiles)
+        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL`)
+
       return {
         students: studentCountRes[0]?.value || 0,
         counselors: counselorCountRes[0]?.value || 0,
         applicationsByStatus: appsByStatus,
         recentActivity,
+        topCountries,
+        upcomingConsultations,
+        applicationTrend,
+        totalStudentsWithNationality: totalStudentsWithNationality[0]?.value || 0,
       }
     }),
   }),
@@ -273,6 +321,75 @@ export const adminRouter = createTRPCRouter({
         with: { counselorProfile: true },
       })
     }),
+    create: adminProcedure
+      .input(
+        z.object({
+          name: z.string().min(1),
+          email: z.string().email(),
+          bio: z.string().optional(),
+          expertiseCountries: z.array(z.string()).default([]),
+          expertiseSubjects: z.array(z.string()).default([]),
+          languages: z.array(z.string()).default(['English']),
+          calUsername: z.string().optional(),
+          sessionRate: z.number().default(0),
+          isAvailable: z.boolean().default(true),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { name, email, ...profileData } = input
+        const userId = globalThis.crypto.randomUUID()
+        await db.insert(schema.users).values({
+          id: userId,
+          name,
+          email,
+          role: 'COUNSELOR',
+        })
+        await db.insert(schema.counselorProfiles).values({
+          userId,
+          ...profileData,
+        })
+        return { success: true, userId }
+      }),
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          name: z.string().min(1).optional(),
+          email: z.string().email().optional(),
+          bio: z.string().optional(),
+          expertiseCountries: z.array(z.string()).optional(),
+          expertiseSubjects: z.array(z.string()).optional(),
+          languages: z.array(z.string()).optional(),
+          calUsername: z.string().optional(),
+          sessionRate: z.number().optional(),
+          isAvailable: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, name, email, ...profileData } = input
+        if (name || email) {
+          await db.update(schema.users).set({ ...(name && { name }), ...(email && { email }) }).where(eq(schema.users.id, id))
+        }
+        const profile = await db.query.counselorProfiles.findFirst({
+          where: eq(schema.counselorProfiles.userId, id),
+        })
+        if (profile && Object.keys(profileData).length > 0) {
+          await db.update(schema.counselorProfiles).set(profileData).where(eq(schema.counselorProfiles.id, profile.id))
+        }
+        return { success: true }
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        const profile = await db.query.counselorProfiles.findFirst({
+          where: eq(schema.counselorProfiles.userId, input.id),
+        })
+        if (profile) {
+          await db.delete(schema.counselorProfiles).where(eq(schema.counselorProfiles.id, profile.id))
+        }
+        await db.delete(schema.users).where(eq(schema.users.id, input.id))
+        return { success: true }
+      }),
   }),
 
   notifications: createTRPCRouter({
@@ -423,6 +540,428 @@ export const adminRouter = createTRPCRouter({
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.universities).where(eq(schema.universities.id, input.id))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Courses CRUD ──────────────────────────────────────────
+
+  courses: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          universityId: z.string().optional(),
+          subject: z.string().optional(),
+          level: z.enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']).optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.search) {
+          conditions.push(
+            or(
+              like(schema.courses.name, `%${input.search}%`),
+              like(schema.courses.subject, `%${input.search}%`)
+            )
+          )
+        }
+        if (input.universityId) conditions.push(eq(schema.courses.universityId, input.universityId))
+        if (input.subject) conditions.push(eq(schema.courses.subject, input.subject))
+        if (input.level) conditions.push(eq(schema.courses.level, input.level))
+        if (input.isActive !== undefined) conditions.push(eq(schema.courses.isActive, input.isActive))
+
+        return db.query.courses.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [desc(schema.courses.createdAt)],
+          with: { university: { columns: { id: true, name: true, country: true } } },
+        })
+      }),
+
+    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+      return db.query.courses.findFirst({
+        where: eq(schema.courses.id, input.id),
+        with: { university: true },
+      })
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          universityId: z.string().min(1),
+          name: z.string().min(1),
+          slug: z.string().min(1),
+          subject: z.string().min(1),
+          level: z.enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']),
+          duration: z.number().min(1),
+          durationUnit: z.string().default('YEARS'),
+          tuitionFee: z.number().min(0),
+          currency: z.string().default('USD'),
+          applicationDeadline: z.date().optional(),
+          startDate: z.date().optional(),
+          language: z.string().default('English'),
+          requirements: z.array(z.string()).default([]),
+          hasScholarship: z.boolean().default(false),
+          scholarshipDetails: z.string().optional(),
+          description: z.string().min(1),
+          isActive: z.boolean().default(true),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(schema.courses).values(input)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          universityId: z.string().min(1).optional(),
+          name: z.string().min(1).optional(),
+          slug: z.string().min(1).optional(),
+          subject: z.string().min(1).optional(),
+          level: z.enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']).optional(),
+          duration: z.number().min(1).optional(),
+          durationUnit: z.string().optional(),
+          tuitionFee: z.number().min(0).optional(),
+          currency: z.string().optional(),
+          applicationDeadline: z.date().optional(),
+          startDate: z.date().optional(),
+          language: z.string().optional(),
+          requirements: z.array(z.string()).optional(),
+          hasScholarship: z.boolean().optional(),
+          scholarshipDetails: z.string().optional(),
+          description: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(schema.courses).set(data).where(eq(schema.courses.id, id))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.courses).where(eq(schema.courses.id, input.id))
+        return { success: true }
+      }),
+
+    getSubjects: adminProcedure.query(async () => {
+      const rows = await db
+        .selectDistinct({ subject: schema.courses.subject })
+        .from(schema.courses)
+      return rows.map(r => r.subject).filter(Boolean)
+    }),
+  }),
+
+  // ─── Countries CRUD (Catalog) ──────────────────────────────
+
+  countries: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          continent: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.search) {
+          conditions.push(like(catalogCountries.name, `%${input.search}%`))
+        }
+        if (input.continent) conditions.push(eq(catalogCountries.continent, input.continent))
+
+        return db.query.countries.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [catalogCountries.name],
+        })
+      }),
+
+    getById: adminProcedure.input(z.object({ code: z.string() })).query(async ({ input }) => {
+      return db.query.countries.findFirst({
+        where: eq(catalogCountries.code, input.code),
+      })
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          code: z.string().length(2),
+          name: z.string().min(1),
+          flagUrl: z.string().optional(),
+          continent: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(catalogCountries).values(input)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          code: z.string().length(2),
+          name: z.string().min(1).optional(),
+          flagUrl: z.string().optional(),
+          continent: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { code, ...data } = input
+        await db.update(catalogCountries).set(data).where(eq(catalogCountries.code, code))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ code: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(catalogCountries).where(eq(catalogCountries.code, input.code))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Departments CRUD (Catalog) ───────────────────────────
+
+  departments: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          universityId: z.number().optional(),
+          search: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.universityId) conditions.push(eq(catalogDepartments.universityId, input.universityId))
+        if (input.search) conditions.push(like(catalogDepartments.name, `%${input.search}%`))
+
+        return db.query.departments.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [catalogDepartments.name],
+          with: { university: { columns: { id: true, name: true } } },
+        })
+      }),
+
+    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      return db.query.departments.findFirst({
+        where: eq(catalogDepartments.id, input.id),
+        with: { university: true },
+      })
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          universityId: z.number(),
+          name: z.string().min(1),
+          code: z.string().optional(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(catalogDepartments).values(input)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          universityId: z.number().optional(),
+          name: z.string().min(1).optional(),
+          code: z.string().optional(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(catalogDepartments).set(data).where(eq(catalogDepartments.id, id))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.delete(catalogDepartments).where(eq(catalogDepartments.id, input.id))
+        return { success: true }
+      }),
+
+    getCatalogUniversities: adminProcedure.query(async () => {
+      return db.query.catalogUniversities.findMany({
+        orderBy: [catalogUniversities.name],
+        columns: { id: true, name: true },
+      })
+    }),
+  }),
+
+  // ─── Scholarships CRUD (Catalog) ──────────────────────────
+
+  scholarships: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          universityId: z.number().optional(),
+          search: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.universityId) conditions.push(eq(catalogScholarships.universityId, input.universityId))
+        if (input.search) conditions.push(like(catalogScholarships.name, `%${input.search}%`))
+        if (input.isActive !== undefined) conditions.push(eq(catalogScholarships.isActive, input.isActive))
+
+        return db.query.scholarships.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [catalogScholarships.name],
+          with: { university: { columns: { id: true, name: true } }, course: { columns: { id: true, title: true } } },
+        })
+      }),
+
+    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+      return db.query.scholarships.findFirst({
+        where: eq(catalogScholarships.id, input.id),
+        with: { university: true, course: true },
+      })
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          universityId: z.number().optional(),
+          courseId: z.number().optional(),
+          name: z.string().min(1),
+          description: z.string().optional(),
+          amount: z.number().optional(),
+          currencyCode: z.string().default('USD'),
+          coverageType: z.enum(['full', 'partial', 'tuition_only', 'living_only']).default('partial'),
+          eligibility: z.string().optional(),
+          deadline: z.date().optional(),
+          linkUrl: z.string().optional(),
+          isActive: z.boolean().default(true),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(catalogScholarships).values(input)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          universityId: z.number().optional(),
+          courseId: z.number().optional(),
+          name: z.string().min(1).optional(),
+          description: z.string().optional(),
+          amount: z.number().optional(),
+          currencyCode: z.string().optional(),
+          coverageType: z.enum(['full', 'partial', 'tuition_only', 'living_only']).optional(),
+          eligibility: z.string().optional(),
+          deadline: z.date().optional(),
+          linkUrl: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(catalogScholarships).set(data).where(eq(catalogScholarships.id, id))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await db.delete(catalogScholarships).where(eq(catalogScholarships.id, input.id))
+        return { success: true }
+      }),
+
+    getCatalogUniversities: adminProcedure.query(async () => {
+      return db.query.catalogUniversities.findMany({
+        orderBy: [catalogUniversities.name],
+        columns: { id: true, name: true },
+      })
+    }),
+
+    getCatalogCourses: adminProcedure.query(async () => {
+      return db.query.catalogCourses.findMany({
+        orderBy: [catalogCourses.title],
+        columns: { id: true, title: true },
+      })
+    }),
+  }),
+
+  // ─── Newsletter Subscribers CRUD ─────────────────────────
+
+  newsletters: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.search) {
+          conditions.push(
+            or(
+              like(schema.newsletterSubscribers.email, `%${input.search}%`),
+              like(schema.newsletterSubscribers.name, `%${input.search}%`)
+            )
+          )
+        }
+        if (input.isActive !== undefined) conditions.push(eq(schema.newsletterSubscribers.isActive, input.isActive))
+
+        return db.query.newsletterSubscribers.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [desc(schema.newsletterSubscribers.subscribedAt)],
+        })
+      }),
+
+    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+      return db.query.newsletterSubscribers.findFirst({
+        where: eq(schema.newsletterSubscribers.id, input.id),
+      })
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          email: z.string().email(),
+          name: z.string().optional(),
+          isActive: z.boolean().default(true),
+          tags: z.array(z.string()).default([]),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(schema.newsletterSubscribers).values(input)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          email: z.string().email().optional(),
+          name: z.string().optional(),
+          isActive: z.boolean().optional(),
+          tags: z.array(z.string()).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(schema.newsletterSubscribers).set(data).where(eq(schema.newsletterSubscribers.id, id))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.newsletterSubscribers).where(eq(schema.newsletterSubscribers.id, input.id))
         return { success: true }
       }),
   }),

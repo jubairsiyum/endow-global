@@ -15,6 +15,12 @@ import {
   Bell,
   Settings,
   Star,
+  BookOpen,
+  UserCog,
+  Globe,
+  Layers,
+  Award,
+  Mail,
 } from 'lucide-react'
 
 const menuItems = [
@@ -23,55 +29,76 @@ const menuItems = [
     icon: LayoutDashboard,
     href: '/admin',
   },
-
   {
     name: 'Students',
     icon: Users,
     href: '/admin/students',
   },
-
+  {
+    name: 'Counselors',
+    icon: UserCog,
+    href: '/admin/counselors',
+  },
   {
     name: 'Applications',
     icon: FileText,
     href: '/admin/applications',
   },
-
   {
     name: 'Documents',
     icon: FolderOpen,
     href: '/admin/documents',
   },
-
   {
     name: 'Universities',
     icon: GraduationCap,
     href: '/admin/universities',
   },
-
+  {
+    name: 'Courses',
+    icon: BookOpen,
+    href: '/admin/courses',
+  },
+  {
+    name: 'Departments',
+    icon: Layers,
+    href: '/admin/departments',
+  },
+  {
+    name: 'Scholarships',
+    icon: Award,
+    href: '/admin/scholarships',
+  },
+  {
+    name: 'Countries',
+    icon: Globe,
+    href: '/admin/countries',
+  },
   {
     name: 'Messages',
     icon: MessageSquare,
     href: '/admin/messages',
   },
-
   {
     name: 'Analytics',
     icon: BarChart3,
     href: '/admin/analytics',
   },
-
   {
     name: 'Testimonials',
     icon: Star,
     href: '/admin/testimonials',
   },
-
   {
     name: 'Notifications',
     icon: Bell,
     href: '/admin/notifications',
   },
-
+  {
+    name: 'Newsletters',
+    icon: Mail,
+    href: '/admin/newsletters',
+  },
   {
     name: 'Settings',
     icon: Settings,
