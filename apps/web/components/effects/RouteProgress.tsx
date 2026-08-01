@@ -55,9 +55,9 @@ export default function RouteProgress() {
   useEffect(() => {
     if (pathname !== prevPath.current) {
       prevPath.current = pathname
-      // Reduced delay to show content faster
+      // Minimal delay to allow page to start rendering
       if (timerRef.current) clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(() => stopLoading(), 100)
+      timerRef.current = setTimeout(() => stopLoading(), 50)
     }
   }, [pathname, stopLoading])
 
