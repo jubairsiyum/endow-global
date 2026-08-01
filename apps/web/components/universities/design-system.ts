@@ -3,12 +3,12 @@ export const universityDesign = {
     "relative overflow-hidden bg-[#F8FAFC] px-4 py-24 sm:px-6 lg:px-8",
   container: "relative z-10 mx-auto max-w-7xl",
   wideContainer: "relative z-10 mx-auto max-w-[1440px]",
-  header: "mx-auto mb-12 max-w-4xl text-center",
+  header: "mx-auto mb-12 max-w-3xl text-center",
   badge:
-    "inline-flex h-8 items-center gap-2 rounded-full border border-[#E5E7EB] bg-white px-4 text-xs font-bold uppercase text-[#C41E3A] shadow-[0_4px_12px_rgba(0,0,0,0.04)]",
+    "mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm",
   heading:
-    "text-[40px] font-bold leading-[1.1] tracking-normal text-[#0F172A] lg:text-[48px]",
-  description: "mx-auto mt-6 max-w-2xl text-base leading-7 text-[#64748B]",
+    "mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl",
+  description: "mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500",
   card:
     "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_60px_rgba(0,0,0,0.08)]",
   cardCompact:

@@ -47,12 +47,14 @@ export default function ScholarshipSpotlight() {
           viewport={{ once: true }}
           className="mx-auto mb-6 max-w-5xl text-center"
         >
-          <h2 className="text-[clamp(2.1rem,3.8vw,3.4rem)] font-bold leading-[1.05] tracking-normal">
-            <span className="text-[#071225]">Exclusive Scholarship</span>{" "}
-            <span className="text-[#C41E3A]">Opportunities</span>
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Scholarships
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            Exclusive Scholarship <span className="text-[#C41E3A]">Opportunities</span>
           </h2>
 
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Reduce your tuition burden with partner-university scholarships and
             expert financial aid guidance.
           </p>

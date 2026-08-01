@@ -113,13 +113,14 @@ export default function StatisticsSection() {
           viewport={{ once: true }}
           className="mb-6 text-center"
         >
-          <h2 className="text-[clamp(2.75rem,4.5vw,5rem)] font-bold tracking-normal leading-[1.05]">
-            <span className="text-[#071225]">Global</span>{' '}
-            <span className="text-[#C41E3A]">Success</span>{' '}
-            <span className="text-[#071225]">by Numbers</span>
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Our Impact
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            Global <span className="text-[#C41E3A]">Success</span> by Numbers
           </h2>
           
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Join thousands of students who have successfully pursued their education dreams globally
           </p>
         </motion.div>

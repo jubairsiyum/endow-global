@@ -223,11 +223,14 @@ export default function FeaturedUniversities() {
           viewport={{ once: true, margin: '-80px' }}
           className="mx-auto mb-12 max-w-3xl text-center"
         >
-          <h2 className="text-[clamp(2rem,4vw,3.5rem)] font-bold tracking-normal leading-[1.1] text-[#0F172A]">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Featured Programs
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             University <span className="text-[#C41E3A]">Opportunities</span>
           </h2>
 
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-500 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Handpicked universities offering world-class education, exclusive scholarships, and
             guaranteed visa support — all in one place
           </p>

@@ -164,14 +164,14 @@ export default function CountryExplorer() {
         className="relative mx-auto max-w-[1320px]"
       >
         <div className="mx-auto mb-8 max-w-4xl text-center">
-          <div className="mt-2 text-center">
-            <h2 className="text-[clamp(2rem,3.5vw,3.4rem)] font-bold tracking-normal leading-[1.05]">
-              <span className="text-[#071225]">Find Your Ideal Study</span>{" "}
-              <span className="text-[#C41E3A]">Destination</span>
-            </h2>
-          </div>
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+            Study Destinations
+          </span>
+          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+            Find Your Ideal Study <span className="text-[#C41E3A]">Destination</span>
+          </h2>
 
-          <p className="mx-auto mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
             Discover the world&apos;s best education destinations and find the
             perfect fit for your future.
           </p>

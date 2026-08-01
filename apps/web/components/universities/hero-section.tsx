@@ -52,9 +52,9 @@ export default function HeroSection() {
         >
           {/* Badge */}
           <motion.div variants={itemVariants}>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5">
+            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/[0.06] px-3 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#C41E3A]">
+              <span className="text-[11px] font-semibold text-[#C41E3A]">
                 250+ Partner Universities
               </span>
             </div>
@@ -62,7 +62,7 @@ export default function HeroSection() {
 
           {/* Heading */}
           <motion.div variants={itemVariants}>
-            <h1 className="mx-auto max-w-3xl text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-gray-950 sm:text-5xl lg:text-[3.6rem]">
+            <h1 className="mx-auto max-w-3xl text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]">
               Find Your{' '}
               <span className="text-[#C41E3A]">Perfect</span>{' '}
               University
@@ -71,7 +71,7 @@ export default function HeroSection() {
 
           {/* Description */}
           <motion.div variants={itemVariants}>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-gray-500 sm:text-lg">
+            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-gray-500">
               Explore world-class universities in South Korea and Australia.
               Get personalized recommendations based on your profile.
             </p>

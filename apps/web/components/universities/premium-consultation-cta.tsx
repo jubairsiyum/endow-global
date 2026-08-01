@@ -44,18 +44,16 @@ export default function PremiumConsultationCTA() {
         >
           {/* Main Heading */}
           <motion.div variants={itemVariants} className="space-y-4">
-            <h2 className="text-[clamp(2.6rem,4.2vw,4.8rem)] font-bold tracking-normal leading-[1.05]">
-              <span className="text-[#071225]">
-                Ready to Transform Your
-              </span>
-              <br />
-              <span className="text-[#C41E3A]">
-                Educational Future?
-              </span>
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+              Free Consultation
+            </span>
+            <h2 className="text-4xl font-bold leading-tight tracking-tight text-gray-950 sm:text-5xl">
+              Ready to Transform Your{' '}
+              <span className="text-[#C41E3A]">Educational Future?</span>
             </h2>
-            <p className="mx-auto max-w-2xl text-base leading-7 text-slate-600">
-              Get a free profile evaluation from our education experts. Receive 
-              personalized university recommendations and exclusive scholarship 
+            <p className="mx-auto max-w-xl text-base leading-relaxed text-gray-500 sm:text-lg">
+              Get a free profile evaluation from our education experts. Receive
+              personalized university recommendations and exclusive scholarship
               opportunities.
             </p>
           </motion.div>
