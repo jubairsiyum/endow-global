@@ -150,7 +150,7 @@ export function ArticlesGrid({ category }: ArticlesGridProps) {
       variants={containerVariants}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: '-100px' }}
+      viewport={{ once: true, amount: 0.2 }}
       className="grid grid-cols-1 gap-8"
     >
       {filteredArticles.map((article, index) => (

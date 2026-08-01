@@ -29,7 +29,7 @@ export function NewsletterSection() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.2 }}
           className="relative overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
         >
           <div className="absolute inset-0 bg-[#C41E3A]" />

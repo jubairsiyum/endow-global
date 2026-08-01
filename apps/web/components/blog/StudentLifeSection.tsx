@@ -60,7 +60,7 @@ export function StudentLifeSection() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.2 }}
           className="mb-16 text-center"
         >
           <h2 className="mb-4 text-4xl font-bold text-[#111827] lg:text-5xl">
@@ -76,7 +76,7 @@ export function StudentLifeSection() {
           variants={containerVariants}
           initial="hidden"
           whileInView="show"
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.2 }}
           className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4"
         >
           {studentLifeCards.map((card, index) => {
