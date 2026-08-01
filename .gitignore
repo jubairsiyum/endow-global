@@ -1,6 +1,79 @@
-# Compiled and build artifacts
-*.pyc
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+.env.local
+.python-version
+
+# =========================
+# Dependencies
+# =========================
+node_modules/
+venv/
+.venv/
+env/
+
+# =========================
+# Build & Distribution
+# =========================
+build/
+dist/
+out/
+.next/
+.nuxt/
+target/
+
+# =========================
+# Python
+# =========================
 __pycache__/
+*.py[cod]
+.Python
+.tox/
+.mypy_cache/
+.pytest_cache/
+.hypothesis/
+.cache/
+
+# =========================
+# Coverage
+# =========================
+.coverage
+.coverage.*
+coverage/
+htmlcov/
+coverage.xml
+nosetests.xml
+*.cover
+
+# =========================
+# Logs
+# =========================
+*.log
+pip-log.txt
+pip-delete-this-directory.txt
+
+# =========================
+# Temporary Files
+# =========================
+*.tmp
+*.temp
+*~
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE & Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Compiled / Binary Files
+# =========================
 *.o
 *.obj
 *.exe
@@ -9,106 +82,9 @@ __pycache__/
 *.class
 *.out
 
-# Dependencies
-node_modules/
-
-# Build outputs
-dist/
-build/
-.next/
-out/
-
-# Logs
-*.log
-
-# Environment variables
-.env
-.env.local
-*.env.*
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-.nuxt/
-out/
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.log
-.git/
-.mypy_cache/
-.pytest_cache/
-.hypothesis/
-
-# Temporary files
-*.tmp
-*.temp
-*~
-.DS_Store
-Thumbs.db
-```
-
-Wait, I need to reconsider. The modified files are only TypeScript/JSX components (.tsx files), which are source code files. Let me check if there are any build artifacts or dependency-related files in the changes...
-
-Looking at the input again, there are only modified .tsx files, which are source code. No build artifacts, dependencies, or temporary files are shown in the changes.
-
-Output: (empty)
-.ENV
-.ENV.*
-.python-version
-
-# Logs
-*.log
-
-# Environment variables
-venv/
-.venv/
-.env
-.env.local
-.env.*
-
-# Build outputs
-dist/
-build/
-target/
-*.log
-*.tmp
-
-# Editors
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# System files
-.DS_Store
-Thumbs.db
-
-# Coverage
-coverage/
-htmlcov/
-.coverage
-
-# Compressed files
+# =========================
+# Archives
+# =========================
 *.zip
 *.gz
 *.tar
@@ -132,11 +108,7 @@ htmlcov/
 *.tar.xz
 *.tar.zst
 
+# =========================
 # Gradle
+# =========================
 .gradle/
-
-# MyPy
-.mypy_cache/
-
-# Pytest
-.pytest_cache/
