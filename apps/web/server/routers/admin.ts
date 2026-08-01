@@ -308,5 +308,214 @@ export const adminRouter = createTRPCRouter({
         }
         return { success: true }
       }),
+
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          limit: z.number().min(1).max(100).default(50),
+        })
+      )
+      .query(async ({ input }) => {
+        const where = input.search
+          ? or(
+              like(schema.notifications.title, `%${input.search}%`),
+              like(schema.notifications.body, `%${input.search}%`)
+            )
+          : undefined
+
+        return db.query.notifications.findMany({
+          where,
+          orderBy: [desc(schema.notifications.createdAt)],
+          limit: input.limit,
+          with: { user: { columns: { name: true, email: true } } },
+        })
+      }),
+  }),
+
+  // ─── Universities CRUD ────────────────────────────────────
+
+  universities: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          country: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.search) {
+          conditions.push(
+            or(
+              like(schema.universities.name, `%${input.search}%`),
+              like(schema.universities.city, `%${input.search}%`)
+            )
+          )
+        }
+        if (input.country) conditions.push(eq(schema.universities.country, input.country))
+        if (input.isActive !== undefined) conditions.push(eq(schema.universities.isActive, input.isActive))
+
+        return db.query.universities.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [desc(schema.universities.createdAt)],
+          with: { courses: { columns: { id: true } } },
+        })
+      }),
+
+    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+      return db.query.universities.findFirst({
+        where: eq(schema.universities.id, input.id),
+        with: { courses: true },
+      })
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          name: z.string().min(1),
+          slug: z.string().min(1),
+          country: z.string().min(1),
+          city: z.string().min(1),
+          description: z.string().min(1),
+          logo: z.string().optional(),
+          coverImage: z.string().optional(),
+          ranking: z.number().optional(),
+          website: z.string().optional(),
+          established: z.number().optional(),
+          totalStudents: z.number().optional(),
+          internationalPercent: z.number().optional(),
+          isActive: z.boolean().default(true),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(schema.universities).values(input)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          name: z.string().min(1).optional(),
+          slug: z.string().min(1).optional(),
+          country: z.string().min(1).optional(),
+          city: z.string().min(1).optional(),
+          description: z.string().optional(),
+          logo: z.string().optional(),
+          coverImage: z.string().optional(),
+          ranking: z.number().optional(),
+          website: z.string().optional(),
+          established: z.number().optional(),
+          totalStudents: z.number().optional(),
+          internationalPercent: z.number().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(schema.universities).set(data).where(eq(schema.universities.id, id))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.universities).where(eq(schema.universities.id, input.id))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Messages ─────────────────────────────────────────────
+
+  messages: createTRPCRouter({
+    list: adminProcedure
+      .input(z.object({ limit: z.number().min(1).max(100).default(50) }))
+      .query(async () => {
+        return db.query.conversations.findMany({
+          orderBy: [desc(schema.conversations.lastMessageAt)],
+          limit: 50,
+          with: {
+            student: { columns: { name: true, email: true } },
+            counselor: { columns: { name: true, email: true } },
+            messages: { orderBy: [desc(schema.messages.createdAt)], limit: 1 },
+          },
+        })
+      }),
+
+    getMessages: adminProcedure
+      .input(z.object({ conversationId: z.string() }))
+      .query(async ({ input }) => {
+        return db.query.messages.findMany({
+          where: eq(schema.messages.conversationId, input.conversationId),
+          orderBy: [desc(schema.messages.createdAt)],
+          limit: 100,
+        })
+      }),
+  }),
+
+  // ─── Documents ────────────────────────────────────────────
+
+  documents: createTRPCRouter({
+    list: adminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          limit: z.number().min(1).max(100).default(50),
+        })
+      )
+      .query(async ({ input }) => {
+        const apps = await db.query.applications.findMany({
+          orderBy: [desc(schema.applications.updatedAt)],
+          limit: input.limit,
+          with: {
+            student: { with: { user: { columns: { name: true, email: true } } } },
+            course: { with: { university: { columns: { name: true } } } },
+          },
+        })
+
+        // Filter & expand: only apps with documents, and flatten for table view
+        let docs: Array<{
+          id: string
+          studentName: string
+          studentEmail: string
+          university: string
+          course: string
+          status: string
+          docLabel: string
+          docUrl: string
+          updatedAt: Date
+        }> = []
+
+        for (const app of apps) {
+          const urls = (app.documentsUrls || []) as string[]
+          if (urls.length === 0) continue
+          urls.forEach((url, i) => {
+            docs.push({
+              id: `${app.id}-${i}`,
+              studentName: app.student?.user?.name || 'Unknown',
+              studentEmail: app.student?.user?.email || '',
+              university: app.course?.university?.name || 'Unknown',
+              course: app.course?.name || 'Unknown',
+              status: app.status,
+              docLabel: url.split('/').pop() || `Document ${i + 1}`,
+              docUrl: url,
+              updatedAt: app.updatedAt,
+            })
+          })
+        }
+
+        if (input.search) {
+          const s = input.search.toLowerCase()
+          docs = docs.filter(d =>
+            d.studentName.toLowerCase().includes(s) ||
+            d.studentEmail.toLowerCase().includes(s) ||
+            d.university.toLowerCase().includes(s)
+          )
+        }
+
+        return docs.slice(0, input.limit)
+      }),
   }),
 })
