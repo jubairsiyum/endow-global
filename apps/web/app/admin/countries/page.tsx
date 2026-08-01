@@ -86,7 +86,6 @@ export default function CountriesPage() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const data = {
-      code: form.code.toUpperCase(),
       name: form.name,
       flagUrl: form.flagUrl || undefined,
       continent: form.continent || undefined,
@@ -94,7 +93,7 @@ export default function CountriesPage() {
     if (editingCode) {
       updateMutation.mutate({ code: editingCode, ...data })
     } else {
-      createMutation.mutate(data)
+      createMutation.mutate({ code: form.code.toUpperCase(), ...data })
     }
   }
 
