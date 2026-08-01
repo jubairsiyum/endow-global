@@ -10,8 +10,8 @@ const intakes = [
     deadline: 'December 15, 2025',
     status: 'Applications Open',
     daysLeft: 127,
-    color: 'bg-emerald-600',
-    bgColor: 'bg-emerald-50',
+    color: 'bg-[#C41E3A]',
+    bgColor: 'bg-rose-50',
   },
   {
     season: 'June Intake',
@@ -19,8 +19,8 @@ const intakes = [
     deadline: 'March 31, 2026',
     status: 'Open Now',
     daysLeft: 89,
-    color: 'bg-sky-600',
-    bgColor: 'bg-sky-50',
+    color: 'bg-[#C41E3A]',
+    bgColor: 'bg-rose-50',
   },
   {
     season: 'September Intake',
@@ -37,8 +37,8 @@ const intakes = [
     deadline: 'September 30, 2026',
     status: 'Limited Seats',
     daysLeft: 152,
-    color: 'bg-amber-600',
-    bgColor: 'bg-amber-50',
+    color: 'bg-[#C41E3A]',
+    bgColor: 'bg-rose-50',
   },
 ]
 
