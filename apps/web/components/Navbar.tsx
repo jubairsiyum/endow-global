@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -22,23 +22,11 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname()
-  const isAuthRoute = pathname === '/login' || pathname === '/register'
-  const authMode: 'signin' | 'signup' = pathname === '/register' ? 'signup' : 'signin'
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCountriesOpen, setIsCountriesOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const handleAuthClick = useCallback(
-    (mode: 'signin' | 'signup', e: React.MouseEvent<HTMLAnchorElement>) => {
-      if (isAuthRoute && authMode !== mode) {
-        e.preventDefault()
-        window.dispatchEvent(new CustomEvent('endow:set-auth-mode', { detail: mode }))
-      }
-    },
-    [isAuthRoute, authMode]
-  )
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20)
@@ -48,8 +36,12 @@ export function Navbar() {
   }, [])
 
   useEffect(() => {
-    setIsMobileOpen(false)
-    setIsCountriesOpen(false)
+    const timeout = window.setTimeout(() => {
+      setIsMobileOpen(false)
+      setIsCountriesOpen(false)
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
   }, [pathname])
 
   // Close dropdown when clicking outside
@@ -202,7 +194,6 @@ export function Navbar() {
             <Link
               href="/login"
               prefetch={true}
-              onClick={(e) => handleAuthClick('signin', e)}
               className="rounded-full px-4 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900"
             >
               Sign in
@@ -210,7 +201,6 @@ export function Navbar() {
             <Link
               href="/register"
               prefetch={true}
-              onClick={(e) => handleAuthClick('signup', e)}
               className="group inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
             >
               Get Started

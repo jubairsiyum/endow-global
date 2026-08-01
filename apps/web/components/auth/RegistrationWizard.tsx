@@ -86,13 +86,6 @@ export default function RegistrationWizard() {
 
   const updateProfile = trpc.user.updateProfile.useMutation()
 
-  const handleSwitchToLogin = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('endow:set-auth-mode', { detail: 'signin' }))
-    }
-  }, [])
-
   useEffect(() => {
     if (resendTimer <= 0) return
     const timer = setInterval(() => setResendTimer((t) => t - 1), 1000)
@@ -328,7 +321,7 @@ export default function RegistrationWizard() {
 
                 <p className="mt-5 text-center text-sm text-slate-500">
                   Already have an account?{' '}
-                  <Link href="/login" onClick={handleSwitchToLogin} className="font-bold text-red-600 hover:text-red-700">
+                  <Link href="/login" className="font-bold text-red-600 hover:text-red-700">
                     Sign in
                   </Link>
                 </p>

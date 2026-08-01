@@ -38,13 +38,6 @@ export default function SignInForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
 
-  const handleSwitchToRegister = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    e.preventDefault()
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('endow:set-auth-mode', { detail: 'signup' }))
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (isLoading) return
@@ -169,7 +162,7 @@ export default function SignInForm() {
 
             <p className="mt-6 text-center text-sm text-slate-500">
               Don&apos;t have an account?{' '}
-              <Link href="/register" onClick={handleSwitchToRegister} className="font-bold text-red-600 hover:text-red-700">
+              <Link href="/register" className="font-bold text-red-600 hover:text-red-700">
                 Create one
               </Link>
             </p>
