@@ -40,7 +40,6 @@ export default function MessagesPage() {
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {conversations.map(c => {
-                  const lastMsg = c.messages?.[0]
                   return (
                     <button
                       key={c.id}
@@ -58,8 +57,8 @@ export default function MessagesPage() {
                           <p className="truncate text-xs text-gray-400">
                             {c.counselor?.name || 'Unassigned'}
                           </p>
-                          {lastMsg && (
-                            <p className="mt-0.5 truncate text-xs text-gray-500">{lastMsg.content}</p>
+                          {c.lastMessage && (
+                            <p className="mt-0.5 truncate text-xs text-gray-500">{c.lastMessage}</p>
                           )}
                         </div>
                         <span className="shrink-0 text-[10px] text-gray-400">
@@ -106,8 +105,8 @@ export default function MessagesPage() {
                   ) : (
                     <div className="space-y-3">
                       {[...messages].reverse().map(msg => (
-                        <div key={msg.id} className={`flex ${msg.senderRole === 'STUDENT' ? 'justify-start' : 'justify-end'}`}>
-                          <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === 'STUDENT' ? 'bg-gray-100 dark:bg-[#222530]' : 'bg-primary/10 dark:bg-[#2a1114]'}`}>
+                        <div key={msg.id} className={`flex ${msg.sender?.role === 'STUDENT' ? 'justify-start' : 'justify-end'}`}>
+                          <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.sender?.role === 'STUDENT' ? 'bg-gray-100 dark:bg-[#222530]' : 'bg-primary/10 dark:bg-[#2a1114]'}`}>
                             <p className="text-sm text-gray-800 dark:text-gray-200">{msg.content}</p>
                             <p className="mt-1 text-[10px] text-gray-400">
                               {msg.createdAt ? formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true }) : ''}

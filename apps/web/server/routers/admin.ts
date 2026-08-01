@@ -989,6 +989,9 @@ export const adminRouter = createTRPCRouter({
           where: eq(schema.messages.conversationId, input.conversationId),
           orderBy: [desc(schema.messages.createdAt)],
           limit: 100,
+          with: {
+            sender: { columns: { id: true, name: true, role: true } },
+          },
         })
       }),
   }),
