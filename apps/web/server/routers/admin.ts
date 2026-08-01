@@ -2,7 +2,6 @@ import { z } from 'zod'
 import { createTRPCRouter, adminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq, desc, and, like, or, count, sql } from 'drizzle-orm'
-import { countries as catalogCountries, catalogUniversities, departments as catalogDepartments, scholarships as catalogScholarships, catalogCourses } from '@endow/db/schema'
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
@@ -670,19 +669,19 @@ export const adminRouter = createTRPCRouter({
       .query(async ({ input }) => {
         const conditions = []
         if (input.search) {
-          conditions.push(like(catalogCountries.name, `%${input.search}%`))
+          conditions.push(like(schema.countries.name, `%${input.search}%`))
         }
-        if (input.continent) conditions.push(eq(catalogCountries.continent, input.continent))
+        if (input.continent) conditions.push(eq(schema.countries.continent, input.continent))
 
         return db.query.countries.findMany({
           where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [catalogCountries.name],
+          orderBy: [schema.countries.name],
         })
       }),
 
     getById: adminProcedure.input(z.object({ code: z.string() })).query(async ({ input }) => {
       return db.query.countries.findFirst({
-        where: eq(catalogCountries.code, input.code),
+        where: eq(schema.countries.code, input.code),
       })
     }),
 
@@ -696,7 +695,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(catalogCountries).values(input)
+        await db.insert(schema.countries).values(input)
         return { success: true }
       }),
 
@@ -711,14 +710,14 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input }) => {
         const { code, ...data } = input
-        await db.update(catalogCountries).set(data).where(eq(catalogCountries.code, code))
+        await db.update(schema.countries).set(data).where(eq(schema.countries.code, code))
         return { success: true }
       }),
 
     delete: adminProcedure
       .input(z.object({ code: z.string() }))
       .mutation(async ({ input }) => {
-        await db.delete(catalogCountries).where(eq(catalogCountries.code, input.code))
+        await db.delete(schema.countries).where(eq(schema.countries.code, input.code))
         return { success: true }
       }),
   }),
@@ -735,19 +734,19 @@ export const adminRouter = createTRPCRouter({
       )
       .query(async ({ input }) => {
         const conditions = []
-        if (input.universityId) conditions.push(eq(catalogDepartments.universityId, input.universityId))
-        if (input.search) conditions.push(like(catalogDepartments.name, `%${input.search}%`))
+        if (input.universityId) conditions.push(eq(schema.departments.universityId, input.universityId))
+        if (input.search) conditions.push(like(schema.departments.name, `%${input.search}%`))
 
         return db.query.departments.findMany({
           where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [catalogDepartments.name],
+          orderBy: [schema.departments.name],
           with: { university: { columns: { id: true, name: true } } },
         })
       }),
 
     getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
       return db.query.departments.findFirst({
-        where: eq(catalogDepartments.id, input.id),
+        where: eq(schema.departments.id, input.id),
         with: { university: true },
       })
     }),
@@ -762,7 +761,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(catalogDepartments).values(input)
+        await db.insert(schema.departments).values(input)
         return { success: true }
       }),
 
@@ -778,20 +777,20 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(catalogDepartments).set(data).where(eq(catalogDepartments.id, id))
+        await db.update(schema.departments).set(data).where(eq(schema.departments.id, id))
         return { success: true }
       }),
 
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        await db.delete(catalogDepartments).where(eq(catalogDepartments.id, input.id))
+        await db.delete(schema.departments).where(eq(schema.departments.id, input.id))
         return { success: true }
       }),
 
     getCatalogUniversities: adminProcedure.query(async () => {
       return db.query.catalogUniversities.findMany({
-        orderBy: [catalogUniversities.name],
+        orderBy: [schema.catalogUniversities.name],
         columns: { id: true, name: true },
       })
     }),
@@ -810,20 +809,20 @@ export const adminRouter = createTRPCRouter({
       )
       .query(async ({ input }) => {
         const conditions = []
-        if (input.universityId) conditions.push(eq(catalogScholarships.universityId, input.universityId))
-        if (input.search) conditions.push(like(catalogScholarships.name, `%${input.search}%`))
-        if (input.isActive !== undefined) conditions.push(eq(catalogScholarships.isActive, input.isActive))
+        if (input.universityId) conditions.push(eq(schema.scholarships.universityId, input.universityId))
+        if (input.search) conditions.push(like(schema.scholarships.name, `%${input.search}%`))
+        if (input.isActive !== undefined) conditions.push(eq(schema.scholarships.isActive, input.isActive))
 
         return db.query.scholarships.findMany({
           where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [catalogScholarships.name],
+          orderBy: [schema.scholarships.name],
           with: { university: { columns: { id: true, name: true } }, course: { columns: { id: true, title: true } } },
         })
       }),
 
     getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
       return db.query.scholarships.findFirst({
-        where: eq(catalogScholarships.id, input.id),
+        where: eq(schema.scholarships.id, input.id),
         with: { university: true, course: true },
       })
     }),
@@ -845,7 +844,7 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(catalogScholarships).values(input)
+        await db.insert(schema.scholarships).values(input)
         return { success: true }
       }),
 
@@ -868,27 +867,27 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(catalogScholarships).set(data).where(eq(catalogScholarships.id, id))
+        await db.update(schema.scholarships).set(data).where(eq(schema.scholarships.id, id))
         return { success: true }
       }),
 
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        await db.delete(catalogScholarships).where(eq(catalogScholarships.id, input.id))
+        await db.delete(schema.scholarships).where(eq(schema.scholarships.id, input.id))
         return { success: true }
       }),
 
     getCatalogUniversities: adminProcedure.query(async () => {
       return db.query.catalogUniversities.findMany({
-        orderBy: [catalogUniversities.name],
+        orderBy: [schema.catalogUniversities.name],
         columns: { id: true, name: true },
       })
     }),
 
     getCatalogCourses: adminProcedure.query(async () => {
       return db.query.catalogCourses.findMany({
-        orderBy: [catalogCourses.title],
+        orderBy: [schema.catalogCourses.title],
         columns: { id: true, title: true },
       })
     }),
