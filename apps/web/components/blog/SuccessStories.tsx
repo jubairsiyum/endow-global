@@ -64,7 +64,7 @@ export function SuccessStories() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.2 }}
           className="mb-16 text-center"
         >
           <h2 className="mb-4 text-4xl font-bold text-[#111827] lg:text-5xl">

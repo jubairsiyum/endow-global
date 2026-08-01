@@ -41,7 +41,7 @@ export function Sidebar() {
       variants={containerVariants}
       initial="hidden"
       whileInView="show"
-      viewport={{ once: true, margin: '-100px' }}
+      viewport={{ once: true, amount: 0.2 }}
       className="sticky top-32 space-y-8"
     >
       {/* TRENDING NOW */}

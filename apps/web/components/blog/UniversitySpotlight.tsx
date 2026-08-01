@@ -17,7 +17,7 @@ export function UniversitySpotlight() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.2 }}
           className="mb-16 text-center"
         >
           <h2 className="mb-4 text-4xl font-bold text-[#111827] lg:text-5xl">
@@ -32,7 +32,7 @@ export function UniversitySpotlight() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: '-100px' }}
+          viewport={{ once: true, amount: 0.2 }}
           whileHover={{ y: -4 }}
           className="overflow-hidden rounded-xl border border-[#E5E7EB] bg-white shadow-[0_10px_30px_rgba(0,0,0,0.06)] transition-shadow"
         >
