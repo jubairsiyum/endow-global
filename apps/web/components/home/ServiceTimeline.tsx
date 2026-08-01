@@ -27,14 +27,23 @@ export default function ServiceTimeline() {
           </div>
         </FadeUp>
 
-        <FadeUpStagger className="mt-14 grid gap-4 md:grid-cols-5" amount={0.1}>
+        <FadeUpStagger className="mt-14 grid gap-6 md:grid-cols-5" amount={0.1}>
           {steps.map((step, i) => {
             const Icon = step.icon
             return (
               <FadeUpItem key={step.number}>
                 <article className={`group relative h-full rounded-2xl border border-gray-100 bg-white p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${step.hover}`}>
+                  {/* Connector Line */}
                   {i < steps.length - 1 && (
-                    <div className="absolute -right-2 top-1/2 hidden h-px w-4 bg-gray-200 lg:block" />
+                    <>
+                      {/* Desktop horizontal connector */}
+                      <div className="absolute left-full top-1/2 hidden h-0.5 w-6 -translate-y-1/2 lg:block">
+                        <div className="h-full w-full bg-gradient-to-r from-gray-200 via-rose-200 to-gray-200 opacity-60 transition-opacity group-hover:opacity-100" />
+                        <div className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 translate-x-1 rotate-45 border-r border-t border-gray-300 bg-white opacity-60 group-hover:opacity-100" />
+                      </div>
+                      {/* Mobile vertical connector */}
+                      <div className="absolute bottom-0 left-1/2 h-6 w-0.5 -translate-x-1/2 translate-y-full bg-gradient-to-b from-gray-200 via-rose-200 to-gray-200 opacity-60 md:hidden" />
+                    </>
                   )}
                   <div className="mb-4 flex items-center justify-between">
                     <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${step.bg} transition-transform group-hover:scale-110`}>
