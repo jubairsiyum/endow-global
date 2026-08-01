@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
@@ -84,6 +85,13 @@ export default function RegistrationWizard() {
   const [startDate, setStartDate] = useState('')
 
   const updateProfile = trpc.user.updateProfile.useMutation()
+
+  const handleSwitchToLogin = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('endow:set-auth-mode', { detail: 'signin' }))
+    }
+  }, [])
 
   useEffect(() => {
     if (resendTimer <= 0) return
@@ -320,9 +328,9 @@ export default function RegistrationWizard() {
 
                 <p className="mt-5 text-center text-sm text-slate-500">
                   Already have an account?{' '}
-                  <a href="/login" className="font-bold text-red-600 hover:text-red-700">
+                  <Link href="/login" onClick={handleSwitchToLogin} className="font-bold text-red-600 hover:text-red-700">
                     Sign in
-                  </a>
+                  </Link>
                 </p>
               </motion.div>
             )}

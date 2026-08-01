@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Mail, LockKeyhole, ArrowRight, Shield, Eye, EyeOff } from 'lucide-react'
@@ -36,6 +37,13 @@ export default function SignInForm() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  const handleSwitchToRegister = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('endow:set-auth-mode', { detail: 'signup' }))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -161,9 +169,9 @@ export default function SignInForm() {
 
             <p className="mt-6 text-center text-sm text-slate-500">
               Don&apos;t have an account?{' '}
-              <a href="/register" className="font-bold text-red-600 hover:text-red-700">
+              <Link href="/register" onClick={handleSwitchToRegister} className="font-bold text-red-600 hover:text-red-700">
                 Create one
-              </a>
+              </Link>
             </p>
           </motion.div>
         </div>
