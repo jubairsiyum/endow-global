@@ -9,6 +9,8 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       lerp: 0.08,
       smoothWheel: true,
       wheelMultiplier: 1,
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     })
 
     function raf(time: number) {
@@ -18,8 +20,16 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     requestAnimationFrame(raf)
 
+    // Sync Lenis scroll with native scroll on route changes
+    const handleScroll = () => {
+      lenis.scrollTo(window.scrollY, { immediate: true })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+
     return () => {
       lenis.destroy()
+      window.removeEventListener('scroll', handleScroll)
     }
   }, [])
 

@@ -18,7 +18,7 @@ export default function RouteProgress() {
     fadeTimerRef.current = setTimeout(() => {
       setLoading(false)
       setFading(false)
-    }, 200)
+    }, 150)
   }, [])
 
   // Detect link clicks immediately
@@ -42,9 +42,9 @@ export default function RouteProgress() {
       setLoading(true)
       setFading(false)
 
-      // Safety timeout
+      // Safety timeout - reduced to avoid blocking UI
       if (timerRef.current) clearTimeout(timerRef.current)
-      timerRef.current = setTimeout(() => stopLoading(), 3000)
+      timerRef.current = setTimeout(() => stopLoading(), 2000)
     }
 
     document.addEventListener('click', handleClick, { capture: true })
@@ -55,7 +55,9 @@ export default function RouteProgress() {
   useEffect(() => {
     if (pathname !== prevPath.current) {
       prevPath.current = pathname
-      timerRef.current = setTimeout(() => stopLoading(), 300)
+      // Reduced delay to show content faster
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(() => stopLoading(), 100)
     }
   }, [pathname, stopLoading])
 
@@ -71,13 +73,13 @@ export default function RouteProgress() {
 
   return (
     <div
-      className={`fixed inset-0 z-[99999] flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity duration-200 ${
+      className={`fixed inset-0 z-[99999] flex items-center justify-center bg-white/80 backdrop-blur-sm transition-opacity duration-150 ${
         fading ? 'opacity-0' : 'opacity-100'
       }`}
     >
       <div className="flex flex-col items-center gap-4">
         {/* Still logo with subtle glow */}
-        <div className="relative h-20 w-20 animate-logoGlow">
+        <div className="relative h-16 w-16 animate-logoGlow">
           <Image
             src="/logo/endoedu.svg"
             alt="Loading"

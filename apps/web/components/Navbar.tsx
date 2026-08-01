@@ -176,6 +176,7 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={true}
                   aria-current={isActive ? 'page' : undefined}
                   className={`relative flex items-center gap-1 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors ${
                     isActive
@@ -200,7 +201,7 @@ export function Navbar() {
           <div className="hidden items-center gap-2 lg:flex">
             <Link
               href="/login"
-              prefetch={false}
+              prefetch={true}
               onClick={handleAuthClick('signin')}
               className="rounded-full px-4 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900"
             >
@@ -208,7 +209,7 @@ export function Navbar() {
             </Link>
             <Link
               href="/register"
-              prefetch={false}
+              prefetch={true}
               onClick={handleAuthClick('signup')}
               className="group inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
             >
