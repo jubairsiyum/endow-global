@@ -59,7 +59,7 @@ export default function SignInForm() {
         toast.error(error.message || 'Invalid email or password')
         return
       }
-      
+
       router.push('/dashboard')
     } catch {
       toast.error('Something went wrong. Please try again.')
@@ -172,4 +172,3 @@ export default function SignInForm() {
     </div>
   )
 }
-

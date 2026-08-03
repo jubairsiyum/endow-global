@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 
 import { TRPCReactProvider } from '@/lib/trpc-client'
 
-import { Toaster } from 'sonner'
+import ToasterProvider from '@/components/providers/ToasterProvider'
 
 import ThemeProvider from '@/components/providers/ThemeProvider'
 import SmoothScroll from '@/components/providers/SmoothScroll'
@@ -96,7 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <PageTransition>{children}</PageTransition>
               </main>
 
-              <Toaster position="top-right" richColors closeButton />
+              <ToasterProvider />
             </TRPCReactProvider>
           </SmoothScroll>
         </ThemeProvider>
