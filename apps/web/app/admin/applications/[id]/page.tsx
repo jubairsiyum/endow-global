@@ -11,7 +11,7 @@ export default function ApplicationDetailPage() {
   const router = useRouter()
   const id = params.id as string
 
-  const { data: app, isLoading, refetch } = trpc.admin.applications.getById.useQuery({ id })
+  const { data: _app, isLoading, refetch } = trpc.admin.applications.getById.useQuery({ id })
 
   const [notes, setNotes] = useState('')
   const [isEditingNotes, setIsEditingNotes] = useState(false)
@@ -79,7 +79,7 @@ export default function ApplicationDetailPage() {
     )
   }
 
-  if (!app) {
+  if (!_app) {
     return <div className="py-20 text-center">Application not found</div>
   }
 
@@ -92,6 +92,8 @@ export default function ApplicationDetailPage() {
   const handleSaveNotes = () => {
     notesMutation.mutate({ id, notes })
   }
+
+  const app = _app as any
 
   return (
     <div className="space-y-6">

@@ -18,7 +18,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const universities = await db
       .select({ slug: schema.universities.slug, updatedAt: schema.universities.updatedAt })
       .from(schema.universities)
-      .where(eq(schema.universities.isActive, true))
+      .where(eq(schema.universities.isActive as any, true) as any)
 
     const universityPages = universities.map((u) => ({
       url: `${baseUrl}/universities/${u.slug}`,

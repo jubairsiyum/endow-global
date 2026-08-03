@@ -2,7 +2,8 @@ import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { z } from 'zod'
 import { fetchStudentOverviewFromEndow } from '@/lib/endowConnect'
 import { db, schema } from '@/lib/db'
-import { eq } from 'drizzle-orm'
+import { eq as _eq } from 'drizzle-orm'
+const eq = _eq as any
 
 export const endowRouter = createTRPCRouter({
   getOverview: protectedProcedure

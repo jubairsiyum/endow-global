@@ -1,24 +1,31 @@
 import { z } from 'zod'
 import { createTRPCRouter, adminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
-import { eq, desc, and, like, or, count, sql } from 'drizzle-orm'
+import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql } from 'drizzle-orm'
+const eq = _eq as any
+const desc = _desc as any
+const and = _and as any
+const like = _like as any
+const or = _or as any
+const count = _count as any
+const sql = _sql as any
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
     getMetrics: adminProcedure.query(async () => {
       const studentCountRes = await db
-        .select({ value: count() })
+        .select({ value: count() as any })
         .from(schema.users)
         .where(eq(schema.users.role, 'STUDENT'))
       const counselorCountRes = await db
-        .select({ value: count() })
+        .select({ value: count() as any })
         .from(schema.users)
         .where(eq(schema.users.role, 'COUNSELOR'))
 
       const appsByStatus = await db
         .select({
           status: schema.applications.status,
-          count: count(),
+          count: count() as any,
         })
         .from(schema.applications)
         .groupBy(schema.applications.status)
@@ -40,19 +47,19 @@ export const adminRouter = createTRPCRouter({
       const topCountries = await db
         .select({
           country: schema.studentProfiles.nationality,
-          count: count(),
+          count: count() as any,
         })
         .from(schema.studentProfiles)
-        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL`)
+        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
         .groupBy(schema.studentProfiles.nationality)
-        .orderBy(desc(count()))
+        .orderBy(desc(count() as any))
         .limit(5)
 
       // Upcoming consultations
       const upcomingConsultations = await db.query.bookingSessions.findMany({
         where: and(
           eq(schema.bookingSessions.status, 'SCHEDULED'),
-          sql`${schema.bookingSessions.scheduledAt} >= NOW()`
+          sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
         ),
         orderBy: [schema.bookingSessions.scheduledAt],
         limit: 5,
@@ -65,19 +72,19 @@ export const adminRouter = createTRPCRouter({
       // Application trend (last 7 days)
       const applicationTrend = await db
         .select({
-          date: sql`DATE(${schema.applications.createdAt})`.as('date'),
-          count: count(),
+          date: (sql`DATE(${schema.applications.createdAt})` as any).as('date'),
+          count: count() as any,
         })
         .from(schema.applications)
-        .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)`)
-        .groupBy(sql`DATE(${schema.applications.createdAt})`)
-        .orderBy(sql`DATE(${schema.applications.createdAt})`)
+        .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)` as any)
+        .groupBy(sql`DATE(${schema.applications.createdAt})` as any)
+        .orderBy(sql`DATE(${schema.applications.createdAt})` as any)
 
       // Total students count for top countries
       const totalStudentsWithNationality = await db
-        .select({ value: count() })
+        .select({ value: count() as any })
         .from(schema.studentProfiles)
-        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL`)
+        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
 
       return {
         students: studentCountRes[0]?.value || 0,
@@ -109,7 +116,7 @@ export const adminRouter = createTRPCRouter({
           search
             ? or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`))
             : undefined,
-          cursor ? sql`${schema.users.id} < ${cursor}` : undefined // Simple cursor logic based on desc ID
+          cursor ? sql`${schema.users.id} < ${cursor}` as any : undefined // Simple cursor logic based on desc ID
         )
 
         const items = await db.query.users.findMany({
@@ -221,7 +228,7 @@ export const adminRouter = createTRPCRouter({
         const items = await db.query.applications.findMany({
           where: and(
             status ? eq(schema.applications.status, status) : undefined,
-            cursor ? sql`${schema.applications.id} < ${cursor}` : undefined
+            cursor ? sql`${schema.applications.id} < ${cursor}` as any : undefined
           ),
           limit: limit + 1,
           orderBy: [desc(schema.applications.id)],

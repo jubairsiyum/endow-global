@@ -9,7 +9,8 @@ import UpcomingConsultations from '@/components/admin/dashboard/UpcomingConsulta
 import { trpc } from '@/lib/trpc-client'
 
 export default function AdminPage() {
-  const { data: metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
+  const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
+  const metrics = _metrics as any
 
   if (isLoading) {
     return (
@@ -22,7 +23,7 @@ export default function AdminPage() {
   // Calculate some derived stats
   const pipelineStatusMap =
     metrics?.applicationsByStatus?.reduce(
-      (acc, curr) => {
+      (acc: Record<string, number>, curr: any) => {
         acc[curr.status] = curr.count
         return acc
       },
@@ -30,7 +31,7 @@ export default function AdminPage() {
     ) || {}
 
   const totalApplications =
-    metrics?.applicationsByStatus?.reduce((sum, curr) => sum + curr.count, 0) || 0
+    metrics?.applicationsByStatus?.reduce((sum: number, curr: any) => sum + curr.count, 0) || 0
   const pendingDocs = pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0
 
   const stats = [
@@ -61,7 +62,7 @@ export default function AdminPage() {
   ]
 
   const activities =
-    metrics?.recentActivity?.map((app) => ({
+    metrics?.recentActivity?.map((app: any) => ({
       title: `Application ${app.status.toLowerCase().replace('_', ' ')}: ${app.student?.user?.name}`,
       time: formatDistanceToNow(new Date(app.updatedAt), { addSuffix: true }),
     })) || []
@@ -87,7 +88,7 @@ export default function AdminPage() {
         <div className="space-y-3 xl:col-span-9">
           {/* STATS */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {stats.map((item) => {
+            {stats.map((item: any) => {
               const Icon = item.icon
 
               return (
@@ -194,7 +195,7 @@ export default function AdminPage() {
               {activities.length === 0 && (
                 <p className="text-xs text-gray-500">No recent activity</p>
               )}
-              {activities.map((item, index) => (
+              {activities.map((item: any, index: number) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
 

@@ -182,7 +182,7 @@ export default function ScholarshipsPage() {
               <p className="text-sm">Add your first scholarship to get started.</p>
             </div>
           ) : (
-            (scholarships || []).map(s => (
+            (scholarships || []).map((s: any) => (
               <div
                 key={s.id}
                 className="grid min-w-[900px] grid-cols-7 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"

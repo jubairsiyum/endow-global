@@ -163,7 +163,7 @@ export default function NewslettersPage() {
               <p className="text-sm">Add your first subscriber to get started.</p>
             </div>
           ) : (
-            (subscribers || []).map(s => (
+            (subscribers || []).map((s: any) => (
               <div
                 key={s.id}
                 className="grid min-w-[700px] grid-cols-5 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"

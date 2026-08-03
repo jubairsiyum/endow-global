@@ -142,7 +142,7 @@ export default function CounselorsPage() {
               <p className="text-sm">Add your first counselor to get started.</p>
             </div>
           ) : (
-            (counselors || []).map(c => (
+            (counselors || []).map((c: any) => (
               <div
                 key={c.id}
                 className="grid min-w-[800px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"

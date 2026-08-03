@@ -77,7 +77,7 @@ export default function UniversitiesPage() {
     },
   })
 
-  const countries = Array.from(new Set((universities || []).map(u => u.country).filter(Boolean))).sort()
+  const countries = Array.from(new Set((universities || []).map((u: any) => u.country).filter(Boolean))).sort()
 
   function openCreate() {
     setEditingId(null)
@@ -186,7 +186,7 @@ export default function UniversitiesPage() {
               <p className="text-sm">Add your first university to get started.</p>
             </div>
           ) : (
-            (universities || []).map(u => (
+            (universities || []).map((u: any) => (
               <div
                 key={u.id}
                 className="grid min-w-[800px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"

@@ -28,7 +28,7 @@ export default function UpcomingConsultations() {
         {consultations.length === 0 ? (
           <p className="py-4 text-center text-xs text-gray-400">No upcoming consultations</p>
         ) : (
-          consultations.map((item) => (
+          consultations.map((item: any) => (
             <div key={item.id} className="flex items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-2">
                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-red-50 text-xs font-bold text-primary dark:bg-[#2a1114]">

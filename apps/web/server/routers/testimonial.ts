@@ -1,7 +1,9 @@
 import { z } from 'zod'
 import { createTRPCRouter, adminProcedure, publicProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
-import { eq, desc } from 'drizzle-orm'
+import { eq as _eq, desc as _desc } from 'drizzle-orm'
+const eq = _eq as any
+const desc = _desc as any
 
 export const testimonialRouter = createTRPCRouter({
   published: publicProcedure.query(async () => {

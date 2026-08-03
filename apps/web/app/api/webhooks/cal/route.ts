@@ -49,7 +49,7 @@ export async function POST(req: Request) {
     await db
       .update(schema.bookingSessions)
       .set({ status: 'CANCELLED' })
-      .where(eq(schema.bookingSessions.calBookingId, payload.uid))
+      .where(eq(schema.bookingSessions.calBookingId as any, payload.uid) as any)
   }
 
   return NextResponse.json({ received: true })

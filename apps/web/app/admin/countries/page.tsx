@@ -139,7 +139,7 @@ export default function CountriesPage() {
               <p className="text-sm">Add your first country to get started.</p>
             </div>
           ) : (
-            (countries || []).map(c => (
+            (countries || []).map((c: any) => (
               <div
                 key={c.code}
                 className="grid min-w-[600px] grid-cols-4 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"

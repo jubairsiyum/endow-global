@@ -21,13 +21,13 @@ export async function POST(req: Request) {
         await db
           .update(schema.bookingSessions)
           .set({ stripePaymentId: pi.id, amountPaid: pi.amount / 100 })
-          .where(eq(schema.bookingSessions.id, pi.metadata.sessionId))
+          .where(eq(schema.bookingSessions.id as any, pi.metadata.sessionId) as any)
       }
       if (pi.metadata?.type === 'referral_redeem') {
         await db
           .update(schema.studentProfiles)
-          .set({ referralBalance: sql`referral_balance - ${parseInt(pi.metadata.creditsUsed)}` })
-          .where(eq(schema.studentProfiles.id, pi.metadata.studentProfileId))
+          .set({ referralBalance: sql`referral_balance - ${parseInt(pi.metadata.creditsUsed)}` as any })
+          .where(eq(schema.studentProfiles.id as any, pi.metadata.studentProfileId) as any)
       }
       break
     }

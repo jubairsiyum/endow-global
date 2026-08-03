@@ -66,8 +66,8 @@ export default function NotificationsPage() {
           <p className="text-sm">Send your first system notification.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {notifications.map(n => (
+        <div className="space-y-4">
+          {notifications.map((n: any) => (
             <div
               key={n.id}
               className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:shadow-md dark:border-gray-800 dark:bg-[#1a1d25]"

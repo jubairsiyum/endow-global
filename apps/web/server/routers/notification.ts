@@ -1,6 +1,7 @@
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
-import { eq } from 'drizzle-orm'
+import { eq as _eq } from 'drizzle-orm'
+const eq = _eq as any
 
 export const notificationRouter = createTRPCRouter({
   getAll: protectedProcedure.query(({ ctx }) => {

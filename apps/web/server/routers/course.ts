@@ -1,6 +1,11 @@
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc'
 import { z } from 'zod'
-import { eq, and, like, sql, desc } from 'drizzle-orm'
+import { eq as _eq, and as _and, like as _like, sql as _sql, desc as _desc } from 'drizzle-orm'
+const eq = _eq as any
+const and = _and as any
+const like = _like as any
+const sql = _sql as any
+const desc = _desc as any
 import { courses, universities } from '@endow/db'
 
 export const courseRouter = createTRPCRouter({

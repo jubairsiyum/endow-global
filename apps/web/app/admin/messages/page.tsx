@@ -100,8 +100,8 @@ export default function MessagesPage() {
                   {!messages?.length ? (
                     <p className="py-8 text-center text-sm text-gray-400">No messages in this conversation.</p>
                   ) : (
-                    <div className="space-y-3">
-                      {[...messages].reverse().map(msg => (
+                    <div className="flex flex-col-reverse gap-4 p-6">
+                      {[...messages].reverse().map((msg: any) => (
                         <div key={msg.id} className={`flex ${msg.senderRole === 'STUDENT' ? 'justify-start' : 'justify-end'}`}>
                           <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === 'STUDENT' ? 'bg-gray-100 dark:bg-[#222530]' : 'bg-primary/10 dark:bg-[#2a1114]'}`}>
                             <p className="text-sm text-gray-800 dark:text-gray-200">{msg.content}</p>

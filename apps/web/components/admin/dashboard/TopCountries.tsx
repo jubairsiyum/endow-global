@@ -5,7 +5,8 @@ import { trpc } from '@/lib/trpc-client'
 const COLORS = ['#ef4444', '#8b5cf6', '#22c55e', '#eab308', '#d1d5db']
 
 export default function TopCountries() {
-  const { data: metrics } = trpc.admin.dashboard.getMetrics.useQuery()
+  const { data: _metrics } = trpc.admin.dashboard.getMetrics.useQuery()
+  const metrics = _metrics as any
 
   const totalStudents = metrics?.totalStudentsWithNationality || 0
   const countries = (metrics?.topCountries || []).map((item: any, i: number) => ({
@@ -17,10 +18,10 @@ export default function TopCountries() {
 
   // Calculate SVG circle segments
   const circumference = 2 * Math.PI * 72 // radius 72
-  const total = countries.reduce((sum, c) => sum + c.count, 0) || 1
+  const total = countries.reduce((sum: number, c: any) => sum + c.count, 0) || 1
   let cumulativePercent = 0
 
-  const segments = countries.map((c) => {
+  const segments = countries.map((c: any) => {
     const percent = c.count / total
     const dashArray = `${percent * circumference} ${circumference}`
     const dashOffset = -cumulativePercent * circumference
@@ -47,7 +48,7 @@ export default function TopCountries() {
           {totalStudents > 0 ? (
             <svg width="190" height="190" viewBox="0 0 210 210" className="-rotate-90">
               <circle cx="105" cy="105" r="58" fill="none" stroke="#f3f4f6" strokeWidth="14" />
-              {segments.map((seg, i) => (
+              {segments.map((seg: any, i: number) => (
                 <circle
                   key={i}
                   cx="105"
@@ -83,7 +84,7 @@ export default function TopCountries() {
           {countries.length === 0 && (
             <p className="text-xs text-gray-400">No country data yet</p>
           )}
-          {countries.map((country) => (
+          {countries.map((country: any) => (
             <div key={country.name} className="flex items-center justify-between gap-1.5">
               <div className="flex items-center gap-1.5">
                 <div

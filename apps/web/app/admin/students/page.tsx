@@ -88,7 +88,7 @@ export default function StudentsPage() {
           ) : data?.items.length === 0 ? (
             <div className="py-10 text-center">No students found</div>
           ) : (
-            data?.items.map((student) => (
+            (data?.items || []).map((student: any) => (
               <div
                 key={student.id}
                 className="grid min-w-[900px] grid-cols-5 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"

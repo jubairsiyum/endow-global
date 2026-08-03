@@ -11,7 +11,8 @@ export default function SettingsPage() {
   const [email, setEmail] = useState('')
   const [saved, setSaved] = useState(false)
 
-  const { data: metrics } = trpc.admin.dashboard.getMetrics.useQuery()
+  const { data: _metrics } = trpc.admin.dashboard.getMetrics.useQuery()
+  const metrics = _metrics as any
 
   function handleSave() {
     // In a real app, this would call a tRPC mutation to update admin profile

@@ -65,7 +65,7 @@ export async function POST(req: Request) {
           return db
             .update(schema.chatHistory)
             .set({ messages, updatedAt: new Date() })
-            .where(eq(schema.chatHistory.id, existing.id))
+            .where(eq(schema.chatHistory.id as any, existing.id) as any)
         } else {
           return db.insert(schema.chatHistory).values({
             sessionId,
