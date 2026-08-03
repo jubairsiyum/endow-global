@@ -77,7 +77,7 @@ export default function UniversitiesPage() {
     },
   })
 
-  const countries = [...new Set((universities || []).map(u => u.country).filter(Boolean))].sort()
+  const countries = Array.from(new Set((universities || []).map(u => u.country).filter(Boolean))).sort()
 
   function openCreate() {
     setEditingId(null)

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
-import { MessageSquare, User, X, ArrowLeft } from 'lucide-react'
+import { MessageSquare, X, ArrowLeft } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 export default function MessagesPage() {
@@ -39,8 +39,7 @@ export default function MessagesPage() {
               </div>
             ) : (
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {conversations.map(c => {
-                  return (
+                {conversations.map(c => (
                     <button
                       key={c.id}
                       onClick={() => setSelectedId(c.id)}
@@ -48,14 +47,14 @@ export default function MessagesPage() {
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                          {c.student?.name?.charAt(0) || '?'}
+                          {c.studentName?.charAt(0) || '?'}
                         </div>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                            {c.student?.name || 'Unknown'}
+                            {c.studentName || 'Unknown'}
                           </p>
                           <p className="truncate text-xs text-gray-400">
-                            {c.counselor?.name || 'Unassigned'}
+                            {c.studentEmail || ''}
                           </p>
                           {c.lastMessage && (
                             <p className="mt-0.5 truncate text-xs text-gray-500">{c.lastMessage}</p>
@@ -66,8 +65,8 @@ export default function MessagesPage() {
                         </span>
                       </div>
                     </button>
-                  )
-                })}
+                  ))
+                }
               </div>
             )}
           </div>
@@ -84,29 +83,27 @@ export default function MessagesPage() {
               </div>
             ) : (
               <>
-                {/* MESSAGE HEADER */}
                 <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-4 dark:border-gray-800">
                   <button onClick={() => setSelectedId(null)} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 lg:hidden dark:hover:bg-[#222530]">
                     <ArrowLeft size={18} />
                   </button>
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                    {selectedConvo.student?.name?.charAt(0) || '?'}
+                    {selectedConvo.studentName?.charAt(0) || '?'}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 dark:text-white">{selectedConvo.student?.name || 'Unknown'}</p>
-                    <p className="text-xs text-gray-400">Counselor: {selectedConvo.counselor?.name || 'Unassigned'}</p>
+                    <p className="font-semibold text-gray-900 dark:text-white">{selectedConvo.studentName || 'Unknown'}</p>
+                    <p className="text-xs text-gray-400">{selectedConvo.studentEmail}</p>
                   </div>
                 </div>
 
-                {/* MESSAGES */}
                 <div className="flex-1 overflow-y-auto px-5 py-4">
                   {!messages?.length ? (
                     <p className="py-8 text-center text-sm text-gray-400">No messages in this conversation.</p>
                   ) : (
                     <div className="space-y-3">
                       {[...messages].reverse().map(msg => (
-                        <div key={msg.id} className={`flex ${msg.sender?.role === 'STUDENT' ? 'justify-start' : 'justify-end'}`}>
-                          <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.sender?.role === 'STUDENT' ? 'bg-gray-100 dark:bg-[#222530]' : 'bg-primary/10 dark:bg-[#2a1114]'}`}>
+                        <div key={msg.id} className={`flex ${msg.senderRole === 'STUDENT' ? 'justify-start' : 'justify-end'}`}>
+                          <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${msg.senderRole === 'STUDENT' ? 'bg-gray-100 dark:bg-[#222530]' : 'bg-primary/10 dark:bg-[#2a1114]'}`}>
                             <p className="text-sm text-gray-800 dark:text-gray-200">{msg.content}</p>
                             <p className="mt-1 text-[10px] text-gray-400">
                               {msg.createdAt ? formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true }) : ''}

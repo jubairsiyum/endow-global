@@ -970,29 +970,47 @@ export const adminRouter = createTRPCRouter({
   messages: createTRPCRouter({
     list: adminProcedure
       .input(z.object({ limit: z.number().min(1).max(100).default(50) }))
-      .query(async () => {
-        return db.query.conversations.findMany({
-          orderBy: [desc(schema.conversations.lastMessageAt)],
-          limit: 50,
-          with: {
-            student: { columns: { name: true, email: true } },
-            counselor: { columns: { name: true, email: true } },
-            messages: { orderBy: [desc(schema.messages.createdAt)], limit: 1 },
-          },
-        })
+      .query(async ({ input }) => {
+        const rows = await db
+          .select({
+            id: schema.conversations.id,
+            studentId: schema.conversations.studentId,
+            counselorId: schema.conversations.counselorId,
+            lastMessageAt: schema.conversations.lastMessageAt,
+            lastMessage: schema.conversations.lastMessage,
+            createdAt: schema.conversations.createdAt,
+            studentName: schema.users.name,
+            studentEmail: schema.users.email,
+          })
+          .from(schema.conversations)
+          .leftJoin(schema.studentProfiles, eq(schema.conversations.studentId, schema.studentProfiles.id))
+          .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
+          .orderBy(desc(schema.conversations.lastMessageAt))
+          .limit(input.limit)
+        return rows
       }),
 
     getMessages: adminProcedure
       .input(z.object({ conversationId: z.string() }))
       .query(async ({ input }) => {
-        return db.query.messages.findMany({
-          where: eq(schema.messages.conversationId, input.conversationId),
-          orderBy: [desc(schema.messages.createdAt)],
-          limit: 100,
-          with: {
-            sender: { columns: { id: true, name: true, role: true } },
-          },
-        })
+        const rows = await db
+          .select({
+            id: schema.messages.id,
+            conversationId: schema.messages.conversationId,
+            senderId: schema.messages.senderId,
+            content: schema.messages.content,
+            attachmentUrl: schema.messages.attachmentUrl,
+            isRead: schema.messages.isRead,
+            createdAt: schema.messages.createdAt,
+            senderName: schema.users.name,
+            senderRole: schema.users.role,
+          })
+          .from(schema.messages)
+          .leftJoin(schema.users, eq(schema.messages.senderId, schema.users.id))
+          .where(eq(schema.messages.conversationId, input.conversationId))
+          .orderBy(desc(schema.messages.createdAt))
+          .limit(100)
+        return rows
       }),
   }),
 
