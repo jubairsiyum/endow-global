@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, adminProcedure } from '@/lib/trpc'
+import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql } from 'drizzle-orm'
 const eq = _eq as any
@@ -1083,5 +1083,76 @@ export const adminRouter = createTRPCRouter({
 
         return docs.slice(0, input.limit)
       }),
+  }),
+
+  // ─── Super Admin Only ────────────────────────────────────
+  super: createTRPCRouter({
+    getAdmins: superAdminProcedure.query(async () => {
+      const admins = await db.query.users.findMany({
+        where: (u: any, { or: _or, eq: _eq }: any) =>
+          _or(_eq(u.role, 'ADMIN'), _eq(u.role, 'SUPER_ADMIN')),
+        orderBy: [desc(schema.users.createdAt) as any],
+      })
+      return admins.map((a: any) => ({
+        id: a.id,
+        name: a.name,
+        email: a.email,
+        role: a.role,
+        emailVerified: a.emailVerified,
+        createdAt: a.createdAt,
+      }))
+    }),
+
+    updateAdminRole: superAdminProcedure
+      .input(z.object({
+        userId: z.string(),
+        role: z.enum(['ADMIN', 'SUPER_ADMIN']),
+      }))
+      .mutation(async ({ input }) => {
+        await db
+          .update(schema.users)
+          .set({ role: input.role })
+          .where(eq(schema.users.id, input.userId))
+        return { success: true }
+      }),
+
+    deleteAdmin: superAdminProcedure
+      .input(z.object({ userId: z.string() }))
+      .mutation(async ({ input }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+        })
+        if (!user) throw new Error('User not found')
+        if ((user as any).role === 'SUPER_ADMIN') throw new Error('Cannot delete a Super Admin')
+        await db.delete(schema.users).where(eq(schema.users.id, input.userId))
+        return { success: true }
+      }),
+
+    getPlatformStats: superAdminProcedure.query(async () => {
+      const totalUsers = await db
+        .select({ value: count() as any })
+        .from(schema.users)
+      const studentCount = await db
+        .select({ value: count() as any })
+        .from(schema.users)
+        .where(eq(schema.users.role, 'STUDENT'))
+      const counselorCount = await db
+        .select({ value: count() as any })
+        .from(schema.users)
+        .where(eq(schema.users.role, 'COUNSELOR'))
+      const adminCount = await db
+        .select({ value: count() as any })
+        .from(schema.users)
+        .where(
+          or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))
+        )
+
+      return {
+        totalUsers: totalUsers[0]?.value || 0,
+        students: studentCount[0]?.value || 0,
+        counselors: counselorCount[0]?.value || 0,
+        admins: adminCount[0]?.value || 0,
+      }
+    }),
   }),
 })

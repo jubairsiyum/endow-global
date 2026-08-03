@@ -9,7 +9,7 @@ const ADMIN_PASSWORD = 'Admin@12345'
 const SECOND_ADMIN_EMAIL = 'jubairprogprodigy@gmail.com'
 const SECOND_ADMIN_PASSWORD = 'Siyum@461824'
 
-async function seedAdminUser(email: string, name: string, password: string) {
+async function seedAdminUser(email: string, name: string, password: string, role: 'ADMIN' | 'SUPER_ADMIN' = 'ADMIN') {
 
   const existing = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, email),
@@ -21,7 +21,7 @@ async function seedAdminUser(email: string, name: string, password: string) {
       id: userId,
       email,
       name,
-      role: 'ADMIN',
+      role,
       emailVerified: new Date(),
     })
 
@@ -35,7 +35,7 @@ async function seedAdminUser(email: string, name: string, password: string) {
       password: hashedPassword,
     })
 
-    console.log(`✅ Admin created: ${email} / ${password}`)
+    console.log(`✅ ${role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'} created: ${email} / ${password}`)
   } else {
     const existingAccount = await db.query.accounts.findFirst({
       where: (a, { eq, and }) => and(eq(a.userId, existing.id), eq(a.providerId, 'credential')),
@@ -50,9 +50,16 @@ async function seedAdminUser(email: string, name: string, password: string) {
         accountId: email,
         password: hashedPassword,
       })
-      console.log(`✅ Admin password set: ${email} / ${password}`)
+      console.log(`✅ ${role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'} password set: ${email} / ${password}`)
     } else {
-      console.log(`ℹ️  Admin already exists with credentials: ${email}`)
+      // Update existing admin to SUPER_ADMIN if role doesn't match
+      if (existing.role !== role) {
+        await db.update(schema.users)
+          .set({ role })
+          .where(eq(schema.users.email, email))
+        console.log(`🔄 Updated ${email} role to ${role}`)
+      }
+      console.log(`ℹ️  ${role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'} already exists with credentials: ${email}`)
     }
   }
 }
@@ -67,8 +74,8 @@ async function main() {
     console.log('⚠️  Skipping catalog seed:', err.message?.slice(0, 80))
   }
 
-  // ─── Super Admin Account ─────────────────────────────────
-  await seedAdminUser(ADMIN_EMAIL, 'Super Admin', ADMIN_PASSWORD)
+  // ─── Super Admin Account (seed-only) ───────────────────
+  await seedAdminUser(ADMIN_EMAIL, 'Super Admin', ADMIN_PASSWORD, 'SUPER_ADMIN')
 
   // ─── Secondary Admin Account ─────────────────────────────
   await seedAdminUser(SECOND_ADMIN_EMAIL, 'Jubair', SECOND_ADMIN_PASSWORD)

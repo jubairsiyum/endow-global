@@ -3,8 +3,15 @@
 import { useState } from 'react'
 import { Sidebar } from '@/components/admin/layout/Sidebar'
 import { Topbar } from '@/components/admin/layout/Topbar'
+import { UserRole } from '@endow/types'
 
-export function AdminClientLayout({ children }: { children: React.ReactNode }) {
+export function AdminClientLayout({
+  children,
+  userRole,
+}: {
+  children: React.ReactNode
+  userRole: UserRole
+}) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
@@ -21,7 +28,7 @@ export function AdminClientLayout({ children }: { children: React.ReactNode }) {
       <div
         className={`fixed left-0 top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}
       >
-        <Sidebar />
+        <Sidebar userRole={userRole} />
       </div>
 
       {/* MAIN */}

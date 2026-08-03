@@ -27,7 +27,7 @@ export const users = mysqlTable(
     email: varchar('email', { length: 255 }).notNull().unique(),
     emailVerified: boolean('email_verified').default(false).notNull(),
     image: varchar('image', { length: 255 }),
-    role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN']).default('STUDENT').notNull(),
+    role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN']).default('STUDENT').notNull(),
     fcmToken: varchar('fcm_token', { length: 255 }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),

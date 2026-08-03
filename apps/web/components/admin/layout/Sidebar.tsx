@@ -21,9 +21,13 @@ import {
   Layers,
   Award,
   Mail,
+  Shield,
+  Activity,
+  DollarSign,
 } from 'lucide-react'
+import { UserRole } from '@endow/types'
 
-const menuItems = [
+const adminMenuItems = [
   {
     name: 'Dashboard',
     icon: LayoutDashboard,
@@ -106,8 +110,38 @@ const menuItems = [
   },
 ]
 
-export function Sidebar() {
+const superAdminExtraItems = [
+  {
+    name: 'Admin Management',
+    icon: Shield,
+    href: '/admin/admins',
+  },
+  {
+    name: 'System Activity',
+    icon: Activity,
+    href: '/admin/activity',
+  },
+  {
+    name: 'Revenue',
+    icon: DollarSign,
+    href: '/admin/revenue',
+  },
+]
+
+interface SidebarProps {
+  userRole: UserRole
+}
+
+export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
+  const isSuperAdmin = userRole === UserRole.SUPER_ADMIN
+
+  const menuItems = isSuperAdmin
+    ? [...adminMenuItems.slice(0, 15), ...superAdminExtraItems, adminMenuItems[15]]
+    : adminMenuItems
+
+  const roleLabel = isSuperAdmin ? 'Super Admin' : 'Admin'
+  const roleInitials = isSuperAdmin ? 'SA' : 'AD'
 
   return (
     <aside
@@ -315,7 +349,7 @@ export function Sidebar() {
               </div>
 
               <div className="min-w-0 flex-1">
-                <h4 className="truncate text-sm font-semibold text-white">Super Admin</h4>
+                <h4 className="truncate text-sm font-semibold text-white">{roleLabel}</h4>
 
                 <p className="mt-[2px] truncate text-[12px] text-white/45">Endow Global</p>
               </div>

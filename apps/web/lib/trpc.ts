@@ -40,16 +40,24 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 })
 
 export const counselorProcedure = protectedProcedure.use(({ ctx, next }) => {
-  const role = (ctx.session as any).user?.role
-  if (role !== UserRole.COUNSELOR && role !== UserRole.ADMIN) {
+  const role = (ctx.session as any).user?.role as UserRole
+  if (role !== UserRole.COUNSELOR && role !== UserRole.ADMIN && role !== UserRole.SUPER_ADMIN) {
     throw new TRPCError({ code: 'FORBIDDEN' })
   }
   return next({ ctx })
 })
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  const role = (ctx.session as any).user?.role
-  if (role !== UserRole.ADMIN) {
+  const role = (ctx.session as any).user?.role as UserRole
+  if (role !== UserRole.ADMIN && role !== UserRole.SUPER_ADMIN) {
+    throw new TRPCError({ code: 'FORBIDDEN' })
+  }
+  return next({ ctx })
+})
+
+export const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  const role = (ctx.session as any).user?.role as UserRole
+  if (role !== UserRole.SUPER_ADMIN) {
     throw new TRPCError({ code: 'FORBIDDEN' })
   }
   return next({ ctx })

@@ -13,9 +13,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/login')
   }
 
-  if (session.user.role !== UserRole.ADMIN) {
+  if (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN) {
     redirect('/dashboard')
   }
 
-  return <AdminClientLayout>{children}</AdminClientLayout>
+  return <AdminClientLayout userRole={session.user.role as UserRole}>{children}</AdminClientLayout>
 }

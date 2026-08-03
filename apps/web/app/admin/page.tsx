@@ -6,9 +6,19 @@ import { formatDistanceToNow } from 'date-fns'
 import AnalyticsChart from '@/components/admin/dashboard/AnalyticsChart'
 import TopCountries from '@/components/admin/dashboard/TopCountries'
 import UpcomingConsultations from '@/components/admin/dashboard/UpcomingConsultations'
+import SuperAdminDashboard from '@/components/admin/dashboard/SuperAdminDashboard'
 import { trpc } from '@/lib/trpc-client'
+import { useSession } from '@/lib/auth-client'
+import { UserRole } from '@endow/types'
 
 export default function AdminPage() {
+  const { data: session } = useSession()
+  const userRole = (session?.user as any)?.role as UserRole
+
+  if (userRole === UserRole.SUPER_ADMIN) {
+    return <SuperAdminDashboard />
+  }
+
   const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
   const metrics = _metrics as any
 
