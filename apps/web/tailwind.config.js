@@ -67,6 +67,28 @@ module.exports = {
           "system-ui",
           "sans-serif",
         ],
+        mono: [
+          '"JetBrains Mono"',
+          '"IBM Plex Mono"',
+          "ui-monospace",
+          "monospace",
+        ],
+        grotesk: [
+          '"Space Grotesk"',
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "sans-serif",
+        ],
+      },
+      colors: {
+        "sa-ink": "#0E1220",
+        "sa-surface": "#161B2E",
+        "sa-border": "#262C42",
+        "sa-text-primary": "#E8EAF2",
+        "sa-text-secondary": "#8890A8",
+        "sa-route": "#E8A33D",
+        "sa-success": "#4FD1A5",
+        "sa-alert": "#F0625B",
       },
 
       boxShadow: {
@@ -98,6 +120,10 @@ module.exports = {
         "slide-in-right": "slide-in-right 0.5s ease-out forwards",
         "logoGlow": "logoGlow 2.4s ease-in-out infinite",
         "premiumBounce": "premiumBounce 1.2s ease-in-out infinite",
+        "status-pulse": "status-pulse 3s ease-in-out infinite",
+        "arc-draw": "arc-draw 0.8s ease-out forwards",
+        "fade-in": "fadeIn 0.4s ease-out forwards",
+        "slide-up": "slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
 
       keyframes: {
@@ -124,6 +150,14 @@ module.exports = {
         premiumBounce: {
           "0%, 80%, 100%": { transform: "translateY(0) scale(1)", opacity: "0.4" },
           "40%": { transform: "translateY(-12px) scale(1.15)", opacity: "1" },
+        },
+        "status-pulse": {
+          "0%, 100%": { opacity: "0.5", transform: "scale(1)" },
+          "50%": { opacity: "1", transform: "scale(1.15)" },
+        },
+        "arc-draw": {
+          "0%": { strokeDashoffset: "1000" },
+          "100%": { strokeDashoffset: "0" },
         },
       },
     },

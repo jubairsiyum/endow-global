@@ -3,6 +3,17 @@
 @tailwind utilities;
 
 /* =========================
+   FONT IMPORTS
+======================== */
+
+@import '@fontsource/space-grotesk/index.css';
+@import '@fontsource/space-grotesk/500.css';
+@import '@fontsource/space-grotesk/700.css';
+@import '@fontsource/jetbrains-mono/index.css';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/500.css';
+
+/* =========================
    ROOT VARIABLES
 ======================== */
 
@@ -158,6 +169,28 @@ body {
 .dark ::selection {
   background: rgba(196, 30, 58, 0.3);
   color: #fafafa;
+}
+
+/* =========================
+   SUPER ADMIN DESIGN TOKENS
+======================== */
+
+.sa-theme {
+  --sa-ink: #0E1220;
+  --sa-surface: #161B2E;
+  --sa-border: #262C42;
+  --sa-text-primary: #E8EAF2;
+  --sa-text-secondary: #8890A8;
+  --sa-route: #E8A33D;
+  --sa-success: #4FD1A5;
+  --sa-alert: #F0625B;
+}
+
+.sa-radar-grid {
+  background-image:
+    linear-gradient(rgba(38, 44, 66, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38, 44, 66, 0.5) 1px, transparent 1px);
+  background-size: 48px 48px;
 }
 
 /* =========================
