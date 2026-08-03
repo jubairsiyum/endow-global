@@ -25,12 +25,17 @@ export default function AdminPage() {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="h-8 w-8 animate-spin rounded-full border-2"
+            style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }}
+          />
+          <p className="text-[12px]" style={{ color: '#8890A8' }}>Loading dashboard...</p>
+        </div>
       </div>
     )
   }
 
-  // Calculate some derived stats
   const pipelineStatusMap =
     metrics?.applicationsByStatus?.reduce(
       (acc: Record<string, number>, curr: any) => {
@@ -48,25 +53,25 @@ export default function AdminPage() {
     {
       title: 'Total Students',
       value: metrics?.students?.toString() || '0',
-      growth: '+0%', // Hardcoded for now
+      growth: '+0%',
       icon: Users,
     },
     {
       title: 'Applications',
       value: totalApplications.toString(),
-      growth: '+0%', // Hardcoded for now
+      growth: '+0%',
       icon: FileText,
     },
     {
       title: 'Pending Docs',
       value: pendingDocs.toString(),
-      growth: '+0%', // Hardcoded for now
+      growth: '+0%',
       icon: Clock3,
     },
     {
       title: 'Counselors',
       value: metrics?.counselors?.toString() || '0',
-      growth: '+0%', // Hardcoded for now
+      growth: '+0%',
       icon: CalendarDays,
     },
   ]
@@ -79,24 +84,26 @@ export default function AdminPage() {
 
   return (
     <div className="mx-auto max-w-[1380px] space-y-3">
-      {/* HERO */}
+      {/* Header */}
       <div className="flex flex-col justify-between gap-2 lg:flex-row lg:items-center">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Welcome back, Super Admin! 👋
+          <h1
+            className="text-[20px] font-bold tracking-tight"
+            style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+          >
+            Admin Dashboard
           </h1>
-
-          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            Here's what's happening with your applications today.
+          <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
+            Overview of platform operations and activity
           </p>
         </div>
       </div>
 
-      {/* MAIN GRID */}
+      {/* Main grid */}
       <div className="grid grid-cols-1 gap-3 xl:grid-cols-12">
-        {/* LEFT CONTENT */}
+        {/* Left */}
         <div className="space-y-3 xl:col-span-9">
-          {/* STATS */}
+          {/* Stats */}
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             {stats.map((item: any) => {
               const Icon = item.icon
@@ -104,19 +111,24 @@ export default function AdminPage() {
               return (
                 <div
                   key={item.title}
-                  className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-[#1a1d25]"
+                  className="rounded-xl border p-4 transition-all hover:-translate-y-0.5"
+                  style={{ background: '#161B2E', borderColor: '#262C42' }}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-50 to-red-100 text-primary shadow-inner dark:bg-[#2a1114]">
-                      <Icon size={16} />
+                    <div
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                      style={{ background: 'rgba(232, 163, 61, 0.08)' }}
+                    >
+                      <Icon size={16} style={{ color: '#E8A33D' }} />
                     </div>
-
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                      <p className="text-[11px] font-medium" style={{ color: '#8890A8' }}>
                         {item.title}
                       </p>
-
-                      <h2 className="text-lg font-bold leading-tight text-gray-900 dark:text-white">
+                      <h2
+                        className="text-[20px] font-bold leading-tight"
+                        style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+                      >
                         {item.value}
                       </h2>
                     </div>
@@ -126,95 +138,112 @@ export default function AdminPage() {
             })}
           </div>
 
-          {/* ANALYTICS */}
-          <div className="grid grid-cols-1 items-stretch gap-2 xl:grid-cols-12">
-            {/* CHART */}
+          {/* Analytics */}
+          <div className="grid grid-cols-1 items-stretch gap-3 xl:grid-cols-12">
             <div className="flex xl:col-span-7">
               <AnalyticsChart />
             </div>
-
-            {/* COUNTRIES */}
             <div className="flex xl:col-span-5">
               <TopCountries />
             </div>
           </div>
 
-          {/* PIPELINE */}
-          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+          {/* Pipeline */}
+          <div
+            className="rounded-xl border p-4"
+            style={{ background: '#161B2E', borderColor: '#262C42' }}
+          >
+            <h2
+              className="text-[15px] font-semibold"
+              style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+            >
               Application Pipeline
             </h2>
-
             <div className="mt-3 grid grid-cols-2 gap-2.5 lg:grid-cols-5">
-              <div className="rounded-lg bg-red-50 px-3 py-2.5 dark:bg-[#2a1114]">
-                <p className="text-xs font-medium text-red-600">New Lead</p>
-
-                <h3 className="mt-1 text-lg font-bold text-red-700 dark:text-red-400">
-                  {(pipelineStatusMap['DRAFT'] || 0) + (pipelineStatusMap['IN_PROGRESS'] || 0)}
-                </h3>
-              </div>
-
-              <div className="rounded-lg bg-blue-50 px-3 py-2.5 dark:bg-[#111b2a]">
-                <p className="text-xs font-medium text-blue-600">Submitted</p>
-
-                <h3 className="mt-1 text-lg font-bold text-blue-700 dark:text-blue-400">
-                  {pipelineStatusMap['SUBMITTED'] || 0}
-                </h3>
-              </div>
-
-              <div className="rounded-lg bg-yellow-50 px-3 py-2.5 dark:bg-[#2a2311]">
-                <p className="text-xs font-medium text-yellow-600">Under Review</p>
-
-                <h3 className="mt-1 text-lg font-bold text-yellow-700 dark:text-yellow-400">
-                  {pipelineStatusMap['UNDER_REVIEW'] || 0}
-                </h3>
-              </div>
-
-              <div className="rounded-lg bg-purple-50 px-3 py-2.5 dark:bg-[#21112a]">
-                <p className="text-xs font-medium text-purple-600">Docs Required</p>
-
-                <h3 className="mt-1 text-lg font-bold text-purple-700 dark:text-purple-400">
-                  {pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0}
-                </h3>
-              </div>
-
-              <div className="rounded-lg bg-green-50 px-3 py-2.5 dark:bg-[#112a1a]">
-                <p className="text-xs font-medium text-green-600">Completed</p>
-
-                <h3 className="mt-1 text-lg font-bold text-green-700 dark:text-green-400">
-                  {pipelineStatusMap['ACCEPTED'] || 0}
-                </h3>
-              </div>
+              {[
+                {
+                  label: 'New Lead',
+                  value: (pipelineStatusMap['DRAFT'] || 0) + (pipelineStatusMap['IN_PROGRESS'] || 0),
+                  bg: 'rgba(232, 163, 61, 0.06)',
+                  text: '#E8A33D',
+                },
+                {
+                  label: 'Submitted',
+                  value: pipelineStatusMap['SUBMITTED'] || 0,
+                  bg: 'rgba(96, 165, 250, 0.06)',
+                  text: '#60a5fa',
+                },
+                {
+                  label: 'Under Review',
+                  value: pipelineStatusMap['UNDER_REVIEW'] || 0,
+                  bg: 'rgba(250, 204, 21, 0.06)',
+                  text: '#facc15',
+                },
+                {
+                  label: 'Docs Required',
+                  value: pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0,
+                  bg: 'rgba(167, 139, 250, 0.06)',
+                  text: '#a78bfa',
+                },
+                {
+                  label: 'Completed',
+                  value: pipelineStatusMap['ACCEPTED'] || 0,
+                  bg: 'rgba(79, 209, 165, 0.06)',
+                  text: '#4FD1A5',
+                },
+              ].map((stage) => (
+                <div
+                  key={stage.label}
+                  className="rounded-lg px-3 py-2.5"
+                  style={{ background: stage.bg }}
+                >
+                  <p className="text-[11px] font-medium" style={{ color: stage.text }}>
+                    {stage.label}
+                  </p>
+                  <h3
+                    className="mt-1 text-[18px] font-bold"
+                    style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+                  >
+                    {stage.value}
+                  </h3>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* RIGHT SIDEBAR */}
+        {/* Right sidebar */}
         <div className="space-y-3 xl:col-span-3">
           <UpcomingConsultations />
 
-          {/* ACTIVITIES */}
-          <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-semibold text-gray-900 dark:text-white">
-                Recent Applications
-              </h2>
-            </div>
+          <div
+            className="rounded-xl border p-4"
+            style={{ background: '#161B2E', borderColor: '#262C42' }}
+          >
+            <h2
+              className="text-[13px] font-semibold"
+              style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+            >
+              Recent Applications
+            </h2>
 
-            <div className="mt-3 space-y-2">
+            <div className="mt-3 space-y-3">
               {activities.length === 0 && (
-                <p className="text-xs text-gray-500">No recent activity</p>
+                <p className="text-[12px]" style={{ color: '#8890A8' }}>No recent activity</p>
               )}
               {activities.map((item: any, index: number) => (
                 <div key={index} className="flex items-start gap-3">
-                  <div className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
-
+                  <div
+                    className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                    style={{ background: '#E8A33D' }}
+                  />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-gray-900 dark:text-white">
+                    <p className="truncate text-[12px] font-medium" style={{ color: '#E8EAF2' }}>
                       {item.title}
                     </p>
-
-                    <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">{item.time}</p>
+                    <p className="mt-0.5 text-[11px]" style={{ color: '#8890A8' }}>
+                      {item.time}
+                    </p>
                   </div>
                 </div>
               ))}

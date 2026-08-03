@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Menu, Plus, Search } from 'lucide-react'
+import { Search, Bell, Menu, Calendar } from 'lucide-react'
 
 interface Props {
   onMenuClick: () => void
@@ -8,7 +8,7 @@ interface Props {
 
 function StatusDot() {
   return (
-    <span className="relative flex h-2 w-2" aria-label="System operational">
+    <span className="relative flex h-2 w-2" aria-label="Active">
       <span
         className="absolute inline-flex h-full w-full rounded-full opacity-75"
         style={{
@@ -24,7 +24,7 @@ function StatusDot() {
   )
 }
 
-export function Topbar({ onMenuClick }: Props) {
+export function CounselorTopbar({ onMenuClick }: Props) {
   return (
     <header
       className="flex h-[52px] shrink-0 items-center justify-between border-b px-3"
@@ -42,13 +42,13 @@ export function Topbar({ onMenuClick }: Props) {
         </button>
 
         <div
-          className="hidden w-[280px] items-center gap-2 rounded-md border px-3 py-1.5 md:flex"
+          className="hidden w-[300px] items-center gap-2 rounded-md border px-3 py-1.5 md:flex"
           style={{ borderColor: '#262C42', background: '#161B2E' }}
         >
           <Search size={14} style={{ color: '#8890A8' }} aria-hidden />
           <input
             type="text"
-            placeholder="Search students, courses, universities..."
+            placeholder="Search students, applications..."
             className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#8890A8]/60"
             style={{ color: '#E8EAF2' }}
           />
@@ -63,21 +63,14 @@ export function Topbar({ onMenuClick }: Props) {
 
       {/* Right */}
       <div className="flex items-center gap-2">
-        <button
-          className="hidden items-center gap-1 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors hover:opacity-90 lg:flex"
-          style={{ background: '#E8A33D', color: '#0E1220' }}
-        >
-          <Plus size={13} />
-          New
-        </button>
-
+        {/* Next session */}
         <div
           className="hidden items-center gap-2 rounded-md border px-3 py-1.5 sm:flex"
           style={{ borderColor: '#262C42', background: 'rgba(79, 209, 165, 0.05)' }}
         >
-          <StatusDot />
+          <Calendar size={13} style={{ color: '#4FD1A5' }} />
           <span className="text-[11px] font-medium" style={{ color: '#4FD1A5' }}>
-            Systems Normal
+            Next: 2:30 PM
           </span>
         </div>
 
@@ -91,7 +84,7 @@ export function Topbar({ onMenuClick }: Props) {
             className="absolute right-1 top-1 flex h-3.5 min-w-[14px] items-center justify-center rounded-full px-1 text-[9px] font-bold"
             style={{ background: '#F0625B', color: '#fff' }}
           >
-            12
+            5
           </span>
         </button>
 
@@ -106,9 +99,9 @@ export function Topbar({ onMenuClick }: Props) {
               color: '#0E1220',
             }}
           >
-            AD
+            CN
           </div>
-          <span className="hidden text-[13px] font-medium lg:inline">Admin</span>
+          <span className="hidden text-[13px] font-medium lg:inline">Dr. Rahman</span>
         </button>
       </div>
     </header>
