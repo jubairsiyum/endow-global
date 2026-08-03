@@ -7,6 +7,12 @@ import { UserRole } from '@endow/types'
 import { sendEmail } from './email'
 
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins: [
+    'http://localhost:3000',
+    'https://egev2.vercel.app',
+    process.env.BETTER_AUTH_URL!,
+  ].filter(Boolean),
   database: drizzleAdapter(db, {
     provider: 'mysql',
     schema: {

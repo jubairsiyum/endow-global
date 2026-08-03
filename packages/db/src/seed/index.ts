@@ -6,6 +6,57 @@ import { seedSouthKoreaCatalog } from './korea'
 const ADMIN_EMAIL = 'admin@endowglobal.com'
 const ADMIN_PASSWORD = 'Admin@12345'
 
+const SECOND_ADMIN_EMAIL = 'jubairprogprodigy@gmail.com'
+const SECOND_ADMIN_PASSWORD = 'Siyum@461824'
+
+async function seedAdminUser(email: string, name: string, password: string) {
+
+  const existing = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.email, email),
+  })
+
+  if (!existing) {
+    const userId = globalThis.crypto.randomUUID()
+    await db.insert(schema.users).values({
+      id: userId,
+      email,
+      name,
+      role: 'ADMIN',
+      emailVerified: new Date(),
+    })
+
+    const accountId = globalThis.crypto.randomUUID()
+    const hashedPassword = await hash(password, 12)
+    await db.insert(schema.accounts).values({
+      id: accountId,
+      userId,
+      providerId: 'credential',
+      accountId: email,
+      password: hashedPassword,
+    })
+
+    console.log(`✅ Admin created: ${email} / ${password}`)
+  } else {
+    const existingAccount = await db.query.accounts.findFirst({
+      where: (a, { eq, and }) => and(eq(a.userId, existing.id), eq(a.providerId, 'credential')),
+    })
+    if (!existingAccount) {
+      const accountId = globalThis.crypto.randomUUID()
+      const hashedPassword = await hash(password, 12)
+      await db.insert(schema.accounts).values({
+        id: accountId,
+        userId: existing.id,
+        providerId: 'credential',
+        accountId: email,
+        password: hashedPassword,
+      })
+      console.log(`✅ Admin password set: ${email} / ${password}`)
+    } else {
+      console.log(`ℹ️  Admin already exists with credentials: ${email}`)
+    }
+  }
+}
+
 async function main() {
   console.log('🌱 Seeding database...')
 
@@ -17,52 +68,10 @@ async function main() {
   }
 
   // ─── Super Admin Account ─────────────────────────────────
-  const existingAdmin = await db.query.users.findFirst({
-    where: (u, { eq }) => eq(u.email, ADMIN_EMAIL),
-  })
+  await seedAdminUser(ADMIN_EMAIL, 'Super Admin', ADMIN_PASSWORD)
 
-  if (!existingAdmin) {
-    const userId = globalThis.crypto.randomUUID()
-    await db.insert(schema.users).values({
-      id: userId,
-      email: ADMIN_EMAIL,
-      name: 'Super Admin',
-      role: 'ADMIN',
-      emailVerified: new Date(),
-    })
-
-    // Create credential account with hashed password
-    const accountId = globalThis.crypto.randomUUID()
-    const hashedPassword = await hash(ADMIN_PASSWORD, 12)
-    await db.insert(schema.accounts).values({
-      id: accountId,
-      userId: userId,
-      providerId: 'credential',
-      accountId: ADMIN_EMAIL,
-      password: hashedPassword,
-    })
-
-    console.log(`✅ Super Admin created: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`)
-  } else {
-    // Ensure password exists
-    const existingAccount = await db.query.accounts.findFirst({
-      where: (a, { eq, and }) => and(eq(a.userId, existingAdmin.id), eq(a.providerId, 'credential')),
-    })
-    if (!existingAccount) {
-      const accountId = globalThis.crypto.randomUUID()
-      const hashedPassword = await hash(ADMIN_PASSWORD, 12)
-      await db.insert(schema.accounts).values({
-        id: accountId,
-        userId: existingAdmin.id,
-        providerId: 'credential',
-        accountId: ADMIN_EMAIL,
-        password: hashedPassword,
-      })
-      console.log(`✅ Admin password set: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`)
-    } else {
-      console.log(`ℹ️  Admin already exists with credentials: ${ADMIN_EMAIL}`)
-    }
-  }
+  // ─── Secondary Admin Account ─────────────────────────────
+  await seedAdminUser(SECOND_ADMIN_EMAIL, 'Jubair', SECOND_ADMIN_PASSWORD)
 
   const existingCounselor = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, 'sarah@endowglobal.com'),
