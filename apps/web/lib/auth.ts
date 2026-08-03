@@ -2,9 +2,42 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
 import { customSession, emailOTP } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
+import { compare, hash as bcryptHash } from 'bcryptjs'
+import { scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto'
+import { promisify } from 'node:util'
 import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
 import { sendEmail } from './email'
+
+const BCRYPT_SALT_ROUNDS = 12
+const SCRYPT_KEY_LENGTH = 64
+const BCRYPT_PREFIXES = ['$2a$', '$2b$', '$2y$']
+const scrypt = promisify(nodeScrypt)
+
+function isBcryptHash(value: string): boolean {
+  return BCRYPT_PREFIXES.some((prefix) => value.startsWith(prefix))
+}
+
+async function verifyStoredPassword(password: string, storedHash: string): Promise<boolean> {
+  if (isBcryptHash(storedHash)) {
+    return compare(password, storedHash)
+  }
+
+  const [salt, key] = storedHash.split(':')
+  if (!salt || !key) {
+    return false
+  }
+
+  const derivedKey = (await scrypt(password, salt, SCRYPT_KEY_LENGTH)) as Buffer
+  const encoding: BufferEncoding = /^[0-9a-f]+$/i.test(key) && key.length % 2 === 0 ? 'hex' : 'base64'
+  const storedKey = Buffer.from(key, encoding)
+
+  if (storedKey.length !== derivedKey.length) {
+    return false
+  }
+
+  return timingSafeEqual(storedKey, derivedKey)
+}
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
@@ -45,6 +78,10 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    password: {
+      hash: async (password) => bcryptHash(password, BCRYPT_SALT_ROUNDS),
+      verify: async ({ password, hash }) => verifyStoredPassword(password, hash),
+    },
   },
   socialProviders: {
     google: {
