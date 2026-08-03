@@ -23,6 +23,7 @@ import {
   Shield,
   Activity,
   DollarSign,
+  Upload,
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
@@ -39,6 +40,7 @@ const adminMenuItems = [
   { name: 'Scholarships', icon: Award, href: '/admin/scholarships' },
   { name: 'Countries', icon: Globe, href: '/admin/countries' },
   { name: 'Messages', icon: MessageSquare, href: '/admin/messages' },
+  { name: 'Resources', icon: Upload, href: '/admin/resources' },
   { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
   { name: 'Testimonials', icon: Star, href: '/admin/testimonials' },
   { name: 'Notifications', icon: Bell, href: '/admin/notifications' },

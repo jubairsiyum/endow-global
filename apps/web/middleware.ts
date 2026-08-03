@@ -23,6 +23,7 @@ const PROTECTED_STUDENT_PATHS = [
 ]
 const PROTECTED_COUNSELOR_PATHS = ['/counselor']
 const PROTECTED_ADMIN_PATHS = ['/admin']
+const PROTECTED_SA_PATHS = ['/sa']
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -31,8 +32,10 @@ export async function middleware(req: NextRequest) {
   const isStudentPath = PROTECTED_STUDENT_PATHS.some((p) => pathname.startsWith(p))
   const isCounselorPath = PROTECTED_COUNSELOR_PATHS.some((p) => pathname.startsWith(p))
   const isAdminPath = PROTECTED_ADMIN_PATHS.some((p) => pathname.startsWith(p))
+  const isSAPath = PROTECTED_SA_PATHS.some((p) => pathname.startsWith(p))
+  const isProtectedPath = isStudentPath || isCounselorPath || isAdminPath || isSAPath
 
-  if (isStudentPath || isCounselorPath || isAdminPath) {
+  if (isProtectedPath) {
     if (!sessionCookie) {
       const url = new URL('/login', req.url)
       url.searchParams.set('callbackUrl', pathname)

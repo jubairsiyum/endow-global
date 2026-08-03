@@ -5,7 +5,7 @@ import { trpc } from '@/lib/trpc-client'
 
 export default function AdminManagementPage() {
   const { data: admins, isLoading, refetch } = trpc.admin.super.getAdmins.useQuery()
-  const updateRole = trpc.admin.super.updateAdminRole.useMutation({
+  const updateRole = trpc.admin.super.updateUserRole.useMutation({
     onSuccess: () => refetch(),
   })
   const deleteAdmin = trpc.admin.super.deleteAdmin.useMutation({

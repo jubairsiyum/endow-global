@@ -1103,16 +1103,111 @@ export const adminRouter = createTRPCRouter({
       }))
     }),
 
-    updateAdminRole: superAdminProcedure
-      .input(z.object({
-        userId: z.string(),
-        role: z.enum(['ADMIN', 'SUPER_ADMIN']),
-      }))
+    getAllUsers: superAdminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+          role: z.enum(['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN']).optional(),
+          limit: z.number().min(1).max(200).default(100),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions: any[] = []
+        if (input.role) conditions.push(eq(schema.users.role, input.role))
+        if (input.search) {
+          conditions.push(
+            or(
+              like(schema.users.name, `%${input.search}%`),
+              like(schema.users.email, `%${input.search}%`)
+            )
+          )
+        }
+        const users = await db.query.users.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [desc(schema.users.createdAt) as any],
+          limit: input.limit,
+          offset: input.offset,
+          columns: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+            emailVerified: true,
+            createdAt: true,
+            image: true,
+          },
+        })
+        const totalRes = await db
+          .select({ value: count() as any })
+          .from(schema.users)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+        return {
+          users,
+          total: totalRes[0]?.value || 0,
+        }
+      }),
+
+    updateUserRole: superAdminProcedure
+      .input(
+        z.object({
+          userId: z.string(),
+          role: z.enum(['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN']),
+        })
+      )
       .mutation(async ({ input }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true },
+        })
+        if (!user) throw new Error('User not found')
+
+        // Prevent demoting the last super admin
+        if ((user as any).role === 'SUPER_ADMIN' && input.role !== 'SUPER_ADMIN') {
+          const superAdminCount = await db
+            .select({ value: count() as any })
+            .from(schema.users)
+            .where(eq(schema.users.role, 'SUPER_ADMIN'))
+          if (superAdminCount[0]?.value <= 1) {
+            throw new Error('Cannot demote the last Super Admin')
+          }
+        }
+
         await db
           .update(schema.users)
           .set({ role: input.role })
           .where(eq(schema.users.id, input.userId))
+        return { success: true }
+      }),
+
+    deleteUser: superAdminProcedure
+      .input(z.object({ userId: z.string() }))
+      .mutation(async ({ input }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true },
+        })
+        if (!user) throw new Error('User not found')
+        if ((user as any).role === 'SUPER_ADMIN') throw new Error('Cannot delete a Super Admin')
+
+        // Clean up related records
+        const studentProfile = await db.query.studentProfiles.findFirst({
+          where: (s: any, { eq: _eq }: any) => _eq(s.userId, input.userId),
+          columns: { id: true },
+        })
+        if (studentProfile) {
+          await db.delete(schema.studentProfiles).where(eq(schema.studentProfiles.id, studentProfile.id) as any)
+        }
+        const counselorProfile = await db.query.counselorProfiles.findFirst({
+          where: (c: any, { eq: _eq }: any) => _eq(c.userId, input.userId),
+          columns: { id: true },
+        })
+        if (counselorProfile) {
+          await db.delete(schema.counselorProfiles).where(eq(schema.counselorProfiles.id, counselorProfile.id) as any)
+        }
+        await db.delete(schema.accounts).where(eq(schema.accounts.userId, input.userId) as any)
+        await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId) as any)
+        await db.delete(schema.users).where(eq(schema.users.id, input.userId))
         return { success: true }
       }),
 

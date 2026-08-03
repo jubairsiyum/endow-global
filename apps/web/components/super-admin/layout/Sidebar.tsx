@@ -15,6 +15,7 @@ import {
   Shield,
   ChevronLeft,
   Activity,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useState } from 'react'
@@ -23,6 +24,7 @@ const primaryNav = [
   { name: 'Dashboard', href: '/sa', icon: LayoutDashboard },
   { name: 'Branches', href: '/sa/branches', icon: Building2 },
   { name: 'Universities', href: '/sa/universities', icon: GraduationCap },
+  { name: 'Courses', href: '/sa/courses', icon: BookOpen },
   { name: 'Applications', href: '/sa/applications', icon: FileText },
   { name: 'Users', href: '/sa/users', icon: Users },
   { name: 'Countries', href: '/sa/countries', icon: Globe },
@@ -31,7 +33,7 @@ const primaryNav = [
 
 const secondaryNav = [
   { name: 'Analytics', href: '/sa/analytics', icon: BarChart3 },
-  { name: 'Admin Roles', href: '/sa/admins', icon: Shield },
+  { name: 'Admin Roles', href: '/sa/users', icon: Shield },
   { name: 'Settings', href: '/sa/settings', icon: Settings },
 ]
 
