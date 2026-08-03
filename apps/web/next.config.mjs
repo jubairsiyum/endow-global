@@ -16,10 +16,8 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [
       // better-auth adapters — server-only
-      '@better-auth/kysely-adapter',
       '@better-auth/drizzle-adapter',
       // other server-only packages
-      'kysely',
       'stripe',
       'firebase-admin',
       'openai',
