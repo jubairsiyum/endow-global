@@ -66,7 +66,7 @@ export function SuperAdminShell({ children }: Props) {
       <div className="flex flex-1 flex-col overflow-hidden">
         <SATopbar onMenuClick={() => setDrawerOpen(true)} />
         <main
-          className="flex-1 overflow-y-auto p-4 lg:p-6"
+          className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6"
           style={{ background: '#0E1220' }}
         >
           {children}

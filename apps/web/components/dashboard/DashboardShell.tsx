@@ -87,7 +87,7 @@ export function DashboardShell({ children }: Props) {
           userInitials={user.initials}
           unreadNotifications={mockStudent.unreadMessages}
         />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
       </div>
     </div>
   )

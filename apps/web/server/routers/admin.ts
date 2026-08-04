@@ -1085,6 +1085,93 @@ export const adminRouter = createTRPCRouter({
       }),
   }),
 
+  // ─── Branches CRUD ─────────────────────────────────────────
+
+  branches: createTRPCRouter({
+    list: superAdminProcedure
+      .input(
+        z.object({
+          search: z.string().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions = []
+        if (input.search) {
+          conditions.push(
+            or(
+              like(schema.branches.name, `%${input.search}%`),
+              like(schema.branches.code, `%${input.search}%`),
+              like(schema.branches.country, `%${input.search}%`),
+              like(schema.branches.city, `%${input.search}%`)
+            )
+          )
+        }
+        return db.query.branches.findMany({
+          where: conditions.length > 0 ? and(...conditions) : undefined,
+          orderBy: [desc(schema.branches.createdAt)],
+        })
+      }),
+
+    getById: superAdminProcedure
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return db.query.branches.findFirst({
+          where: eq(schema.branches.id, input.id),
+        })
+      }),
+
+    create: superAdminProcedure
+      .input(
+        z.object({
+          code: z.string().min(1).max(10),
+          name: z.string().min(1),
+          country: z.string().min(1),
+          city: z.string().min(1),
+          address: z.string().optional(),
+          phone: z.string().optional(),
+          email: z.string().email().optional().or(z.literal('')),
+          status: z.enum(['ACTIVE', 'INACTIVE', 'SETUP', 'CLOSED']).default('ACTIVE'),
+          managerName: z.string().optional(),
+          counselors: z.number().default(0),
+          applications: z.number().default(0),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db.insert(schema.branches).values(input as any)
+        return { success: true }
+      }),
+
+    update: superAdminProcedure
+      .input(
+        z.object({
+          id: z.string(),
+          code: z.string().min(1).max(10).optional(),
+          name: z.string().min(1).optional(),
+          country: z.string().min(1).optional(),
+          city: z.string().min(1).optional(),
+          address: z.string().optional(),
+          phone: z.string().optional(),
+          email: z.string().email().optional().or(z.literal('')),
+          status: z.enum(['ACTIVE', 'INACTIVE', 'SETUP', 'CLOSED']).optional(),
+          managerName: z.string().optional(),
+          counselors: z.number().optional(),
+          applications: z.number().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(schema.branches).set(data as any).where(eq(schema.branches.id, id))
+        return { success: true }
+      }),
+
+    delete: superAdminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.branches).where(eq(schema.branches.id, input.id))
+        return { success: true }
+      }),
+  }),
+
   // ─── Super Admin Only ────────────────────────────────────
   super: createTRPCRouter({
     getAdmins: superAdminProcedure.query(async () => {

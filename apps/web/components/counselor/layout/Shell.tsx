@@ -48,7 +48,7 @@ export function CounselorShell({ children }: Props) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <CounselorTopbar onMenuClick={() => setDrawerOpen(true)} />
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6" style={{ background: '#0E1220' }}>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6" style={{ background: '#0E1220' }}>
           {children}
         </main>
       </div>

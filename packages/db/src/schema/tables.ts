@@ -389,3 +389,22 @@ export const testimonials = mysqlTable('testimonials', {
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
+
+// ─── Platform Branches ──
+
+export const branches = mysqlTable('branch', {
+  id: varchar('id', { length: 36 }).primaryKey().$defaultFn(genId),
+  code: varchar('code', { length: 10 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  country: varchar('country', { length: 100 }).notNull(),
+  city: varchar('city', { length: 100 }).notNull(),
+  address: varchar('address', { length: 500 }),
+  phone: varchar('phone', { length: 50 }),
+  email: varchar('email', { length: 255 }),
+  status: mysqlEnum('status', ['ACTIVE', 'INACTIVE', 'SETUP', 'CLOSED']).default('ACTIVE').notNull(),
+  managerName: varchar('manager_name', { length: 255 }),
+  counselors: int('counselors').default(0),
+  applications: int('applications').default(0),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+})
