@@ -24,47 +24,9 @@ interface Arc {
 interface Props {
   nodes?: Node[]
   arcs?: Arc[]
+  isLoading?: boolean
 }
 
-// Demo data — positioned on a world-like map scale
-const demoNodes: Node[] = [
-  // Branches
-  { id: 'b-dhaka', label: 'Dhaka Office', code: 'DAC', type: 'branch', x: 0.68, y: 0.38, volume: 85, activeRoutes: 12, status: 'active' },
-  { id: 'b-sydney', label: 'Sydney Office', code: 'SYD', type: 'branch', x: 0.83, y: 0.62, volume: 45, activeRoutes: 7, status: 'active' },
-  { id: 'b-seoul', label: 'Seoul Office', code: 'SEL', type: 'branch', x: 0.73, y: 0.28, volume: 62, activeRoutes: 9, status: 'active' },
-  { id: 'b-dubai', label: 'Dubai Office', code: 'DXB', type: 'branch', x: 0.58, y: 0.42, volume: 30, activeRoutes: 4, status: 'warning' },
-  { id: 'b-london', label: 'London Office', code: 'LON', type: 'branch', x: 0.45, y: 0.22, volume: 55, activeRoutes: 8, status: 'active' },
-  { id: 'b-kualalumpur', label: 'Kuala Lumpur', code: 'KUL', type: 'branch', x: 0.72, y: 0.48, volume: 38, activeRoutes: 5, status: 'active' },
-  // Universities
-  { id: 'u-snu', label: 'Seoul National Univ.', code: 'SNU', type: 'university', x: 0.74, y: 0.30, volume: 70, activeRoutes: 10, status: 'active' },
-  { id: 'u-kaist', label: 'KAIST', code: 'KAIST', type: 'university', x: 0.71, y: 0.26, volume: 55, activeRoutes: 8, status: 'active' },
-  { id: 'u-yonsei', label: 'Yonsei University', code: 'YONSEI', type: 'university', x: 0.73, y: 0.29, volume: 60, activeRoutes: 9, status: 'active' },
-  { id: 'u-unsw', label: 'UNSW Sydney', code: 'UNSW', type: 'university', x: 0.84, y: 0.63, volume: 40, activeRoutes: 5, status: 'active' },
-  { id: 'u-melbourne', label: 'Univ. of Melbourne', code: 'UMELB', type: 'university', x: 0.80, y: 0.65, volume: 35, activeRoutes: 4, status: 'active' },
-  { id: 'u-oxford', label: 'Oxford University', code: 'OXF', type: 'university', x: 0.44, y: 0.21, volume: 50, activeRoutes: 6, status: 'active' },
-  { id: 'u-kings', label: "King's College", code: 'KCL', type: 'university', x: 0.44, y: 0.23, volume: 30, activeRoutes: 4, status: 'inactive' },
-]
-
-const demoArcs: Arc[] = [
-  { from: 'b-dhaka', to: 'u-snu', count: 4 },
-  { from: 'b-dhaka', to: 'u-kaist', count: 2 },
-  { from: 'b-dhaka', to: 'u-yonsei', count: 3 },
-  { from: 'b-dhaka', to: 'u-oxford', count: 1 },
-  { from: 'b-dhaka', to: 'u-unsw', count: 2 },
-  { from: 'b-sydney', to: 'u-melbourne', count: 2 },
-  { from: 'b-sydney', to: 'u-unsw', count: 2 },
-  { from: 'b-sydney', to: 'u-snu', count: 1 },
-  { from: 'b-seoul', to: 'u-snu', count: 3 },
-  { from: 'b-seoul', to: 'u-yonsei', count: 3 },
-  { from: 'b-seoul', to: 'u-kaist', count: 2 },
-  { from: 'b-seoul', to: 'u-oxford', count: 1 },
-  { from: 'b-london', to: 'u-oxford', count: 3 },
-  { from: 'b-london', to: 'u-kings', count: 2 },
-  { from: 'b-dubai', to: 'u-snu', count: 1 },
-  { from: 'b-dubai', to: 'u-melbourne', count: 1 },
-  { from: 'b-kualalumpur', to: 'u-unsw', count: 2 },
-  { from: 'b-kualalumpur', to: 'u-kaist', count: 1 },
-]
 
 function nodeSize(volume: number): number {
   return Math.max(8, Math.min(28, 10 + volume * 0.18))
@@ -93,7 +55,7 @@ function generateArcPath(
   return `M ${x1} ${y1} Q ${ax} ${ay} ${x2} ${y2}`
 }
 
-export function LiveNetworkPanel({ nodes = demoNodes, arcs = demoArcs }: Props) {
+export function LiveNetworkPanel({ nodes = [], arcs = [], isLoading = false }: Props) {
   const svgRef = useRef<SVGSVGElement>(null)
   const [dimensions, setDimensions] = useState({ width: 800, height: 400 })
   const [hoveredNode, setHoveredNode] = useState<Node | null>(null)
@@ -183,7 +145,25 @@ export function LiveNetworkPanel({ nodes = demoNodes, arcs = demoArcs }: Props) 
         </div>
       </div>
 
-      {/* SVG Map */}
+      {nodes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          {isLoading ? (
+            <>
+              <div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }} />
+              <p className="mt-3 text-[12px]" style={{ color: '#8890A8' }}>Loading network data...</p>
+            </>
+          ) : (
+            <>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ background: 'rgba(136,144,168,0.06)' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8890A8" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+              </div>
+              <p className="mt-3 text-[13px] font-medium" style={{ color: '#8890A8' }}>No network data yet</p>
+              <p className="mt-1 text-[11px]" style={{ color: 'rgba(136,144,168,0.6)' }}>Add branches and universities to see the live network map.</p>
+            </>
+          )}
+        </div>
+      ) : (
+        /* SVG Map */
       <div className="relative">
         {/* Radar grid background */}
         <div className="sa-radar-grid absolute inset-0" />
@@ -352,6 +332,7 @@ export function LiveNetworkPanel({ nodes = demoNodes, arcs = demoArcs }: Props) 
           )}
         </AnimatePresence>
       </div>
+      )}
     </div>
   )
 }

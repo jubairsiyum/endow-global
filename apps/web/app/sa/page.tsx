@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { trpc } from '@/lib/trpc-client'
 
 export default function SAPage() {
-  const { data: networkMap } = trpc.admin.dashboard.getNetworkMap.useQuery()
+  const { data: networkMap, isLoading: networkLoading } = trpc.admin.dashboard.getNetworkMap.useQuery()
 
   const { data: _metrics } = trpc.admin.dashboard.getMetrics.useQuery()
   const metrics = _metrics as any
@@ -41,6 +41,7 @@ export default function SAPage() {
         <LiveNetworkPanel
           nodes={networkMap?.nodes ?? undefined}
           arcs={networkMap?.arcs ?? undefined}
+          isLoading={networkLoading}
         />
       </motion.div>
 
