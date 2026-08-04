@@ -14,13 +14,12 @@ import { UserRole } from '@endow/types'
 export default function AdminPage() {
   const { data: session } = useSession()
   const userRole = (session?.user as any)?.role as UserRole
+  const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
+  const metrics = _metrics as any
 
   if (userRole === UserRole.SUPER_ADMIN) {
     return <SuperAdminDashboard />
   }
-
-  const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
-  const metrics = _metrics as any
 
   if (isLoading) {
     return (
