@@ -19,12 +19,13 @@ export function SuperAdminShell({ children }: Props) {
 
   // Close drawer on Escape
   useEffect(() => {
-    if (!drawerOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setDrawerOpen(false)
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    if (drawerOpen) {
+      window.addEventListener('keydown', onKey)
+      return () => window.removeEventListener('keydown', onKey)
+    }
   }, [drawerOpen])
 
   return (

@@ -32,13 +32,12 @@ export function DashboardShell({ children }: Props) {
 
   // Close drawer on Esc
   useEffect(() => {
-    if (!drawerOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setDrawerOpen(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [drawerOpen])
+  }, [])
 
   const user = {
     name: session?.user?.name ?? mockStudent.name,

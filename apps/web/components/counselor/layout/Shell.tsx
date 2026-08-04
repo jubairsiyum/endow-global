@@ -17,13 +17,12 @@ export function CounselorShell({ children }: Props) {
   }, [children])
 
   useEffect(() => {
-    if (!drawerOpen) return
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setDrawerOpen(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [drawerOpen])
+  }, [])
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: '#0E1220' }}>
