@@ -565,7 +565,7 @@ export const adminRouter = createTRPCRouter({
         if (input.isActive !== undefined) conditions.push(eq(schema.universities.isActive, input.isActive))
 
         return db.select().from(schema.universities)
-          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
           .orderBy(desc(schema.universities.createdAt))
       }),
 
@@ -667,7 +667,7 @@ return db.select().from(schema.universities)
         if (input.isActive !== undefined) conditions.push(eq(schema.courses.isActive, input.isActive))
 
         const courses = await db.select().from(schema.courses)
-          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
           .orderBy(desc(schema.courses.createdAt))
 
         const uniIds = Array.from(new Set(courses.map((c) => c.universityId)))
@@ -1389,7 +1389,7 @@ const course = await db.select().from(schema.courses)
           )
         }
         return db.select().from(schema.branches)
-          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
           .orderBy(desc(schema.branches.createdAt))
       }),
 
@@ -1510,7 +1510,7 @@ const course = await db.select().from(schema.courses)
         const totalRes = await db
           .select({ value: count() as any })
           .from(schema.users)
-          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
         return {
           users,
           total: totalRes[0]?.value || 0,
