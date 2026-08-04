@@ -16,7 +16,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   const dbUser = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.id, session.user.id),
-    columns: { role: true },
   })
 
   if (!dbUser || (dbUser.role !== UserRole.ADMIN && dbUser.role !== UserRole.SUPER_ADMIN)) {

@@ -16,7 +16,6 @@ export default async function CounselorLayout({ children }: { children: React.Re
 
   const dbUser = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.id, session.user.id),
-    columns: { role: true },
   })
 
   if (
