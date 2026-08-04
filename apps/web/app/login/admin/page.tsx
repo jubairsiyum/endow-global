@@ -8,9 +8,14 @@ import { Mail, LockKeyhole, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react
 import Link from 'next/link'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
+import { UserRole } from '@endow/types'
 
 const MAX_ATTEMPTS = 5
 const LOCKOUT_DURATION = 300
+
+const ALLOWED_ROLES: UserRole[] = [UserRole.ADMIN, UserRole.SUPER_ADMIN]
+const DASHBOARD_PATH = '/admin'
+const PORTAL_LABEL = 'Admin'
 
 function useLockoutTimer(lockoutUntil: number | null) {
   const [remaining, setRemaining] = useState<number | null>(null)
@@ -71,6 +76,15 @@ export default function AdminLoginPage() {
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null)
   const { remaining, isLocked } = useLockoutTimer(lockoutUntil)
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const err = new URLSearchParams(window.location.search).get('error')
+    if (err === 'unauthorized') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setError(`Your account does not have ${PORTAL_LABEL} access to this portal.`)
+    }
+  }, [])
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
@@ -104,8 +118,20 @@ export default function AdminLoginPage() {
         return
       }
 
+      const sessionRes = await authClient.getSession()
+
+      const userRole = (sessionRes.data?.user as any)?.role as UserRole | undefined
+      if (!userRole || !ALLOWED_ROLES.includes(userRole)) {
+        setError(
+          `Access denied. This portal is restricted to ${PORTAL_LABEL} accounts.${
+            userRole ? ` Your account role is ${userRole}.` : ''
+          } Please sign in with an authorized account.`
+        )
+        return
+      }
+
       setAttemptCount(0)
-      window.location.href = '/admin'
+      window.location.href = DASHBOARD_PATH
     } catch {
       setError('Connection failed. Please try again.')
     } finally {
