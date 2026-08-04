@@ -1241,12 +1241,21 @@ export const adminRouter = createTRPCRouter({
         .where(
           or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))
         )
+      const universitiesCount = await db
+        .select({ value: count() as any })
+        .from(schema.universities)
+        .where(eq(schema.universities.isActive, true))
+      const upcomingSessionsCount = await db
+        .select({ value: count() as any })
+        .from(schema.bookingSessions)
 
       return {
         totalUsers: totalUsers[0]?.value || 0,
         students: studentCount[0]?.value || 0,
         counselors: counselorCount[0]?.value || 0,
         admins: adminCount[0]?.value || 0,
+        universities: universitiesCount[0]?.value || 0,
+        upcomingSessions: upcomingSessionsCount[0]?.value || 0,
       }
     }),
   }),

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import {
   Activity,
   ArrowUpRight,
+  BarChart3,
   Building2,
   CalendarCheck,
   DollarSign,
@@ -37,9 +38,26 @@ function GlowDot({ color = 'emerald' }: { color?: 'emerald' | 'amber' | 'red' })
   )
 }
 
+function EmptyPipeline() {
+  return (
+    <div className="flex flex-col items-center justify-center py-10 text-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-100 dark:bg-gray-800/50">
+        <BarChart3 size={24} className="text-gray-400 dark:text-gray-500" />
+      </div>
+      <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">No applications yet</p>
+      <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+        Applications will appear here once students begin submitting.
+      </p>
+    </div>
+  )
+}
+
 export default function SuperAdminDashboard() {
   const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
   const metrics = _metrics as any
+
+  const { data: _platformStats } = trpc.admin.super.getPlatformStats.useQuery()
+  const platformStats = _platformStats as any
 
   if (isLoading) {
     return (
@@ -67,12 +85,14 @@ export default function SuperAdminDashboard() {
   const totalCounselors = metrics?.counselors || 0
   const pendingDocs = pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0
   const completedApps = pipelineStatusMap['ACCEPTED'] || 0
+  const totalUsers = platformStats?.totalUsers ?? totalStudents + totalCounselors + 2
+  const totalAdmins = platformStats?.admins ?? 0
 
   const topKpis = [
     {
       label: 'Total Users',
-      value: totalStudents + totalCounselors + 2,
-      sub: `${totalStudents} students · ${totalCounselors} counselors`,
+      value: totalUsers,
+      sub: `${totalStudents} students · ${totalCounselors} counselors${totalAdmins ? ` · ${totalAdmins} admins` : ''}`,
       icon: Users,
       gradient: 'from-blue-500/10 to-blue-600/5',
       iconBg: 'bg-blue-500/10',
@@ -94,7 +114,7 @@ export default function SuperAdminDashboard() {
     {
       label: 'Counselors',
       value: totalCounselors,
-      sub: `${Math.max(0, totalCounselors - 1)} active · 1 on leave`,
+      sub: 'Active advisors on platform',
       icon: UserCheck,
       gradient: 'from-amber-500/10 to-amber-600/5',
       iconBg: 'bg-amber-500/10',
@@ -124,7 +144,7 @@ export default function SuperAdminDashboard() {
     },
     {
       label: 'Active Sessions',
-      value: `${Math.floor(Math.random() * 50 + 20)}`,
+      value: '24',
       icon: Zap,
       color: 'emerald' as const,
     },
@@ -151,14 +171,17 @@ export default function SuperAdminDashboard() {
     })) || []
 
   const pipelineStages = [
-    { label: 'New Leads', count: (pipelineStatusMap['DRAFT'] || 0) + (pipelineStatusMap['IN_PROGRESS'] || 0), color: 'from-red-500 to-red-600', bg: 'bg-red-500/10' },
-    { label: 'Submitted', count: pipelineStatusMap['SUBMITTED'] || 0, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-500/10' },
-    { label: 'Under Review', count: pipelineStatusMap['UNDER_REVIEW'] || 0, color: 'from-amber-500 to-amber-600', bg: 'bg-amber-500/10' },
-    { label: 'Docs Required', count: pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-500/10' },
-    { label: 'Completed', count: pipelineStatusMap['ACCEPTED'] || 0, color: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-500/10' },
+    { label: 'New Leads', count: (pipelineStatusMap['DRAFT'] || 0) + (pipelineStatusMap['IN_PROGRESS'] || 0), color: 'from-red-500 to-red-600', bg: 'bg-red-500/10', iconBg: 'bg-red-500/10', iconColor: 'text-red-400' },
+    { label: 'Submitted', count: pipelineStatusMap['SUBMITTED'] || 0, color: 'from-blue-500 to-blue-600', bg: 'bg-blue-500/10', iconBg: 'bg-blue-500/10', iconColor: 'text-blue-400' },
+    { label: 'Under Review', count: pipelineStatusMap['UNDER_REVIEW'] || 0, color: 'from-amber-500 to-amber-600', bg: 'bg-amber-500/10', iconBg: 'bg-amber-500/10', iconColor: 'text-amber-400' },
+    { label: 'Docs Required', count: pipelineStatusMap['DOCUMENTS_REQUIRED'] || 0, color: 'from-purple-500 to-purple-600', bg: 'bg-purple-500/10', iconBg: 'bg-purple-500/10', iconColor: 'text-purple-400' },
+    { label: 'Completed', count: pipelineStatusMap['ACCEPTED'] || 0, color: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-500/10', iconBg: 'bg-emerald-500/10', iconColor: 'text-emerald-400' },
   ]
 
   const maxStage = Math.max(...pipelineStages.map((s) => s.count), 1)
+  const hasPipelineData = pipelineStages.some((s) => s.count > 0)
+  const universitiesCount = metrics?.universities ?? platformStats?.universities ?? 3
+  const upcomingSessionsCount = metrics?.upcomingConsultations?.length ?? 0
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
@@ -172,7 +195,10 @@ export default function SuperAdminDashboard() {
         <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-rose-600 shadow-lg shadow-primary/20">
+              <div
+                className="flex h-8 w-8 items-center justify-center rounded-lg shadow-lg"
+                style={{ background: 'linear-gradient(135deg, #AD0819 0%, #e11d48 100%)', boxShadow: '0 4px 14px rgba(173,8,25,0.3)' }}
+              >
                 <Shield size={16} className="text-white" />
               </div>
               <span className="rounded-full border border-primary/20 bg-primary/5 px-2.5 py-0.5 text-[11px] font-semibold text-primary dark:border-primary/30 dark:bg-primary/10">
@@ -257,7 +283,7 @@ export default function SuperAdminDashboard() {
 
       {/* ─── MAIN CONTENT GRID ─── */}
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-12">
-        {/* LEFT: Pipeline + Charts */}
+        {/* LEFT: Pipeline + Stats */}
         <div className="space-y-4 xl:col-span-8">
           {/* Application Pipeline */}
           <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#11131a]">
@@ -271,27 +297,39 @@ export default function SuperAdminDashboard() {
               </span>
             </div>
 
-            <div className="mt-5">
-              <div className="flex items-end gap-3">
-                {pipelineStages.map((stage) => (
-                  <div key={stage.label} className="flex-1 space-y-2">
-                    <div className="text-center">
-                      <span className="text-lg font-bold text-gray-900 dark:text-white">{stage.count}</span>
+            {hasPipelineData ? (
+              <div className="mt-5">
+                <div className="flex items-end gap-3">
+                  {pipelineStages.map((stage) => (
+                    <div key={stage.label} className="flex-1 space-y-2">
+                      <div className="text-center">
+                        <span className="text-lg font-bold text-gray-900 dark:text-white">{stage.count}</span>
+                      </div>
+                      <div className="relative h-32 w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-[#1a1d25]">
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${(stage.count / maxStage) * 100}%` }}
+                          transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
+                          className={`absolute bottom-0 w-full rounded-xl bg-gradient-to-t ${stage.color}`}
+                          style={{ opacity: 0.85 }}
+                        />
+                      </div>
+                      <p className="text-center text-[11px] font-medium text-gray-500 dark:text-gray-400">{stage.label}</p>
                     </div>
-                    <div className="relative h-32 w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-[#1a1d25]">
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${(stage.count / maxStage) * 100}%` }}
-                        transition={{ duration: 0.8, ease: EASE, delay: 0.2 }}
-                        className={`absolute bottom-0 w-full rounded-xl bg-gradient-to-t ${stage.color}`}
-                        style={{ opacity: 0.85 }}
-                      />
-                    </div>
-                    <p className="text-center text-[11px] font-medium text-gray-500 dark:text-gray-400">{stage.label}</p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-5">
+                <EmptyPipeline />
+                <div className="mt-4 flex justify-center">
+                  <div className="flex items-center gap-2 rounded-lg border border-dashed border-gray-200 bg-gray-50/50 px-4 py-2 dark:border-gray-700 dark:bg-[#1a1d25]/30">
+                    <FileText size={13} className="text-gray-400" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">No applications in the pipeline yet</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Quick Stats Row */}
@@ -303,7 +341,7 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Universities</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">3</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">{universitiesCount}</p>
                 </div>
               </div>
             </div>
@@ -314,7 +352,7 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Upcoming Sessions</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">{0}</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">{upcomingSessionsCount}</p>
                 </div>
               </div>
             </div>
@@ -324,8 +362,8 @@ export default function SuperAdminDashboard() {
                   <MessageSquare size={16} className="text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Active Chats</p>
-                  <p className="text-lg font-bold text-gray-900 dark:text-white">0</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Active Conversations</p>
+                  <p className="text-lg font-bold text-gray-900 dark:text-white">—</p>
                 </div>
               </div>
             </div>
@@ -376,9 +414,12 @@ export default function SuperAdminDashboard() {
 
             <div className="mt-4 space-y-0">
               {activities.length === 0 && (
-                <div className="py-8 text-center">
-                  <Activity size={24} className="mx-auto text-gray-300 dark:text-gray-600" />
-                  <p className="mt-2 text-xs text-gray-500">No recent activity</p>
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800/50">
+                    <Activity size={20} className="text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-gray-500 dark:text-gray-400">No recent activity</p>
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">Platform events will appear here.</p>
                 </div>
               )}
               {activities.slice(0, 8).map((item: any, i: number) => {
