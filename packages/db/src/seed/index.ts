@@ -45,6 +45,13 @@ async function seedUserWithCredentials(
 
     console.log(`✅ ${role} created: ${email} / ${password}`)
   } else {
+    if (existing.role !== role) {
+      await db.update(schema.users)
+        .set({ role })
+        .where(eq(schema.users.email, email))
+      console.log(`🔄 Updated ${email} role to ${role}`)
+    }
+
     const existingAccount = await db.query.accounts.findFirst({
       where: (a, { eq, and }) => and(eq(a.userId, existing.id), eq(a.providerId, 'credential')),
     })
@@ -60,12 +67,6 @@ async function seedUserWithCredentials(
       })
       console.log(`✅ ${role} password set: ${email} / ${password}`)
     } else {
-      if (existing.role !== role) {
-        await db.update(schema.users)
-          .set({ role })
-          .where(eq(schema.users.email, email))
-        console.log(`🔄 Updated ${email} role to ${role}`)
-      }
       console.log(`ℹ️  ${role} already exists with credentials: ${email}`)
     }
   }

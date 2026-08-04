@@ -90,7 +90,6 @@ export default function SALoginPage() {
       const res = await authClient.signIn.email({
         email: email.trim(),
         password,
-        callbackURL: '/sa',
       })
 
       if (res.error) {
@@ -102,7 +101,11 @@ export default function SALoginPage() {
           return next
         })
         setError(res.error.message || 'Invalid credentials')
+        return
       }
+
+      setAttemptCount(0)
+      window.location.href = '/sa'
     } catch {
       setError('Connection failed. Please try again.')
     } finally {

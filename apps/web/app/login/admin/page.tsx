@@ -90,7 +90,6 @@ export default function AdminLoginPage() {
       const res = await authClient.signIn.email({
         email: email.trim(),
         password,
-        callbackURL: '/admin',
       })
 
       if (res.error) {
@@ -102,7 +101,11 @@ export default function AdminLoginPage() {
           return next
         })
         setError(res.error.message || 'Invalid credentials')
+        return
       }
+
+      setAttemptCount(0)
+      window.location.href = '/admin'
     } catch {
       setError('Connection failed. Please try again.')
     } finally {

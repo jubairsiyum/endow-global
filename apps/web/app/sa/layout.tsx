@@ -11,13 +11,17 @@ export default async function SALayout({ children }: { children: React.ReactNode
   })
 
   if (!session?.user) {
+    console.warn('[SALayout] No session, redirecting to /login')
     redirect('/login')
   }
 
+  console.log('[SALayout] Session user:', { id: session.user.id, email: session.user.email })
+
   const dbUser = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.id, session.user.id),
-    columns: { role: true },
   })
+
+  console.log('[SALayout] DB user role:', dbUser?.role, 'expected:', UserRole.SUPER_ADMIN)
 
   if (!dbUser || dbUser.role !== UserRole.SUPER_ADMIN) {
     redirect('/login/sa?error=unauthorized')
