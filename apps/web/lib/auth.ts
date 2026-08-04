@@ -73,8 +73,16 @@ export const auth = betterAuth({
     },
   },
   session: {
-    expiresIn: 60 * 60 * 24 * 7, // 7 days
-    updateAge: 60 * 60 * 24, // 1 day
+    expiresIn: 60 * 60 * 24, // 1 day for admin portals (reduced from 7 days)
+    updateAge: 60 * 60 * 4, // re-issue session after 4 hours of inactivity
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 60 * 24, // 1 day
+    },
+    freshSession: {
+      enabled: false,
+      expiresIn: 60 * 60 * 24 * 7,
+    },
   },
   emailAndPassword: {
     enabled: true,
@@ -101,6 +109,14 @@ export const auth = betterAuth({
           }
         },
       },
+    },
+  },
+  advanced: {
+    cookiePrefix: '__Secure',
+    defaultCookieAttributes: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax' as const,
     },
   },
   plugins: [

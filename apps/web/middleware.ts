@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {
+  getSessionFromCookie,
+  hasSuperAdminRole,
+  hasAdminRole,
+  hasCounselorRole,
+} from '@/lib/admin-auth'
 
 function getSessionCookie(request: NextRequest) {
   return (
@@ -7,48 +13,109 @@ function getSessionCookie(request: NextRequest) {
   )
 }
 
-const PROTECTED_STUDENT_PATHS = [
-  '/dashboard',
-  '/onboarding',
-  '/explore',
-  '/match',
-  '/shortlist',
-  '/applications',
-  '/sessions',
-  '/messages',
-  '/profile',
-  '/refer',
-  '/notifications',
-  '/tutorial',
+const PROTECTED_PATHS: { paths: string[]; message: string }[] = [
+  {
+    paths: ['/dashboard', '/onboarding', '/explore', '/match', '/shortlist', '/applications', '/sessions', '/messages', '/profile', '/refer', '/notifications', '/tutorial'],
+    message: 'student',
+  },
+  { paths: ['/counselor'], message: 'counselor' },
+  { paths: ['/admin'], message: 'admin' },
+  { paths: ['/sa'], message: 'super-admin' },
 ]
-const PROTECTED_COUNSELOR_PATHS = ['/counselor']
-const PROTECTED_ADMIN_PATHS = ['/admin']
-const PROTECTED_SA_PATHS = ['/sa']
+
+function isProtected(pathname: string): boolean {
+  return PROTECTED_PATHS.some((group) =>
+    group.paths.some((p) => pathname.startsWith(p))
+  )
+}
+
+function isCareerLogin(pathname: string): boolean {
+  return (
+    pathname.startsWith('/login/counselor') ||
+    pathname.startsWith('/login/admin') ||
+    pathname.startsWith('/login/sa')
+  )
+}
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const sessionCookie = getSessionCookie(req)
 
-  const isStudentPath = PROTECTED_STUDENT_PATHS.some((p) => pathname.startsWith(p))
-  const isCounselorPath = PROTECTED_COUNSELOR_PATHS.some((p) => pathname.startsWith(p))
-  const isAdminPath = PROTECTED_ADMIN_PATHS.some((p) => pathname.startsWith(p))
-  const isSAPath = PROTECTED_SA_PATHS.some((p) => pathname.startsWith(p))
-  const isProtectedPath = isStudentPath || isCounselorPath || isAdminPath || isSAPath
+  let payload = null
+  if (sessionCookie) {
+    payload = await getSessionFromCookie(sessionCookie)
+  }
 
+  const isProtectedPath = isProtected(pathname)
+  const isSaPath = pathname.startsWith('/sa')
+  const isAdminPath = pathname.startsWith('/admin')
+  const isCounselorPath = pathname.startsWith('/counselor')
+
+  // --- Protected route enforcement ---
   if (isProtectedPath) {
-    if (!sessionCookie) {
+    if (!payload) {
       const url = new URL('/login', req.url)
       url.searchParams.set('callbackUrl', pathname)
-      return NextResponse.redirect(url)
+      const response = NextResponse.redirect(url)
+      clearSessionCookies(response)
+      return response
+    }
+
+    // Role-based access control at edge level
+    if (isSaPath && !hasSuperAdminRole(payload)) {
+      const url = new URL('/dashboard', req.url)
+      url.searchParams.set('error', 'unauthorized')
+      const response = NextResponse.redirect(url)
+      return response
+    }
+
+    if (isAdminPath && !hasAdminRole(payload)) {
+      const url = new URL('/dashboard', req.url)
+      url.searchParams.set('error', 'unauthorized')
+      const response = NextResponse.redirect(url)
+      return response
+    }
+
+    if (isCounselorPath && !hasCounselorRole(payload)) {
+      const url = new URL('/dashboard', req.url)
+      url.searchParams.set('error', 'unauthorized')
+      const response = NextResponse.redirect(url)
+      return response
     }
   }
 
-  // Redirect authenticated users away from auth pages
-  if ((pathname === '/login' || pathname === '/register') && sessionCookie) {
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+  // --- Auth page redirects ---
+  if (pathname === '/login' || pathname === '/register') {
+    if (payload) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+  }
+
+  // Career portal login pages: redirect if session exists but role mismatches
+  if (isCareerLogin(pathname) && payload) {
+    const role = payload.user?.role
+    if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'COUNSELOR') {
+      const dashMap: Record<string, string> = {
+        COUNSELOR: '/counselor',
+        ADMIN: '/admin',
+        SUPER_ADMIN: '/sa',
+      }
+      const target = dashMap[role] || '/dashboard'
+      return NextResponse.redirect(new URL(target, req.url))
+    }
   }
 
   return NextResponse.next()
+}
+
+function clearSessionCookies(response: NextResponse) {
+  const cookieNames = [
+    'better-auth.session_token',
+    '__Secure-better-auth.session_token',
+  ]
+  for (const name of cookieNames) {
+    response.cookies.delete(name)
+  }
 }
 
 export const config = {
