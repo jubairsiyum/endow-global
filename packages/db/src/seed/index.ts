@@ -3,13 +3,21 @@ import { eq } from 'drizzle-orm'
 import { hash } from 'bcryptjs'
 import { seedSouthKoreaCatalog } from './korea'
 
+const SA_EMAIL = 'superadmin@endowglobal.com'
+const SA_PASSWORD = 'SuperAdmin@123'
+
 const ADMIN_EMAIL = 'admin@endowglobal.com'
 const ADMIN_PASSWORD = 'Admin@12345'
 
-const SECOND_ADMIN_EMAIL = 'jubairprogprodigy@gmail.com'
-const SECOND_ADMIN_PASSWORD = 'Siyum@461824'
+const COUNSELOR_EMAIL = 'counselor@endowglobal.com'
+const COUNSELOR_PASSWORD = 'Counselor@123'
 
-async function seedAdminUser(email: string, name: string, password: string, role: 'ADMIN' | 'SUPER_ADMIN' = 'ADMIN') {
+async function seedUserWithCredentials(
+  email: string,
+  name: string,
+  password: string,
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'COUNSELOR'
+) {
 
   const existing = await db.query.users.findFirst({
     where: (u, { eq }) => eq(u.email, email),
@@ -35,7 +43,7 @@ async function seedAdminUser(email: string, name: string, password: string, role
       password: hashedPassword,
     })
 
-    console.log(`✅ ${role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'} created: ${email} / ${password}`)
+    console.log(`✅ ${role} created: ${email} / ${password}`)
   } else {
     const existingAccount = await db.query.accounts.findFirst({
       where: (a, { eq, and }) => and(eq(a.userId, existing.id), eq(a.providerId, 'credential')),
@@ -50,50 +58,40 @@ async function seedAdminUser(email: string, name: string, password: string, role
         accountId: email,
         password: hashedPassword,
       })
-      console.log(`✅ ${role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'} password set: ${email} / ${password}`)
+      console.log(`✅ ${role} password set: ${email} / ${password}`)
     } else {
-      // Update existing admin to SUPER_ADMIN if role doesn't match
       if (existing.role !== role) {
         await db.update(schema.users)
           .set({ role })
           .where(eq(schema.users.email, email))
         console.log(`🔄 Updated ${email} role to ${role}`)
       }
-      console.log(`ℹ️  ${role === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'} already exists with credentials: ${email}`)
+      console.log(`ℹ️  ${role} already exists with credentials: ${email}`)
     }
   }
 }
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  console.log('🌱 Seeding database...\n')
 
-  // Try seeding catalog data (may fail if catalog tables don't exist)
-  try {
-    await seedSouthKoreaCatalog()
-  } catch (err: any) {
-    console.log('⚠️  Skipping catalog seed:', err.message?.slice(0, 80))
-  }
+  // ─── 1. Super Admin ──────────────────────────────────
+  await seedUserWithCredentials(SA_EMAIL, 'Super Admin', SA_PASSWORD, 'SUPER_ADMIN')
 
-  // ─── Super Admin Account (seed-only) ───────────────────
-  await seedAdminUser(ADMIN_EMAIL, 'Super Admin', ADMIN_PASSWORD, 'SUPER_ADMIN')
+  // ─── 2. Admin ────────────────────────────────────────
+  await seedUserWithCredentials(ADMIN_EMAIL, 'Platform Admin', ADMIN_PASSWORD, 'ADMIN')
 
-  // ─── Secondary Admin Account ─────────────────────────────
-  await seedAdminUser(SECOND_ADMIN_EMAIL, 'Jubair', SECOND_ADMIN_PASSWORD)
+  // ─── 3. Counselor (with credentials) ─────────────────
+  await seedUserWithCredentials(COUNSELOR_EMAIL, 'Sarah Thompson', COUNSELOR_PASSWORD, 'COUNSELOR')
 
-  const existingCounselor = await db.query.users.findFirst({
-    where: (u, { eq }) => eq(u.email, 'sarah@endowglobal.com'),
+  // ─── Counselor Profile ───────────────────────────────
+  const counselorUser = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.email, COUNSELOR_EMAIL),
   })
-  if (!existingCounselor) {
-    await db.insert(schema.users).values({
-      email: 'sarah@endowglobal.com',
-      name: 'Sarah Thompson',
-      role: 'COUNSELOR',
-      emailVerified: new Date(),
+  if (counselorUser) {
+    const existingProfile = await db.query.counselorProfiles.findFirst({
+      where: (cp: any, { eq }: any) => eq(cp.userId, counselorUser.id),
     })
-    const counselorUser = await db.query.users.findFirst({
-      where: (u, { eq }) => eq(u.email, 'sarah@endowglobal.com'),
-    })
-    if (counselorUser) {
+    if (!existingProfile) {
       await db.insert(schema.counselorProfiles).values({
         userId: counselorUser.id,
         bio: 'Senior education counselor with 8 years of experience helping students achieve their UK and Australia study goals.',
@@ -103,8 +101,15 @@ async function main() {
         sessionRate: 2500,
         isAvailable: true,
       })
+      console.log('✅ Counselor profile created')
     }
-    console.log('✅ Counselor user created')
+  }
+
+  // ─── Catalog Data ────────────────────────────────────
+  try {
+    await seedSouthKoreaCatalog()
+  } catch (err: any) {
+    console.log('⚠️  Skipping catalog seed:', err.message?.slice(0, 80))
   }
 
   const universities = [

@@ -7,10 +7,7 @@ import {
 } from '@/lib/admin-auth'
 
 function getSessionCookie(request: NextRequest) {
-  return (
-    request.cookies.get('better-auth.session_token')?.value ??
-    request.cookies.get('__Secure-better-auth.session_token')?.value
-  )
+  return request.cookies.get('better-auth.session_token')?.value
 }
 
 const PROTECTED_PATHS: { paths: string[]; message: string }[] = [
@@ -37,12 +34,15 @@ function isCareerLogin(pathname: string): boolean {
   )
 }
 
+const jwtSecret = process.env.BETTER_AUTH_SECRET
+const jwtVerificationAvailable = typeof jwtSecret === 'string' && jwtSecret.length > 0
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
   const sessionCookie = getSessionCookie(req)
 
   let payload = null
-  if (sessionCookie) {
+  if (sessionCookie && jwtVerificationAvailable) {
     payload = await getSessionFromCookie(sessionCookie)
   }
 
@@ -51,47 +51,34 @@ export async function middleware(req: NextRequest) {
   const isAdminPath = pathname.startsWith('/admin')
   const isCounselorPath = pathname.startsWith('/counselor')
 
-  // --- Protected route enforcement ---
   if (isProtectedPath) {
-    if (!payload) {
+    if (!sessionCookie) {
       const url = new URL('/login', req.url)
       url.searchParams.set('callbackUrl', pathname)
-      const response = NextResponse.redirect(url)
-      clearSessionCookies(response)
-      return response
+      return NextResponse.redirect(url)
     }
 
-    // Role-based access control at edge level
-    if (isSaPath && !hasSuperAdminRole(payload)) {
-      const url = new URL('/dashboard', req.url)
-      url.searchParams.set('error', 'unauthorized')
-      const response = NextResponse.redirect(url)
-      return response
-    }
+    if (payload) {
+      if (isSaPath && !hasSuperAdminRole(payload)) {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
 
-    if (isAdminPath && !hasAdminRole(payload)) {
-      const url = new URL('/dashboard', req.url)
-      url.searchParams.set('error', 'unauthorized')
-      const response = NextResponse.redirect(url)
-      return response
-    }
+      if (isAdminPath && !hasAdminRole(payload)) {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
 
-    if (isCounselorPath && !hasCounselorRole(payload)) {
-      const url = new URL('/dashboard', req.url)
-      url.searchParams.set('error', 'unauthorized')
-      const response = NextResponse.redirect(url)
-      return response
+      if (isCounselorPath && !hasCounselorRole(payload)) {
+        return NextResponse.redirect(new URL('/dashboard', req.url))
+      }
     }
   }
 
-  // --- Auth page redirects ---
   if (pathname === '/login' || pathname === '/register') {
-    if (payload) {
+    if (sessionCookie) {
       return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   }
 
-  // Career portal login pages: redirect if session exists but role mismatches
   if (isCareerLogin(pathname) && payload) {
     const role = payload.user?.role
     if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'COUNSELOR') {
@@ -100,22 +87,11 @@ export async function middleware(req: NextRequest) {
         ADMIN: '/admin',
         SUPER_ADMIN: '/sa',
       }
-      const target = dashMap[role] || '/dashboard'
-      return NextResponse.redirect(new URL(target, req.url))
+      return NextResponse.redirect(new URL(dashMap[role] || '/dashboard', req.url))
     }
   }
 
   return NextResponse.next()
-}
-
-function clearSessionCookies(response: NextResponse) {
-  const cookieNames = [
-    'better-auth.session_token',
-    '__Secure-better-auth.session_token',
-  ]
-  for (const name of cookieNames) {
-    response.cookies.delete(name)
-  }
 }
 
 export const config = {

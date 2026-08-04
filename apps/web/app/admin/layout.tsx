@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
 import { UserRole } from '@endow/types'
 import { AdminClientLayout } from '@/components/admin/layout/AdminClientLayout'
 
@@ -9,13 +10,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     headers: headers(),
   })
 
-  if (!session) {
+  if (!session?.user) {
     redirect('/login')
   }
 
-  if (session.user.role !== UserRole.ADMIN && session.user.role !== UserRole.SUPER_ADMIN) {
-    redirect('/dashboard')
+  const dbUser = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.id, session.user.id),
+    columns: { role: true },
+  })
+
+  if (!dbUser || (dbUser.role !== UserRole.ADMIN && dbUser.role !== UserRole.SUPER_ADMIN)) {
+    redirect('/login/admin?error=unauthorized')
   }
 
-  return <AdminClientLayout userRole={session.user.role as UserRole}>{children}</AdminClientLayout>
+  return <AdminClientLayout userRole={dbUser.role as UserRole}>{children}</AdminClientLayout>
 }

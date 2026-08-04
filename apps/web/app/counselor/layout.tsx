@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
+import { db } from '@/lib/db'
 import { UserRole } from '@endow/types'
 import { CounselorShell } from '@/components/counselor/layout/Shell'
 
@@ -9,16 +10,22 @@ export default async function CounselorLayout({ children }: { children: React.Re
     headers: headers(),
   })
 
-  if (!session) {
+  if (!session?.user) {
     redirect('/login')
   }
 
+  const dbUser = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.id, session.user.id),
+    columns: { role: true },
+  })
+
   if (
-    session.user.role !== UserRole.COUNSELOR &&
-    session.user.role !== UserRole.ADMIN &&
-    session.user.role !== UserRole.SUPER_ADMIN
+    !dbUser ||
+    (dbUser.role !== UserRole.COUNSELOR &&
+      dbUser.role !== UserRole.ADMIN &&
+      dbUser.role !== UserRole.SUPER_ADMIN)
   ) {
-    redirect('/dashboard')
+    redirect('/login/counselor?error=unauthorized')
   }
 
   return <CounselorShell>{children}</CounselorShell>

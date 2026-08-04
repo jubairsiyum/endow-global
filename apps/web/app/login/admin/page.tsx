@@ -6,7 +6,6 @@ import { motion } from 'framer-motion'
 import { authClient } from '@/lib/auth-client'
 import { Mail, LockKeyhole, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react'
 import Link from 'next/link'
-import { logAuthEvent } from '@/app/actions/audit'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 
@@ -21,14 +20,11 @@ function useLockoutTimer(lockoutUntil: number | null) {
       setRemaining(null)
       return
     }
-
     setRemaining(Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000)))
-
     if (lockoutUntil <= Date.now()) {
       setRemaining(null)
       return
     }
-
     const interval = setInterval(() => {
       const diff = Math.ceil((lockoutUntil - Date.now()) / 1000)
       if (diff <= 0) {
@@ -38,7 +34,6 @@ function useLockoutTimer(lockoutUntil: number | null) {
         setRemaining(diff)
       }
     }, 1000)
-
     return () => clearInterval(interval)
   }, [lockoutUntil])
 
@@ -74,7 +69,6 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false)
   const [attemptCount, setAttemptCount] = useState(0)
   const [lockoutUntil, setLockoutUntil] = useState<number | null>(null)
-  const [ratelimitWait, setRatelimitWait] = useState(0)
   const { remaining, isLocked } = useLockoutTimer(lockoutUntil)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -97,17 +91,6 @@ export default function AdminLoginPage() {
         email: email.trim(),
         password,
         callbackURL: '/admin',
-        fetchOptions: {
-          onError(context) {
-            const status = context.response?.status
-            if (status === 429 && context.response?.headers) {
-              const retryAfter = context.response.headers.get('X-Retry-After')
-              const waitMs = retryAfter ? parseInt(retryAfter) * 1000 : 60000
-              setRatelimitWait(Math.ceil(waitMs / 1000))
-              setTimeout(() => setRatelimitWait(0), waitMs)
-            }
-          },
-        },
       })
 
       if (res.error) {
@@ -119,28 +102,7 @@ export default function AdminLoginPage() {
           return next
         })
         setError(res.error.message || 'Invalid credentials')
-        return
       }
-
-      const { data: session } = await authClient.getSession()
-      if (
-        !session ||
-        ((session.user as unknown as { role: string }).role !== 'ADMIN' &&
-          (session.user as unknown as { role: string }).role !== 'SUPER_ADMIN')
-      ) {
-        await authClient.signOut()
-        setError('Access denied. Admin role required.')
-        return
-      }
-
-      logAuthEvent('login.success', {
-        id: session.user.id,
-        email: session.user.email,
-        role: (session.user as unknown as { role: string }).role,
-      }).catch(() => {})
-
-      setAttemptCount(0)
-      router.push('/admin')
     } catch {
       setError('Connection failed. Please try again.')
     } finally {
@@ -151,7 +113,6 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[#f7f2ec] text-slate-950">
       <Navbar />
-
       <main className="relative isolate flex flex-1 flex-col items-center justify-center px-4 pb-20 pt-32 sm:px-6 sm:pt-40">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -176,7 +137,6 @@ export default function AdminLoginPage() {
                 <div className="h-full w-full rounded-full bg-gradient-to-r from-slate-950 to-red-700" />
               </div>
             </div>
-
             <div className="px-6 py-6 sm:px-8 sm:py-7">
               <motion.div
                 initial={{ opacity: 0, y: 12 }}
@@ -189,24 +149,17 @@ export default function AdminLoginPage() {
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">
                   Authorized personnel only. Sign in to manage platform resources.
                 </p>
-
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                   {isLocked && (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                       Account temporarily locked. Try again in {remaining}s.
                     </div>
                   )}
-                  {ratelimitWait > 0 && (
-                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
-                      Rate limited. Please wait {ratelimitWait}s before retrying.
-                    </div>
-                  )}
-                  {error && !isLocked && ratelimitWait === 0 && (
+                  {error && !isLocked && (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
                       {error}
                     </div>
                   )}
-
                   <InputField icon={Mail} label="Email Address">
                     <input
                       type="email"
@@ -219,7 +172,6 @@ export default function AdminLoginPage() {
                       className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
                     />
                   </InputField>
-
                   <InputField icon={LockKeyhole} label="Password">
                     <input
                       type={showPw ? 'text' : 'password'}
@@ -233,24 +185,22 @@ export default function AdminLoginPage() {
                     <button
                       type="button"
                       onClick={() => setShowPw((v) => !v)}
-                      className="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1"
+                      className="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600"
                       aria-label={showPw ? 'Hide password' : 'Show password'}
                       tabIndex={-1}
                     >
                       {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </InputField>
-
                   {attemptCount > 0 && !isLocked && (
                     <p className="text-xs font-medium text-slate-400">
                       {MAX_ATTEMPTS - attemptCount} attempt{MAX_ATTEMPTS - attemptCount !== 1 ? 's' : ''} remaining
                     </p>
                   )}
-
                   <div className="pt-2">
                     <button
                       type="submit"
-                      disabled={loading || ratelimitWait > 0 || isLocked || !email || !password}
+                      disabled={loading || isLocked || !email || !password}
                       className="flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
                     >
                       {loading ? (
@@ -262,12 +212,8 @@ export default function AdminLoginPage() {
                     </button>
                   </div>
                 </form>
-
                 <p className="mt-6 text-center text-sm text-slate-500">
-                  <Link
-                    href="/login"
-                    className="font-bold text-red-600 hover:text-red-700"
-                  >
+                  <Link href="/login" className="font-bold text-red-600 hover:text-red-700">
                     Back to student login
                   </Link>
                 </p>
@@ -276,7 +222,6 @@ export default function AdminLoginPage() {
           </div>
         </motion.div>
       </main>
-
       <div className="h-px bg-gradient-to-r from-transparent via-red-100 to-transparent" />
       <Footer />
     </div>
