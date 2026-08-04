@@ -733,8 +733,9 @@ const course = await db.select().from(schema.courses)
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(schema.courses).values(input)
-        return { success: true }
+        const id = globalThis.crypto.randomUUID()
+        await db.insert(schema.courses).values({ ...input, id })
+        return { success: true, id }
       }),
 
     update: adminProcedure
@@ -893,6 +894,53 @@ const course = await db.select().from(schema.courses)
               sortOrder: i,
             })) as any)
         }
+        return { success: true }
+      }),
+  }),
+
+  // ─── Course Modules ──────────────────────────────────────────
+
+  courseModules: createTRPCRouter({
+    create: adminProcedure
+      .input(z.object({
+        courseId: z.string(),
+        term: z.string(),
+        name: z.string().min(1),
+        type: z.enum(['CORE', 'OPTIONAL']),
+      }))
+      .mutation(async ({ input }) => {
+        await db.insert(schema.courseModules).values(input)
+        return { success: true }
+      }),
+
+    deleteByCourse: adminProcedure
+      .input(z.object({ courseId: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.courseModules)
+          .where(eq(schema.courseModules.courseId, input.courseId))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Course Intakes ──────────────────────────────────────────
+
+  courseIntakes: createTRPCRouter({
+    create: adminProcedure
+      .input(z.object({
+        courseId: z.string(),
+        intakeDate: z.date(),
+        applyByDate: z.date().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await db.insert(schema.platformCourseIntakes).values(input as any)
+        return { success: true }
+      }),
+
+    deleteByCourse: adminProcedure
+      .input(z.object({ courseId: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.platformCourseIntakes)
+          .where(eq(schema.platformCourseIntakes.courseId, input.courseId))
         return { success: true }
       }),
   }),
