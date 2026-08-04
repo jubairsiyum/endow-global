@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { authClient } from '@/lib/auth-client'
-import { Eye, EyeOff, Lock, UserCog } from 'lucide-react'
+import { Mail, LockKeyhole, ArrowRight, Eye, EyeOff, Shield } from 'lucide-react'
 import Link from 'next/link'
 import { logAuthEvent } from '@/app/actions/audit'
+import { Navbar } from '@/components/layout/Navbar'
+import { Footer } from '@/components/layout/Footer'
 
 const MAX_ATTEMPTS = 5
 const LOCKOUT_DURATION = 300
@@ -41,6 +43,26 @@ function useLockoutTimer(lockoutUntil: number | null) {
   }, [lockoutUntil])
 
   return { remaining, isLocked: remaining !== null && remaining > 0 }
+}
+
+function InputField({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: React.ElementType
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div>
+      <label className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</label>
+      <div className="mt-1.5 flex min-h-[48px] items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-all focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100">
+        <Icon className="shrink-0 text-slate-400" size={16} />
+        {children}
+      </div>
+    </div>
+  )
 }
 
 export default function AdminLoginPage() {
@@ -127,152 +149,136 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main
-      className="flex min-h-dvh items-center justify-center px-4"
-      style={{ background: '#0E1220' }}
-    >
-      <div className="absolute inset-0 sa-radar-grid opacity-20" />
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35 }}
-        className="relative z-10 w-full max-w-sm"
-      >
-        <div className="mb-8 text-center">
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-xl mx-auto"
-            style={{ background: 'rgba(232, 163, 61, 0.08)' }}
-          >
-            <UserCog size={22} style={{ color: '#E8A33D' }} />
-          </div>
-          <h1
-            className="mt-4 text-[22px] font-bold tracking-tight"
-            style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
-          >
-            Admin Portal
-          </h1>
-          <p className="mt-1 text-[13px]" style={{ color: '#8890A8' }}>
-            Sign in to manage platform resources
-          </p>
-        </div>
+    <div className="flex min-h-screen flex-col bg-[#f7f2ec] text-slate-950">
+      <Navbar />
 
-        <form
-          onSubmit={handleSubmit}
-          className="rounded-xl border p-6 space-y-4"
-          style={{ background: '#161B2E', borderColor: '#262C42' }}
+      <main className="relative isolate flex flex-1 flex-col items-center justify-center px-4 pb-20 pt-32 sm:px-6 sm:pt-40">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="w-full max-w-lg"
         >
-          {isLocked ? (
-            <div
-              className="rounded-md px-3 py-2.5 text-[12px] font-medium flex items-center gap-2"
-              style={{
-                background: 'rgba(240, 98, 91, 0.1)',
-                color: '#F0625B',
-                border: '1px solid rgba(240, 98, 91, 0.2)',
-              }}
-            >
-              <Lock size={14} />
-              Account temporarily locked. Try again in {remaining}s.
+          <div className="rounded-3xl border border-white/60 bg-white/80 shadow-[0_8px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="border-b border-slate-100 px-6 pb-5 pt-6 sm:px-8">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-600">
+                    Admin Portal
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+                  <Shield size={14} />
+                  Secure
+                </div>
+              </div>
+              <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full w-full rounded-full bg-gradient-to-r from-slate-950 to-red-700" />
+              </div>
             </div>
-          ) : ratelimitWait > 0 ? (
-            <div
-              className="rounded-md px-3 py-2 text-[12px] font-medium"
-              style={{
-                background: 'rgba(232, 163, 61, 0.08)',
-                color: '#E8A33D',
-                border: '1px solid rgba(232, 163, 61, 0.15)',
-              }}
-            >
-              Rate limited. Please wait {ratelimitWait}s before retrying.
-            </div>
-          ) : error ? (
-            <div
-              className="rounded-md px-3 py-2 text-[12px] font-medium"
-              style={{
-                background: 'rgba(240, 98, 91, 0.08)',
-                color: '#F0625B',
-                border: '1px solid rgba(240, 98, 91, 0.15)',
-              }}
-            >
-              {error}
-            </div>
-          ) : null}
 
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>
-              Email
-            </span>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              autoFocus
-              required
-              className="rounded-md border px-3 py-2 text-[13px] outline-none focus:border-[#E8A33D]/50"
-              style={{
-                background: '#0E1220',
-                borderColor: '#262C42',
-                color: '#E8EAF2',
-              }}
-              placeholder="admin@endow.global"
-            />
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>
-              Password
-            </span>
-            <div className="relative">
-              <input
-                type={showPw ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-                className="w-full rounded-md border px-3 py-2 pr-9 text-[13px] outline-none focus:border-[#E8A33D]/50"
-                style={{
-                  background: '#0E1220',
-                  borderColor: '#262C42',
-                  color: '#E8EAF2',
-                }}
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPw(!showPw)}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2"
-                style={{ color: '#8890A8' }}
-                aria-label={showPw ? 'Hide password' : 'Show password'}
+            <div className="px-6 py-6 sm:px-8 sm:py-7">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: 0.1 }}
               >
-                {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
-              </button>
+                <h2 className="text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+                  Platform <span className="text-red-600">Management</span>
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500">
+                  Authorized personnel only. Sign in to manage platform resources.
+                </p>
+
+                <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+                  {isLocked && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                      Account temporarily locked. Try again in {remaining}s.
+                    </div>
+                  )}
+                  {ratelimitWait > 0 && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700">
+                      Rate limited. Please wait {ratelimitWait}s before retrying.
+                    </div>
+                  )}
+                  {error && !isLocked && ratelimitWait === 0 && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                      {error}
+                    </div>
+                  )}
+
+                  <InputField icon={Mail} label="Email Address">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="admin@endow.global"
+                      disabled={loading}
+                      autoComplete="email"
+                      autoFocus
+                      className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
+                    />
+                  </InputField>
+
+                  <InputField icon={LockKeyhole} label="Password">
+                    <input
+                      type={showPw ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      disabled={loading}
+                      autoComplete="current-password"
+                      className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((v) => !v)}
+                      className="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400 focus-visible:ring-offset-1"
+                      aria-label={showPw ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </InputField>
+
+                  {attemptCount > 0 && !isLocked && (
+                    <p className="text-xs font-medium text-slate-400">
+                      {MAX_ATTEMPTS - attemptCount} attempt{MAX_ATTEMPTS - attemptCount !== 1 ? 's' : ''} remaining
+                    </p>
+                  )}
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      disabled={loading || ratelimitWait > 0 || isLocked || !email || !password}
+                      className="flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
+                    >
+                      {loading ? (
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      ) : (
+                        <ArrowRight size={16} />
+                      )}
+                      {loading ? 'Verifying credentials...' : 'Sign In'}
+                    </button>
+                  </div>
+                </form>
+
+                <p className="mt-6 text-center text-sm text-slate-500">
+                  <Link
+                    href="/login"
+                    className="font-bold text-red-600 hover:text-red-700"
+                  >
+                    Back to student login
+                  </Link>
+                </p>
+              </motion.div>
             </div>
-          </label>
+          </div>
+        </motion.div>
+      </main>
 
-          {attemptCount > 0 && !isLocked && (
-            <p className="text-[11px]" style={{ color: '#8890A8' }}>
-              {MAX_ATTEMPTS - attemptCount} attempt{MAX_ATTEMPTS - attemptCount !== 1 ? 's' : ''} remaining
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading || ratelimitWait > 0 || isLocked}
-            className="w-full rounded-md py-2 text-[13px] font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{ background: '#E8A33D', color: '#0E1220' }}
-          >
-            {loading ? 'Verifying credentials...' : 'Sign In'}
-          </button>
-          <p className="text-center text-[11px]" style={{ color: '#8890A8' }}>
-            <Link
-              href="/login"
-              className="underline-offset-2 hover:underline"
-              style={{ color: '#E8A33D' }}
-            >
-              Back to student login
-            </Link>
-          </p>
-        </form>
-      </motion.div>
-    </main>
+      <div className="h-px bg-gradient-to-r from-transparent via-red-100 to-transparent" />
+      <Footer />
+    </div>
   )
 }
