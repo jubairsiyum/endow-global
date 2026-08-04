@@ -1106,18 +1106,18 @@ export const adminRouter = createTRPCRouter({
             )
           )
         }
-        return db.query.branches.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [desc(schema.branches.createdAt)],
-        })
+        return db.select().from(schema.branches)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(desc(schema.branches.createdAt))
       }),
 
     getById: superAdminProcedure
       .input(z.object({ id: z.string() }))
       .query(async ({ input }) => {
-        return db.query.branches.findFirst({
-          where: eq(schema.branches.id, input.id),
-        })
+        return db.select().from(schema.branches)
+          .where(eq(schema.branches.id, input.id))
+          .limit(1)
+          .then((rows) => rows[0] || null)
       }),
 
     create: superAdminProcedure
