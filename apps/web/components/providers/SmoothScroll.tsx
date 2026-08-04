@@ -1,10 +1,17 @@
 'use client'
 
 import { useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 import Lenis from 'lenis'
 
+const PORTAL_PREFIXES = ['/sa', '/admin', '/counselor']
+
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+
   useEffect(() => {
+    if (PORTAL_PREFIXES.some((p) => pathname.startsWith(p))) return
+
     const lenis = new Lenis({
       lerp: 0.1,
       smoothWheel: true,
@@ -20,15 +27,10 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     requestAnimationFrame(raf)
 
-    // Prevent default scroll behavior conflicts
-    lenis.on('scroll', (e) => {
-      // Optional: Add custom scroll logic here if needed
-    })
-
     return () => {
       lenis.destroy()
     }
-  }, [])
+  }, [pathname])
 
   return <>{children}</>
 }

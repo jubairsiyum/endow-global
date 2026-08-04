@@ -3,11 +3,20 @@
 import { LiveNetworkPanel } from '@/components/super-admin/dashboard/LiveNetworkPanel'
 import { KPICardRow } from '@/components/super-admin/dashboard/KPICardRow'
 import { motion } from 'framer-motion'
+import { trpc } from '@/lib/trpc-client'
 
 export default function SAPage() {
+  const { data: networkMap } = trpc.admin.dashboard.getNetworkMap.useQuery()
+
+  const { data: _metrics } = trpc.admin.dashboard.getMetrics.useQuery()
+  const metrics = _metrics as any
+
+  const totalBranches = networkMap?.nodes?.filter((n: any) => n.type === 'branch').length ?? 0
+  const totalUniversities = networkMap?.nodes?.filter((n: any) => n.type === 'university').length ?? 0
+  const totalApplications = metrics?.applicationsByStatus?.reduce((s: number, c: any) => s + c.count, 0) ?? 0
+
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
-      {/* Page header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -24,22 +33,31 @@ export default function SAPage() {
         </p>
       </motion.div>
 
-      {/* Hero: Live Network Panel */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.05 }}
       >
-        <LiveNetworkPanel />
+        <LiveNetworkPanel
+          nodes={networkMap?.nodes ?? undefined}
+          arcs={networkMap?.arcs ?? undefined}
+        />
       </motion.div>
 
-      {/* KPI Cards */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
       >
-        <KPICardRow />
+        <KPICardRow
+          metrics={{
+            totalApplications,
+            totalBranches,
+            totalUniversities,
+            totalStudents: metrics?.students ?? 0,
+            totalCounselors: metrics?.counselors ?? 0,
+          }}
+        />
       </motion.div>
     </div>
   )

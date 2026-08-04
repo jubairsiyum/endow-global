@@ -97,6 +97,90 @@ export const adminRouter = createTRPCRouter({
         totalStudentsWithNationality: totalStudentsWithNationality[0]?.value || 0,
       }
     }),
+
+    getNetworkMap: adminProcedure.query(async () => {
+      const branchRows = await db.select().from(schema.branches)
+      const uniRows = await db.query.universities.findMany({
+        with: { courses: { columns: { id: true } } },
+      })
+
+      const countryCoords: Record<string, { x: number; y: number }> = {
+        'Bangladesh': { x: 0.68, y: 0.38 },
+        'Australia': { x: 0.83, y: 0.62 },
+        'South Korea': { x: 0.73, y: 0.28 },
+        'UAE': { x: 0.58, y: 0.42 },
+        'United Kingdom': { x: 0.45, y: 0.22 },
+        'Malaysia': { x: 0.72, y: 0.48 },
+        'United States': { x: 0.20, y: 0.30 },
+        'Canada': { x: 0.18, y: 0.22 },
+        'India': { x: 0.62, y: 0.42 },
+        'Germany': { x: 0.47, y: 0.25 },
+        'France': { x: 0.44, y: 0.28 },
+        'Japan': { x: 0.78, y: 0.30 },
+        'Singapore': { x: 0.71, y: 0.50 },
+        'China': { x: 0.75, y: 0.32 },
+        'New Zealand': { x: 0.88, y: 0.68 },
+      }
+
+      const statusMap: Record<string, string> = {
+        ACTIVE: 'active',
+        INACTIVE: 'inactive',
+        SETUP: 'warning',
+        CLOSED: 'inactive',
+      }
+
+      const nodes: Array<{ id: string; label: string; code: string; type: 'branch' | 'university'; x: number; y: number; volume: number; activeRoutes: number; status: 'active' | 'inactive' | 'warning' }> = []
+
+      for (const br of branchRows) {
+        const coord = countryCoords[br.country] || { x: 0.5, y: 0.5 }
+        nodes.push({
+          id: `b-${br.id}`,
+          label: br.name,
+          code: br.code,
+          type: 'branch',
+          x: coord.x + (Math.random() - 0.5) * 0.03,
+          y: coord.y + (Math.random() - 0.5) * 0.03,
+          volume: br.applications || (br.counselors ?? 0) * 12 || 15,
+          activeRoutes: br.counselors || 2,
+          status: (statusMap[br.status] || 'active') as 'active' | 'inactive' | 'warning',
+        })
+      }
+
+      for (const uni of uniRows) {
+        const coord = countryCoords[uni.country] || { x: 0.5, y: 0.5 }
+        nodes.push({
+          id: `u-${uni.id}`,
+          label: uni.name,
+          code: uni.slug.slice(0, 6).toUpperCase(),
+          type: 'university',
+          x: coord.x + (Math.random() - 0.5) * 0.04,
+          y: coord.y + (Math.random() - 0.5) * 0.04,
+          volume: (uni as any)?.courses?.length * 8 || 20,
+          activeRoutes: (uni as any)?.courses?.length || 3,
+          status: (uni.isActive ? 'active' : 'inactive') as 'active' | 'inactive' | 'warning',
+        })
+      }
+
+      const arcs: Array<{ from: string; to: string; count: number }> = []
+      const branchNodes = nodes.filter((n) => n.type === 'branch')
+      const uniNodes = nodes.filter((n) => n.type === 'university')
+
+      for (const branch of branchNodes) {
+        const branchId = branch.id.replace('b-', '')
+        const branchCountry = branchRows.find((b) => b.id === branchId)?.country
+        if (!branchCountry) continue
+        const sameCountryUnis = uniNodes.filter((u) => {
+          const uniId = u.id.replace('u-', '')
+          const uniCountry = uniRows.find((x) => (x as any).id === uniId)?.country
+          return uniCountry === branchCountry
+        })
+        for (const uni of sameCountryUnis.slice(0, 3)) {
+          arcs.push({ from: branch.id, to: uni.id, count: Math.floor(Math.random() * 3) + 1 })
+        }
+      }
+
+      return { nodes, arcs }
+    }),
   }),
 
   students: createTRPCRouter({
@@ -480,18 +564,16 @@ export const adminRouter = createTRPCRouter({
         if (input.country) conditions.push(eq(schema.universities.country, input.country))
         if (input.isActive !== undefined) conditions.push(eq(schema.universities.isActive, input.isActive))
 
-        return db.query.universities.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [desc(schema.universities.createdAt)],
-          with: { courses: { columns: { id: true } } },
-        })
+        return db.select().from(schema.universities)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(desc(schema.universities.createdAt))
       }),
 
     getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      return db.query.universities.findFirst({
-        where: eq(schema.universities.id, input.id),
-        with: { courses: true },
-      })
+return db.select().from(schema.universities)
+          .where(eq(schema.universities.id, input.id))
+          .limit(1)
+          .then((rows) => rows[0] || null)
     }),
 
     create: adminProcedure
@@ -578,18 +660,37 @@ export const adminRouter = createTRPCRouter({
         if (input.level) conditions.push(eq(schema.courses.level, input.level))
         if (input.isActive !== undefined) conditions.push(eq(schema.courses.isActive, input.isActive))
 
-        return db.query.courses.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [desc(schema.courses.createdAt)],
-          with: { university: { columns: { id: true, name: true, country: true } } },
-        })
+        const courses = await db.select().from(schema.courses)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(desc(schema.courses.createdAt))
+
+        const uniIds = Array.from(new Set(courses.map((c) => c.universityId)))
+        const universities = uniIds.length > 0
+          ? await db.select().from(schema.universities).where(or(...uniIds.map((id) => eq(schema.universities.id, id))))
+          : []
+        const uniMap = new Map(universities.map((u) => [u.id, u]))
+
+        return courses.map((c) => ({
+          ...c,
+          university: uniMap.get(c.universityId) ? {
+            id: uniMap.get(c.universityId)!.id,
+            name: uniMap.get(c.universityId)!.name,
+            country: uniMap.get(c.universityId)!.country,
+          } : null,
+        }))
       }),
 
     getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      return db.query.courses.findFirst({
-        where: eq(schema.courses.id, input.id),
-        with: { university: true },
-      })
+const course = await db.select().from(schema.courses)
+          .where(eq(schema.courses.id, input.id))
+          .limit(1)
+          .then((rows) => rows[0] || null)
+        if (!course) return null
+        const uni = await db.select().from(schema.universities)
+          .where(eq(schema.universities.id, course.universityId))
+          .limit(1)
+          .then((rows) => rows[0] || null)
+        return { ...course, university: uni }
     }),
 
     create: adminProcedure

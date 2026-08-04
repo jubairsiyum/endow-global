@@ -1,54 +1,23 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Users, FileText, Building2, DollarSign, Globe } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { ArrowUpRight, FileText, Building2, Globe, DollarSign, Users, GraduationCap } from 'lucide-react'
 
-interface KPI {
-  label: string
-  value: string
-  sub: string
-  icon: React.ElementType
-  trend?: { value: string; direction: 'up' | 'down' | 'flat' }
-  accent?: 'route' | 'success' | 'alert'
+interface KPIMetrics {
+  totalApplications: number
+  totalBranches: number
+  totalUniversities: number
+  totalStudents: number
+  totalCounselors: number
 }
 
-const kpis: KPI[] = [
-  {
-    label: 'Active Applications',
-    value: '1,247',
-    sub: '428 pending · 819 confirmed',
-    icon: FileText,
-    trend: { value: '+12%', direction: 'up' },
-    accent: 'route',
-  },
-  {
-    label: 'Total Branches',
-    value: '24',
-    sub: '18 active · 6 in setup',
-    icon: Building2,
-    trend: { value: '+2', direction: 'up' },
-    accent: 'success',
-  },
-  {
-    label: 'Partner Universities',
-    value: '136',
-    sub: '12 countries · 89 active',
-    icon: Globe,
-    trend: { value: '+8%', direction: 'up' },
-    accent: 'success',
-  },
-  {
-    label: 'Revenue (MTD)',
-    value: '$384K',
-    sub: '+18% vs last month',
-    icon: DollarSign,
-    trend: { value: '+18%', direction: 'up' },
-    accent: 'route',
-  },
-]
+interface Props {
+  metrics?: KPIMetrics | null
+}
 
-const accentStyles = {
+const NUM_FMT = new Intl.NumberFormat()
+
+const accentStyles: Record<string, { border: string; bg: string; text: string }> = {
   route: { border: '#E8A33D', bg: 'rgba(232, 163, 61, 0.06)', text: '#E8A33D' },
   success: { border: '#4FD1A5', bg: 'rgba(79, 209, 165, 0.06)', text: '#4FD1A5' },
   alert: { border: '#F0625B', bg: 'rgba(240, 98, 91, 0.06)', text: '#F0625B' },
@@ -56,12 +25,76 @@ const accentStyles = {
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
-export function KPICardRow() {
+export function KPICardRow({ metrics }: Props) {
+  const totalApplications = metrics?.totalApplications ?? 0
+  const totalBranches = metrics?.totalBranches ?? 0
+  const totalUniversities = metrics?.totalUniversities ?? 0
+  const totalPlatformUsers = (metrics?.totalStudents ?? 0) + (metrics?.totalCounselors ?? 0)
+
+  const kpis = [
+    {
+      label: 'Active Applications',
+      value: NUM_FMT.format(totalApplications),
+      sub: `${totalApplications > 0 ? 'Real-time student submissions' : 'No applications yet'}`,
+      icon: FileText,
+      accent: 'route' as const,
+    },
+    {
+      label: 'Total Branches',
+      value: NUM_FMT.format(totalBranches),
+      sub: `${totalBranches > 0 ? 'Global offices operating' : 'No branches configured'}`,
+      icon: Building2,
+      accent: 'success' as const,
+    },
+    {
+      label: 'Partner Universities',
+      value: NUM_FMT.format(totalUniversities),
+      sub: `${totalUniversities > 0 ? 'Across key study destinations' : 'No university partners yet'}`,
+      icon: Globe,
+      accent: 'success' as const,
+    },
+    {
+      label: 'Platform Members',
+      value: NUM_FMT.format(totalPlatformUsers),
+      sub: `${metrics?.totalStudents ?? 0} students · ${metrics?.totalCounselors ?? 0} counselors`,
+      icon: Users,
+      accent: 'route' as const,
+    },
+    {
+      label: 'Applications',
+      value: NUM_FMT.format(totalApplications),
+      sub: 'Total platform-wide',
+      icon: FileText,
+      accent: 'success',
+    },
+    {
+      label: 'Branches',
+      value: NUM_FMT.format(totalBranches),
+      sub: 'Regional offices',
+      icon: Building2,
+      accent: 'route',
+    },
+    {
+      label: 'Universities',
+      value: NUM_FMT.format(totalUniversities),
+      sub: 'Partner institutions',
+      icon: GraduationCap,
+      accent: 'success',
+    },
+    {
+      label: 'Platform Members',
+      value: NUM_FMT.format(totalPlatformUsers),
+      sub: 'Students + counselors',
+      icon: Users,
+      accent: 'route',
+    },
+  ]
+
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
       {kpis.map((kpi, i) => {
         const Icon = kpi.icon
-        const accent = accentStyles[kpi.accent || 'route']
+        const accent = accentStyles[kpi.accent]
 
         return (
           <motion.div
@@ -76,7 +109,6 @@ export function KPICardRow() {
               boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
             }}
           >
-            {/* Accent top line */}
             <div
               className="absolute left-0 right-0 top-0 h-[2px] opacity-0 transition-opacity group-hover:opacity-100"
               style={{ background: accent.border }}
@@ -89,20 +121,6 @@ export function KPICardRow() {
               >
                 <Icon size={16} style={{ color: accent.text }} />
               </div>
-
-              {kpi.trend && (
-                <div
-                  className="flex items-center gap-0.5 rounded-md px-2 py-0.5 text-[11px] font-medium"
-                  style={{
-                    background: 'rgba(79, 209, 165, 0.08)',
-                    color: '#4FD1A5',
-                    fontFamily: "'JetBrains Mono', monospace",
-                  }}
-                >
-                  <ArrowUpRight size={11} />
-                  {kpi.trend.value}
-                </div>
-              )}
             </div>
 
             <div className="relative z-10 mt-3">
