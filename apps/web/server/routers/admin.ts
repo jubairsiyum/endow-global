@@ -591,6 +591,9 @@ return db.select().from(schema.universities)
           established: z.number().optional(),
           totalStudents: z.number().optional(),
           internationalPercent: z.number().optional(),
+          accreditation: z.string().optional(),
+          rankings: z.any().optional(),
+          featured: z.boolean().default(false),
           isActive: z.boolean().default(true),
         })
       )
@@ -615,6 +618,9 @@ return db.select().from(schema.universities)
           established: z.number().optional(),
           totalStudents: z.number().optional(),
           internationalPercent: z.number().optional(),
+          accreditation: z.string().optional(),
+          rankings: z.any().optional(),
+          featured: z.boolean().optional(),
           isActive: z.boolean().optional(),
         })
       )
@@ -712,6 +718,17 @@ const course = await db.select().from(schema.courses)
           hasScholarship: z.boolean().default(false),
           scholarshipDetails: z.string().optional(),
           description: z.string().min(1),
+          campus: z.string().optional(),
+          modeOfStudy: z.enum(['FULL_TIME', 'PART_TIME', 'ONLINE', 'HYBRID']).default('FULL_TIME'),
+          highlights: z.array(z.string()).default([]),
+          professionalAccreditation: z.string().optional(),
+          offerResponseTime: z.string().optional(),
+          backlogsAccepted: z.boolean().default(false),
+          gapYearsAccepted: z.boolean().default(false),
+          englishTestWaiver: z.boolean().default(false),
+          expressOffer: z.boolean().default(false),
+          applicationFee: z.number().optional(),
+          brochureUrl: z.string().optional(),
           isActive: z.boolean().default(true),
         })
       )
@@ -740,6 +757,17 @@ const course = await db.select().from(schema.courses)
           hasScholarship: z.boolean().optional(),
           scholarshipDetails: z.string().optional(),
           description: z.string().optional(),
+          campus: z.string().optional(),
+          modeOfStudy: z.enum(['FULL_TIME', 'PART_TIME', 'ONLINE', 'HYBRID']).optional(),
+          highlights: z.array(z.string()).optional(),
+          professionalAccreditation: z.string().optional(),
+          offerResponseTime: z.string().optional(),
+          backlogsAccepted: z.boolean().optional(),
+          gapYearsAccepted: z.boolean().optional(),
+          englishTestWaiver: z.boolean().optional(),
+          expressOffer: z.boolean().optional(),
+          applicationFee: z.number().optional(),
+          brochureUrl: z.string().optional(),
           isActive: z.boolean().optional(),
         })
       )
@@ -762,6 +790,111 @@ const course = await db.select().from(schema.courses)
         .from(schema.courses)
       return rows.map(r => r.subject).filter(Boolean)
     }),
+  }),
+
+  // ─── Requirements Pool CRUD ──────────────────────────────────
+
+  requirements: createTRPCRouter({
+    list: adminProcedure
+      .input(z.object({ type: z.string().optional() }))
+      .query(async ({ input }) => {
+        const conds = input.type ? [eq(schema.requirements.type, input.type as any)] : []
+        return db.select().from(schema.requirements)
+          .where(conds.length > 0 ? and(...conds) : undefined)
+          .orderBy(schema.requirements.name)
+      }),
+
+    create: adminProcedure
+      .input(z.object({
+        type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']),
+        name: z.string().min(1),
+        minPercentage: z.number().optional(),
+        description: z.string().optional(),
+        isActive: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        await db.insert(schema.requirements).values(input as any)
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.string(),
+        type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']).optional(),
+        name: z.string().min(1).optional(),
+        minPercentage: z.number().optional(),
+        description: z.string().optional(),
+        isActive: z.boolean().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(schema.requirements).set(data as any).where(eq(schema.requirements.id, id))
+        return { success: true }
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.requirements).where(eq(schema.requirements.id, input.id))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Course Requirements (Junction) ──────────────────────────
+
+  courseRequirements: createTRPCRouter({
+    list: adminProcedure
+      .input(z.object({ courseId: z.string() }))
+      .query(async ({ input }) => {
+        return db.select().from(schema.platformCourseRequirements)
+          .where(eq(schema.platformCourseRequirements.courseId, input.courseId))
+      }),
+
+    set: adminProcedure
+      .input(z.object({
+        courseId: z.string(),
+        requirementIds: z.array(z.string()),
+      }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.platformCourseRequirements)
+          .where(eq(schema.platformCourseRequirements.courseId, input.courseId))
+        if (input.requirementIds.length > 0) {
+          await db.insert(schema.platformCourseRequirements)
+            .values(input.requirementIds.map((rid) => ({ courseId: input.courseId, requirementId: rid })) as any)
+        }
+        return { success: true }
+      }),
+  }),
+
+  // ─── Related Courses ─────────────────────────────────────────
+
+  relatedCourses: createTRPCRouter({
+    list: adminProcedure
+      .input(z.object({ courseId: z.string() }))
+      .query(async ({ input }) => {
+        return db.select().from(schema.relatedCourses)
+          .where(eq(schema.relatedCourses.courseId, input.courseId))
+          .orderBy(schema.relatedCourses.sortOrder)
+      }),
+
+    set: adminProcedure
+      .input(z.object({
+        courseId: z.string(),
+        relatedCourseIds: z.array(z.string()),
+      }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.relatedCourses)
+          .where(eq(schema.relatedCourses.courseId, input.courseId))
+        if (input.relatedCourseIds.length > 0) {
+          await db.insert(schema.relatedCourses)
+            .values(input.relatedCourseIds.map((rid, i) => ({
+              courseId: input.courseId,
+              relatedCourseId: rid,
+              sortOrder: i,
+            })) as any)
+        }
+        return { success: true }
+      }),
   }),
 
   // ─── Countries CRUD (Catalog) ──────────────────────────────

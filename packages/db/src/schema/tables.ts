@@ -151,6 +151,9 @@ export const universities = mysqlTable('university', {
   established: int('established'),
   totalStudents: int('total_students'),
   internationalPercent: float('international_percent'),
+  accreditation: text('accreditation'),
+  rankings: json('rankings').default('[]').notNull(),
+  featured: boolean('featured').default(false).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
@@ -183,6 +186,17 @@ export const courses = mysqlTable(
     hasScholarship: boolean('has_scholarship').default(false).notNull(),
     scholarshipDetails: text('scholarship_details'),
     description: text('description').notNull(),
+    campus: varchar('campus', { length: 255 }),
+    modeOfStudy: mysqlEnum('mode_of_study', ['FULL_TIME', 'PART_TIME', 'ONLINE', 'HYBRID']).default('FULL_TIME'),
+    highlights: json('highlights').default('[]').notNull(),
+    professionalAccreditation: text('professional_accreditation'),
+    offerResponseTime: varchar('offer_response_time', { length: 50 }),
+    backlogsAccepted: boolean('backlogs_accepted').default(false).notNull(),
+    gapYearsAccepted: boolean('gap_years_accepted').default(false).notNull(),
+    englishTestWaiver: boolean('english_test_waiver').default(false).notNull(),
+    expressOffer: boolean('express_offer').default(false).notNull(),
+    applicationFee: float('application_fee'),
+    brochureUrl: varchar('brochure_url', { length: 500 }),
     isActive: boolean('is_active').default(true).notNull(),
     vectorId: varchar('vector_id', { length: 255 }),
     typesenseId: varchar('typesense_id', { length: 255 }),
@@ -200,6 +214,70 @@ export const courses = mysqlTable(
     activeLevelIdx: index('idx_courses_active_level').on(table.isActive, table.level),
   })
 )
+
+// ─── Course Modules ────────────────────────────────────────
+
+export const courseModules = mysqlTable('course_module', {
+  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+  courseId: varchar('course_id', { length: 25 }).notNull(),
+  term: varchar('term', { length: 50 }).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  type: mysqlEnum('type', ['CORE', 'OPTIONAL']).notNull(),
+  sortOrder: int('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+}, (table) => ({
+  courseIdx: index('idx_cm_course').on(table.courseId),
+}))
+
+// ─── Course Intakes ────────────────────────────────────────
+
+export const platformCourseIntakes = mysqlTable('course_intake', {
+  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+  courseId: varchar('course_id', { length: 25 }).notNull(),
+  intakeDate: datetime('intake_date', { mode: 'date' }).notNull(),
+  applyByDate: datetime('apply_by_date', { mode: 'date' }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+}, (table) => ({
+  courseIdx: index('idx_ci_course').on(table.courseId),
+  intakeDateIdx: index('idx_ci_intake_date').on(table.intakeDate),
+}))
+
+// ─── Requirements Pool ──────────────────────────────────────
+
+export const requirements = mysqlTable('requirement', {
+  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+  type: mysqlEnum('type', ['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']).notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  minPercentage: float('min_percentage'),
+  description: text('description'),
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+})
+
+export const platformCourseRequirements = mysqlTable('course_requirement', {
+  courseId: varchar('course_id', { length: 25 }).notNull(),
+  requirementId: varchar('requirement_id', { length: 25 }).notNull(),
+  isMandatory: boolean('is_mandatory').default(true).notNull(),
+  notes: text('notes'),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+}, (table) => ({
+  pk: uniqueIndex('idx_cr_pk').on(table.courseId, table.requirementId),
+  courseIdx: index('idx_cr_course').on(table.courseId),
+  requirementIdx: index('idx_cr_requirement').on(table.requirementId),
+}))
+
+export const relatedCourses = mysqlTable('related_course', {
+  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+  courseId: varchar('course_id', { length: 25 }).notNull(),
+  relatedCourseId: varchar('related_course_id', { length: 25 }).notNull(),
+  sortOrder: int('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+}, (table) => ({
+  courseIdx: index('idx_rc_course').on(table.courseId),
+  relatedIdx: index('idx_rc_related').on(table.relatedCourseId),
+  unique: uniqueIndex('idx_rc_unique').on(table.courseId, table.relatedCourseId),
+}))
 
 // ─── Application ──────────────────────────────────────────
 

@@ -7,6 +7,11 @@ import {
   counselorProfiles,
   universities,
   courses,
+  courseModules,
+  platformCourseIntakes,
+  requirements,
+  platformCourseRequirements,
+  relatedCourses,
   applications,
   shortlistedCourses,
   matchResults,
@@ -75,9 +80,20 @@ export const universitiesRelations = relations(universities, ({ many }) => ({
 
 export const coursesRelations = relations(courses, ({ one, many }) => ({
   university: one(universities, { fields: [courses.universityId], references: [universities.id] }),
+  modules: many(courseModules),
+  intakes: many(platformCourseIntakes),
   applications: many(applications),
   shortlistedCourses: many(shortlistedCourses),
   matchResults: many(matchResults),
+  courseRequirements: many(platformCourseRequirements),
+}))
+
+export const courseModulesRelations = relations(courseModules, ({ one }) => ({
+  course: one(courses, { fields: [courseModules.courseId], references: [courses.id] }),
+}))
+
+export const platformCourseIntakesRelations = relations(platformCourseIntakes, ({ one }) => ({
+  course: one(courses, { fields: [platformCourseIntakes.courseId], references: [courses.id] }),
 }))
 
 export const applicationsRelations = relations(applications, ({ one }) => ({
@@ -160,4 +176,18 @@ export const referralsRelations = relations(referrals, ({ one }) => ({
     references: [users.id],
     relationName: 'referralReceived',
   }),
+}))
+
+export const requirementsRelations = relations(requirements, ({ many }) => ({
+  courseRequirements: many(platformCourseRequirements),
+}))
+
+export const platformCourseRequirementsRelations = relations(platformCourseRequirements, ({ one }) => ({
+  course: one(courses, { fields: [platformCourseRequirements.courseId], references: [courses.id] }),
+  requirement: one(requirements, { fields: [platformCourseRequirements.requirementId], references: [requirements.id] }),
+}))
+
+export const relatedCoursesRelations = relations(relatedCourses, ({ one }) => ({
+  course: one(courses, { fields: [relatedCourses.courseId], references: [courses.id] }),
+  relatedCourse: one(courses, { fields: [relatedCourses.relatedCourseId], references: [courses.id] }),
 }))

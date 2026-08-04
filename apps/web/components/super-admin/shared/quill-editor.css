@@ -1,0 +1,141 @@
+/* quill-editor.css — SA Dark Theme override */
+
+/* ── Import snow theme ── */
+@import 'react-quill-new/dist/quill.snow.css';
+
+/* ── Toolbar: fix button sizing ── */
+.sa-quill-editor .ql-toolbar.ql-snow {
+  background: #0E1220;
+  border: 1px solid #262C42;
+  border-radius: 6px 6px 0 0;
+  padding: 6px 8px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-formats {
+  margin-right: 8px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button {
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button:hover {
+  background: rgba(232, 163, 61, 0.08);
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button.ql-active {
+  background: rgba(232, 163, 61, 0.12);
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button .ql-stroke {
+  stroke: #8890A8;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button:hover .ql-stroke,
+.sa-quill-editor .ql-toolbar.ql-snow button.ql-active .ql-stroke {
+  stroke: #E8A33D;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button .ql-fill {
+  fill: #8890A8;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow button:hover .ql-fill,
+.sa-quill-editor .ql-toolbar.ql-snow button.ql-active .ql-fill {
+  fill: #E8A33D;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker {
+  height: 24px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker-label {
+  border: 1px solid #262C42;
+  border-radius: 4px;
+  padding: 0 6px;
+  color: #8890A8;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker-label:hover {
+  color: #E8A33D;
+  border-color: #E8A33D;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker-options {
+  background: #161B2E;
+  border: 1px solid #262C42;
+  border-radius: 4px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item {
+  color: #8890A8;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker-options .ql-picker-item:hover {
+  color: #E8A33D;
+  background: rgba(232, 163, 61, 0.08);
+}
+
+.sa-quill-editor .ql-toolbar.ql-snow .ql-picker.ql-expanded .ql-picker-label {
+  border-color: #E8A33D;
+}
+
+/* ── Editor area ── */
+.sa-quill-editor .ql-container.ql-snow {
+  background: #0E1220;
+  border: 1px solid #262C42;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.sa-quill-editor .ql-editor {
+  min-height: var(--ql-min-height, 160px);
+  color: #E8EAF2;
+  line-height: 1.6;
+}
+
+.sa-quill-editor .ql-editor.ql-blank::before {
+  color: #8890A8;
+  font-style: normal;
+}
+
+/* ── Links in editor ── */
+.sa-quill-editor .ql-editor a {
+  color: #E8A33D;
+}
+
+.sa-quill-editor .ql-snow .ql-tooltip {
+  background: #161B2E;
+  border-color: #262C42;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.sa-quill-editor .ql-snow .ql-tooltip input[type=text] {
+  background: #0E1220;
+  border-color: #262C42;
+  color: #E8EAF2;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+/* ── Reset tailwind overrides on quill elements ── */
+.sa-quill-editor .ql-toolbar button,
+.sa-quill-editor .ql-container {
+  box-sizing: border-box;
+  font-family: inherit;
+  line-height: normal;
+}
