@@ -7,257 +7,257 @@ import PageHeader from '@/components/ui/PageHeader'
 import StatusBadge from '@/components/ui/StatusBadge'
 
 export default function ApplicationDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const id = params.id as string
+ const params = useParams()
+ const router = useRouter()
+ const id = params.id as string
 
-  const { data: _app, isLoading, refetch } = trpc.admin.applications.getById.useQuery({ id })
+ const { data: _app, isLoading, refetch } = trpc.admin.applications.getById.useQuery({ id })
 
-  const [notes, setNotes] = useState('')
-  const [isEditingNotes, setIsEditingNotes] = useState(false)
+ const [notes, setNotes] = useState('')
+ const [isEditingNotes, setIsEditingNotes] = useState(false)
 
-  const statusMutation = trpc.admin.applications.updateStatus.useMutation({
-    onSuccess: () => refetch(),
-  })
+ const statusMutation = trpc.admin.applications.updateStatus.useMutation({
+ onSuccess: () => refetch(),
+ })
 
-  const notesMutation = trpc.admin.applications.addNotes.useMutation({
-    onSuccess: () => {
-      setIsEditingNotes(false)
-      refetch()
-    },
-  })
+ const notesMutation = trpc.admin.applications.addNotes.useMutation({
+ onSuccess: () => {
+ setIsEditingNotes(false)
+ refetch()
+ },
+ })
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6" aria-busy="true">
-        <div className="flex items-center gap-4">
-          <div className="h-10 w-20 animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
-          <div className="flex-1 space-y-2">
-            <div className="h-9 w-64 animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
-            <div className="h-4 w-72 animate-pulse rounded-lg bg-gray-200 dark:bg-[#222530]" />
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="col-span-2 space-y-6">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-              <div className="mb-4 h-5 w-44 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-              <div className="grid grid-cols-2 gap-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-                    <div className="h-4 w-36 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-                  </div>
-                ))}
-              </div>
-              <div className="mt-6 space-y-2">
-                <div className="h-3 w-36 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-                <div className="h-20 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-[#222530]" />
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-              <div className="mb-4 h-5 w-28 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-              <div className="space-y-2">
-                {Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="h-4 w-48 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="space-y-6">
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-              <div className="mb-4 h-5 w-16 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-              <div className="mb-4 h-6 w-24 animate-pulse rounded-full bg-gray-200 dark:bg-[#222530]" />
-              <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200 dark:bg-[#222530]" />
-            </div>
-            <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-              <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-              <div className="h-24 w-full animate-pulse rounded-lg bg-gray-200 dark:bg-[#222530]" />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+ if (isLoading) {
+ return (
+ <div className="space-y-6" aria-busy="true">
+ <div className="flex items-center gap-4">
+ <div className="h-10 w-20 animate-pulse rounded-xl bg-gray-200" />
+ <div className="flex-1 space-y-2">
+ <div className="h-9 w-64 animate-pulse rounded-xl bg-gray-200" />
+ <div className="h-4 w-72 animate-pulse rounded-lg bg-gray-200" />
+ </div>
+ </div>
+ <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+ <div className="col-span-2 space-y-6">
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <div className="mb-4 h-5 w-44 animate-pulse rounded bg-gray-200" />
+ <div className="grid grid-cols-2 gap-4">
+ {Array.from({ length: 4 }).map((_, i) => (
+ <div key={i} className="space-y-2">
+ <div className="h-3 w-24 animate-pulse rounded bg-gray-200" />
+ <div className="h-4 w-36 animate-pulse rounded bg-gray-200" />
+ </div>
+ ))}
+ </div>
+ <div className="mt-6 space-y-2">
+ <div className="h-3 w-36 animate-pulse rounded bg-gray-200" />
+ <div className="h-20 w-full animate-pulse rounded-lg bg-gray-200" />
+ </div>
+ </div>
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <div className="mb-4 h-5 w-28 animate-pulse rounded bg-gray-200" />
+ <div className="space-y-2">
+ {Array.from({ length: 3 }).map((_, i) => (
+ <div key={i} className="h-4 w-48 animate-pulse rounded bg-gray-200" />
+ ))}
+ </div>
+ </div>
+ </div>
+ <div className="space-y-6">
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <div className="mb-4 h-5 w-16 animate-pulse rounded bg-gray-200" />
+ <div className="mb-4 h-6 w-24 animate-pulse rounded-full bg-gray-200" />
+ <div className="h-10 w-full animate-pulse rounded-xl bg-gray-200" />
+ </div>
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <div className="mb-4 h-5 w-32 animate-pulse rounded bg-gray-200" />
+ <div className="h-24 w-full animate-pulse rounded-lg bg-gray-200" />
+ </div>
+ </div>
+ </div>
+ </div>
+ )
+ }
 
-  if (!_app) {
-    return <div className="py-20 text-center">Application not found</div>
-  }
+ if (!_app) {
+ return <div className="py-20 text-center">Application not found</div>
+ }
 
-  const handleStatusChange = (newStatus: any) => {
-    if (confirm(`Are you sure you want to change the status to ${newStatus}?`)) {
-      statusMutation.mutate({ id, status: newStatus })
-    }
-  }
+ const handleStatusChange = (newStatus: any) => {
+ if (confirm(`Are you sure you want to change the status to ${newStatus}?`)) {
+ statusMutation.mutate({ id, status: newStatus })
+ }
+ }
 
-  const handleSaveNotes = () => {
-    notesMutation.mutate({ id, notes })
-  }
+ const handleSaveNotes = () => {
+ notesMutation.mutate({ id, notes })
+ }
 
-  const app = _app as any
+ const app = _app as any
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.back()}
-          className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-[#1a1d25]"
-        >
-          Back
-        </button>
-        <div className="flex-1">
-          <PageHeader
-            title={`Application: ${app.course?.name}`}
-            description={`${app.course?.university?.name} • ${app.student?.user?.name}`}
-          />
-        </div>
-      </div>
+ return (
+ <div className="space-y-6">
+ <div className="flex items-center gap-4">
+ <button
+ onClick={() => router.back()}
+ className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50"
+ >
+ Back
+ </button>
+ <div className="flex-1">
+ <PageHeader
+ title={`Application: ${app.course?.name}`}
+ description={`${app.course?.university?.name} • ${app.student?.user?.name}`}
+ />
+ </div>
+ </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* LEFT COLUMN: DETAILS & DOCUMENTS */}
-        <div className="col-span-2 space-y-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              Application Details
-            </h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-500">Student</p>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {app.student?.user?.name}
-                </p>
-                <p className="text-xs text-gray-500">{app.student?.user?.email}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Counselor</p>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {app.counselor?.user?.name || 'Unassigned'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Submitted At</p>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {app.submittedAt
-                    ? new Date(app.submittedAt).toLocaleString()
-                    : 'Not submitted yet'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Current Step</p>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {app.currentStep} / {app.totalSteps}
-                </p>
-              </div>
-            </div>
+ <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+ {/* LEFT COLUMN: DETAILS & DOCUMENTS */}
+ <div className="col-span-2 space-y-6">
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <h2 className="mb-4 text-lg font-semibold text-gray-900">
+ Application Details
+ </h2>
+ <div className="grid grid-cols-2 gap-4">
+ <div>
+ <p className="text-sm text-gray-500">Student</p>
+ <p className="font-medium text-gray-900">
+ {app.student?.user?.name}
+ </p>
+ <p className="text-xs text-gray-500">{app.student?.user?.email}</p>
+ </div>
+ <div>
+ <p className="text-sm text-gray-500">Counselor</p>
+ <p className="font-medium text-gray-900">
+ {app.counselor?.user?.name || 'Unassigned'}
+ </p>
+ </div>
+ <div>
+ <p className="text-sm text-gray-500">Submitted At</p>
+ <p className="font-medium text-gray-900">
+ {app.submittedAt
+ ? new Date(app.submittedAt).toLocaleString()
+ : 'Not submitted yet'}
+ </p>
+ </div>
+ <div>
+ <p className="text-sm text-gray-500">Current Step</p>
+ <p className="font-medium text-gray-900">
+ {app.currentStep} / {app.totalSteps}
+ </p>
+ </div>
+ </div>
 
-            <div className="mt-6">
-              <p className="mb-2 text-sm text-gray-500">Personal Statement</p>
-              <div className="rounded-lg bg-gray-50 p-4 text-sm dark:bg-[#222530]">
-                {app.personalStatement || 'No personal statement provided.'}
-              </div>
-            </div>
-          </div>
+ <div className="mt-6">
+ <p className="mb-2 text-sm text-gray-500">Personal Statement</p>
+ <div className="rounded-lg bg-gray-50 p-4 text-sm">
+ {app.personalStatement || 'No personal statement provided.'}
+ </div>
+ </div>
+ </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Documents</h2>
-            {Array.isArray(app.documentsUrls) && app.documentsUrls.length > 0 ? (
-              <ul className="space-y-2">
-                {app.documentsUrls.map((docUrl: any, idx: number) => (
-                  <li key={idx} className="flex items-center gap-2">
-                    <a
-                      href={docUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm text-primary hover:underline"
-                    >
-                      Document {idx + 1}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-gray-500">No documents uploaded.</p>
-            )}
-          </div>
-        </div>
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <h2 className="mb-4 text-lg font-semibold text-gray-900">Documents</h2>
+ {Array.isArray(app.documentsUrls) && app.documentsUrls.length > 0 ? (
+ <ul className="space-y-2">
+ {app.documentsUrls.map((docUrl: any, idx: number) => (
+ <li key={idx} className="flex items-center gap-2">
+ <a
+ href={docUrl}
+ target="_blank"
+ rel="noreferrer"
+ className="text-sm text-primary hover:underline"
+ >
+ Document {idx + 1}
+ </a>
+ </li>
+ ))}
+ </ul>
+ ) : (
+ <p className="text-sm text-gray-500">No documents uploaded.</p>
+ )}
+ </div>
+ </div>
 
-        {/* RIGHT COLUMN: STATUS & NOTES */}
-        <div className="space-y-6">
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Status</h2>
-            <div className="mb-4">
-              <StatusBadge status={app.status} />
-            </div>
+ {/* RIGHT COLUMN: STATUS & NOTES */}
+ <div className="space-y-6">
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <h2 className="mb-4 text-lg font-semibold text-gray-900">Status</h2>
+ <div className="mb-4">
+ <StatusBadge status={app.status} />
+ </div>
 
-            <p className="mb-2 text-sm text-gray-500">Change Status:</p>
-            <select
-              aria-label="Change application status"
-              className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm dark:border-gray-700 dark:bg-[#222530]"
-              value={app.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={statusMutation.isPending}
-            >
-              <option value="DRAFT">Draft</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="UNDER_REVIEW">Under Review</option>
-              <option value="DOCUMENTS_REQUIRED">Documents Required</option>
-              <option value="ACCEPTED">Accepted</option>
-              <option value="REJECTED">Rejected</option>
-              <option value="WAITLISTED">Waitlisted</option>
-              <option value="WITHDRAWN">Withdrawn</option>
-            </select>
-            {statusMutation.isPending && <p className="mt-2 text-xs text-primary">Updating...</p>}
-          </div>
+ <p className="mb-2 text-sm text-gray-500">Change Status:</p>
+ <select
+ aria-label="Change application status"
+ className="w-full rounded-xl border border-gray-200 px-4 py-2 text-sm"
+ value={app.status}
+ onChange={(e) => handleStatusChange(e.target.value)}
+ disabled={statusMutation.isPending}
+ >
+ <option value="DRAFT">Draft</option>
+ <option value="IN_PROGRESS">In Progress</option>
+ <option value="SUBMITTED">Submitted</option>
+ <option value="UNDER_REVIEW">Under Review</option>
+ <option value="DOCUMENTS_REQUIRED">Documents Required</option>
+ <option value="ACCEPTED">Accepted</option>
+ <option value="REJECTED">Rejected</option>
+ <option value="WAITLISTED">Waitlisted</option>
+ <option value="WITHDRAWN">Withdrawn</option>
+ </select>
+ {statusMutation.isPending && <p className="mt-2 text-xs text-primary">Updating...</p>}
+ </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-              Counselor Notes
-            </h2>
+ <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800">
+ <h2 className="mb-4 text-lg font-semibold text-gray-900">
+ Counselor Notes
+ </h2>
 
-            {!isEditingNotes ? (
-              <div>
-                <div className="mb-4 whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300">
-                  {app.counselorNotes || 'No notes yet.'}
-                </div>
-                <button
-                  onClick={() => {
-                    setNotes(app.counselorNotes || '')
-                    setIsEditingNotes(true)
-                  }}
-                  className="rounded-xl border px-4 py-2 text-sm text-primary hover:bg-primary/5"
-                >
-                  Edit Notes
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <textarea
-                  className="w-full rounded-xl border border-gray-200 p-3 text-sm dark:border-gray-700 dark:bg-[#222530]"
-                  rows={5}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Enter internal notes here..."
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={handleSaveNotes}
-                    disabled={notesMutation.isPending}
-                    className="rounded-xl bg-primary px-4 py-2 text-sm text-white disabled:opacity-50"
-                  >
-                    {notesMutation.isPending ? 'Saving...' : 'Save Notes'}
-                  </button>
-                  <button
-                    onClick={() => setIsEditingNotes(false)}
-                    className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-[#1a1d25]"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
+ {!isEditingNotes ? (
+ <div>
+ <div className="mb-4 whitespace-pre-wrap text-sm text-gray-700">
+ {app.counselorNotes || 'No notes yet.'}
+ </div>
+ <button
+ onClick={() => {
+ setNotes(app.counselorNotes || '')
+ setIsEditingNotes(true)
+ }}
+ className="rounded-xl border px-4 py-2 text-sm text-primary hover:bg-primary/5"
+ >
+ Edit Notes
+ </button>
+ </div>
+ ) : (
+ <div className="space-y-3">
+ <textarea
+ className="w-full rounded-xl border border-gray-200 p-3 text-sm"
+ rows={5}
+ value={notes}
+ onChange={(e) => setNotes(e.target.value)}
+ placeholder="Enter internal notes here..."
+ />
+ <div className="flex gap-2">
+ <button
+ onClick={handleSaveNotes}
+ disabled={notesMutation.isPending}
+ className="rounded-xl bg-primary px-4 py-2 text-sm text-white disabled:opacity-50"
+ >
+ {notesMutation.isPending ? 'Saving...' : 'Save Notes'}
+ </button>
+ <button
+ onClick={() => setIsEditingNotes(false)}
+ className="rounded-xl border px-4 py-2 text-sm hover:bg-gray-50"
+ >
+ Cancel
+ </button>
+ </div>
+ </div>
+ )}
+ </div>
+ </div>
+ </div>
+ </div>
+ )
 }

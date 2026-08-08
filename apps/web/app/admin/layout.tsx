@@ -6,21 +6,21 @@ import { UserRole } from '@endow/types'
 import { AdminClientLayout } from '@/components/admin/layout/AdminClientLayout'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth.api.getSession({
-    headers: headers(),
-  })
+ const session = await auth.api.getSession({
+ headers: headers(),
+ })
 
-  if (!session?.user) {
-    redirect('/login')
-  }
+ if (!session?.user) {
+ redirect('/login')
+ }
 
-  const dbUser = await db.query.users.findFirst({
-    where: (u, { eq }) => eq(u.id, session.user.id),
-  })
+ const dbUser = await db.query.users.findFirst({
+ where: (u, { eq }) => eq(u.id, session.user.id),
+ })
 
-  if (!dbUser || (dbUser.role !== UserRole.ADMIN && dbUser.role !== UserRole.SUPER_ADMIN)) {
-    redirect('/login/admin?error=unauthorized')
-  }
+ if (!dbUser || (dbUser.role !== UserRole.ADMIN && dbUser.role !== UserRole.SUPER_ADMIN)) {
+ redirect('/login/admin?error=unauthorized')
+ }
 
-  return <AdminClientLayout userRole={dbUser.role as UserRole}>{children}</AdminClientLayout>
+ return <AdminClientLayout userRole={dbUser.role as UserRole}>{children}</AdminClientLayout>
 }

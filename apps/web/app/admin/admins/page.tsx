@@ -5,13 +5,13 @@ import { UserRole } from '@endow/types'
 import AdminManagementPage from './AdminManagementPage'
 
 export default async function AdminsPage() {
-  const session = await auth.api.getSession({
-    headers: headers(),
-  })
+ const session = await auth.api.getSession({
+ headers: headers(),
+ })
 
-  if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
-    redirect('/admin')
-  }
+ if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+ redirect('/admin')
+ }
 
-  return <AdminManagementPage />
+ return <AdminManagementPage />
 }
