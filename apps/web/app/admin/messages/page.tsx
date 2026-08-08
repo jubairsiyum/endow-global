@@ -43,7 +43,7 @@ export default function MessagesPage() {
                     <button
                       key={c.id}
                       onClick={() => setSelectedId(c.id)}
-                      className={`w-full px-5 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-[#11131a] ${selectedId === c.id ? 'bg-red-100/50 dark:bg-[#2a1114]' : ''}`}
+                      className={`w-full px-5 py-4 text-left transition-colors hover:bg-gray-50 dark:hover:bg-[#11131a] ${selectedId === c.id ? 'bg-red-200/50 dark:bg-[#2a1114]' : ''}`}
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">

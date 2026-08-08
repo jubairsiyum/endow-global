@@ -21,7 +21,7 @@ const statusColors: Record<string, string> = {
   UNDER_REVIEW: 'bg-amber-50 text-amber-700',
   DOCUMENTS_REQUIRED: 'bg-orange-50 text-orange-700',
   ACCEPTED: 'bg-green-50 text-green-700',
-  REJECTED: 'bg-red-100 text-red-700',
+  REJECTED: 'bg-red-200 text-red-700',
 }
 
 export default function DocumentsPage() {
@@ -102,7 +102,7 @@ export default function DocumentsPage() {
                   {formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setPreviewUrl(doc.docUrl)} className="rounded-xl bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
+                  <button onClick={() => setPreviewUrl(doc.docUrl)} className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
                     <Eye size={14} />
                   </button>
                   <a href={doc.docUrl} target="_blank" rel="noopener" className="rounded-xl bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20">

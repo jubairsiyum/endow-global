@@ -224,7 +224,7 @@ export default function NewslettersPage() {
                   ) : (
                     <button
                       onClick={() => setDeleteConfirm(s.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-100 hover:text-red-500"
+                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-200 hover:text-red-500"
                     >
                       <Trash2 size={14} />
                     </button>

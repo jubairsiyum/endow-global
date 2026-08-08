@@ -186,7 +186,7 @@ export default function CounselorsPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEdit(c)}
-                    className="rounded-xl bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]"
+                    className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]"
                   >
                     <Pencil size={14} />
                   </button>
@@ -208,7 +208,7 @@ export default function CounselorsPage() {
                   ) : (
                     <button
                       onClick={() => setDeleteConfirm(c.id)}
-                      className="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                      className="rounded-xl bg-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-200 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                     >
                       <Trash2 size={14} />
                     </button>

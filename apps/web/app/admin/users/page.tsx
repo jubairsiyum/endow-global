@@ -60,11 +60,11 @@ export default function SAUsersPage() {
         <div>
           <h1
             className="text-[20px] font-bold tracking-tight"
-            style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
           >
             User Management
           </h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
             Manage roles and permissions for all platform users
           </p>
         </div>
@@ -97,8 +97,8 @@ export default function SAUsersPage() {
               className="rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors"
               style={{
                 background: roleFilter === r ? 'rgba(232, 163, 61, 0.12)' : 'transparent',
-                color: roleFilter === r ? '#E8A33D' : '#8890A8',
-                border: `1px solid ${roleFilter === r ? 'rgba(232, 163, 61, 0.2)' : '#262C42'}`,
+                color: roleFilter === r ? '#E8A33D' : '#6b7280',
+                border: `1px solid ${roleFilter === r ? 'rgba(232, 163, 61, 0.2)' : '#e5e7eb'}`,
               }}
             >
               {r ?? 'All'}
@@ -126,7 +126,7 @@ export default function SAUsersPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
         className="overflow-hidden rounded-xl border"
-        style={{ background: '#161B2E', borderColor: '#262C42' }}
+        style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -149,19 +149,19 @@ export default function SAUsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ background: '#161B2E' }}>
+                <tr style={{ background: '#ffffff' }}>
                   {['User', 'Email', 'Role', 'Verified', 'Joined', 'Actions'].map((h) => (
                     <th
                       key={h}
                       className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider"
-                      style={{ color: '#8890A8', fontFamily: "'JetBrains Mono', monospace" }}
+                      style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="[&_tr]:border-t [&_tr]:border-[#262C42]/50">
+              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
                 {(data?.users ?? []).map((user: any) => (
                   <tr key={user.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
                     <td className="px-4 py-3">
@@ -177,12 +177,12 @@ export default function SAUsersPage() {
                         >
                           {user.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '??'}
                         </div>
-                        <span className="text-[13px] font-medium" style={{ color: '#E8EAF2' }}>
+                        <span className="text-[13px] font-medium" style={{ color: '#111827' }}>
                           {user.name || 'Unnamed'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#8890A8', fontFamily: "'JetBrains Mono', monospace" }}>
+                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
                       {user.email}
                     </td>
                     <td className="px-4 py-3">
@@ -195,13 +195,13 @@ export default function SAUsersPage() {
                         }}
                         className="rounded-md border px-2 py-1 text-[12px] font-medium outline-none cursor-pointer"
                         style={{
-                          background: '#0E1220',
-                          borderColor: '#262C42',
+                          background: '#f8fafc',
+                          borderColor: '#e5e7eb',
                           color: '#E8A33D',
                         }}
                       >
                         {ROLES.map((r) => (
-                          <option key={r} value={r} style={{ background: '#161B2E', color: '#E8EAF2' }}>
+                          <option key={r} value={r} style={{ background: '#ffffff', color: '#111827' }}>
                             {r.replace(/_/g, ' ')}
                           </option>
                         ))}
@@ -212,7 +212,7 @@ export default function SAUsersPage() {
                         {user.emailVerified ? 'Verified' : 'Pending'}
                       </SABadge>
                     </td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#8890A8' }}>
+                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>
                       {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}
                     </td>
                     <td className="px-4 py-3">
@@ -236,7 +236,7 @@ export default function SAUsersPage() {
                 {(!data?.users || data.users.length === 0) && (
                   <tr>
                     <td colSpan={6} className="py-20 text-center">
-                      <p className="text-[13px]" style={{ color: '#8890A8' }}>
+                      <p className="text-[13px]" style={{ color: '#6b7280' }}>
                         {search || roleFilter ? 'No users match your filters' : 'No users found'}
                       </p>
                     </td>
@@ -251,15 +251,15 @@ export default function SAUsersPage() {
         {data && data.total > 0 && (
           <div
             className="flex items-center justify-between border-t px-4 py-2.5"
-            style={{ borderColor: '#262C42' }}
+            style={{ borderColor: '#e5e7eb' }}
           >
-            <span className="text-[12px]" style={{ color: '#8890A8' }}>
+            <span className="text-[12px]" style={{ color: '#6b7280' }}>
               Showing{' '}
-              <span style={{ color: '#E8EAF2', fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>
                 {page * limit + 1}–{Math.min((page + 1) * limit, data.total)}
               </span>{' '}
               of{' '}
-              <span style={{ color: '#E8EAF2', fontFamily: "'JetBrains Mono', monospace" }}>
+              <span style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>
                 {data.total}
               </span>
             </span>
@@ -267,7 +267,7 @@ export default function SAUsersPage() {
               <SAButton variant="secondary" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>
                 Previous
               </SAButton>
-              <span className="text-[12px] px-2" style={{ color: '#8890A8' }}>
+              <span className="text-[12px] px-2" style={{ color: '#6b7280' }}>
                 {page + 1} / {totalPages}
               </span>
               <SAButton variant="secondary" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>
