@@ -24,6 +24,7 @@ import {
   Activity,
   DollarSign,
   Upload,
+  Building2,
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
@@ -49,6 +50,8 @@ const adminMenuItems = [
 ]
 
 const superAdminExtraItems = [
+  { name: 'Branches', icon: Building2, href: '/admin/branches' },
+  { name: 'Users', icon: Users, href: '/admin/users' },
   { name: 'Admin Management', icon: Shield, href: '/admin/admins' },
   { name: 'System Activity', icon: Activity, href: '/admin/activity' },
   { name: 'Revenue', icon: DollarSign, href: '/admin/revenue' },

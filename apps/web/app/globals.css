@@ -176,11 +176,11 @@ body {
 ======================== */
 
 .sa-theme {
-  --sa-ink: #0E1220;
-  --sa-surface: #161B2E;
-  --sa-border: #262C42;
-  --sa-text-primary: #E8EAF2;
-  --sa-text-secondary: #8890A8;
+  --sa-ink: #f8fafc;
+  --sa-surface: #ffffff;
+  --sa-border: #e5e7eb;
+  --sa-text-primary: #111827;
+  --sa-text-secondary: #6b7280;
   --sa-route: #E8A33D;
   --sa-success: #4FD1A5;
   --sa-alert: #F0625B;
@@ -188,8 +188,8 @@ body {
 
 .sa-radar-grid {
   background-image:
-    linear-gradient(rgba(38, 44, 66, 0.5) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(38, 44, 66, 0.5) 1px, transparent 1px);
+    linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 

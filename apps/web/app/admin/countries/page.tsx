@@ -1,215 +1,133 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { motion } from 'framer-motion'
+import { Search, Plus, Pencil, Trash2, Globe, RefreshCw, AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
 import { trpc } from '@/lib/trpc-client'
-import PageHeader from '@/components/ui/PageHeader'
-import AdminTable from '@/components/ui/AdminTable'
-import { Plus, Pencil, Trash2, X, Search, Globe } from 'lucide-react'
+import { SABadge } from '@/components/super-admin/shared/SABadge'
+import { SAButton } from '@/components/super-admin/shared/SAButton'
+import { SAInput } from '@/components/super-admin/shared/SAInput'
+import { SATooltip } from '@/components/super-admin/shared/SATooltip'
 
-interface CountryForm {
-  code: string
-  name: string
-  flagUrl: string
-  continent: string
-}
+const CONTINENTS = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania']
 
-const emptyForm: CountryForm = {
-  code: '', name: '', flagUrl: '', continent: '',
-}
-
-const continents = ['Africa', 'Asia', 'Europe', 'North America', 'South America', 'Oceania', 'Antarctica']
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value)
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay)
-    return () => clearTimeout(handler)
-  }, [value, delay])
-  return debouncedValue
-}
-
-export default function CountriesPage() {
+export default function SACountriesPage() {
   const [search, setSearch] = useState('')
-  const debouncedSearch = useDebounce(search, 400)
-  const [showModal, setShowModal] = useState(false)
+  const [showForm, setShowForm] = useState(false)
   const [editingCode, setEditingCode] = useState<string | null>(null)
-  const [form, setForm] = useState<CountryForm>(emptyForm)
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [form, setForm] = useState({ code: '', name: '', flagUrl: '', continent: '' })
 
   const utils = trpc.useUtils()
-
-  const { data: countries, isLoading } = trpc.admin.countries.list.useQuery({
-    search: debouncedSearch || undefined,
-  })
+  const { data: countryList, isLoading, error } = trpc.admin.countries.list.useQuery({ search: search || undefined })
 
   const createMutation = trpc.admin.countries.create.useMutation({
-    onSuccess: () => {
-      utils.admin.countries.list.invalidate()
-      setShowModal(false)
-      setForm(emptyForm)
-    },
+    onSuccess: () => { toast.success('Country created'); utils.admin.countries.list.invalidate(); resetForm() },
+    onError: (e: any) => toast.error(e?.message || 'Failed to create country'),
   })
-
   const updateMutation = trpc.admin.countries.update.useMutation({
-    onSuccess: () => {
-      utils.admin.countries.list.invalidate()
-      setShowModal(false)
-      setEditingCode(null)
-      setForm(emptyForm)
-    },
+    onSuccess: () => { toast.success('Country updated'); utils.admin.countries.list.invalidate(); resetForm() },
+    onError: (e: any) => toast.error(e?.message || 'Failed to update country'),
   })
-
   const deleteMutation = trpc.admin.countries.delete.useMutation({
-    onSuccess: () => {
-      utils.admin.countries.list.invalidate()
-      setDeleteConfirm(null)
-    },
+    onSuccess: () => { toast.success('Country deleted'); utils.admin.countries.list.invalidate() },
+    onError: (e: any) => toast.error(e?.message || 'Failed to delete country'),
   })
 
-  function openCreate() {
-    setEditingCode(null)
-    setForm(emptyForm)
-    setShowModal(true)
+  function resetForm() {
+    setShowForm(false); setEditingCode(null)
+    setForm({ code: '', name: '', flagUrl: '', continent: '' })
   }
 
-  function openEdit(c: any) {
+  function startEdit(c: any) {
     setEditingCode(c.code)
-    setForm({
-      code: c.code || '',
-      name: c.name || '',
-      flagUrl: c.flagUrl || '',
-      continent: c.continent || '',
-    })
-    setShowModal(true)
+    setForm({ code: c.code || '', name: c.name || '', flagUrl: c.flagUrl || '', continent: c.continent || '' })
+    setShowForm(true)
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    const data = {
-      name: form.name,
-      flagUrl: form.flagUrl || undefined,
-      continent: form.continent || undefined,
-    }
     if (editingCode) {
-      updateMutation.mutate({ code: editingCode, ...data })
+      updateMutation.mutate({ code: editingCode, name: form.name, flagUrl: form.flagUrl || undefined, continent: form.continent || undefined } as any)
     } else {
-      createMutation.mutate({ code: form.code.toUpperCase(), ...data })
+      createMutation.mutate({ code: form.code, name: form.name, flagUrl: form.flagUrl || undefined, continent: form.continent || undefined })
     }
   }
 
+  const is = { background: '#ffffff', borderColor: '#e5e7eb', color: '#111827' } as const
+
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Countries"
-        description="Manage country reference data used across the platform."
-        buttonText="Add Country"
-        onButtonClick={openCreate}
-      />
-
-      <div className="relative">
-        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name..."
-          className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all focus:border-primary dark:border-gray-800 dark:bg-[#1a1d25] dark:text-white"
-        />
-      </div>
-
-      <AdminTable>
-        <div className="overflow-x-auto">
-          <div className="grid min-w-[600px] grid-cols-4 border-b border-gray-100 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-600 dark:border-gray-800 dark:bg-[#222530] dark:text-gray-300">
-            <div>Country</div>
-            <div>Code</div>
-            <div>Continent</div>
-            <div>Actions</div>
-          </div>
-
-          {isLoading ? (
-            <div className="py-10">
-              <div className="flex justify-center pb-4">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
-              </div>
-            </div>
-          ) : (countries || []).length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-              <Globe size={48} className="mb-3" />
-              <p className="text-lg font-semibold text-gray-500">No countries found</p>
-              <p className="text-sm">Add your first country to get started.</p>
-            </div>
-          ) : (
-            (countries || []).map((c: any) => (
-              <div
-                key={c.code}
-                className="grid min-w-[600px] grid-cols-4 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-[#1a1d25]"
-              >
-                <div className="flex items-center gap-3">
-                  {c.flagUrl && <img src={c.flagUrl} alt={c.name} className="h-5 w-8 rounded object-cover" />}
-                  <span className="font-medium text-gray-900 dark:text-white">{c.name}</span>
-                </div>
-                <div className="text-sm font-mono text-gray-600 dark:text-gray-400">{c.code}</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">{c.continent || '—'}</div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => openEdit(c)} className="rounded-xl bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
-                    <Pencil size={14} />
-                  </button>
-                  {deleteConfirm === c.code ? (
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => deleteMutation.mutate({ code: c.code })} className="rounded-lg bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600">Confirm</button>
-                      <button onClick={() => setDeleteConfirm(null)} className="rounded-lg bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setDeleteConfirm(c.code)} className="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
-                      <Trash2 size={14} />
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
+    <div className="mx-auto max-w-[1440px] space-y-4">
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex items-center justify-between">
+        <div>
+          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>Countries</h1>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>Manage study destination countries</p>
         </div>
-      </AdminTable>
+        <SAButton variant="primary" size="md" onClick={() => { resetForm(); setShowForm(true) }}><Plus size={15} /> Add Country</SAButton>
+      </motion.div>
 
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-[#1a1d25]">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">{editingCode ? 'Edit Country' : 'Add Country'}</h2>
-              <button onClick={() => { setShowModal(false); setEditingCode(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-[#222530]">
-                <X size={18} />
-              </button>
+      {showForm && (
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border p-5" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
+          <h2 className="mb-4 text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>{editingCode ? 'Edit Country' : 'Add Country'}</h2>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {[{ label: 'ISO Code *', key: 'code', required: true, maxLength: 2, placeholder: 'e.g. KR' }, { label: 'Name *', key: 'name', required: true }, { label: 'Flag URL', key: 'flagUrl', placeholder: 'https://...' }].map((f) => (
+              <label key={f.key} className="flex flex-col gap-1">
+                <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>{f.label}</span>
+                <input value={(form as any)[f.key]} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} required={f.required} maxLength={f.maxLength} placeholder={f.placeholder || f.label} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={is} />
+              </label>
+            ))}
+            <label className="flex flex-col gap-1">
+              <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Continent</span>
+              <select value={form.continent} onChange={(e) => setForm({ ...form, continent: e.target.value })} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={is}>
+                <option value="">Select...</option>
+                {CONTINENTS.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </label>
+            <div className="col-span-full flex items-center gap-2 pt-2">
+              <SAButton type="submit" variant="primary" size="sm" disabled={createMutation.isPending || updateMutation.isPending}>{editingCode ? 'Update' : 'Create'}</SAButton>
+              <SAButton type="button" variant="ghost" size="sm" onClick={resetForm}>Cancel</SAButton>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Country Code (2 letters) *</label>
-                <input required maxLength={2} value={form.code} onChange={e => setForm({ ...form, code: e.target.value.toUpperCase() })} disabled={!!editingCode} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm uppercase outline-none focus:border-primary disabled:opacity-50 dark:border-gray-800 dark:bg-[#11131a] dark:text-white" placeholder="US" />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Country Name *</label>
-                <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white" placeholder="United States" />
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Continent</label>
-                <select value={form.continent} onChange={e => setForm({ ...form, continent: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white">
-                  <option value="">Select Continent</option>
-                  {continents.map(c => <option key={c} value={c}>{c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Flag URL</label>
-                <input value={form.flagUrl} onChange={e => setForm({ ...form, flagUrl: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white" placeholder="https://flagcdn.com/w320/us.png" />
-              </div>
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowModal(false); setEditingCode(null); setForm(emptyForm) }} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:text-white dark:hover:bg-[#222530]">Cancel</button>
-                <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#920715] disabled:opacity-50">
-                  {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingCode ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </motion.div>
       )}
+
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }} className="flex items-center gap-3">
+        <div className="w-[300px]"><SAInput placeholder="Search countries..." icon={<Search size={14} />} value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+        <SAButton variant="ghost" size="sm" onClick={() => { setSearch(''); utils.admin.countries.list.invalidate() }}><RefreshCw size={12} /> Reset</SAButton>
+      </motion.div>
+
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} className="overflow-hidden rounded-xl border" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }} /></div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 px-4"><AlertTriangle size={28} style={{ color: '#F0625B' }} /><p className="mt-3 text-[14px] font-medium" style={{ color: '#F0625B' }}>Failed to load countries</p><SAButton variant="secondary" size="sm" className="mt-3" onClick={() => utils.admin.countries.list.invalidate()}>Retry</SAButton></div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead><tr style={{ background: '#ffffff' }}>{['Code', 'Name', 'Continent', 'Actions'].map((h) => <th key={h} className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{h}</th>)}</tr></thead>
+              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]">
+                {(countryList ?? []).map((c: any) => (
+                  <tr key={c.code} className="transition-colors hover:bg-gray-50">
+                    <td className="px-4 py-3"><span className="text-[12px] font-semibold" style={{ color: '#E8A33D', fontFamily: "'JetBrains Mono', monospace" }}>{c.code}</span></td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: 'rgba(79,209,165,0.08)' }}><Globe size={14} style={{ color: '#4FD1A5' }} /></div>
+                        <span className="text-[13px] font-medium" style={{ color: '#111827' }}>{c.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>{c.continent || '—'}</td>
+                    <td className="px-4 py-3"><div className="flex items-center gap-1">
+                      <SATooltip content="Edit"><button onClick={() => startEdit(c)} className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-gray-100" style={{ color: '#E8A33D' }}><Pencil size={14} /></button></SATooltip>
+                      <SATooltip content="Delete"><button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate({ code: c.code }) }} className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-red-50" style={{ color: '#F0625B' }}><Trash2 size={14} /></button></SATooltip>
+                    </div></td>
+                  </tr>
+                ))}
+                {(!countryList || countryList.length === 0) && (<tr><td colSpan={4} className="py-20 text-center"><Globe size={28} style={{ color: '#6b7280', margin: '0 auto 8px' }} /><p className="text-[13px]" style={{ color: '#6b7280' }}>{search ? 'No countries match your search' : 'No countries yet. Add your first one.'}</p></td></tr>)}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
     </div>
   )
 }

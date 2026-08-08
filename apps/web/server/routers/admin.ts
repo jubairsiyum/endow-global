@@ -195,16 +195,16 @@ export const adminRouter = createTRPCRouter({
       .query(async ({ input }) => {
         const { search, cursor, limit } = input
 
-        const where = and(
-          eq(schema.users.role, 'STUDENT'),
-          search
-            ? or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`))
-            : undefined,
-          cursor ? sql`${schema.users.id} < ${cursor}` as any : undefined // Simple cursor logic based on desc ID
-        )
+        const conditions = [eq(schema.users.role, 'STUDENT')]
+        if (search) {
+          conditions.push(or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`)))
+        }
+        if (cursor) {
+          conditions.push(sql`${schema.users.id} < ${cursor}` as any)
+        }
 
         const items = await db.query.users.findMany({
-          where,
+          where: and(...conditions),
           limit: limit + 1,
           orderBy: [desc(schema.users.id)],
           with: {
