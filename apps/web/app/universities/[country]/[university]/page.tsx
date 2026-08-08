@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
@@ -7,9 +8,12 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { MapPin, Globe, Award, Building2, BookOpen, ExternalLink, Clock, Users, CheckCircle, Layers, ChevronRight, Calendar } from 'lucide-react'
 
+function stripHtml(html: string) { return html.replace(/<[^>]+>/g, '') }
+
 export default function UniversityDetailPage() {
   const { university } = useParams<{ country: string; university: string }>()
   const { data: uni, isLoading } = trpc.university.getBySlug.useQuery({ slug: university as string })
+  const [descExpanded, setDescExpanded] = useState(false)
 
   if (isLoading) {
     return (
@@ -31,7 +35,7 @@ export default function UniversityDetailPage() {
           <Building2 size={48} className="text-gray-300" />
           <h1 className="mt-4 text-2xl font-bold text-gray-900">University not found</h1>
           <p className="mt-2 text-gray-500">The university you&apos;re looking for doesn&apos;t exist or isn&apos;t available yet.</p>
-          <Link href="/universities" className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20">Browse All Universities</Link>
+          <Link href="/universities" className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] px-6 py-3 text-sm font-bold text-white shadow-md shadow-primary/20">Browse All Universities</Link>
         </div>
         <Footer />
       </div>
@@ -41,59 +45,56 @@ export default function UniversityDetailPage() {
   const courses = (uni as any).courses || []
   const highlights = Array.isArray((uni as any).highlights) ? (uni as any).highlights : (typeof (uni as any).highlights === 'string' ? JSON.parse(((uni as any).highlights || '[]')) : [])
   const rankings = Array.isArray((uni as any).rankings) ? (uni as any).rankings : (typeof (uni as any).rankings === 'string' ? JSON.parse(((uni as any).rankings || '[]')) : [])
+  const descText = uni.description ? stripHtml(uni.description) : ''
+  const descLong = descText.length > 160
+  const descDisplay = descExpanded || !descLong ? descText : descText.slice(0, 160).trimEnd() + '…'
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f7f2ec]">
-      {/* Navbar — sits on top of cover */}
-      <div className="relative z-30">
-        <Navbar />
-      </div>
+      <div className="relative z-30"><Navbar /></div>
 
-      {/* Hero — cover image full width behind everything */}
       <section className="relative -mt-[72px]">
-        {/* Cover bg */}
-        <div className="absolute inset-0 h-[520px] sm:h-[480px] overflow-hidden">
+        <div className="absolute inset-0 h-[480px] sm:h-[440px] overflow-hidden">
           {uni.coverImage ? (
             <img src={uni.coverImage} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-900 to-black" />
+            <div className="w-full h-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/80 to-[#0f172a]/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/60 to-[#0f172a]/25" />
         </div>
 
-        {/* Content overlay */}
-        <div className="relative mx-auto max-w-7xl px-5 pb-10 pt-[120px] sm:px-6 lg:px-8 sm:pb-12 sm:pt-[136px]">
-
-          <div className="flex flex-col gap-6 sm:flex-row sm:gap-6">
-            {/* Logo — white card on dark bg */}
-            <div className="flex h-24 w-24 sm:h-28 sm:w-28 shrink-0 items-center justify-center rounded-2xl bg-white shadow-2xl overflow-hidden">
+        <div className="relative mx-auto max-w-7xl px-5 pb-10 pt-[140px] sm:px-6 lg:px-8 sm:pb-12 sm:pt-[152px]">
+          <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
+            <div className="flex h-[88px] w-[88px] sm:h-[104px] sm:w-[104px] shrink-0 items-center justify-center rounded-2xl bg-white shadow-xl overflow-hidden">
               {uni.logo ? <img src={uni.logo} alt={uni.name} className="h-full w-full object-contain p-3" /> : <Building2 size={36} className="text-gray-400" />}
             </div>
 
-            <div className="flex-1 min-w-0 pt-0 sm:pt-2">
-              {/* Badges */}
-              <div className="flex flex-wrap items-center gap-2 mb-3">
+            <div className="flex-1 min-w-0 sm:pt-2">
+              <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[11px] font-semibold text-white"><MapPin size={11} />{uni.country}</span>
                 {uni.city && <span className="text-sm text-white/60">{uni.city}</span>}
                 {uni.ranking && <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300"><Award size={11} />#{uni.ranking}</span>}
-                {uni.featured && <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[11px] font-semibold text-white"><CheckCircle size={11} />Featured</span>}
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">{uni.name}</h1>
 
-              {uni.description && (
-                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/70 line-clamp-2" dangerouslySetInnerHTML={{ __html: uni.description.replace(/<[^>]+>/g, '') }} />
+              {descText && (
+                <p className="mt-2.5 max-w-2xl text-sm leading-relaxed text-white/70">
+                  {descDisplay}
+                  {descLong && !descExpanded && (
+                    <button onClick={() => setDescExpanded(true)} className="ml-1 text-white/50 hover:text-white underline underline-offset-2 font-medium transition-colors text-xs">Read more</button>
+                  )}
+                </p>
               )}
 
-              {/* CTA */}
-              <div className="mt-5 flex flex-wrap items-center gap-3">
+              <div className="mt-4 flex flex-wrap items-center gap-3">
                 {uni.website && (
-                  <a href={uni.website} target="_blank" rel="noopener" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition-colors shadow-lg">
+                  <a href={uni.website} target="_blank" rel="noopener" className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-900 hover:bg-gray-100 transition-colors shadow-md">
                     <Globe size={14} /> Visit Official Website <ExternalLink size={11} />
                   </a>
                 )}
                 {(uni as any).brochureUrl && (
-                  <a href={(uni as any).brochureUrl} target="_blank" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-5 py-2.5 text-sm font-medium text-white hover:bg-white/10 transition-colors">
+                  <a href={(uni as any).brochureUrl} target="_blank" className="inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-sm font-medium text-white hover:bg-white/10 transition-colors">
                     <BookOpen size={14} /> Download Brochure
                   </a>
                 )}
@@ -101,31 +102,27 @@ export default function UniversityDetailPage() {
             </div>
           </div>
 
-          {/* Stats bar — translucent glass effect */}
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: 'Established', v: uni.established || '—' },
-              { label: 'Total Students', v: uni.totalStudents?.toLocaleString() || '—' },
-              { label: 'Intl. Students', v: uni.internationalPercent != null ? `${uni.internationalPercent}%` : '—' },
-              { label: 'Global Ranking', v: uni.ranking ? `#${uni.ranking}` : '—' },
+              { label: 'Est.', v: uni.established || '—' },
+              { label: 'Students', v: uni.totalStudents?.toLocaleString() || '—' },
+              { label: 'Intl. %', v: uni.internationalPercent != null ? `${uni.internationalPercent}%` : '—' },
+              { label: 'Rank', v: uni.ranking ? `#${uni.ranking}` : '—' },
             ].map((s) => (
-              <div key={s.label} className="rounded-xl bg-white/10 backdrop-blur border border-white/10 p-4 text-center">
-                <p className="text-xl sm:text-2xl font-bold text-white">{s.v}</p>
-                <p className="text-[11px] text-white/60 mt-0.5 font-medium">{s.label}</p>
+              <div key={s.label} className="rounded-xl bg-white/8 backdrop-blur border border-white/10 py-3 px-4 text-center">
+                <p className="text-lg font-bold text-white">{s.v}</p>
+                <p className="text-[11px] text-white/50 mt-0.5 font-medium">{s.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Main body */}
-      <div className="mx-auto max-w-7xl px-5 py-6 sm:px-6 lg:px-8 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="mx-auto max-w-7xl px-5 py-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-          {/* LEFT */}
-          <div className="lg:col-span-2 space-y-5">
+          <div className="lg:col-span-2 space-y-4">
 
-            {/* Highlights */}
             {highlights.length > 0 && (
               <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center gap-2.5 mb-4">
@@ -143,7 +140,6 @@ export default function UniversityDetailPage() {
               </div>
             )}
 
-            {/* Rankings */}
             {rankings.length > 0 && (
               <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center gap-2.5 mb-3">
@@ -161,7 +157,6 @@ export default function UniversityDetailPage() {
               </div>
             )}
 
-            {/* Accreditation */}
             {uni.accreditation && (
               <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div className="flex items-center gap-2.5 mb-3">
@@ -172,7 +167,6 @@ export default function UniversityDetailPage() {
               </div>
             )}
 
-            {/* Available Courses */}
             <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
               <div className="flex items-center justify-between px-5 pt-5 pb-3">
                 <div className="flex items-center gap-2.5">
@@ -187,13 +181,12 @@ export default function UniversityDetailPage() {
                     <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-xl bg-purple-50"><BookOpen size={22} className="text-purple-400" /></div>
                     <p className="mt-3 text-sm font-medium text-gray-600">No courses listed yet</p>
                     <p className="mt-1 text-xs text-gray-400 max-w-xs mx-auto">Courses for this university will be available here once added by the admin team.</p>
-                    <Link href="/courses" className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-purple-50 px-4 py-1.5 text-xs font-medium text-purple-700 hover:bg-purple-100 transition-colors"><ChevronRight size={13} /> Browse all courses</Link>
                   </div>
                 </div>
               ) : (
                 <div className="divide-y divide-gray-100 px-5 pb-4">
                   {courses.map((c: any) => (
-                    <Link key={c.id} href={`/courses/${c.slug}`} className="flex items-center justify-between py-3.5 group -mx-2 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Link key={c.id} href={`/courses/${c.slug}`} className="flex items-center justify-between py-3 group -mx-2 px-2 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple-50 group-hover:bg-purple-100 transition-colors"><BookOpen size={15} className="text-purple-600" /></div>
                         <div className="min-w-0">
@@ -216,8 +209,7 @@ export default function UniversityDetailPage() {
             </div>
           </div>
 
-          {/* RIGHT */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
               <h3 className="text-sm font-semibold text-gray-900 mb-4">Quick Facts</h3>
               <div className="space-y-3">
@@ -226,7 +218,7 @@ export default function UniversityDetailPage() {
                   uni.totalStudents && { icon: Users, label: 'Total Students', value: uni.totalStudents?.toLocaleString() },
                   uni.internationalPercent != null && { icon: Globe, label: 'International Students', value: `${uni.internationalPercent}%` },
                   uni.ranking && { icon: Award, label: 'Global Ranking', value: `#${uni.ranking}` },
-                  { icon: Layers, label: 'Programs Available', value: `${courses.length} courses` },
+                  { icon: Layers, label: 'Programs', value: `${courses.length} courses` },
                 ].filter(Boolean).map((item: any, i) => (
                   <div key={i} className="flex items-center gap-3">
                     <item.icon size={15} className="text-gray-400 shrink-0" />
