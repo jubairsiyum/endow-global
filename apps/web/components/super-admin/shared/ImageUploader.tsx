@@ -83,13 +83,13 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>{label}</span>
-        <div className="flex rounded-md overflow-hidden" style={{ border: '1px solid #262C42' }}>
+        <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>{label}</span>
+        <div className="flex rounded-md overflow-hidden" style={{ border: '1px solid #e5e7eb' }}>
           <button
             type="button"
             onClick={() => setMode('url')}
             className="px-2.5 py-1 text-[11px] font-medium transition-colors"
-            style={{ background: mode === 'url' ? '#262C42' : '#0E1220', color: mode === 'url' ? '#E8EAF2' : '#8890A8' }}
+            style={{ background: mode === 'url' ? '#e5e7eb' : '#f8fafc', color: mode === 'url' ? '#111827' : '#6b7280' }}
           >
             <Link2 size={12} className="inline mr-1" />URL
           </button>
@@ -97,7 +97,7 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
             type="button"
             onClick={() => setMode('upload')}
             className="px-2.5 py-1 text-[11px] font-medium transition-colors"
-            style={{ background: mode === 'upload' ? '#262C42' : '#0E1220', color: mode === 'upload' ? '#E8EAF2' : '#8890A8' }}
+            style={{ background: mode === 'upload' ? '#e5e7eb' : '#f8fafc', color: mode === 'upload' ? '#111827' : '#6b7280' }}
           >
             <Upload size={12} className="inline mr-1" />Upload
           </button>
@@ -112,7 +112,7 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
             onBlur={handleUrlFetch}
             placeholder="https://cdn.example.com/image.png"
             className="flex-1 rounded-md border px-3 py-1.5 text-[13px] outline-none"
-            style={{ background: '#0E1220', borderColor: '#262C42', color: '#E8EAF2' }}
+            style={{ background: '#f8fafc', borderColor: '#e5e7eb', color: '#111827' }}
           />
         </div>
       ) : (
@@ -128,19 +128,19 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
           <label
             htmlFor={`file-upload-${label.replace(/\s+/g, '-')}`}
             className="flex items-center justify-center gap-2 rounded-md border border-dashed px-3 py-4 cursor-pointer transition-colors hover:border-[#E8A33D]/50"
-            style={{ borderColor: '#262C42', background: '#0E1220' }}
+            style={{ borderColor: '#e5e7eb', background: '#f8fafc' }}
           >
             {uploading ? (
               <Loader2 size={16} className="animate-spin" style={{ color: '#E8A33D' }} />
             ) : (
-              <Upload size={16} style={{ color: '#8890A8' }} />
+              <Upload size={16} style={{ color: '#6b7280' }} />
             )}
             <div className="text-left">
-              <span className="block text-[12px]" style={{ color: '#8890A8' }}>
+              <span className="block text-[12px]" style={{ color: '#6b7280' }}>
                 {uploading ? 'Uploading...' : 'Click or drag to upload (max 8MB)'}
               </span>
               <span className="block text-[10px]" style={{ color: 'rgba(136,144,168,0.6)' }}>
-                Recommended: 500 × 500 px, PNG or JPG
+                Recommended: 500 Ã— 500 px, PNG or JPG
               </span>
             </div>
           </label>
@@ -150,7 +150,7 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
       {/* Preview */}
       {preview && !previewError && (
         <div className="relative inline-flex" style={{ height: previewHeight }}>
-          <div className="h-full rounded-lg border overflow-hidden flex items-center justify-center" style={{ background: '#0E1220', borderColor: '#262C42', aspectRatio: preview === value && value.includes('cover') ? '16/9' : '1/1' }}>
+          <div className="h-full rounded-lg border overflow-hidden flex items-center justify-center" style={{ background: '#f8fafc', borderColor: '#e5e7eb', aspectRatio: preview === value && value.includes('cover') ? '16/9' : '1/1' }}>
             <img
               src={preview}
               alt={label}

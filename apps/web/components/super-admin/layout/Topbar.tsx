@@ -65,13 +65,13 @@ export function SATopbar({ onMenuClick }: Props) {
   return (
     <header
       className="flex h-[52px] shrink-0 items-center justify-between border-b px-3"
-      style={{ background: '#0E1220', borderColor: '#262C42' }}
+      style={{ background: '#f8fafc', borderColor: '#e5e7eb' }}
     >
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
           className="flex h-8 w-8 items-center justify-center rounded-md border lg:hidden"
-          style={{ borderColor: '#262C42', color: '#8890A8' }}
+          style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
           aria-label="Open navigation"
         >
           <Menu size={16} />
@@ -79,21 +79,21 @@ export function SATopbar({ onMenuClick }: Props) {
 
         <div
           className="hidden w-[320px] items-center gap-2 rounded-md border px-3 py-1.5 md:flex"
-          style={{ borderColor: '#262C42', background: '#161B2E' }}
+          style={{ borderColor: '#e5e7eb', background: '#ffffff' }}
         >
-          <Search size={14} style={{ color: '#8890A8' }} aria-hidden />
+          <Search size={14} style={{ color: '#6b7280' }} aria-hidden />
           <input
             type="text"
             placeholder="Search branches, universities, applications..."
-            className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#8890A8]/60"
-            style={{ color: '#E8EAF2' }}
+            className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#6b7280]/60"
+            style={{ color: '#111827' }}
           />
           <kbd
             className="rounded px-1.5 py-0.5 text-[10px]"
             style={{
-              background: '#0E1220',
-              color: '#8890A8',
-              border: '1px solid #262C42',
+              background: '#f8fafc',
+              color: '#6b7280',
+              border: '1px solid #e5e7eb',
             }}
           >
             Ctrl+K
@@ -105,7 +105,7 @@ export function SATopbar({ onMenuClick }: Props) {
         <div
           className="hidden items-center gap-2 rounded-md border px-3 py-1.5 sm:flex"
           style={{
-            borderColor: '#262C42',
+            borderColor: '#e5e7eb',
             background: 'rgba(79, 209, 165, 0.05)',
           }}
         >
@@ -117,7 +117,7 @@ export function SATopbar({ onMenuClick }: Props) {
 
         <button
           className="relative flex h-8 w-8 items-center justify-center rounded-md border hover:bg-white/[0.04]"
-          style={{ borderColor: '#262C42', color: '#8890A8' }}
+          style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
           aria-label="Notifications"
         >
           <Bell size={15} />
@@ -133,7 +133,7 @@ export function SATopbar({ onMenuClick }: Props) {
           <button
             onClick={() => setMenuOpen((v) => !v)}
             className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-white/[0.04]"
-            style={{ color: '#E8EAF2' }}
+            style={{ color: '#111827' }}
             aria-expanded={menuOpen}
             aria-haspopup="true"
           >
@@ -141,7 +141,7 @@ export function SATopbar({ onMenuClick }: Props) {
               className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
               style={{
                 background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-                color: '#0E1220',
+                color: '#f8fafc',
               }}
             >
               SA
@@ -160,22 +160,22 @@ export function SATopbar({ onMenuClick }: Props) {
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 top-full mt-1 w-48 rounded-lg border py-1 shadow-lg"
                 style={{
-                  background: '#161B2E',
-                  borderColor: '#262C42',
+                  background: '#ffffff',
+                  borderColor: '#e5e7eb',
                   zIndex: 60,
                 }}
               >
                 <div
                   className="px-3 py-2 border-b"
-                  style={{ borderColor: '#262C42' }}
+                  style={{ borderColor: '#e5e7eb' }}
                 >
                   <p
                     className="text-[12px] font-semibold"
-                    style={{ color: '#E8EAF2' }}
+                    style={{ color: '#111827' }}
                   >
                     Super Admin
                   </p>
-                  <p className="text-[10px]" style={{ color: '#8890A8' }}>
+                  <p className="text-[10px]" style={{ color: '#6b7280' }}>
                     Operations Control
                   </p>
                 </div>
@@ -186,9 +186,9 @@ export function SATopbar({ onMenuClick }: Props) {
                     router.push('/profile')
                   }}
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] hover:bg-white/[0.04]"
-                  style={{ color: '#E8EAF2' }}
+                  style={{ color: '#111827' }}
                 >
-                  <User size={14} style={{ color: '#8890A8' }} />
+                  <User size={14} style={{ color: '#6b7280' }} />
                   Profile
                 </button>
 
@@ -198,15 +198,15 @@ export function SATopbar({ onMenuClick }: Props) {
                     router.push('/sa/settings')
                   }}
                   className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] hover:bg-white/[0.04]"
-                  style={{ color: '#E8EAF2' }}
+                  style={{ color: '#111827' }}
                 >
-                  <KeyRound size={14} style={{ color: '#8890A8' }} />
+                  <KeyRound size={14} style={{ color: '#6b7280' }} />
                   Settings
                 </button>
 
                 <div
                   className="my-1 border-t"
-                  style={{ borderColor: '#262C42' }}
+                  style={{ borderColor: '#e5e7eb' }}
                 />
 
                 <button

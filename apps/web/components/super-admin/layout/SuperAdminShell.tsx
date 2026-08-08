@@ -31,7 +31,7 @@ export function SuperAdminShell({ children }: Props) {
   return (
     <div
       className="flex h-screen overflow-hidden sa-theme"
-      style={{ background: '#0E1220' }}
+      style={{ background: '#f8fafc' }}
     >
       {/* Mobile overlay */}
       {drawerOpen && (
@@ -67,7 +67,7 @@ export function SuperAdminShell({ children }: Props) {
         <SATopbar onMenuClick={() => setDrawerOpen(true)} />
         <main
           className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6"
-          style={{ background: '#0E1220' }}
+          style={{ background: '#f8fafc' }}
         >
           {children}
         </main>

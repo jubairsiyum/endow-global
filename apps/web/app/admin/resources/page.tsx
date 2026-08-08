@@ -39,11 +39,11 @@ export default function AdminResourcesPage() {
         <div>
           <h1
             className="text-[20px] font-bold tracking-tight"
-            style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
           >
             Resource Management
           </h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
             Upload and manage documents, images, and media files
           </p>
         </div>
@@ -59,18 +59,18 @@ export default function AdminResourcesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.05 }}
         className="rounded-xl border-2 border-dashed p-10 text-center transition-colors hover:border-[#E8A33D]/40"
-        style={{ borderColor: '#262C42', background: '#161B2E' }}
+        style={{ borderColor: '#e5e7eb', background: '#ffffff' }}
       >
         <div
           className="flex h-14 w-14 items-center justify-center rounded-full mx-auto"
-          style={{ background: 'rgba(232, 163, 61, 0.06)' }}
+          style={{ background: 'rgba(234, 179, 8, 0.08)' }}
         >
           <Upload size={24} style={{ color: '#E8A33D' }} />
         </div>
-        <p className="mt-4 text-[14px] font-medium" style={{ color: '#E8EAF2' }}>
+        <p className="mt-4 text-[14px] font-medium" style={{ color: '#111827' }}>
           Drag & drop files here, or click to browse
         </p>
-        <p className="mt-1 text-[12px]" style={{ color: '#8890A8' }}>
+        <p className="mt-1 text-[12px]" style={{ color: '#6b7280' }}>
           Supports images (up to 4 MB), PDFs (up to 8 MB), and documents
         </p>
         <SAButton variant="secondary" size="sm" className="mt-4">
@@ -84,13 +84,13 @@ export default function AdminResourcesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
         className="overflow-hidden rounded-xl border"
-        style={{ background: '#161B2E', borderColor: '#262C42' }}
+        style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
       >
         <div
           className="flex items-center justify-between border-b px-5 py-3"
-          style={{ borderColor: '#262C42' }}
+          style={{ borderColor: '#e5e7eb' }}
         >
-          <h2 className="text-[15px] font-semibold" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
             Uploaded Files
           </h2>
           <SABadge variant="route">{resources.length} files</SABadge>
@@ -99,19 +99,19 @@ export default function AdminResourcesPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr style={{ background: '#161B2E' }}>
+              <tr style={{ background: '#ffffff' }}>
                 {['File', 'Type', 'Size', 'Uploaded By', 'Date', 'Actions'].map((h) => (
                   <th
                     key={h}
                     className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider"
-                    style={{ color: '#8890A8', fontFamily: "'JetBrains Mono', monospace" }}
+                    style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}
                   >
                     {h}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="[&_tr]:border-t [&_tr]:border-[#262C42]/50">
+            <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
               {resources.map((r) => (
                 <tr key={r.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
                   <td className="px-4 py-3">
@@ -122,21 +122,21 @@ export default function AdminResourcesPage() {
                       >
                         <span style={{ color: '#E8A33D' }}>{typeIcon(r.type)}</span>
                       </div>
-                      <span className="text-[13px] font-medium truncate max-w-[240px]" style={{ color: '#E8EAF2' }}>
+                      <span className="text-[13px] font-medium truncate max-w-[240px]" style={{ color: '#111827' }}>
                         {r.name}
                       </span>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-[12px]" style={{ color: '#8890A8' }}>
+                  <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>
                     {r.type.split('/')[1]?.toUpperCase()}
                   </td>
-                  <td className="px-4 py-3 text-[12px]" style={{ color: '#E8EAF2', fontFamily: "'JetBrains Mono', monospace" }}>
+                  <td className="px-4 py-3 text-[12px]" style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>
                     {r.size}
                   </td>
-                  <td className="px-4 py-3 text-[13px]" style={{ color: '#8890A8' }}>
+                  <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
                     {r.uploadedBy}
                   </td>
-                  <td className="px-4 py-3 text-[12px]" style={{ color: '#8890A8' }}>
+                  <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>
                     {r.date}
                   </td>
                   <td className="px-4 py-3">

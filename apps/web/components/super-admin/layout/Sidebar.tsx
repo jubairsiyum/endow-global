@@ -52,8 +52,8 @@ export function SASidebar({ collapsed, onToggle }: Props) {
         collapsed ? 'w-[56px]' : 'w-[220px]'
       )}
       style={{
-        background: '#0E1220',
-        borderColor: '#262C42',
+        background: '#f8fafc',
+        borderColor: '#e5e7eb',
       }}
     >
       <div
@@ -70,12 +70,12 @@ export function SASidebar({ collapsed, onToggle }: Props) {
           'flex shrink-0 items-center border-b px-3',
           collapsed ? 'h-[52px] justify-center' : 'h-[52px] justify-between'
         )}
-        style={{ borderColor: '#262C42' }}
+        style={{ borderColor: '#e5e7eb' }}
       >
         {!collapsed && (
           <span
             className="text-sm font-bold tracking-tight"
-            style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
           >
             ENDOW
             <span style={{ color: '#E8A33D' }}> OPS</span>
@@ -87,7 +87,7 @@ export function SASidebar({ collapsed, onToggle }: Props) {
             'flex h-7 w-7 items-center justify-center rounded-md border transition-colors hover:bg-white/[0.06]',
             collapsed && 'rotate-180'
           )}
-          style={{ borderColor: '#262C42', color: '#8890A8' }}
+          style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
           aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           <ChevronLeft size={14} />
@@ -115,10 +115,10 @@ export function SASidebar({ collapsed, onToggle }: Props) {
                     : 'hover:bg-white/[0.04]'
                 )}
                 style={{
-                  color: isActive ? '#E8EAF2' : '#8890A8',
+                  color: isActive ? '#111827' : '#6b7280',
                 }}
               >
-                {/* Active indicator — thin left edge line */}
+                {/* Active indicator â€” thin left edge line */}
                 {isActive && (
                   <motion.div
                     layoutId="sa-active"
@@ -131,7 +131,7 @@ export function SASidebar({ collapsed, onToggle }: Props) {
                   size={16}
                   className="shrink-0"
                   style={{
-                    color: isActive ? '#E8A33D' : '#8890A8',
+                    color: isActive ? '#E8A33D' : '#6b7280',
                   }}
                 />
                 {!collapsed && <span className="truncate">{item.name}</span>}
@@ -143,7 +143,7 @@ export function SASidebar({ collapsed, onToggle }: Props) {
         <div className={cn('mt-4 space-y-0.5', collapsed ? 'px-1.5' : 'px-2')}>
           <div
             className={cn('mb-1', collapsed ? 'px-0' : 'px-3')}
-            style={{ color: '#8890A8' }}
+            style={{ color: '#6b7280' }}
           >
             {!collapsed && (
               <span className="text-[10px] font-semibold uppercase tracking-widest">System</span>
@@ -167,7 +167,7 @@ export function SASidebar({ collapsed, onToggle }: Props) {
                     : 'hover:bg-white/[0.04]'
                 )}
                 style={{
-                  color: isActive ? '#E8EAF2' : '#8890A8',
+                  color: isActive ? '#111827' : '#6b7280',
                 }}
               >
                 {isActive && (
@@ -182,7 +182,7 @@ export function SASidebar({ collapsed, onToggle }: Props) {
                   size={16}
                   className="shrink-0"
                   style={{
-                    color: isActive ? '#E8A33D' : '#8890A8',
+                    color: isActive ? '#E8A33D' : '#6b7280',
                   }}
                 />
                 {!collapsed && <span className="truncate">{item.name}</span>}
@@ -195,7 +195,7 @@ export function SASidebar({ collapsed, onToggle }: Props) {
       {/* User section */}
       <div
         className="shrink-0 border-t p-2"
-        style={{ borderColor: '#262C42' }}
+        style={{ borderColor: '#e5e7eb' }}
       >
         <div
           className={cn(
@@ -208,17 +208,17 @@ export function SASidebar({ collapsed, onToggle }: Props) {
             className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold"
             style={{
               background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-              color: '#0E1220',
+              color: '#f8fafc',
             }}
           >
             SA
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12px] font-semibold" style={{ color: '#E8EAF2' }}>
+              <p className="truncate text-[12px] font-semibold" style={{ color: '#111827' }}>
                 Super Admin
               </p>
-              <p className="truncate text-[10px]" style={{ color: '#8890A8' }}>
+              <p className="truncate text-[10px]" style={{ color: '#6b7280' }}>
                 endow.global
               </p>
             </div>

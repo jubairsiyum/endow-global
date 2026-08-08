@@ -23,12 +23,12 @@ const badgeVariants = cva(
 
 const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
   route: {
-    bg: 'rgba(232, 163, 61, 0.08)',
+    bg: 'rgba(234, 179, 8, 0.1)',
     text: '#E8A33D',
     border: 'rgba(232, 163, 61, 0.15)',
   },
   success: {
-    bg: 'rgba(79, 209, 165, 0.08)',
+    bg: 'rgba(16, 185, 129, 0.1)',
     text: '#4FD1A5',
     border: 'rgba(79, 209, 165, 0.15)',
   },
@@ -38,13 +38,13 @@ const variantStyles: Record<string, { bg: string; text: string; border: string }
     border: 'rgba(240, 98, 91, 0.15)',
   },
   warning: {
-    bg: 'rgba(232, 163, 61, 0.06)',
+    bg: 'rgba(234, 179, 8, 0.08)',
     text: '#E8A33D',
     border: 'rgba(232, 163, 61, 0.1)',
   },
   neutral: {
     bg: 'rgba(136, 144, 168, 0.06)',
-    text: '#8890A8',
+    text: '#6b7280',
     border: 'rgba(136, 144, 168, 0.1)',
   },
 }

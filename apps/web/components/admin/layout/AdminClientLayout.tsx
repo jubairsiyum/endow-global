@@ -15,7 +15,7 @@ export function AdminClientLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#0E1220' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#f8fafc' }}>
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 lg:hidden"

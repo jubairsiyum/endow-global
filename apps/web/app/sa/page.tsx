@@ -24,12 +24,12 @@ export default function SAPage() {
       >
         <h1
           className="text-[20px] font-bold tracking-tight"
-          style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+          style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
         >
           Operations Control
         </h1>
-        <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
-          Global network overview — branches, universities, and active routing
+        <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
+          Global network overview â€” branches, universities, and active routing
         </p>
       </motion.div>
 

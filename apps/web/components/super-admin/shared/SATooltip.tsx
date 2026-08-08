@@ -32,8 +32,8 @@ export function SATooltip({ content, children, side = 'top' }: Props) {
             transition={{ duration: 0.12 }}
             className="pointer-events-none absolute z-50 rounded-md border px-2.5 py-1.5 shadow-lg"
             style={{
-              background: '#161B2E',
-              borderColor: '#262C42',
+              background: '#ffffff',
+              borderColor: '#e5e7eb',
               boxShadow: '0 6px 20px rgba(0,0,0,0.5)',
               [side]: '100%',
               ...(side === 'top' || side === 'bottom' ? { left: '50%', transform: 'translateX(-50%)' } : {}),
@@ -42,7 +42,7 @@ export function SATooltip({ content, children, side = 'top' }: Props) {
               marginBottom: side === 'top' ? '4px' : undefined,
             }}
           >
-            <span className="text-[11px] whitespace-nowrap" style={{ color: '#E8EAF2' }}>
+            <span className="text-[11px] whitespace-nowrap" style={{ color: '#111827' }}>
               {content}
             </span>
           </motion.div>

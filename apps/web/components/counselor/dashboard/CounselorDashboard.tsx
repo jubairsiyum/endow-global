@@ -20,7 +20,7 @@ function StatCard({
   return (
     <div
       className="rounded-xl border p-4 transition-all hover:-translate-y-0.5 group"
-      style={{ background: '#161B2E', borderColor: '#262C42' }}
+      style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
     >
       {/* Accent top line */}
       <div
@@ -42,11 +42,11 @@ function StatCard({
       <div className="mt-3">
         <h3
           className="text-[28px] font-bold leading-none tracking-tight"
-          style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+          style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {value}
         </h3>
-        <p className="mt-1 text-[12px] font-medium" style={{ color: '#8890A8' }}>
+        <p className="mt-1 text-[12px] font-medium" style={{ color: '#6b7280' }}>
           {label}
         </p>
         <p className="mt-0.5 text-[11px]" style={{ color: 'rgba(136, 144, 168, 0.6)' }}>
@@ -77,11 +77,11 @@ export default function CounselorDashboard() {
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
         <h1
           className="text-[20px] font-bold tracking-tight"
-          style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+          style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
         >
           Counselor Dashboard
         </h1>
-        <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
+        <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
           Manage your students, applications, and sessions
         </p>
       </motion.div>
@@ -107,13 +107,13 @@ export default function CounselorDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, delay: 0.1 }}
           className="xl:col-span-8 rounded-xl border"
-          style={{ background: '#161B2E', borderColor: '#262C42' }}
+          style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
         >
           <div
             className="flex items-center justify-between border-b px-5 py-3"
-            style={{ borderColor: '#262C42' }}
+            style={{ borderColor: '#e5e7eb' }}
           >
-            <h2 className="text-[15px] font-semibold" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2 className="text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
               Recent Students
             </h2>
             <span className="text-[11px] font-medium cursor-pointer hover:underline" style={{ color: '#E8A33D' }}>
@@ -128,14 +128,14 @@ export default function CounselorDashboard() {
                     <th
                       key={h}
                       className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider"
-                      style={{ color: '#8890A8', fontFamily: "'JetBrains Mono', monospace" }}
+                      style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="[&_tr]:border-t [&_tr]:border-[#262C42]/50">
+              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
                 {recentStudents.map((s) => (
                   <tr key={s.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
                     <td className="px-4 py-3">
@@ -144,23 +144,23 @@ export default function CounselorDashboard() {
                           className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
                           style={{
                             background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-                            color: '#0E1220',
+                            color: '#f8fafc',
                           }}
                         >
                           {s.avatar}
                         </div>
-                        <span className="text-[13px] font-medium" style={{ color: '#E8EAF2' }}>
+                        <span className="text-[13px] font-medium" style={{ color: '#111827' }}>
                           {s.name}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: '#8890A8' }}>
+                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
                       {s.country}
                     </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: '#8890A8' }}>
+                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
                       {s.target}
                     </td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#E8EAF2', fontFamily: "'JetBrains Mono', monospace" }}>
+                    <td className="px-4 py-3 text-[12px]" style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>
                       {s.app}
                     </td>
                     <td className="px-4 py-3">
@@ -195,9 +195,9 @@ export default function CounselorDashboard() {
           {/* Sessions */}
           <div
             className="rounded-xl border p-5"
-            style={{ background: '#161B2E', borderColor: '#262C42' }}
+            style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
           >
-            <h2 className="text-[15px] font-semibold" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2 className="text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
               Upcoming Sessions
             </h2>
             <div className="mt-3 space-y-3">
@@ -205,15 +205,15 @@ export default function CounselorDashboard() {
                 <div key={i} className="flex items-start gap-3">
                   <div
                     className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                    style={{ background: 'rgba(79, 209, 165, 0.08)' }}
+                    style={{ background: 'rgba(16, 185, 129, 0.1)' }}
                   >
                     <Calendar size={14} style={{ color: '#4FD1A5' }} />
                   </div>
                   <div>
-                    <p className="text-[13px] font-medium" style={{ color: '#E8EAF2' }}>
+                    <p className="text-[13px] font-medium" style={{ color: '#111827' }}>
                       {session.name}
                     </p>
-                    <p className="text-[11px]" style={{ color: '#8890A8' }}>
+                    <p className="text-[11px]" style={{ color: '#6b7280' }}>
                       {session.type} — {session.time}
                     </p>
                   </div>
@@ -225,9 +225,9 @@ export default function CounselorDashboard() {
           {/* Performance */}
           <div
             className="rounded-xl border p-5"
-            style={{ background: '#161B2E', borderColor: '#262C42' }}
+            style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
           >
-            <h2 className="text-[15px] font-semibold" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+            <h2 className="text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
               Performance
             </h2>
             <div className="mt-3 space-y-3">
@@ -241,13 +241,13 @@ export default function CounselorDashboard() {
                   <div key={item.label} className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       <Icon size={14} style={{ color: item.color }} />
-                      <span className="text-[13px]" style={{ color: '#E8EAF2' }}>
+                      <span className="text-[13px]" style={{ color: '#111827' }}>
                         {item.label}
                       </span>
                     </div>
                     <span
                       className="text-[13px] font-medium"
-                      style={{ color: '#E8EAF2', fontFamily: "'JetBrains Mono', monospace" }}
+                      style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}
                     >
                       {item.value}
                     </span>

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import React from 'react'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-[13px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0E1220] disabled:pointer-events-none disabled:opacity-40',
+  'inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md text-[13px] font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#f8fafc] disabled:pointer-events-none disabled:opacity-40',
   {
     variants: {
       variant: {
@@ -42,26 +42,26 @@ type StyleDef = {
 const styles: Record<string, StyleDef> = {
   primary: {
     bg: '#E8A33D',
-    text: '#0E1220',
+    text: '#ffffff',
     hoverBg: '#c48b2e',
     ringColor: '#E8A33D',
     duration: '120ms',
   },
   secondary: {
-    bg: '#161B2E',
-    text: '#E8EAF2',
-    border: '1px solid #262C42',
-    hoverBg: '#1e2440',
-    hoverBorder: '#363D5C',
-    ringColor: '#262C42',
+    bg: '#ffffff',
+    text: '#111827',
+    border: '1px solid #e5e7eb',
+    hoverBg: '#f3f4f6',
+    hoverBorder: '#d1d5db',
+    ringColor: '#e5e7eb',
     duration: '120ms',
   },
   ghost: {
     bg: 'transparent',
-    text: '#8890A8',
-    hoverBg: 'rgba(255,255,255,0.04)',
-    hoverText: '#E8EAF2',
-    ringColor: '#262C42',
+    text: '#6b7280',
+    hoverBg: 'rgba(0,0,0,0.04)',
+    hoverText: '#111827',
+    ringColor: '#e5e7eb',
     duration: '120ms',
   },
   danger: {

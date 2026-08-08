@@ -18,7 +18,7 @@ interface Props {
 const NUM_FMT = new Intl.NumberFormat()
 
 const accentStyles: Record<string, { border: string; bg: string; text: string }> = {
-  route: { border: '#E8A33D', bg: 'rgba(232, 163, 61, 0.06)', text: '#E8A33D' },
+  route: { border: '#E8A33D', bg: 'rgba(234, 179, 8, 0.08)', text: '#E8A33D' },
   success: { border: '#4FD1A5', bg: 'rgba(79, 209, 165, 0.06)', text: '#4FD1A5' },
   alert: { border: '#F0625B', bg: 'rgba(240, 98, 91, 0.06)', text: '#F0625B' },
 }
@@ -56,7 +56,7 @@ export function KPICardRow({ metrics }: Props) {
     {
       label: 'Platform Members',
       value: NUM_FMT.format(totalPlatformUsers),
-      sub: `${metrics?.totalStudents ?? 0} students · ${metrics?.totalCounselors ?? 0} counselors`,
+      sub: `${metrics?.totalStudents ?? 0} students Â· ${metrics?.totalCounselors ?? 0} counselors`,
       icon: Users,
       accent: 'route' as const,
     },
@@ -104,8 +104,8 @@ export function KPICardRow({ metrics }: Props) {
             transition={{ delay: i * 0.06, ease: EASE }}
             className="group relative overflow-hidden rounded-xl border p-5 transition-all hover:-translate-y-0.5"
             style={{
-              background: '#161B2E',
-              borderColor: '#262C42',
+              background: '#ffffff',
+              borderColor: '#e5e7eb',
               boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
             }}
           >
@@ -127,14 +127,14 @@ export function KPICardRow({ metrics }: Props) {
               <h3
                 className="text-[32px] font-bold leading-none tracking-tight"
                 style={{
-                  color: '#E8EAF2',
+                  color: '#111827',
                   fontFamily: "'Space Grotesk', sans-serif",
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
                 {kpi.value}
               </h3>
-              <p className="mt-1 text-[12px] font-medium" style={{ color: '#8890A8' }}>
+              <p className="mt-1 text-[12px] font-medium" style={{ color: '#6b7280' }}>
                 {kpi.label}
               </p>
               <p className="mt-0.5 text-[11px]" style={{ color: 'rgba(136, 144, 168, 0.6)' }}>

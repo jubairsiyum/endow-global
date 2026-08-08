@@ -195,15 +195,15 @@ export default function SACoursesPage() {
   function removeIntake(id: string) { setIntakes((prev) => prev.filter((i) => i.id !== id)) }
   function addIntake() { setIntakes((prev) => [...prev, emptyIntake()]) }
 
-  const rowStyle = { background: '#0E1220', borderColor: '#262C42', color: '#E8EAF2' } as const
+  const rowStyle = { background: '#f8fafc', borderColor: '#e5e7eb', color: '#111827' } as const
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex items-center justify-between">
         <div>
-          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>Courses</h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>Manage course catalog across partner universities</p>
+          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>Courses</h1>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>Manage course catalog across partner universities</p>
         </div>
         <SAButton variant="primary" size="md" onClick={() => { resetForm(); setShowForm(true) }}>
           <Plus size={15} /> Add Course
@@ -212,68 +212,68 @@ export default function SACoursesPage() {
 
       {/* Create/Edit Form */}
       {showForm && (
-        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border p-6" style={{ background: '#161B2E', borderColor: '#262C42' }}>
-          <h2 className="mb-5 text-[16px] font-semibold" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+        <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border p-6" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
+          <h2 className="mb-5 text-[16px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
             {editingId ? 'Edit Course' : 'Add New Course'}
           </h2>
           <form onSubmit={handleSubmit} className="space-y-5">
 
-            {/* ── Basic Information ── */}
+            {/* â”€â”€ Basic Information â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#262C42' }}><BookOpen size={14} style={{ color: '#E8A33D' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#E8A33D' }}>Basic Information</span></div>
+              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#e5e7eb' }}><BookOpen size={14} style={{ color: '#E8A33D' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#E8A33D' }}>Basic Information</span></div>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 <label className="flex flex-col gap-1">
-                  <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>University *</span>
+                  <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>University *</span>
                   <select value={form.universityId} onChange={(e) => setField('universityId', e.target.value)} required className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={rowStyle}>
                     <option value="">Select university...</option>
-                    {(uniList ?? []).map((u: any) => <option key={u.id} value={u.id} style={{ background: '#161B2E' }}>{u.name} ({u.country})</option>)}
+                    {(uniList ?? []).map((u: any) => <option key={u.id} value={u.id} style={{ background: '#ffffff' }}>{u.name} ({u.country})</option>)}
                   </select>
                 </label>
                 {[{ label: 'Course Name', key: 'name', required: true }, { label: 'URL Slug', key: 'slug', required: true }, { label: 'Subject', key: 'subject', required: true }, { label: 'Campus', key: 'campus', placeholder: 'e.g. Aston Birmingham Campus' }].map((f) => (
                   <label key={f.key} className="flex flex-col gap-1">
-                    <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>{f.label}{f.required ? ' *' : ''}</span>
+                    <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>{f.label}{f.required ? ' *' : ''}</span>
                     <input value={(form as any)[f.key]} onChange={(e) => setField(f.key, e.target.value)} required={f.required} placeholder={f.placeholder || f.label} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={rowStyle} />
                   </label>
                 ))}
                 <label className="flex flex-col gap-1">
-                  <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Level *</span>
+                  <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Level *</span>
                   <select value={form.level} onChange={(e) => setField('level', e.target.value)} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={rowStyle}>
-                    {LEVELS.map((l) => <option key={l} value={l} style={{ background: '#161B2E' }}>{l.replace(/_/g, ' ')}</option>)}
+                    {LEVELS.map((l) => <option key={l} value={l} style={{ background: '#ffffff' }}>{l.replace(/_/g, ' ')}</option>)}
                   </select>
                 </label>
                 <label className="flex flex-col gap-1">
-                  <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Mode of Study</span>
+                  <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Mode of Study</span>
                   <select value={form.modeOfStudy} onChange={(e) => setField('modeOfStudy', e.target.value)} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={rowStyle}>
-                    {MODE_OPTIONS.map((m) => <option key={m} value={m} style={{ background: '#161B2E' }}>{m.replace(/_/g, ' ')}</option>)}
+                    {MODE_OPTIONS.map((m) => <option key={m} value={m} style={{ background: '#ffffff' }}>{m.replace(/_/g, ' ')}</option>)}
                   </select>
                 </label>
                 <label className="flex flex-col gap-1 col-span-full">
-                  <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Description *</span>
+                  <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Description *</span>
                   <QuillEditor value={form.description} onChange={(v) => setField('description', v)} placeholder="Write a detailed course description..." minHeight={180} />
                 </label>
               </div>
             </div>
 
-            {/* ── Study Details ── */}
+            {/* â”€â”€ Study Details â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#262C42' }}><DollarSign size={14} style={{ color: '#4FD1A5' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#4FD1A5' }}>Study Details</span></div>
+              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#e5e7eb' }}><DollarSign size={14} style={{ color: '#4FD1A5' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#4FD1A5' }}>Study Details</span></div>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {[{ label: 'Duration (years)', key: 'duration', type: 'number', min: 1 }, { label: 'Tuition Fee', key: 'tuitionFee', type: 'number', min: 0 }, { label: 'Currency', key: 'currency', placeholder: 'GBP, USD, EUR...' }, { label: 'Language', key: 'language' }, { label: 'Brochure URL', key: 'brochureUrl', placeholder: 'https://...' }].map((f) => (
                   <label key={f.key} className="flex flex-col gap-1">
-                    <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>{f.label}</span>
+                    <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>{f.label}</span>
                     <input type={f.type || 'text'} value={(form as any)[f.key]} onChange={(e) => setField(f.key, e.target.value)} min={f.min} placeholder={f.placeholder || f.label} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={rowStyle} />
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* ── Admission & Offers ── */}
+            {/* â”€â”€ Admission & Offers â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#262C42' }}><CheckCircle size={14} style={{ color: '#a78bfa' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#a78bfa' }}>Admission & Offers</span></div>
+              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#e5e7eb' }}><CheckCircle size={14} style={{ color: '#a78bfa' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#a78bfa' }}>Admission & Offers</span></div>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {[{ label: 'Application Fee', key: 'applicationFee', type: 'number', min: 0, placeholder: 'e.g. 50' }, { label: 'Offer Response Time', key: 'offerResponseTime', placeholder: 'e.g. 2 days' }, { label: 'Professional Accreditation', key: 'professionalAccreditation', placeholder: 'e.g. CMI Level 7' }].map((f) => (
                   <label key={f.key} className="flex flex-col gap-1">
-                    <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>{f.label}</span>
+                    <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>{f.label}</span>
                     <input type={f.type || 'text'} value={(form as any)[f.key]} onChange={(e) => setField(f.key, e.target.value)} min={f.min} placeholder={f.placeholder || f.label} className="rounded-md border px-3 py-1.5 text-[13px] outline-none" style={rowStyle} />
                   </label>
                 ))}
@@ -282,27 +282,27 @@ export default function SACoursesPage() {
                 {[{ key: 'backlogsAccepted', icon: XCircle, label: 'Backlogs Accepted' }, { key: 'gapYearsAccepted', icon: CalendarDays, label: 'Gap Years Accepted' }, { key: 'englishTestWaiver', icon: Globe, label: 'English Test Waiver' }, { key: 'expressOffer', icon: Star, label: 'Express Offer Available' }].map(({ key, icon: Icon, label }) => (
                   <label key={key} className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={(form as any)[key]} onChange={() => toggleField(key)} className="accent-[#E8A33D]" />
-                    <Icon size={13} style={{ color: (form as any)[key] ? '#E8A33D' : '#8890A8' }} />
-                    <span className="text-[12px]" style={{ color: (form as any)[key] ? '#E8EAF2' : '#8890A8' }}>{label}</span>
+                    <Icon size={13} style={{ color: (form as any)[key] ? '#E8A33D' : '#6b7280' }} />
+                    <span className="text-[12px]" style={{ color: (form as any)[key] ? '#111827' : '#6b7280' }}>{label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            {/* ── Program Highlights ── */}
+            {/* â”€â”€ Program Highlights â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#262C42' }}><Award size={14} style={{ color: '#E8A33D' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#E8A33D' }}>Program Highlights</span></div>
+              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#e5e7eb' }}><Award size={14} style={{ color: '#E8A33D' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#E8A33D' }}>Program Highlights</span></div>
               <label className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Key Highlights (one per line)</span>
+                <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Key Highlights (one per line)</span>
                 <textarea value={form.highlights} onChange={(e) => setField('highlights', e.target.value)} rows={4}
                   placeholder={`Recognised for quality: Triple accreditation\nTop 5% globally (QS World Rankings 2027)`}
                   className="rounded-md border px-3 py-1.5 text-[13px] outline-none resize-y" style={{ ...rowStyle, minHeight: 80 }} />
               </label>
             </div>
 
-            {/* ── Course Modules ── */}
+            {/* â”€â”€ Course Modules â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center justify-between pb-2 border-b" style={{ borderColor: '#262C42' }}>
+              <div className="mb-3 flex items-center justify-between pb-2 border-b" style={{ borderColor: '#e5e7eb' }}>
                 <div className="flex items-center gap-2"><Layers size={14} style={{ color: '#4FD1A5' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#4FD1A5' }}>Course Modules</span></div>
                 <SAButton type="button" variant="ghost" size="sm" onClick={addModule}><Plus size={12} /> Add Module</SAButton>
               </div>
@@ -310,22 +310,22 @@ export default function SACoursesPage() {
                 {modules.map((m) => (
                   <div key={m.id} className="grid grid-cols-12 gap-2 items-center">
                     <select value={m.term} onChange={(e) => updateModule(m.id, 'term', e.target.value)} className="col-span-3 rounded-md border px-2 py-1.5 text-[12px] outline-none" style={rowStyle}>
-                      {MODULE_TERMS.map((t) => <option key={t} value={t} style={{ background: '#161B2E' }}>{t}</option>)}
+                      {MODULE_TERMS.map((t) => <option key={t} value={t} style={{ background: '#ffffff' }}>{t}</option>)}
                     </select>
                     <input value={m.name} onChange={(e) => updateModule(m.id, 'name', e.target.value)} placeholder="Module name" className="col-span-6 rounded-md border px-2 py-1.5 text-[12px] outline-none" style={rowStyle} />
                     <select value={m.type} onChange={(e) => updateModule(m.id, 'type', e.target.value)} className="col-span-2 rounded-md border px-2 py-1.5 text-[12px] outline-none" style={rowStyle}>
-                      {MODULE_TYPES.map((t) => <option key={t} value={t} style={{ background: '#161B2E' }}>{t}</option>)}
+                      {MODULE_TYPES.map((t) => <option key={t} value={t} style={{ background: '#ffffff' }}>{t}</option>)}
                     </select>
                     <button type="button" onClick={() => removeModule(m.id)} className="col-span-1 flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F0625B]/10" style={{ color: '#F0625B' }}><X size={14} /></button>
                   </div>
                 ))}
-                {modules.length === 0 && <p className="text-[11px] py-3 text-center" style={{ color: '#8890A8' }}>No modules added. Click "Add Module" to start.</p>}
+                {modules.length === 0 && <p className="text-[11px] py-3 text-center" style={{ color: '#6b7280' }}>No modules added. Click "Add Module" to start.</p>}
               </div>
             </div>
 
-            {/* ── Course Intakes ── */}
+            {/* â”€â”€ Course Intakes â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center justify-between pb-2 border-b" style={{ borderColor: '#262C42' }}>
+              <div className="mb-3 flex items-center justify-between pb-2 border-b" style={{ borderColor: '#e5e7eb' }}>
                 <div className="flex items-center gap-2"><CalendarDays size={14} style={{ color: '#a78bfa' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#a78bfa' }}>Intake Dates</span></div>
                 <SAButton type="button" variant="ghost" size="sm" onClick={addIntake}><Plus size={12} /> Add Intake</SAButton>
               </div>
@@ -333,38 +333,38 @@ export default function SACoursesPage() {
                 {intakes.map((i) => (
                   <div key={i.id} className="grid grid-cols-12 gap-2 items-center">
                     <div className="col-span-5">
-                      <span className="text-[10px] mb-0.5 block" style={{ color: '#8890A8' }}>Intake Date</span>
+                      <span className="text-[10px] mb-0.5 block" style={{ color: '#6b7280' }}>Intake Date</span>
                       <input type="date" value={i.intakeDate} onChange={(e) => updateIntake(i.id, 'intakeDate', e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-[12px] outline-none" style={rowStyle} />
                     </div>
                     <div className="col-span-5">
-                      <span className="text-[10px] mb-0.5 block" style={{ color: '#8890A8' }}>Apply By</span>
+                      <span className="text-[10px] mb-0.5 block" style={{ color: '#6b7280' }}>Apply By</span>
                       <input type="date" value={i.applyByDate} onChange={(e) => updateIntake(i.id, 'applyByDate', e.target.value)} className="w-full rounded-md border px-2 py-1.5 text-[12px] outline-none" style={rowStyle} />
                     </div>
                     <button type="button" onClick={() => removeIntake(i.id)} className="col-span-2 mt-4 flex h-7 w-7 items-center justify-center rounded-md hover:bg-[#F0625B]/10" style={{ color: '#F0625B' }}><X size={14} /></button>
                   </div>
                 ))}
-                {intakes.length === 0 && <p className="text-[11px] py-3 text-center" style={{ color: '#8890A8' }}>No intake dates. Click "Add Intake" to add start dates.</p>}
+                {intakes.length === 0 && <p className="text-[11px] py-3 text-center" style={{ color: '#6b7280' }}>No intake dates. Click "Add Intake" to add start dates.</p>}
               </div>
             </div>
 
-            {/* ── Status & Scholarship ── */}
+            {/* â”€â”€ Status & Scholarship â”€â”€ */}
             <div>
-              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#262C42' }}><Shield size={14} style={{ color: '#8890A8' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#8890A8' }}>Status & Scholarship</span></div>
+              <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#e5e7eb' }}><Shield size={14} style={{ color: '#6b7280' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>Status & Scholarship</span></div>
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.isActive} onChange={() => toggleField('isActive')} className="accent-[#4FD1A5]" />
-                  <span className="text-[12px]" style={{ color: form.isActive ? '#E8EAF2' : '#8890A8' }}>Active / Published</span>
+                  <span className="text-[12px]" style={{ color: form.isActive ? '#111827' : '#6b7280' }}>Active / Published</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={form.hasScholarship} onChange={() => toggleField('hasScholarship')} className="accent-[#E8A33D]" />
-                  <span className="text-[12px]" style={{ color: form.hasScholarship ? '#E8EAF2' : '#8890A8' }}>Has Scholarship</span>
+                  <span className="text-[12px]" style={{ color: form.hasScholarship ? '#111827' : '#6b7280' }}>Has Scholarship</span>
                 </label>
                 {form.hasScholarship && <input value={form.scholarshipDetails} onChange={(e) => setField('scholarshipDetails', e.target.value)} placeholder="Scholarship details..." className="rounded-md border px-3 py-1.5 text-[12px] outline-none flex-1 min-w-[200px]" style={rowStyle} />}
               </div>
             </div>
 
-            {/* ── Submit ── */}
-            <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: '#262C42' }}>
+            {/* â”€â”€ Submit â”€â”€ */}
+            <div className="flex items-center gap-3 pt-2 border-t" style={{ borderColor: '#e5e7eb' }}>
               <SAButton type="submit" variant="primary" size="md" disabled={createMutation.isPending || updateMutation.isPending}>
                 {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update Course' : 'Create Course'}
               </SAButton>
@@ -381,7 +381,7 @@ export default function SACoursesPage() {
       </motion.div>
 
       {/* Table */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} className="overflow-hidden rounded-xl border" style={{ background: '#161B2E', borderColor: '#262C42' }}>
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} className="overflow-hidden rounded-xl border" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
         {isLoading ? (
           <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }} /></div>
         ) : error ? (
@@ -392,16 +392,16 @@ export default function SACoursesPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead><tr style={{ background: '#161B2E' }}>{['Name', 'University', 'Level', 'Mode', 'Fee', 'Express', 'Status', 'Actions'].map((h) => <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8890A8', fontFamily: "'JetBrains Mono', monospace" }}>{h}</th>)}</tr></thead>
-              <tbody className="[&_tr]:border-t [&_tr]:border-[#262C42]/50">
+              <thead><tr style={{ background: '#ffffff' }}>{['Name', 'University', 'Level', 'Mode', 'Fee', 'Express', 'Status', 'Actions'].map((h) => <th key={h} className="px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{h}</th>)}</tr></thead>
+              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
                 {(courseList ?? []).map((course: any) => (
                   <tr key={course.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
-                    <td className="px-3 py-3"><div className="flex items-center gap-2.5"><div className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0" style={{ background: 'rgba(167,139,250,0.08)' }}><BookOpen size={14} style={{ color: '#a78bfa' }} /></div><div className="min-w-0"><span className="text-[13px] font-medium block truncate max-w-[220px]" style={{ color: '#E8EAF2' }}>{course.name}</span><span className="text-[11px]" style={{ color: '#8890A8' }}>{course.subject}</span></div></div></td>
-                    <td className="px-3 py-3 text-[13px]" style={{ color: '#8890A8' }}>{course.university?.name || '—'}</td>
-                    <td className="px-3 py-3"><SABadge variant="route">{course.level?.replace(/_/g, ' ') ?? '—'}</SABadge></td>
-                    <td className="px-3 py-3 text-[12px]" style={{ color: '#8890A8' }}>{course.modeOfStudy ? course.modeOfStudy.replace(/_/g, ' ') : '—'}</td>
-                    <td className="px-3 py-3 text-[12px]" style={{ color: '#E8EAF2', fontFamily: "'JetBrains Mono', monospace" }}>{course.currency} {course.tuitionFee?.toLocaleString()}</td>
-                    <td className="px-3 py-3">{course.expressOffer ? <SABadge variant="success" dot>Express</SABadge> : <span className="text-[11px]" style={{ color: '#8890A8' }}>—</span>}</td>
+                    <td className="px-3 py-3"><div className="flex items-center gap-2.5"><div className="flex h-8 w-8 items-center justify-center rounded-lg shrink-0" style={{ background: 'rgba(167,139,250,0.08)' }}><BookOpen size={14} style={{ color: '#a78bfa' }} /></div><div className="min-w-0"><span className="text-[13px] font-medium block truncate max-w-[220px]" style={{ color: '#111827' }}>{course.name}</span><span className="text-[11px]" style={{ color: '#6b7280' }}>{course.subject}</span></div></div></td>
+                    <td className="px-3 py-3 text-[13px]" style={{ color: '#6b7280' }}>{course.university?.name || 'â€”'}</td>
+                    <td className="px-3 py-3"><SABadge variant="route">{course.level?.replace(/_/g, ' ') ?? 'â€”'}</SABadge></td>
+                    <td className="px-3 py-3 text-[12px]" style={{ color: '#6b7280' }}>{course.modeOfStudy ? course.modeOfStudy.replace(/_/g, ' ') : 'â€”'}</td>
+                    <td className="px-3 py-3 text-[12px]" style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>{course.currency} {course.tuitionFee?.toLocaleString()}</td>
+                    <td className="px-3 py-3">{course.expressOffer ? <SABadge variant="success" dot>Express</SABadge> : <span className="text-[11px]" style={{ color: '#6b7280' }}>â€”</span>}</td>
                     <td className="px-3 py-3"><SABadge variant={course.isActive ? 'success' : 'neutral'} dot>{course.isActive ? 'Active' : 'Inactive'}</SABadge></td>
                     <td className="px-3 py-3"><div className="flex items-center gap-1">
                       <SATooltip content="Edit"><button onClick={() => startEdit(course)} className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-white/[0.06]" style={{ color: '#E8A33D' }}><Pencil size={14} /></button></SATooltip>
@@ -409,7 +409,7 @@ export default function SACoursesPage() {
                     </div></td>
                   </tr>
                 ))}
-                {(!courseList || courseList.length === 0) && (<tr><td colSpan={8} className="py-20 text-center"><GraduationCap size={28} style={{ color: '#8890A8', margin: '0 auto 8px' }} /><p className="text-[13px]" style={{ color: '#8890A8' }}>{search ? 'No courses match your search' : 'No courses yet. Add your first one.'}</p></td></tr>)}
+                {(!courseList || courseList.length === 0) && (<tr><td colSpan={8} className="py-20 text-center"><GraduationCap size={28} style={{ color: '#6b7280', margin: '0 auto 8px' }} /><p className="text-[13px]" style={{ color: '#6b7280' }}>{search ? 'No courses match your search' : 'No courses yet. Add your first one.'}</p></td></tr>)}
               </tbody>
             </table>
           </div>

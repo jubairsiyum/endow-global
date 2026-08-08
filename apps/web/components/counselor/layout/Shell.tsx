@@ -25,7 +25,7 @@ export function CounselorShell({ children }: Props) {
   }, [])
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#0E1220' }}>
+    <div className="flex h-screen overflow-hidden" style={{ background: '#f8fafc' }}>
       {drawerOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 lg:hidden"
@@ -48,7 +48,7 @@ export function CounselorShell({ children }: Props) {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <CounselorTopbar onMenuClick={() => setDrawerOpen(true)} />
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6" style={{ background: '#0E1220' }}>
+        <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6" style={{ background: '#f8fafc' }}>
           {children}
         </main>
       </div>

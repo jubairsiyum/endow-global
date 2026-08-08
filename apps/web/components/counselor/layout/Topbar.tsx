@@ -28,14 +28,14 @@ export function CounselorTopbar({ onMenuClick }: Props) {
   return (
     <header
       className="flex h-[52px] shrink-0 items-center justify-between border-b px-3"
-      style={{ background: '#0E1220', borderColor: '#262C42' }}
+      style={{ background: '#f8fafc', borderColor: '#e5e7eb' }}
     >
       {/* Left */}
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
           className="flex h-8 w-8 items-center justify-center rounded-md border lg:hidden"
-          style={{ borderColor: '#262C42', color: '#8890A8' }}
+          style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
           aria-label="Open navigation"
         >
           <Menu size={16} />
@@ -43,18 +43,18 @@ export function CounselorTopbar({ onMenuClick }: Props) {
 
         <div
           className="hidden w-[300px] items-center gap-2 rounded-md border px-3 py-1.5 md:flex"
-          style={{ borderColor: '#262C42', background: '#161B2E' }}
+          style={{ borderColor: '#e5e7eb', background: '#ffffff' }}
         >
-          <Search size={14} style={{ color: '#8890A8' }} aria-hidden />
+          <Search size={14} style={{ color: '#6b7280' }} aria-hidden />
           <input
             type="text"
             placeholder="Search students, applications..."
-            className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#8890A8]/60"
-            style={{ color: '#E8EAF2' }}
+            className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#6b7280]/60"
+            style={{ color: '#111827' }}
           />
           <kbd
             className="rounded px-1.5 py-0.5 text-[10px]"
-            style={{ background: '#0E1220', color: '#8890A8', border: '1px solid #262C42' }}
+            style={{ background: '#f8fafc', color: '#6b7280', border: '1px solid #e5e7eb' }}
           >
             Ctrl+K
           </kbd>
@@ -66,7 +66,7 @@ export function CounselorTopbar({ onMenuClick }: Props) {
         {/* Next session */}
         <div
           className="hidden items-center gap-2 rounded-md border px-3 py-1.5 sm:flex"
-          style={{ borderColor: '#262C42', background: 'rgba(79, 209, 165, 0.05)' }}
+          style={{ borderColor: '#e5e7eb', background: 'rgba(79, 209, 165, 0.05)' }}
         >
           <Calendar size={13} style={{ color: '#4FD1A5' }} />
           <span className="text-[11px] font-medium" style={{ color: '#4FD1A5' }}>
@@ -76,7 +76,7 @@ export function CounselorTopbar({ onMenuClick }: Props) {
 
         <button
           className="relative flex h-8 w-8 items-center justify-center rounded-md border hover:bg-white/[0.04]"
-          style={{ borderColor: '#262C42', color: '#8890A8' }}
+          style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
           aria-label="Notifications"
         >
           <Bell size={15} />
@@ -90,13 +90,13 @@ export function CounselorTopbar({ onMenuClick }: Props) {
 
         <button
           className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-white/[0.04]"
-          style={{ color: '#E8EAF2' }}
+          style={{ color: '#111827' }}
         >
           <div
             className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
             style={{
               background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-              color: '#0E1220',
+              color: '#f8fafc',
             }}
           >
             CN

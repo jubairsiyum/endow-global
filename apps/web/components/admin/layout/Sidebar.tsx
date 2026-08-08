@@ -72,7 +72,7 @@ export function Sidebar({ userRole }: SidebarProps) {
   return (
     <aside
       className="relative flex h-screen w-[220px] flex-col border-r"
-      style={{ background: '#0E1220', borderColor: '#262C42' }}
+      style={{ background: '#f8fafc', borderColor: '#e5e7eb' }}
     >
       {/* Ambient glow */}
       <div
@@ -86,11 +86,11 @@ export function Sidebar({ userRole }: SidebarProps) {
       {/* Logo */}
       <div
         className="flex shrink-0 items-center justify-between border-b px-3 h-[52px]"
-        style={{ borderColor: '#262C42' }}
+        style={{ borderColor: '#e5e7eb' }}
       >
         <span
           className="text-sm font-bold tracking-tight"
-          style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+          style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {isSuperAdmin ? (
             <>
@@ -125,7 +125,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                   isActive ? '' : 'hover:bg-white/[0.04]'
                 )}
                 style={{
-                  color: isActive ? '#E8EAF2' : '#8890A8',
+                  color: isActive ? '#111827' : '#6b7280',
                 }}
               >
                 {isActive && (
@@ -139,7 +139,7 @@ export function Sidebar({ userRole }: SidebarProps) {
                 <Icon
                   size={16}
                   className="shrink-0"
-                  style={{ color: isActive ? '#E8A33D' : '#8890A8' }}
+                  style={{ color: isActive ? '#E8A33D' : '#6b7280' }}
                 />
                 <span className="truncate">{item.name}</span>
               </Link>
@@ -149,7 +149,7 @@ export function Sidebar({ userRole }: SidebarProps) {
       </nav>
 
       {/* User */}
-      <div className="shrink-0 border-t p-2" style={{ borderColor: '#262C42' }}>
+      <div className="shrink-0 border-t p-2" style={{ borderColor: '#e5e7eb' }}>
         <div
           className="flex items-center gap-2.5 rounded-lg px-2 py-2"
           style={{ background: 'rgba(232, 163, 61, 0.05)' }}
@@ -160,16 +160,16 @@ export function Sidebar({ userRole }: SidebarProps) {
               background: isSuperAdmin
                 ? 'linear-gradient(135deg, #E8A33D, #c48b2e)'
                 : 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-              color: '#0E1220',
+              color: '#f8fafc',
             }}
           >
             {roleInitials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-semibold" style={{ color: '#E8EAF2' }}>
+            <p className="truncate text-[12px] font-semibold" style={{ color: '#111827' }}>
               {roleLabel}
             </p>
-            <p className="truncate text-[10px]" style={{ color: '#8890A8' }}>
+            <p className="truncate text-[10px]" style={{ color: '#6b7280' }}>
               endow.global
             </p>
           </div>

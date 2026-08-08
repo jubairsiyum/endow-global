@@ -29,7 +29,7 @@ export default function AdminPage() {
             className="h-8 w-8 animate-spin rounded-full border-2"
             style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }}
           />
-          <p className="text-[12px]" style={{ color: '#8890A8' }}>Loading dashboard...</p>
+          <p className="text-[12px]" style={{ color: '#6b7280' }}>Loading dashboard...</p>
         </div>
       </div>
     )
@@ -88,11 +88,11 @@ export default function AdminPage() {
         <div>
           <h1
             className="text-[20px] font-bold tracking-tight"
-            style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+            style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
           >
             Admin Dashboard
           </h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
             Overview of platform operations and activity
           </p>
         </div>
@@ -111,22 +111,22 @@ export default function AdminPage() {
                 <div
                   key={item.title}
                   className="rounded-xl border p-4 transition-all hover:-translate-y-0.5"
-                  style={{ background: '#161B2E', borderColor: '#262C42' }}
+                  style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
-                      style={{ background: 'rgba(232, 163, 61, 0.08)' }}
+                      style={{ background: 'rgba(234, 179, 8, 0.1)' }}
                     >
                       <Icon size={16} style={{ color: '#E8A33D' }} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[11px] font-medium" style={{ color: '#8890A8' }}>
+                      <p className="text-[11px] font-medium" style={{ color: '#6b7280' }}>
                         {item.title}
                       </p>
                       <h2
                         className="text-[20px] font-bold leading-tight"
-                        style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+                        style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
                       >
                         {item.value}
                       </h2>
@@ -150,11 +150,11 @@ export default function AdminPage() {
           {/* Pipeline */}
           <div
             className="rounded-xl border p-4"
-            style={{ background: '#161B2E', borderColor: '#262C42' }}
+            style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
           >
             <h2
               className="text-[15px] font-semibold"
-              style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+              style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
             >
               Application Pipeline
             </h2>
@@ -163,7 +163,7 @@ export default function AdminPage() {
                 {
                   label: 'New Lead',
                   value: (pipelineStatusMap['DRAFT'] || 0) + (pipelineStatusMap['IN_PROGRESS'] || 0),
-                  bg: 'rgba(232, 163, 61, 0.06)',
+                  bg: 'rgba(234, 179, 8, 0.08)',
                   text: '#E8A33D',
                 },
                 {
@@ -201,7 +201,7 @@ export default function AdminPage() {
                   </p>
                   <h3
                     className="mt-1 text-[18px] font-bold"
-                    style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+                    style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
                   >
                     {stage.value}
                   </h3>
@@ -217,18 +217,18 @@ export default function AdminPage() {
 
           <div
             className="rounded-xl border p-4"
-            style={{ background: '#161B2E', borderColor: '#262C42' }}
+            style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
           >
             <h2
               className="text-[13px] font-semibold"
-              style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}
+              style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
             >
               Recent Applications
             </h2>
 
             <div className="mt-3 space-y-3">
               {activities.length === 0 && (
-                <p className="text-[12px]" style={{ color: '#8890A8' }}>No recent activity</p>
+                <p className="text-[12px]" style={{ color: '#6b7280' }}>No recent activity</p>
               )}
               {activities.map((item: any, index: number) => (
                 <div key={index} className="flex items-start gap-3">
@@ -237,10 +237,10 @@ export default function AdminPage() {
                     style={{ background: '#E8A33D' }}
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[12px] font-medium" style={{ color: '#E8EAF2' }}>
+                    <p className="truncate text-[12px] font-medium" style={{ color: '#111827' }}>
                       {item.title}
                     </p>
-                    <p className="mt-0.5 text-[11px]" style={{ color: '#8890A8' }}>
+                    <p className="mt-0.5 text-[11px]" style={{ color: '#6b7280' }}>
                       {item.time}
                     </p>
                   </div>

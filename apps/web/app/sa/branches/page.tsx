@@ -100,10 +100,10 @@ export default function SABranchesPage() {
         className="flex items-center justify-between"
       >
         <div>
-          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
             Branches
           </h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: '#8890A8' }}>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
             Manage platform branch offices worldwide
           </p>
         </div>
@@ -118,9 +118,9 @@ export default function SABranchesPage() {
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
           className="rounded-xl border p-5"
-          style={{ background: '#161B2E', borderColor: '#262C42' }}
+          style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
         >
-          <h2 className="mb-4 text-[15px] font-semibold" style={{ color: '#E8EAF2', fontFamily: "'Space Grotesk', sans-serif" }}>
+          <h2 className="mb-4 text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
             {editingId ? 'Edit Branch' : 'Add Branch'}
           </h2>
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
@@ -135,7 +135,7 @@ export default function SABranchesPage() {
               { label: 'Manager Name', key: 'managerName' },
             ].map((f) => (
               <label key={f.key} className="flex flex-col gap-1">
-                <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>
+                <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>
                   {f.label}{f.required ? ' *' : ''}
                 </span>
                 <input
@@ -145,7 +145,7 @@ export default function SABranchesPage() {
                   required={f.required}
                   maxLength={f.maxLength}
                   className="rounded-md border px-3 py-1.5 text-[13px] outline-none"
-                  style={{ background: '#0E1220', borderColor: '#262C42', color: '#E8EAF2' }}
+                  style={{ background: '#f8fafc', borderColor: '#e5e7eb', color: '#111827' }}
                   placeholder={f.placeholder || f.label}
                 />
               </label>
@@ -153,12 +153,12 @@ export default function SABranchesPage() {
 
             {/* Status */}
             <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Status</span>
+              <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Status</span>
               <select
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
                 className="rounded-md border px-3 py-1.5 text-[13px] outline-none"
-                style={{ background: '#0E1220', borderColor: '#262C42', color: '#E8EAF2' }}
+                style={{ background: '#f8fafc', borderColor: '#e5e7eb', color: '#111827' }}
               >
                 {STATUS_OPTIONS.map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -168,27 +168,27 @@ export default function SABranchesPage() {
 
             {/* Counselors */}
             <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Counselors</span>
+              <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Counselors</span>
               <input
                 type="number"
                 min={0}
                 value={form.counselors}
                 onChange={(e) => setForm({ ...form, counselors: e.target.value })}
                 className="rounded-md border px-3 py-1.5 text-[13px] outline-none"
-                style={{ background: '#0E1220', borderColor: '#262C42', color: '#E8EAF2' }}
+                style={{ background: '#f8fafc', borderColor: '#e5e7eb', color: '#111827' }}
               />
             </label>
 
             {/* Applications */}
             <label className="flex flex-col gap-1">
-              <span className="text-[11px] font-medium" style={{ color: '#8890A8' }}>Applications</span>
+              <span className="text-[11px] font-medium" style={{ color: '#6b7280' }}>Applications</span>
               <input
                 type="number"
                 min={0}
                 value={form.applications}
                 onChange={(e) => setForm({ ...form, applications: e.target.value })}
                 className="rounded-md border px-3 py-1.5 text-[13px] outline-none"
-                style={{ background: '#0E1220', borderColor: '#262C42', color: '#E8EAF2' }}
+                style={{ background: '#f8fafc', borderColor: '#e5e7eb', color: '#111827' }}
               />
             </label>
 
@@ -228,7 +228,7 @@ export default function SABranchesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
         className="overflow-hidden rounded-xl border"
-        style={{ background: '#161B2E', borderColor: '#262C42' }}
+        style={{ background: '#ffffff', borderColor: '#e5e7eb' }}
       >
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
@@ -244,15 +244,15 @@ export default function SABranchesPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr style={{ background: '#161B2E' }}>
+                <tr style={{ background: '#ffffff' }}>
                   {['Code', 'Branch Name', 'Country', 'City', 'Manager', 'Counselors', 'Apps', 'Status', 'Actions'].map((h) => (
-                    <th key={h} className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8890A8', fontFamily: "'JetBrains Mono', monospace" }}>
+                    <th key={h} className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="[&_tr]:border-t [&_tr]:border-[#262C42]/50">
+              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
                 {(branchList ?? []).map((branch: any) => (
                   <tr key={branch.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
                     <td className="px-4 py-3">
@@ -262,27 +262,27 @@ export default function SABranchesPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: 'rgba(232, 163, 61, 0.08)' }}>
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg" style={{ background: 'rgba(234, 179, 8, 0.1)' }}>
                           <Building2 size={14} style={{ color: '#E8A33D' }} />
                         </div>
                         <div>
-                          <span className="text-[13px] font-medium" style={{ color: '#E8EAF2' }}>{branch.name}</span>
-                          {branch.address && <p className="text-[11px] truncate max-w-[160px]" style={{ color: '#8890A8' }}>{branch.address}</p>}
+                          <span className="text-[13px] font-medium" style={{ color: '#111827' }}>{branch.name}</span>
+                          {branch.address && <p className="text-[11px] truncate max-w-[160px]" style={{ color: '#6b7280' }}>{branch.address}</p>}
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: '#8890A8' }}>
+                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
                       <div className="flex items-center gap-1.5">
                         <Globe size={12} />{branch.country}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: '#8890A8' }}>
+                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
                       <div className="flex items-center gap-1.5">
                         <MapPin size={12} />{branch.city}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: branch.managerName ? '#E8EAF2' : '#8890A8' }}>
-                      {branch.managerName || '—'}
+                    <td className="px-4 py-3 text-[13px]" style={{ color: branch.managerName ? '#111827' : '#6b7280' }}>
+                      {branch.managerName || 'â€”'}
                     </td>
                     <td className="px-4 py-3">
                       <SABadge variant="route">{branch.counselors || 0}</SABadge>
@@ -314,8 +314,8 @@ export default function SABranchesPage() {
                 {(!branchList || branchList.length === 0) && (
                   <tr>
                     <td colSpan={9} className="py-20 text-center">
-                      <Building2 size={28} style={{ color: '#8890A8', margin: '0 auto 8px' }} />
-                      <p className="text-[13px]" style={{ color: '#8890A8' }}>
+                      <Building2 size={28} style={{ color: '#6b7280', margin: '0 auto 8px' }} />
+                      <p className="text-[13px]" style={{ color: '#6b7280' }}>
                         {search ? 'No branches match your search' : 'No branches yet. Add your first branch.'}
                       </p>
                     </td>
