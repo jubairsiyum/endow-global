@@ -151,7 +151,7 @@ export default function CountriesPage() {
                 <div className="text-sm font-mono text-gray-600 dark:text-gray-400">{c.code}</div>
                 <div className="text-sm text-gray-600 dark:text-gray-400">{c.continent || '—'}</div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => openEdit(c)} className="rounded-xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
+                  <button onClick={() => openEdit(c)} className="rounded-xl bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
                     <Pencil size={14} />
                   </button>
                   {deleteConfirm === c.code ? (
@@ -160,7 +160,7 @@ export default function CountriesPage() {
                       <button onClick={() => setDeleteConfirm(null)} className="rounded-lg bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300">Cancel</button>
                     </div>
                   ) : (
-                    <button onClick={() => setDeleteConfirm(c.code)} className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
+                    <button onClick={() => setDeleteConfirm(c.code)} className="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20">
                       <Trash2 size={14} />
                     </button>
                   )}
@@ -176,7 +176,7 @@ export default function CountriesPage() {
           <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-[#1a1d25]">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-gray-800">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">{editingCode ? 'Edit Country' : 'Add Country'}</h2>
-              <button onClick={() => { setShowModal(false); setEditingCode(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#222530]">
+              <button onClick={() => { setShowModal(false); setEditingCode(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-[#222530]">
                 <X size={18} />
               </button>
             </div>

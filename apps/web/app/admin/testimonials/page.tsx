@@ -179,7 +179,7 @@ export default function TestimonialsPage() {
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                         t.isPublished
                           ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                          : 'bg-gray-200 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
                       }`}
                     >
                       {t.isPublished ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -190,7 +190,7 @@ export default function TestimonialsPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEdit(t)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-800"
                       >
                         <Pencil size={14} />
                       </button>
@@ -212,7 +212,7 @@ export default function TestimonialsPage() {
                       ) : (
                         <button
                           onClick={() => setDeleteConfirm(t.id)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-100 hover:text-red-500"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -236,7 +236,7 @@ export default function TestimonialsPage() {
               </h3>
               <button
                 onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }}
-                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
               >
                 <X size={18} />
               </button>

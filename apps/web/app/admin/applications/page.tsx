@@ -95,7 +95,7 @@ export default function ApplicationsPage() {
                 >
                   <div className="space-y-2">
                     <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
-                    <div className="h-3 w-24 animate-pulse rounded bg-gray-100 dark:bg-[#222530]" />
+                    <div className="h-3 w-24 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
                   </div>
                   <div className="h-4 w-36 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
                   <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-[#222530]" />
@@ -139,7 +139,7 @@ export default function ApplicationsPage() {
 
                 <div>
                   <Link href={`/admin/applications/${application.id}`}>
-                    <button className="rounded-xl bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
+                    <button className="rounded-xl bg-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
                       View
                     </button>
                   </Link>

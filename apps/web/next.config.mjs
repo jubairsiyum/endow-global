@@ -36,6 +36,21 @@ const nextConfig = {
     }
     return config
   },
+  async rewrites() {
+    return [
+      { source: '/sa/students', destination: '/admin/students' },
+      { source: '/sa/students/:id*', destination: '/admin/students/:id*' },
+      { source: '/sa/counselors', destination: '/admin/counselors' },
+      { source: '/sa/departments', destination: '/admin/departments' },
+      { source: '/sa/scholarships', destination: '/admin/scholarships' },
+      { source: '/sa/documents', destination: '/admin/documents' },
+      { source: '/sa/newsletters', destination: '/admin/newsletters' },
+      { source: '/sa/messages', destination: '/admin/messages' },
+      { source: '/sa/notifications', destination: '/admin/notifications' },
+      { source: '/sa/testimonials', destination: '/admin/testimonials' },
+      { source: '/sa/revenue', destination: '/admin/revenue' },
+    ]
+  },
   headers: async () => [
     // ─── Security headers for all routes ────────────────────────────────────
     {

@@ -248,19 +248,19 @@ export default function CoursesPage() {
                   {c.isActive ? (
                     <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Active</span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-500">
                       <EyeOff size={11} /> Hidden
                     </span>
                   )}
                   <button
                     onClick={() => openEdit(c)}
-                    className="rounded-xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]"
+                    className="rounded-xl bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]"
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(c.id)}
-                    className="rounded-xl bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
+                    className="rounded-xl bg-red-100 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -279,7 +279,7 @@ export default function CoursesPage() {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 {editingId ? 'Edit Course' : 'Add Course'}
               </h2>
-              <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#222530]">
+              <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-[#222530]">
                 <X size={18} />
               </button>
             </div>

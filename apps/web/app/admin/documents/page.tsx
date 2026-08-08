@@ -15,13 +15,13 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 
 const statusColors: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-700',
+  DRAFT: 'bg-gray-200 text-gray-700',
   IN_PROGRESS: 'bg-blue-50 text-blue-700',
   SUBMITTED: 'bg-purple-50 text-purple-700',
   UNDER_REVIEW: 'bg-amber-50 text-amber-700',
   DOCUMENTS_REQUIRED: 'bg-orange-50 text-orange-700',
   ACCEPTED: 'bg-green-50 text-green-700',
-  REJECTED: 'bg-red-50 text-red-700',
+  REJECTED: 'bg-red-100 text-red-700',
 }
 
 export default function DocumentsPage() {
@@ -94,7 +94,7 @@ export default function DocumentsPage() {
                   <span className="truncate max-w-[140px]">{doc.docLabel}</span>
                 </div>
                 <div>
-                  <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[doc.status] || 'bg-gray-100 text-gray-700'}`}>
+                  <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusColors[doc.status] || 'bg-gray-200 text-gray-700'}`}>
                     {doc.status.replace(/_/g, ' ')}
                   </span>
                 </div>
@@ -102,7 +102,7 @@ export default function DocumentsPage() {
                   {formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => setPreviewUrl(doc.docUrl)} className="rounded-xl bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
+                  <button onClick={() => setPreviewUrl(doc.docUrl)} className="rounded-xl bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 dark:bg-[#222530] dark:text-white dark:hover:bg-[#2d3340]">
                     <Eye size={14} />
                   </button>
                   <a href={doc.docUrl} target="_blank" rel="noopener" className="rounded-xl bg-primary/10 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/20">
@@ -128,7 +128,7 @@ export default function DocumentsPage() {
               <a href={previewUrl} target="_blank" rel="noopener" className="flex items-center gap-1.5 text-sm font-medium text-primary hover:underline">
                 <Download size={14} /> Open in new tab
               </a>
-              <button onClick={() => setPreviewUrl(null)} className="rounded-xl px-3 py-1 text-sm text-gray-500 hover:bg-gray-100">Close</button>
+              <button onClick={() => setPreviewUrl(null)} className="rounded-xl px-3 py-1 text-sm text-gray-500 hover:bg-gray-200">Close</button>
             </div>
           </div>
         </div>

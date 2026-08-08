@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
               className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm transition-all hover:-translate-y-1 hover:shadow-md dark:border-gray-800 dark:bg-[#1a1d25]"
             >
               <div className="flex items-center justify-between">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-50 text-primary dark:bg-[#2a1114]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-primary dark:bg-[#2a1114]">
                   <Icon size={20} />
                 </div>
 

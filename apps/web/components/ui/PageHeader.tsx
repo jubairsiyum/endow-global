@@ -17,7 +17,7 @@ export default function PageHeader({ title, description, buttonText, onButtonCli
       {buttonText && (
         <button
           onClick={onButtonClick}
-          className="rounded-2xl bg-primary px-5 py-3 text-sm font-medium text-white transition-all hover:bg-[#920715]"
+          className="rounded-2xl bg-primary px-5 py-3 text-sm font-medium text-white transition-all hover:bg-brand-700"
         >
           {buttonText}
         </button>

@@ -16,24 +16,40 @@ import {
   ChevronLeft,
   Activity,
   BookOpen,
+  UserCheck,
+  MessageSquare,
+  Bell,
+  Newspaper,
+  DollarSign,
+  Layers,
+  Gift,
+  FileBox,
+  Star,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
 
 const primaryNav = [
   { name: 'Dashboard', href: '/sa', icon: LayoutDashboard },
-  { name: 'Branches', href: '/sa/branches', icon: Building2 },
+  { name: 'Students', href: '/sa/students', icon: Users },
+  { name: 'Counselors', href: '/sa/counselors', icon: UserCheck },
+  { name: 'Applications', href: '/sa/applications', icon: FileText },
   { name: 'Universities', href: '/sa/universities', icon: GraduationCap },
   { name: 'Courses', href: '/sa/courses', icon: BookOpen },
-  { name: 'Applications', href: '/sa/applications', icon: FileText },
-  { name: 'Users', href: '/sa/users', icon: Users },
+  { name: 'Branches', href: '/sa/branches', icon: Building2 },
+  { name: 'Departments', href: '/sa/departments', icon: Layers },
+  { name: 'Scholarships', href: '/sa/scholarships', icon: Gift },
   { name: 'Countries', href: '/sa/countries', icon: Globe },
+  { name: 'Documents', href: '/sa/documents', icon: FileBox },
+  { name: 'Newsletters', href: '/sa/newsletters', icon: Newspaper },
+  { name: 'Testimonials', href: '/sa/testimonials', icon: Star },
+  { name: 'Messages', href: '/sa/messages', icon: MessageSquare },
+  { name: 'Notifications', href: '/sa/notifications', icon: Bell },
   { name: 'Activity', href: '/sa/activity', icon: Activity },
+  { name: 'Revenue', href: '/sa/revenue', icon: DollarSign },
 ]
 
 const secondaryNav = [
-  { name: 'Analytics', href: '/sa/analytics', icon: BarChart3 },
-  { name: 'Admin Roles', href: '/sa/users', icon: Shield },
+  { name: 'Admin Management', href: '/sa/users', icon: Shield },
   { name: 'Settings', href: '/sa/settings', icon: Settings },
 ]
 

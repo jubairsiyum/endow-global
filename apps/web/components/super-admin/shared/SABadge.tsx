@@ -23,29 +23,29 @@ const badgeVariants = cva(
 
 const variantStyles: Record<string, { bg: string; text: string; border: string }> = {
   route: {
-    bg: 'rgba(234, 179, 8, 0.1)',
-    text: '#E8A33D',
-    border: 'rgba(232, 163, 61, 0.15)',
+    bg: 'rgba(217, 119, 6, 0.1)',
+    text: '#b45309',
+    border: 'rgba(217, 119, 6, 0.15)',
   },
   success: {
-    bg: 'rgba(16, 185, 129, 0.1)',
-    text: '#4FD1A5',
-    border: 'rgba(79, 209, 165, 0.15)',
+    bg: 'rgba(5, 150, 105, 0.1)',
+    text: '#059669',
+    border: 'rgba(5, 150, 105, 0.15)',
   },
   alert: {
-    bg: 'rgba(240, 98, 91, 0.08)',
-    text: '#F0625B',
-    border: 'rgba(240, 98, 91, 0.15)',
+    bg: 'rgba(220, 38, 38, 0.08)',
+    text: '#dc2626',
+    border: 'rgba(220, 38, 38, 0.15)',
   },
   warning: {
-    bg: 'rgba(234, 179, 8, 0.08)',
-    text: '#E8A33D',
-    border: 'rgba(232, 163, 61, 0.1)',
+    bg: 'rgba(217, 119, 6, 0.08)',
+    text: '#b45309',
+    border: 'rgba(217, 119, 6, 0.1)',
   },
   neutral: {
-    bg: 'rgba(136, 144, 168, 0.06)',
-    text: '#6b7280',
-    border: 'rgba(136, 144, 168, 0.1)',
+    bg: 'rgba(75, 85, 99, 0.08)',
+    text: '#4b5563',
+    border: 'rgba(75, 85, 99, 0.1)',
   },
 }
 

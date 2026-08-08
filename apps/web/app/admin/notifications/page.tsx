@@ -100,7 +100,7 @@ export default function NotificationsPage() {
           <div className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-[#1a1d25]">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">Send Notification</h2>
-              <button onClick={() => setShowSend(false)} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-[#222530]">
+              <button onClick={() => setShowSend(false)} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 dark:hover:bg-[#222530]">
                 <Send size={18} />
               </button>
             </div>

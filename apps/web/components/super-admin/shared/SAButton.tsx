@@ -41,10 +41,12 @@ type StyleDef = {
 
 const styles: Record<string, StyleDef> = {
   primary: {
-    bg: '#E8A33D',
+    bg: '#7A0713',
     text: '#ffffff',
-    hoverBg: '#c48b2e',
-    ringColor: '#E8A33D',
+    border: '1px solid #A01830',
+    hoverBg: '#5C0510',
+    hoverBorder: '#7A0713',
+    ringColor: '#7A0713',
     duration: '120ms',
   },
   secondary: {

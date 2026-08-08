@@ -178,7 +178,7 @@ export default function NewslettersPage() {
                 <div className="flex flex-wrap gap-1">
                   {Array.isArray(s.tags) && s.tags.length > 0 ? (
                     s.tags.slice(0, 2).map((tag: string, i: number) => (
-                      <span key={i} className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                      <span key={i} className="inline-flex items-center rounded-full bg-gray-200 px-2 py-0.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                         {tag}
                       </span>
                     ))
@@ -192,7 +192,7 @@ export default function NewslettersPage() {
                     className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                       s.isActive
                         ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
+                        : 'bg-gray-200 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
                     }`}
                   >
                     {s.isActive ? <UserCheck size={12} /> : <UserX size={12} />}
@@ -202,7 +202,7 @@ export default function NewslettersPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEdit(s)}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-800"
                   >
                     <Pencil size={14} />
                   </button>
@@ -224,7 +224,7 @@ export default function NewslettersPage() {
                   ) : (
                     <button
                       onClick={() => setDeleteConfirm(s.id)}
-                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-50 hover:text-red-500"
+                      className="rounded-lg p-1.5 text-gray-400 hover:bg-red-100 hover:text-red-500"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -244,7 +244,7 @@ export default function NewslettersPage() {
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                 {editingId ? 'Edit Subscriber' : 'Add Subscriber'}
               </h2>
-              <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-[#222530]">
+              <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-[#222530]">
                 <X size={18} />
               </button>
             </div>
