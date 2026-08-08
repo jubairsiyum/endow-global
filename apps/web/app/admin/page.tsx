@@ -1,12 +1,13 @@
 'use client'
 
 import { CalendarDays, Clock3, FileText, Users } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
+import { useEffect } from 'react'
 
 import AnalyticsChart from '@/components/admin/dashboard/AnalyticsChart'
 import TopCountries from '@/components/admin/dashboard/TopCountries'
 import UpcomingConsultations from '@/components/admin/dashboard/UpcomingConsultations'
-import SuperAdminDashboard from '@/components/admin/dashboard/SuperAdminDashboard'
 import { trpc } from '@/lib/trpc-client'
 import { useSession } from '@/lib/auth-client'
 import { UserRole } from '@endow/types'
@@ -14,12 +15,16 @@ import { UserRole } from '@endow/types'
 export default function AdminPage() {
   const { data: session } = useSession()
   const userRole = (session?.user as any)?.role as UserRole
+  const router = useRouter()
+
+  useEffect(() => {
+    if (userRole === UserRole.SUPER_ADMIN) router.replace('/sa')
+  }, [userRole, router])
+
   const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
   const metrics = _metrics as any
 
-  if (userRole === UserRole.SUPER_ADMIN) {
-    return <SuperAdminDashboard />
-  }
+  if (userRole === UserRole.SUPER_ADMIN) return null
 
   if (isLoading) {
     return (
