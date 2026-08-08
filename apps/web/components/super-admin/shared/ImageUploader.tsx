@@ -46,19 +46,24 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch('/api/upload?slug=universityAsset', {
+      const res = await fetch('/api/upload-image', {
         method: 'POST',
         body: formData,
       })
 
-      if (!res.ok) throw new Error('Upload failed')
+      if (!res.ok) {
+        const text = await res.text()
+        throw new Error(text || 'Upload failed')
+      }
       const json = await res.json()
-      const uploadedUrl = json[0]?.url || json?.url
+      const uploadedUrl = json?.url
       if (uploadedUrl) {
         setPreview(uploadedUrl)
         setUrlInput(uploadedUrl)
         setPreviewError(false)
         onChange(uploadedUrl)
+      } else {
+        setPreviewError(true)
       }
     } catch {
       setPreviewError(true)
@@ -130,9 +135,14 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
             ) : (
               <Upload size={16} style={{ color: '#8890A8' }} />
             )}
-            <span className="text-[12px]" style={{ color: '#8890A8' }}>
-              {uploading ? 'Uploading...' : 'Click to upload image (max 8MB)'}
-            </span>
+            <div className="text-left">
+              <span className="block text-[12px]" style={{ color: '#8890A8' }}>
+                {uploading ? 'Uploading...' : 'Click or drag to upload (max 8MB)'}
+              </span>
+              <span className="block text-[10px]" style={{ color: 'rgba(136,144,168,0.6)' }}>
+                Recommended: 500 × 500 px, PNG or JPG
+              </span>
+            </div>
           </label>
         </div>
       )}

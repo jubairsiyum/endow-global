@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useRef, useEffect, useState } from 'react'
 import { TrendingUp, Users, Globe, Award } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
 
 interface StatConfig {
   value: number
@@ -54,6 +55,8 @@ const AnimatedCounter = ({ value, duration = 2 }: { value: number; duration?: nu
 }
 
 export default function StatisticsSection() {
+  const { data: dbStats } = trpc.university.stats.useQuery()
+
   const stats: StatConfig[] = [
     {
       value: 5000,
@@ -62,15 +65,15 @@ export default function StatisticsSection() {
       icon: <Users className="h-6 w-6" />,
     },
     {
-      value: 50,
+      value: dbStats?.universities ?? 13,
       suffix: '+',
       label: 'Partner Universities',
       icon: <Award className="h-6 w-6" />,
     },
     {
-      value: 2,
+      value: dbStats?.countries ?? 2,
       suffix: '',
-      label: 'Specialist Destinations',
+      label: 'Study Destinations',
       icon: <Globe className="h-6 w-6" />,
     },
     {

@@ -139,7 +139,7 @@ export default function SAUniversitiesPage() {
             <div>
               <div className="mb-3 flex items-center gap-2 pb-2 border-b" style={{ borderColor: '#262C42' }}><Image size={14} style={{ color: '#E8A33D' }} /><span className="text-[12px] font-semibold uppercase tracking-wider" style={{ color: '#E8A33D' }}>Brand Assets</span></div>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <ImageUploader value={form.logo} onChange={(v) => setField('logo', v)} label="University Logo" previewHeight={96} />
+                <ImageUploader value={form.logo} onChange={(v) => setField('logo', v)} label="University Logo" previewHeight={160} />
                 <ImageUploader value={form.coverImage} onChange={(v) => setField('coverImage', v)} label="Cover Image" previewHeight={120} />
               </div>
             </div>

@@ -5,6 +5,7 @@ import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
 import { Plus, Pencil, Trash2, X, Search, Building2, Globe, MapPin, Hash, ExternalLink, EyeOff } from 'lucide-react'
+import { ImageUploader } from '@/components/super-admin/shared/ImageUploader'
 
 interface UniForm {
   name: string
@@ -283,9 +284,8 @@ export default function UniversitiesPage() {
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Ranking</label>
                 <input type="number" value={form.ranking} onChange={e => updateField('ranking', e.target.value)} placeholder="e.g. 150" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white" />
               </div>
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Logo URL</label>
-                <input value={form.logo} onChange={e => updateField('logo', e.target.value)} placeholder="/universities/university.png" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white" />
+              <div className="sm:col-span-2">
+                <ImageUploader value={form.logo} onChange={(v) => updateField('logo', v)} label="University Logo" previewHeight={120} />
               </div>
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Website</label>
@@ -308,8 +308,7 @@ export default function UniversitiesPage() {
                 <textarea required value={form.description} onChange={e => updateField('description', e.target.value)} rows={3} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white" />
               </div>
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">Cover Image URL</label>
-                <input value={form.coverImage} onChange={e => updateField('coverImage', e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-800 dark:bg-[#11131a] dark:text-white" />
+                <ImageUploader value={form.coverImage} onChange={(v) => updateField('coverImage', v)} label="Cover Image" previewHeight={100} />
               </div>
               <div className="sm:col-span-2 flex items-center gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
