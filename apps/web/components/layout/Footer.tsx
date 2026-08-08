@@ -121,7 +121,7 @@ export function Footer() {
               <li className="flex items-start gap-2">
                 <MapPin size={14} className="mt-0.5 shrink-0 text-[#C41E3A]" />
                 <span className="text-[13px] leading-relaxed text-gray-500">
-                  3rd floor, House -17, Road - 01, Mohammadia Housing Society, Mohammadpur, Adabor, Dhaka-1207
+                H# 24/1 & 24/2, Level# 8, Endow Global Education, Shyamoli Square, Mirpur Rd, Dhaka
                 </span>
               </li>
               <li>

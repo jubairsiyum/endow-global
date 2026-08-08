@@ -309,11 +309,12 @@ export const adminRouter = createTRPCRouter({
 
         // Note: For complex search across relations, you might need joins.
         // Here we keep it simple or filter memory side for deep relation search.
+        const conditions = []
+        if (status) conditions.push(eq(schema.applications.status, status))
+        if (cursor) conditions.push(sql`${schema.applications.id} < ${cursor}` as any)
+
         const items = await db.query.applications.findMany({
-          where: and(
-            status ? eq(schema.applications.status, status) : undefined,
-            cursor ? sql`${schema.applications.id} < ${cursor}` as any : undefined
-          ),
+          where: conditions.length > 0 ? and(...conditions) : undefined,
           limit: limit + 1,
           orderBy: [desc(schema.applications.id)],
           with: {
@@ -962,16 +963,16 @@ const course = await db.select().from(schema.courses)
         }
         if (input.continent) conditions.push(eq(schema.countries.continent, input.continent))
 
-        return db.query.countries.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [schema.countries.name],
-        })
+        return db.select().from(schema.countries)
+          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+          .orderBy(schema.countries.name)
       }),
 
     getById: adminProcedure.input(z.object({ code: z.string() })).query(async ({ input }) => {
-      return db.query.countries.findFirst({
-        where: eq(schema.countries.code, input.code),
-      })
+return db.select().from(schema.countries)
+          .where(eq(schema.countries.code, input.code))
+          .limit(1)
+          .then((rows) => rows[0] || null)
     }),
 
     create: adminProcedure

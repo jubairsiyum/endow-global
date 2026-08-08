@@ -7,7 +7,7 @@ export const SITE_CONFIG = {
   phoneBDHref: 'tel:+8801901463204',
   phoneKR: '+82 1057 6725 59',
   phoneKRHref: 'tel:+821057672559',
-  address: '3rd floor, House -17, Road - 01, Mohammadia Housing Society, Mohammadpur, Adabor, Dhaka-1207',
+  address: 'H# 24/1 & 24/2, Level# 8, Endow Global Education, Shyamoli Square, Mirpur Rd, Dhaka',
   logo: '/logo/endoedu.svg',
   logoAlt: 'Endow Global Education',
   social: {
