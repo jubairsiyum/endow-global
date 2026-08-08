@@ -399,18 +399,27 @@ export const adminRouter = createTRPCRouter({
 
   counselors: createTRPCRouter({
     list: adminProcedure.query(async () => {
-      return db.query.users.findMany({
-        where: eq(schema.users.role, 'COUNSELOR'),
-        with: {
-          counselorProfile: true,
-        },
-      })
+      const users = await db.select().from(schema.users)
+        .where(eq(schema.users.role, 'COUNSELOR' as any))
+
+      if (users.length === 0) return []
+
+      const ids = users.map((u) => u.id)
+      const profileConds = ids.map((id) => eq(schema.counselorProfiles.userId, id))
+      const profiles = await db.select().from(schema.counselorProfiles).where(or(...profileConds) as any)
+
+      const profileMap = new Map(profiles.map((p) => [p.userId, p]))
+      return users.map((u) => ({ ...u, counselorProfile: profileMap.get(u.id) || null }))
     }),
     getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      return db.query.users.findFirst({
-        where: and(eq(schema.users.id, input.id), eq(schema.users.role, 'COUNSELOR')),
-        with: { counselorProfile: true },
-      })
+      const user = await db.select().from(schema.users)
+        .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'COUNSELOR' as any)))
+        .limit(1).then((r) => r[0] || null)
+      if (!user) return null
+      const profile = await db.select().from(schema.counselorProfiles)
+        .where(eq(schema.counselorProfiles.userId, input.id))
+        .limit(1).then((r) => r[0] || null)
+      return { ...user, counselorProfile: profile }
     }),
     create: adminProcedure
       .input(
@@ -424,22 +433,39 @@ export const adminRouter = createTRPCRouter({
           calUsername: z.string().optional(),
           sessionRate: z.number().default(0),
           isAvailable: z.boolean().default(true),
+          image: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        const { name, email, ...profileData } = input
-        const userId = globalThis.crypto.randomUUID()
-        await db.insert(schema.users).values({
-          id: userId,
-          name,
-          email,
-          role: 'COUNSELOR',
-        })
-        await db.insert(schema.counselorProfiles).values({
-          userId,
-          ...profileData,
-        })
-        return { success: true, userId }
+        try {
+          const { name, email, image, ...profileData } = input
+          const userId = globalThis.crypto.randomUUID()
+          await db.insert(schema.users).values({
+            id: userId,
+            name,
+            email,
+            image: image || undefined,
+            role: 'COUNSELOR' as any,
+          })
+          const profileId = globalThis.crypto.randomUUID()
+          await db.insert(schema.counselorProfiles).values({
+            id: profileId,
+            userId,
+            expertiseCountries: JSON.stringify(profileData.expertiseCountries || []),
+            expertiseSubjects: JSON.stringify(profileData.expertiseSubjects || []),
+            languages: JSON.stringify(profileData.languages || ['English']),
+            bio: profileData.bio,
+            calUsername: profileData.calUsername,
+            sessionRate: profileData.sessionRate || 0,
+            isAvailable: profileData.isAvailable ?? true,
+          } as any)
+          return { success: true, userId }
+        } catch (e: any) {
+          if (e?.message?.includes('Duplicate') || e?.code === 'ER_DUP_ENTRY') {
+            throw new Error('A user with this email already exists')
+          }
+          throw e
+        }
       }),
     update: adminProcedure
       .input(
@@ -447,6 +473,7 @@ export const adminRouter = createTRPCRouter({
           id: z.string(),
           name: z.string().min(1).optional(),
           email: z.string().email().optional(),
+          image: z.string().optional(),
           bio: z.string().optional(),
           expertiseCountries: z.array(z.string()).optional(),
           expertiseSubjects: z.array(z.string()).optional(),
@@ -457,24 +484,38 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
-        const { id, name, email, ...profileData } = input
-        if (name || email) {
-          await db.update(schema.users).set({ ...(name && { name }), ...(email && { email }) }).where(eq(schema.users.id, id))
+        const { id, name, email, image, ...profileData } = input
+        const userUpdates: any = {}
+        if (name) userUpdates.name = name
+        if (email) userUpdates.email = email
+        if (image !== undefined) userUpdates.image = image
+        if (Object.keys(userUpdates).length > 0) {
+          await db.update(schema.users).set(userUpdates).where(eq(schema.users.id, id))
         }
-        const profile = await db.query.counselorProfiles.findFirst({
-          where: eq(schema.counselorProfiles.userId, id),
-        })
-        if (profile && Object.keys(profileData).length > 0) {
-          await db.update(schema.counselorProfiles).set(profileData).where(eq(schema.counselorProfiles.id, profile.id))
+        const profiles = await db.select().from(schema.counselorProfiles)
+          .where(eq(schema.counselorProfiles.userId, id)).limit(1)
+        const profile = profiles[0] || null
+        if (profile) {
+          const updates: any = {}
+          if (profileData.bio !== undefined) updates.bio = profileData.bio
+          if (profileData.expertiseCountries !== undefined) updates.expertiseCountries = JSON.stringify(profileData.expertiseCountries)
+          if (profileData.expertiseSubjects !== undefined) updates.expertiseSubjects = JSON.stringify(profileData.expertiseSubjects)
+          if (profileData.languages !== undefined) updates.languages = JSON.stringify(profileData.languages)
+          if (profileData.calUsername !== undefined) updates.calUsername = profileData.calUsername
+          if (profileData.sessionRate !== undefined) updates.sessionRate = profileData.sessionRate
+          if (profileData.isAvailable !== undefined) updates.isAvailable = profileData.isAvailable
+          if (Object.keys(updates).length > 0) {
+            await db.update(schema.counselorProfiles).set(updates).where(eq(schema.counselorProfiles.id, profile.id))
+          }
         }
         return { success: true }
       }),
     delete: adminProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
-        const profile = await db.query.counselorProfiles.findFirst({
-          where: eq(schema.counselorProfiles.userId, input.id),
-        })
+        const profiles = await db.select().from(schema.counselorProfiles)
+          .where(eq(schema.counselorProfiles.userId, input.id)).limit(1)
+        const profile = profiles[0] || null
         if (profile) {
           await db.delete(schema.counselorProfiles).where(eq(schema.counselorProfiles.id, profile.id))
         }
