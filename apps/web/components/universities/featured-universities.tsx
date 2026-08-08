@@ -74,7 +74,7 @@ function UniversityCard({ uni }: { uni: UniversityCardData }) {
 
         <div className="mt-auto flex items-end justify-between border-t border-slate-100 pt-4">
           <Link
-            href={`/universities/country/${uni.slug}`}
+            href={`/universities/${uni.country.toLowerCase().replace(/\s+/g, '-')}/${uni.slug}`}
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all duration-300 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white"
             aria-label={`View ${uni.name}`}
           >

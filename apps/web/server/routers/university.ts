@@ -43,4 +43,37 @@ export const universityRouter = createTRPCRouter({
       .groupBy(universities.country)
       .orderBy(sql`COUNT(*) DESC`)
   }),
+
+  byCountry: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const countryName = input.slug.replace(/-/g, ' ')
+      const unis = await ctx.db
+        .select()
+        .from(universities)
+        .where(eq(universities.isActive, true))
+      const matched = unis.filter((u) => u.country.toLowerCase() === countryName)
+      if (!matched.length) return null
+      return { country: matched[0].country, universities: matched }
+    }),
+
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const uni = await ctx.db
+        .select()
+        .from(universities)
+        .where(eq(universities.slug, input.slug))
+        .limit(1)
+        .then((r) => r[0] || null)
+      if (!uni) return null
+
+      const uniCourses = await ctx.db
+        .select()
+        .from(courses)
+        .where(and(eq(courses.universityId, uni.id), eq(courses.isActive, true)))
+        .limit(20)
+
+      return { ...uni, courses: uniCourses }
+    }),
 })

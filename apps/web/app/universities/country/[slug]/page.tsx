@@ -1,64 +1,44 @@
-import { Metadata } from 'next'
-import { notFound } from 'next/navigation'
-import { countries, universities, scholarships, studentStories } from '@/lib/universities/data'
+'use client'
+
+import { useParams, notFound } from 'next/navigation'
+import { trpc } from '@/lib/trpc-client'
 import CountryDetailContent from './CountryDetailContent'
 
-type PageProps = {
-  params: Promise<{ slug: string }>
-}
+export default function CountryPage() {
+  const { slug } = useParams<{ slug: string }>()
+  const { data, isLoading } = trpc.university.byCountry.useQuery({ slug })
 
-function getCountryBySlug(slug: string) {
-  const country = countries.find(
-    (c) => c.name.toLowerCase().replace(/\s+/g, '-') === slug
-  )
-  return country || null
-}
-
-function getUniversitiesForCountry(countryName: string) {
-  return universities.filter((u) => u.country === countryName)
-}
-
-function getScholarshipsForCountry(countryName: string) {
-  const countryUniNames = universities
-    .filter((u) => u.country === countryName)
-    .map((u) => u.name)
-  return scholarships.filter((s) => countryUniNames.includes(s.universityName))
-}
-
-function getStudentStoriesForCountry(countryName: string) {
-  return studentStories.filter((s) => s.country === countryName)
-}
-
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
-  const country = getCountryBySlug(slug)
-  if (!country) return { title: 'Country Not Found' }
-
-  return {
-    title: `Study in ${country.name} | Endow Global Education`,
-    description: country.description,
-    openGraph: {
-      title: `Study in ${country.name}`,
-      description: country.description,
-    },
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    )
   }
-}
 
-export default async function CountryPage({ params }: PageProps) {
-  const { slug } = await params
-  const country = getCountryBySlug(slug)
-  if (!country) notFound()
-
-  const countryUniversities = getUniversitiesForCountry(country.name)
-  const countryScholarships = getScholarshipsForCountry(country.name)
-  const countryStories = getStudentStoriesForCountry(country.name)
+  if (!data) {
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-900">Country not found</h1>
+        <p className="mt-2 text-gray-500">The country you&apos;re looking for doesn&apos;t exist or isn&apos;t available yet.</p>
+        <a href="/universities" className="mt-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] via-[#8B0E1A] to-[#A91324] px-6 py-3 text-sm font-bold text-white">Browse All Universities</a>
+      </div>
+    )
+  }
 
   return (
     <CountryDetailContent
-      country={country}
-      universities={countryUniversities}
-      scholarships={countryScholarships}
-      studentStories={countryStories}
+      country={{ name: data.country, code: data.country.slice(0, 2).toUpperCase(), description: `Explore top universities in ${data.country}.`, universities: data.universities.length, avgTuition: 0, visaSuccessRate: 95, costOfLiving: 0, partTimeIncome: 0, topUniversities: data.universities.slice(0, 3).map(u => u.name), flag: '' }}
+      universities={(data.universities as any[]).map((u: any) => ({
+        ...u,
+        logo: u.logo || '/placeholder.png',
+        highlights: Array.isArray(u.highlights) ? u.highlights : (typeof u.highlights === 'string' ? JSON.parse(u.highlights || '[]') : []),
+        scholarship: 0,
+        visaSuccessRate: 95,
+        tuition: { min: 0, max: 0, currency: 'USD' },
+      })) as any}
+      scholarships={[]}
+      studentStories={[]}
     />
   )
 }
