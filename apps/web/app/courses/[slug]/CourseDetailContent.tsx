@@ -49,40 +49,32 @@ export default function CourseDetailContent({ course }: { course: any }) {
         </div>
       </section>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
-          <div className="py-8 lg:py-12">
-            <FadeUp>
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                <div className="flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="inline-flex items-center rounded-full bg-[#C41E3A]/10 px-3 py-1 text-xs font-semibold text-[#C41E3A]">{levelLabels[course.level] ?? course.level}</span>
-                    <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600">{course.subject}</span>
-                    {course.expressOffer && <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700"><Star size={11} />Express Offer</span>}
-                    {course.hasScholarship && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700"><Award size={12} />Scholarship</span>}
-                  </div>
-                  <h1 className="mt-3 text-2xl font-bold tracking-tight text-gray-950 sm:text-3xl lg:text-4xl">{course.name}</h1>
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                    {course.universityName && <span className="flex items-center gap-1.5"><GraduationCap size={15} className="text-[#C41E3A]" />{course.universityName}</span>}
-                    {course.universityCountry && <span className="flex items-center gap-1.5"><MapPin size={15} className="text-gray-400" />{course.universityCity}, {course.universityCountry}</span>}
-                    <span className="flex items-center gap-1.5"><Globe size={15} className="text-gray-400" />{course.language || 'English'}</span>
-                    {course.modeOfStudy && <span className="flex items-center gap-1.5"><Monitor size={15} className="text-gray-400" />{modeLabels[course.modeOfStudy] || course.modeOfStudy}</span>}
-                  </div>
+      {/* Hero — sticky on scroll */}
+      <div style={{ position: 'sticky', top: 0, zIndex: 20 }} className="bg-white border-b border-gray-100 shadow-sm">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+          <div className="py-3 lg:py-4">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 mb-1">
+                  <span className="inline-flex items-center rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-[11px] font-semibold text-[#C41E3A]">{levelLabels[course.level] ?? course.level}</span>
+                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">{course.subject}</span>
+                  {course.expressOffer && <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700"><Star size={10} />Express</span>}
                 </div>
-                {course.tuitionFee > 0 && (
-                  <div className="flex flex-wrap gap-3">
-                    <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 text-center shadow-sm"><Clock size={18} className="mx-auto text-[#C41E3A]" /><p className="mt-1 text-lg font-bold text-gray-900">{course.duration} {course.durationUnit?.toLowerCase()}</p><p className="text-xs text-gray-500">Duration</p></div>
-                    <div className="rounded-2xl border border-gray-200 bg-white px-5 py-4 text-center shadow-sm"><DollarSign size={18} className="mx-auto text-[#C41E3A]" /><p className="mt-1 text-lg font-bold text-gray-900">{formatCurrency(course.tuitionFee, course.currency)}</p><p className="text-xs text-gray-500">Per Year</p></div>
-                  </div>
-                )}
+                <h1 className="text-lg font-bold text-gray-900 truncate lg:text-xl">{course.name}</h1>
+                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-gray-500">
+                  {course.universityName && <span className="flex items-center gap-1"><GraduationCap size={12} className="text-[#C41E3A]" />{course.universityName}</span>}
+                  {course.universityCountry && <span className="flex items-center gap-1"><MapPin size={12} />{course.universityCity}, {course.universityCountry}</span>}
+                  {course.modeOfStudy && <span>{modeLabels[course.modeOfStudy]}</span>}
+                </div>
               </div>
-            </FadeUp>
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="text-right"><p className="text-xs text-gray-400">Duration</p><p className="text-sm font-bold text-gray-900">{course.duration} {course.durationUnit?.toLowerCase()}</p></div>
+                {course.tuitionFee > 0 && <div className="text-right"><p className="text-xs text-gray-400">Per Year</p><p className="text-sm font-bold text-gray-900">{formatCurrency(course.tuitionFee, course.currency)}</p></div>}
+              </div>
+            </div>
           </div>
         </div>
-      </section>
-
-      {/* Main */}
+      </div>
       <main className="flex-grow bg-gray-50">
         <section className="py-8 lg:py-12">
           <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
@@ -140,7 +132,9 @@ export default function CourseDetailContent({ course }: { course: any }) {
                             <div>
                               <span className="font-medium text-gray-900">{r.includes(':') ? r.split(':')[0] : ''}</span>
                               <span className="text-gray-600">{r.includes(':') ? r.slice(r.indexOf(':')) : r}</span>
-                            </div>
+      </div>
+
+      {/* Main */}
                           </div>
                         ))}
                       </div>
