@@ -1,144 +1,68 @@
-import Link from 'next/link'
-import { ArrowRight, Clock, TrendingUp, BookOpen } from 'lucide-react'
-import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
-import { TiltCard } from '@/components/ui/TiltCard'
+'use client'
 
-const courses = [
-  {
-    title: 'Computer Science & IT',
-    slug: 'computer-science',
-    degree: 'Bachelors / Masters',
-    duration: '3-4 years',
-    trending: true,
-    accent: '#3b82f6',
-    description: 'Software engineering, AI, cybersecurity, and cloud computing at top global universities.',
-  },
-  {
-    title: 'Business & Management',
-    slug: 'business-management',
-    degree: 'Bachelors / MBA',
-    duration: '2-4 years',
-    trending: true,
-    accent: '#f59e0b',
-    description: 'Global business strategy, entrepreneurship, finance, and leadership programs.',
-  },
-  {
-    title: 'Engineering',
-    slug: 'engineering',
-    degree: 'Bachelors / Masters',
-    duration: '3-5 years',
-    trending: false,
-    accent: '#10b981',
-    description: 'Mechanical, civil, electrical, and chemical engineering with hands-on research.',
-  },
-  {
-    title: 'Healthcare & Medicine',
-    slug: 'healthcare-medicine',
-    degree: 'MD / Nursing',
-    duration: '4-6 years',
-    trending: false,
-    accent: '#ef4444',
-    description: 'Medical degrees, nursing, public health, and allied health professions.',
-  },
-  {
-    title: 'Data Science & AI',
-    slug: 'data-science-ai',
-    degree: 'Masters / PhD',
-    duration: '2-4 years',
-    trending: true,
-    accent: '#8b5cf6',
-    description: 'Machine learning, big data analytics, NLP, and computational research.',
-  },
-  {
-    title: 'Arts & Design',
-    slug: 'arts-design',
-    degree: 'BFA / MFA',
-    duration: '3-4 years',
-    trending: false,
-    accent: '#ec4899',
-    description: 'Visual arts, graphic design, UX/UI, animation, and creative media.',
-  },
-] as const
+import Link from 'next/link'
+import { ArrowRight, Clock, BookOpen, MapPin, GraduationCap, DollarSign } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
+import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
+
+const accentColors = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#ec4899','#06b6d4','#84cc16']
+const levelLabels: Record<string,string> = { UNDERGRADUATE:'Bachelors', POSTGRADUATE:'Masters', PHD:'PhD', DIPLOMA:'Diploma', CERTIFICATE:'Certificate', FOUNDATION:'Foundation' }
 
 export default function TrendingCourses() {
+  const { data: result } = trpc.course.list.useQuery({ perPage: 6 })
+  const courses = (result as any)?.hits?.slice(0, 6) || []
+
+  if (!courses.length) return null
+
   return (
-    <section className="bg-gray-50 py-20 lg:py-28">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+    <section style={{background:'#F8F9FB'}} className="py-16 sm:py-24">
+      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
         <FadeUp>
-          <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-10">
             <div>
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm">
-                <BookOpen size={13} />
-                Popular Programs
-              </span>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                Explore <span className="text-[#C41E3A]">trending</span> courses
-              </h2>
+              <span className="text-[11px] uppercase tracking-[0.1em] mb-3 block font-semibold text-[#C41E3A]" style={{fontFamily:"'IBM Plex Mono',monospace"}}>Popular Programs</span>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900" style={{fontFamily:"'Space Grotesk',sans-serif"}}>Featured <span className="text-[#C41E3A]">courses</span> from our partners</h2>
             </div>
-            <Link href="/courses" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] hover:text-[#A01830]">
-              Browse all courses
-              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+            <Link href="/courses" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] hover:text-[#A01830] shrink-0">
+              View all courses <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5"/>
             </Link>
           </div>
         </FadeUp>
 
-        <FadeUpStagger className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
-          {courses.map((course) => (
-            <FadeUpItem key={course.slug}>
-              <TiltCard>
-                <Link href={`/courses/${course.slug}`}>
-                  <article className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-                    {/* Top accent line */}
-                    <div
-                      className="h-[2px] w-full opacity-60 transition-opacity duration-300 group-hover:opacity-100"
-                      style={{ background: `linear-gradient(to right, transparent, ${course.accent}, transparent)` }}
-                    />
-
-                    <div className="flex h-full flex-col p-6">
-                      {/* Header */}
-                      <div className="mb-4 flex items-start justify-between">
-                        <span
-                          className="inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold"
-                          style={{
-                            borderColor: `${course.accent}20`,
-                            backgroundColor: `${course.accent}08`,
-                            color: course.accent,
-                          }}
-                        >
-                          {course.degree}
-                        </span>
-                        {course.trending && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#C41E3A]">
-                            <TrendingUp size={10} />
-                            Trending
-                          </span>
-                        )}
+        <FadeUpStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" amount={0.06}>
+          {courses.map((course: any, i: number) => {
+            const accent = accentColors[i % accentColors.length]
+            return (
+              <FadeUpItem key={course.slug || i}>
+                <Link href={`/institutions/${course.universitySlug || 'unknown'}/${(course.level || 'postgraduate').toLowerCase()}/${course.slug}`}>
+                  <article className="group relative bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-[0_12px_40px_-12px_rgba(0,0,0,0.12)] hover:-translate-y-1">
+                    {/* Accent line */}
+                    <div className="h-0.5 w-full opacity-60 group-hover:opacity-100 transition-opacity" style={{background:`linear-gradient(to right, transparent, ${accent}, transparent)`}}/>
+                    <div className="p-5 sm:p-6">
+                      {/* University */}
+                      <div className="flex items-center gap-1.5 text-[12px] text-gray-500 mb-3">
+                        <MapPin size={12} className="text-gray-400 shrink-0"/>
+                        <span className="truncate">{course.universityName || 'University'}</span>
+                        {course.universityCountry && <span className="text-gray-400">· {course.universityCountry}</span>}
                       </div>
-
-                      {/* Content */}
-                      <h3 className="text-lg font-bold text-gray-900">{course.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-gray-500">{course.description}</p>
-
+                      {/* Course name */}
+                      <h3 className="text-base font-bold text-gray-900 leading-snug mb-2 group-hover:text-[#C41E3A] transition-colors line-clamp-2" style={{fontFamily:"'Space Grotesk',sans-serif"}}>{course.name}</h3>
+                      {/* Badges */}
+                      <div className="flex flex-wrap items-center gap-2 mb-4">
+                        <span className="inline-flex items-center rounded-lg px-2 py-0.5 text-[10px] font-semibold" style={{background:`${accent}10`,color:accent,border:`1px solid ${accent}20`}}>{levelLabels[course.level] || course.level}</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] text-gray-400"><Clock size={11}/>{course.duration} {course.durationUnit?.toLowerCase()}</span>
+                      </div>
                       {/* Footer */}
-                      <div className="mt-auto flex items-center justify-between pt-5">
-                        <span className="inline-flex items-center gap-1.5 text-xs text-gray-400">
-                          <Clock size={12} />
-                          {course.duration}
-                        </span>
-                        <span
-                          className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2"
-                          style={{ color: course.accent }}
-                        >
-                          View
-                          <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-                        </span>
+                      <div className="flex items-center justify-between pt-3 border-t border-gray-50">
+                        <span className="text-sm font-bold text-gray-900">{course.currency} {course.tuitionFee?.toLocaleString()}<span className="text-[10px] font-normal text-gray-400 ml-0.5">/yr</span></span>
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold transition-all group-hover:gap-1.5" style={{color:accent}}>Details <ArrowRight size={12} className="transition-transform group-hover:translate-x-0.5"/></span>
                       </div>
                     </div>
                   </article>
                 </Link>
-              </TiltCard>
-            </FadeUpItem>
-          ))}
+              </FadeUpItem>
+            )
+          })}
         </FadeUpStagger>
       </div>
     </section>
