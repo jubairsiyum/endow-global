@@ -1,10 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, useReducedMotion, PanInfo } from 'framer-motion'
+import { motion, useReducedMotion, type PanInfo } from 'framer-motion'
 import Link from 'next/link'
-import Image from 'next/image'
-import { Search, Star, ArrowRight, Users, GraduationCap, Globe } from 'lucide-react'
+import { Search } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
+
+const BRAND_RED = '#C41E3A'
+const BRAND_NAVY = '#101B3D'
+const BRAND_GOLD = '#B8934A'
 
 const students = [
   { src: '/student-1.jpg', alt: 'Student studying abroad' },
@@ -13,9 +17,7 @@ const students = [
   { src: '/student-4.jpg', alt: 'Graduate student' },
   { src: '/student-5.jpg', alt: 'Exchange student' },
 ]
-
 const COUNT = students.length
-
 const slotX = [-128, -64, 0, 64, 128]
 const slotRotate = [-3, -1, 0, 1, 3]
 const slotY = [12, 4, 0, 4, 12]
@@ -28,291 +30,139 @@ function getSlot(i: number, activeIndex: number) {
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
   const [activeIndex, setActiveIndex] = useState(2)
-  const [isDragging, setIsDragging] = useState(false)
+  const [fCountry, setFCountry] = useState('')
+  const [fLevel, setFLevel] = useState('')
+
+  const { data: stats } = trpc.university.stats.useQuery()
+  const uniCount = stats?.universities || 50
+  const countryCount = stats?.countries || 2
 
   function handleDragEnd(_: unknown, info: PanInfo) {
-    setIsDragging(false)
     if (Math.abs(info.offset.x) < 40) return
     setActiveIndex((p) => (info.offset.x > 0 ? (p - 1 + COUNT) % COUNT : (p + 1) % COUNT))
   }
 
+  function buildSearchUrl() {
+    const params = new URLSearchParams()
+    if (fCountry) params.set('country', fCountry)
+    if (fLevel) params.set('level', fLevel)
+    return `/courses?${params.toString()}`
+  }
+
   return (
-    <section id="hero-section" className="relative overflow-hidden bg-gradient-to-b from-rose-50/50 via-white to-white">
-      {/* Background pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `url('/images/education-pattern.svg')`,
-          backgroundSize: '200px 200px',
-          backgroundPosition: 'center top',
-        }}
-      />
-      
-      {/* Decorative gradient orbs */}
-      <div className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl" />
-      <div className="absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl" />
-      
-      <div className="mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-8">
-        {/* Mobile Layout */}
-        <div className="flex min-h-[70vh] flex-col justify-center py-20 lg:hidden">
-          <div className="relative z-10">
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/[0.06] px-3 py-1"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
-              <span className="text-[11px] font-semibold text-[#C41E3A]">Trusted by 5,000+ students</span>
-            </motion.div>
+    <section className="relative bg-[#F5F6F9] pt-20 sm:pt-24 pb-16 sm:pb-24 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{backgroundImage:'radial-gradient(circle, #101B3D 1px, transparent 1px)',backgroundSize:'28px 28px'}}/>
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl" />
+      <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl" />
 
-            <motion.h1
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              className="text-[2rem] font-extrabold leading-[1.1] tracking-tight text-gray-900"
-            >
-              Study Abroad With{' '}
-              <span className="text-[#C41E3A]">Endow Guidance</span>
-            </motion.h1>
+      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+        {/* Top row: text + image slider */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center mb-12">
+          {/* Left */}
+          <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] uppercase tracking-[0.08em] font-semibold" style={{fontFamily:"'IBM Plex Mono',monospace",color:BRAND_RED,background:'rgba(196,30,58,0.07)',border:`1px solid rgba(196,30,58,0.2)`}}>
+              <span className="h-1.5 w-1.5 rounded-full" style={{background:BRAND_RED}}/> Bangladesh&apos;s Trusted Partner
+            </div>
+            <h1 className="text-4xl sm:text-[46px] font-bold leading-[1.1] mb-4 max-w-[520px]" style={{fontFamily:"'Space Grotesk',sans-serif",color:BRAND_NAVY}}>
+              Study abroad with <span style={{color:BRAND_RED}}>Endow</span> guidance.
+            </h1>
+            <p className="text-base sm:text-[16px] leading-relaxed mb-5 max-w-[440px]" style={{color:'#5b6070'}}>
+              Personalised counselling for South Korea — from university selection to the day your visa clears.
+            </p>
+            <div className="flex items-center gap-2 text-[12px] mb-5" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#5b6070'}}>
+              <span className="tracking-[2px]" style={{color:BRAND_GOLD,fontSize:'14px'}}>★★★★★</span> 4.7 rated by 5,000+ students
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/apply-now" className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={{background:BRAND_RED}}>Apply Now</Link>
+              <Link href="/universities" className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold hover:bg-gray-50 transition-colors" style={{borderColor:'rgba(16,27,61,0.2)',color:BRAND_NAVY}}>Explore Universities</Link>
+            </div>
+          </motion.div>
 
-            <motion.p
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="mt-3 max-w-md text-[15px] leading-relaxed text-gray-500"
-            >
-              Expert guidance from university selection to visa approval for
-              South Korea and Australia.
-            </motion.p>
-
-            {/* Trust row */}
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="mt-4 flex items-center gap-4"
-            >
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <span className="font-semibold text-gray-700">4.7</span>
-                <div className="flex items-center gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={11} className="fill-[#C41E3A] text-[#C41E3A]" />
-                  ))}
-                </div>
-                <span className="text-gray-400">Google</span>
-              </div>
-              <div className="h-3 w-px bg-gray-200" />
-              <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                <Users size={13} className="text-gray-400" />
-                <span><span className="font-semibold text-gray-700">5,000+</span> students</span>
-              </div>
-            </motion.div>
-
-            {/* Search bar */}
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="mt-6"
-            >
-              <form
-                action="/universities"
-                className="flex items-center gap-3 rounded-full border border-[#C41E3A]/30 bg-white px-4 py-2.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] transition-colors focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10"
-              >
-                <Search size={18} className="shrink-0 text-gray-400" />
-                <label htmlFor="mobile-hero-search" className="sr-only">
-                  Search courses and universities
-                </label>
-                <input
-                  id="mobile-hero-search"
-                  name="q"
-                  type="text"
-                  placeholder="Search courses, universities..."
-                  className="w-full border-0 border-none bg-transparent p-0 text-sm text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400"
-                />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-full bg-[#C41E3A] px-4 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-[#A01830]"
-                >
-                  Search
-                </button>
-              </form>
-            </motion.div>
-
-            {/* Quick stats */}
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.25 }}
-              className="mt-6 grid grid-cols-3 gap-3"
-            >
-              {[
-                { icon: GraduationCap, label: 'Partners', value: '50+' },
-                { icon: Globe, label: 'Countries', value: '2' },
-                { icon: Users, label: 'Placed', value: '5,000+' },
-              ].map((stat) => (
-                <div key={stat.label} className="rounded-xl border border-gray-100 bg-gray-50/50 px-3 py-2.5 text-center">
-                  <stat.icon size={16} className="mx-auto mb-1 text-[#C41E3A]" />
-                  <div className="text-sm font-bold text-gray-900">{stat.value}</div>
-                  <div className="text-[10px] text-gray-400">{stat.label}</div>
-                </div>
-              ))}
-            </motion.div>
-
-            {/* CTA */}
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="mt-6"
-            >
-              <Link
-                href="/register"
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830]"
-              >
-                Start Your Journey
-                <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Desktop Layout */}
-        <div className="hidden min-h-[85vh] items-center py-28 lg:grid lg:grid-cols-2 lg:gap-8">
-          {/* Left — Content */}
-          <div className="relative z-10 max-w-xl">
-            <motion.h1
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-              className="text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
-            >
-              Study Abroad With{' '}
-              <span className="text-[#C41E3A]">Endow Guidance</span>
-            </motion.h1>
-
-            <motion.p
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1, ease: [0.25, 0.1, 0.25, 1] }}
-              className="mt-5 max-w-md text-lg leading-relaxed text-gray-500"
-            >
-              Personalized counseling for students pursuing higher education
-              in South Korea and Australia — from university selection to
-              visa approval.
-            </motion.p>
-
-            {/* Search bar */}
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="mt-8"
-            >
-              <form
-                action="/universities"
-                className="flex items-center gap-3 rounded-full border border-[#C41E3A]/30 bg-white px-5 py-2.5 shadow-[0_2px_16px_rgba(0,0,0,0.06)] transition-colors focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10"
-              >
-                <Search size={20} className="shrink-0 text-gray-400" />
-                <label htmlFor="desktop-hero-search" className="sr-only">
-                  Search courses and universities
-                </label>
-                <input
-                  id="desktop-hero-search"
-                  name="q"
-                  type="text"
-                  placeholder="Search for courses, universities..."
-                  className="w-full border-0 border-none bg-transparent p-0 text-[15px] text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400"
-                />
-                <button
-                  type="submit"
-                  className="shrink-0 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-[#A01830]"
-                >
-                  Search
-                </button>
-              </form>
-            </motion.div>
-
-            {/* Trust */}
-            <motion.div
-              initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-              className="mt-6 flex items-center gap-2 text-sm text-gray-500"
-            >
-              <span className="font-semibold text-gray-700">Rated 4.7</span>
-              <div className="flex items-center gap-0.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={13} className="fill-[#C41E3A] text-[#C41E3A]" />
-                ))}
-              </div>
-              <span className="text-gray-400">on Google</span>
-            </motion.div>
-          </div>
-
-          {/* Right — Overlapping student cards */}
-          <div
-            className={`relative hidden h-[480px] lg:block ${
-              isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-          >
+          {/* Right: Image slider */}
+          <div className="relative flex items-center justify-center h-[340px] sm:h-[400px] select-none cursor-grab active:cursor-grabbing z-10">
             {students.map((s, i) => {
               const slot = getSlot(i, activeIndex)
+              if (slot < -2 || slot > 2) return null
+              const x = slotX[slot + 2]
+              const rotate = slotRotate[slot + 2]
+              const y = slotY[slot + 2]
               const isCenter = slot === 0
-              const slotIdx = slot + 2
-
               return (
                 <motion.div
-                  key={i}
-                  initial={prefersReducedMotion ? false : { opacity: 0, x: 40 }}
-                  animate={{
-                    opacity: 1,
-                    x: slotX[slotIdx],
-                    rotate: slotRotate[slotIdx],
-                    y: slotY[slotIdx],
-                    scale: isCenter ? 1 : 0.96,
-                  }}
-                  transition={{
-                    type: 'spring',
-                    stiffness: 300,
-                    damping: 30,
-                    mass: 0.8,
-                  }}
-                  drag="x"
+                  key={s.src}
+                  drag={!prefersReducedMotion ? 'x' : false}
                   dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.15}
-                  onDragStart={() => setIsDragging(true)}
+                  dragElastic={0.1}
                   onDragEnd={handleDragEnd}
-                  className="absolute top-0"
-                  style={{
-                    left: 'calc(50%)',
-                    transform: 'translateX(-50%)',
-                    zIndex: isCenter ? 10 : 5 - Math.abs(slot),
-                  }}
+                  animate={{x, y, rotate, scale: isCenter ? 1 : 0.85, zIndex: isCenter ? 10 : 0, opacity: isCenter ? 1 : 0.6}}
+                  transition={{type:'spring',stiffness:300,damping:30}}
+                  className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl overflow-hidden shadow-2xl"
+                  style={{background:'#e5e7eb'}}
                 >
-                  <div
-                    className={`relative overflow-hidden rounded-2xl shadow-xl transition-transform duration-300 hover:scale-[1.03] ${
-                      isCenter
-                        ? 'h-[360px] w-[220px]'
-                        : 'h-[320px] w-[190px]'
-                    }`}
-                  >
-                    <Image
-                      src={s.src}
-                      alt={s.alt}
-                      fill
-                      sizes="(max-width: 1024px) 0px 220px"
-                      className="object-cover"
-                      priority={isCenter}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                  </div>
+                  <img src={s.src} alt={s.alt} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300"><rect fill="%23e5e7eb" width="200" height="300"/><text x="100" y="150" text-anchor="middle" fill="%239ca3af" font-size="14">Student</text></svg>' }} />
                 </motion.div>
               )
             })}
+            {/* Controls */}
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              {students.map((_, i) => (
+                <button key={i} onClick={() => setActiveIndex(i)} className={`w-2 h-2 rounded-full transition-all ${i === activeIndex ? 'w-6 bg-[#C41E3A]' : 'bg-gray-300'}`} />
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* Boarding pass ticket: finder + stats stub */}
+        <motion.div initial={{opacity:0,y:30}} animate={{opacity:1,y:0}} transition={{duration:0.8,delay:0.3}} className="rounded-[20px] overflow-hidden border bg-white shadow-[0_34px_70px_-30px_rgba(16,27,61,0.28)]" style={{borderColor:'rgba(16,27,61,0.13)'}}>
+          <div className="px-6 sm:px-8 py-6 sm:py-7">
+            <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
+              <div className="flex items-center gap-2.5 font-semibold text-[14px]">
+                <div className="w-6 h-6 rounded-md flex items-center justify-center text-[13px]" style={{background:'rgba(196,30,58,0.1)',color:BRAND_RED}}><Search size={13}/></div>
+                Find your university
+              </div>
+              <span className="text-[10px] uppercase tracking-[0.08em] px-2.5 py-1 rounded font-medium" style={{fontFamily:"'IBM Plex Mono',monospace",color:BRAND_GOLD,background:'rgba(184,147,74,0.12)'}}>Search Class · All Routes</span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 sm:gap-4 items-end">
+              {[{label:'Country',val:fCountry,set:setFCountry,opts:['','South Korea','Australia']},{label:'Degree',val:fLevel,set:setFLevel,opts:['',"Bachelor's","Master's",'PhD','Diploma']},{label:'Budget',opts:['Any budget','Under $5k','$5k-$15k','$15k+']},{label:'Intake',opts:['Any intake','Spring 2026','Fall 2026','Spring 2027']}].map(f=>(
+                <div key={f.label} className="w-full">
+                  <label className="block text-[9px] uppercase tracking-[0.07em] mb-1.5 font-medium" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#9299a8'}}>{f.label}</label>
+                  <select value={f.val||''} onChange={e=>f.set?.(e.target.value)} className="w-full py-2.5 px-3 rounded-lg border text-[13px] bg-[#F5F6F9] outline-none focus:border-[#C41E3A]" style={{fontFamily:"'IBM Plex Sans',sans-serif",borderColor:'rgba(16,27,61,0.13)',color:BRAND_NAVY}}>
+                    {f.opts.map(o=><option key={o} value={o}>{o||'Any'}</option>)}
+                  </select>
+                </div>
+              ))}
+              <Link href={buildSearchUrl()} className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:opacity-90 transition-opacity" style={{background:BRAND_RED}}>
+                <Search size={14}/> Search
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-2 mt-4 flex-wrap text-[12px]" style={{color:'#9299a8'}}>
+              Popular:{' '}
+              {['Computer Science','MBA','Engineering','Data Science'].map(t=>(
+                <Link key={t} href={`/courses?subject=${encodeURIComponent(t)}`} className="px-2.5 py-1 rounded-full hover:text-[#C41E3A] transition-colors" style={{background:'#F5F6F9',color:BRAND_NAVY}}>{t}</Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Perforation */}
+          <div className="relative mx-8 border-t-2 border-dashed" style={{borderColor:'rgba(16,27,61,0.13)'}}>
+            <div className="absolute -top-[11px] -left-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]" />
+            <div className="absolute -top-[11px] -right-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]" />
+          </div>
+
+          {/* Stats stub row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4">
+            {[{num:'2,000+',lbl:'Students placed'},{num:`${uniCount}+`,lbl:'Partner universities'},{num:`${countryCount}`,lbl:'Countries'},{num:'98%',lbl:'Success rate'}].map((s,i)=>(
+              <div key={i} className="relative py-5 px-4 text-center text-white" style={{background:BRAND_NAVY}}>
+                {i<3&&<div className="absolute right-0 top-3 bottom-3 border-r-[1.5px] border-dashed border-white/20"/>}
+                <div className="text-2xl sm:text-[26px] font-semibold" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#F5A623'}}>{s.num}</div>
+                <div className="text-[9px] uppercase tracking-[0.09em] mt-1.5" style={{fontFamily:"'IBM Plex Mono',monospace",color:'rgba(255,255,255,0.5)'}}>{s.lbl}</div>
+                <div className="mt-3 mx-auto w-[70%] h-3 opacity-60" style={{background:'repeating-linear-gradient(90deg, rgba(255,255,255,0.5) 0 2px, transparent 2px 4px, rgba(255,255,255,0.5) 4px 5px, transparent 5px 8px)'}}/>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
     </section>
   )

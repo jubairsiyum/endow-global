@@ -5,8 +5,6 @@ import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUniversityMarquee'
 import PremiumHero from '@/components/home/PremiumHero'
-import UniversityFinder from '@/components/home/UniversityFinder'
-import TrustStats from '@/components/home/TrustStats'
 import ServiceTimeline from '@/components/home/ServiceTimeline'
 import CountryCards from '@/components/home/CountryCards'
 import TrendingCourses from '@/components/home/TrendingCourses'
@@ -250,8 +248,6 @@ export default function HomePage() {
 
         <main className="flex-grow">
           <PremiumHero />
-          <UniversityFinder />
-          <TrustStats />
           <DiagnosticUniversityMarquee universities={universities} />
           <ServiceTimeline />
           <CountryCards />
