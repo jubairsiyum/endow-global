@@ -34,10 +34,8 @@ const adminMenuItems = [
   { name: 'Students', icon: Users, href: '/admin/students' },
   { name: 'Counselors', icon: UserCog, href: '/admin/counselors' },
   { name: 'Applications', icon: FileText, href: '/admin/applications' },
-  { name: 'Documents', icon: FolderOpen, href: '/admin/documents' },
   { name: 'Universities', icon: GraduationCap, href: '/admin/universities' },
   { name: 'Courses', icon: BookOpen, href: '/admin/courses' },
-  { name: 'Departments', icon: Layers, href: '/admin/departments' },
   { name: 'Scholarships', icon: Award, href: '/admin/scholarships' },
   { name: 'Countries', icon: Globe, href: '/admin/countries' },
   { name: 'Messages', icon: MessageSquare, href: '/admin/messages' },
@@ -66,7 +64,7 @@ export function Sidebar({ userRole }: SidebarProps) {
   const isSuperAdmin = userRole === UserRole.SUPER_ADMIN
 
   const menuItems = isSuperAdmin
-    ? [...adminMenuItems.slice(0, 15), ...superAdminExtraItems, adminMenuItems[15]]
+    ? [...adminMenuItems, ...superAdminExtraItems]
     : adminMenuItems
 
   const roleLabel = isSuperAdmin ? 'Super Admin' : 'Admin'
