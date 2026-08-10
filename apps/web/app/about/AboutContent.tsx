@@ -13,41 +13,73 @@ export function AboutContent() {
   return (
     <div className="flex min-h-screen flex-col overflow-x-hidden bg-white">
       <Navbar />
+      {/* About Hero — below Navbar */}
 
       {/* Hero */}
-      <section className="relative bg-gradient-to-br from-white via-red-50/30 to-amber-50/20 pt-16">
-        <div className="pointer-events-none absolute right-0 top-20 h-[500px] w-[500px] rounded-full bg-red-100/30 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-0 h-[400px] w-[400px] rounded-full bg-amber-100/20 blur-3xl" />
+<section className="relative overflow-hidden bg-[#0a0a0a]">
+        {/* Brand red glow */}
+        <div className="pointer-events-none absolute -top-40 -right-40 h-[600px] w-[600px] rounded-full bg-[#C41E3A]/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 left-1/4 h-[400px] w-[400px] rounded-full bg-[#C41E3A]/10 blur-3xl" />
+
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
-          <div className="py-16 lg:py-24">
-            <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
-              <motion.div initial="hidden" animate="visible" variants={stagger}>
-                <motion.div variants={fadeUp} className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-2">
-                  <Globe size={14} className="text-[#C41E3A]" />
-                  <span className="text-xs font-semibold text-[#C41E3A] uppercase tracking-wider">Welcome to Endow Global Education</span>
+          <div className="py-16 sm:py-20 lg:py-28">
+            <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-16">
+              {/* Left content */}
+              <motion.div initial="hidden" animate="visible" variants={stagger} className="flex-1 text-center lg:text-left">
+                <motion.div variants={fadeUp} className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 backdrop-blur px-4 py-1.5 border border-white/10">
+                  <span className="h-2 w-2 rounded-full bg-[#C41E3A]"/>
+                  <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">Bangladesh&apos;s Trusted Partner</span>
                 </motion.div>
-                <motion.h1 variants={fadeUp} className="mb-4 text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
-                  Your Trusted Partner for <span className="text-[#C41E3A]">South Korean Education</span>
+                <motion.h1 variants={fadeUp} className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold leading-[1.08] tracking-tight text-white">
+                  Your Gateway to <span className="text-[#C41E3A]">South Korean</span> Education
                 </motion.h1>
-                <motion.p variants={fadeUp} className="mb-8 text-lg leading-relaxed text-gray-600 max-w-xl">
-                  We specialize in guiding Bangladeshi students to pursue higher studies in South Korea&apos;s top universities. From application to visa, we&apos;re with you every step of the way.
+                <motion.p variants={fadeUp} className="mt-4 sm:mt-5 text-base sm:text-lg leading-relaxed text-white/60 max-w-xl mx-auto lg:mx-0">
+                  We specialize in guiding Bangladeshi students to prestigious South Korean universities. From application to visa — we&apos;re with you every step.
                 </motion.p>
-                <motion.div variants={fadeUp} className="flex flex-wrap gap-3">
-                  <Link href="/apply-now" className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] px-6 py-3 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all">Apply Now <ArrowRight size={16} /></Link>
-                  <Link href="/universities" className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-all">Explore Universities</Link>
+                <motion.div variants={fadeUp} className="mt-6 sm:mt-8 flex flex-wrap justify-center lg:justify-start gap-3">
+                  <Link href="/apply-now" className="group inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3 sm:px-7 sm:py-3.5 text-sm font-bold text-white shadow-xl shadow-[#C41E3A]/25 hover:shadow-2xl hover:shadow-[#C41E3A]/40 transition-all hover:-translate-y-0.5">
+                    Apply Now <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform"/>
+                  </Link>
+                  <Link href="/universities" className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 sm:px-7 sm:py-3.5 text-sm font-semibold text-white hover:bg-white/10 hover:border-white/30 transition-all">
+                    Explore Universities
+                  </Link>
+                </motion.div>
+                <motion.div variants={fadeUp} className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-lg mx-auto lg:mx-0">
+                  {[{k:'5000+',l:'Students'},{k:'20+',l:'Universities'},{k:'95%',l:'Visa Rate'},{k:'10+',l:'Years'}].map(s=>(
+                    <div key={s.l} className="rounded-xl bg-white/[0.04] border border-white/[0.06] py-3 px-4 text-center">
+                      <p className="text-xl sm:text-2xl font-bold text-white">{s.k}</p>
+                      <p className="text-[11px] text-white/40 uppercase tracking-wider mt-0.5">{s.l}</p>
+                    </div>
+                  ))}
                 </motion.div>
               </motion.div>
-              <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, delay: 0.3 }}>
+
+              {/* Right — Hero visual */}
+              <motion.div initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} transition={{duration:0.8,delay:0.3}} className="w-full max-w-md lg:max-w-none lg:w-[440px] shrink-0 hidden sm:block">
                 <div className="relative">
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#C41E3A]/10 to-amber-200/20 blur-2xl" />
-                  <div className="relative rounded-3xl border border-white/60 bg-white/80 p-8 shadow-xl backdrop-blur-xl">
-                    <div className="grid grid-cols-2 gap-6">
-                      {[{v:'5000+',l:'Students Guided'},{v:'20+',l:'Partner Universities'},{v:'95%',l:'Visa Success Rate'},{v:'10+',l:'Years Experience'}].map(s=>(
-                        <div key={s.l} className="text-center">
-                          <div className="text-3xl font-bold text-[#C41E3A]">{s.v}</div>
-                          <p className="text-xs text-gray-500 mt-0.5">{s.l}</p>
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#C41E3A]/20 to-transparent rounded-3xl blur-2xl" />
+                  <div className="relative rounded-3xl overflow-hidden border border-white/[0.08] bg-gradient-to-br from-[#111] to-[#0a0a0a]">
+                    {/* Top accent */}
+                    <div className="h-1 bg-gradient-to-r from-[#C41E3A] to-transparent"/>
+                    <div className="p-8">
+                      <div className="flex items-center gap-4 mb-8">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#C41E3A] to-[#7A0713] text-white font-black text-xl shadow-lg shadow-[#C41E3A]/30">EG</div>
+                        <div>
+                          <p className="text-lg font-bold text-white">Endow Global</p>
+                          <p className="text-xs text-white/40">Education Consultancy</p>
                         </div>
-                      ))}
+                      </div>
+                      <div className="space-y-4">
+                        {[{n:1,t:'University Selection',d:'Find the perfect program matching your goals'},{n:2,t:'Application Process',d:'Complete guidance for documentation & submission'},{n:3,t:'Visa Processing',d:'Expert support for smooth visa approval'},{n:4,t:'Arrival Support',d:'Airport pickup & accommodation assistance'}].map(s=>(
+                          <div key={s.n} className="flex items-start gap-3 group cursor-default">
+                            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#C41E3A]/15 text-xs font-bold text-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white transition-all">{s.n}</div>
+                            <div>
+                              <p className="text-sm font-semibold text-white">{s.t}</p>
+                              <p className="text-xs text-white/40 mt-0.5">{s.d}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -55,6 +87,9 @@ export function AboutContent() {
             </div>
           </div>
         </div>
+
+        {/* Bottom transition */}
+        <div className="h-12 sm:h-16 bg-gradient-to-b from-transparent to-white"/>
       </section>
 
       {/* Trust Cards */}
