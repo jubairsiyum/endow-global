@@ -152,9 +152,9 @@ export default function PremiumHero() {
             {[{num:'2,000+',lbl:'Students placed'},{num:`${uniCount}+`,lbl:'Partner universities'},{num:`${countryCount}`,lbl:'Countries'},{num:'98%',lbl:'Success rate'}].map((s,i)=>(
               <div key={i} className="relative py-5 px-4 text-center text-white" style={{background:BRAND_NAVY}}>
                 {i<3&&<div className="absolute right-0 top-3 bottom-3 border-r-[1.5px] border-dashed border-white/20"/>}
-                <div className="text-2xl sm:text-[26px] font-semibold" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#F5A623'}}>{s.num}</div>
+                <div className="text-2xl sm:text-[26px] font-semibold text-white" style={{fontFamily:"'IBM Plex Mono',monospace"}}>{s.num}</div>
                 <div className="text-[9px] uppercase tracking-[0.09em] mt-1.5" style={{fontFamily:"'IBM Plex Mono',monospace",color:'rgba(255,255,255,0.5)'}}>{s.lbl}</div>
-                <div className="mt-3 mx-auto w-[70%] h-3 opacity-60" style={{background:'repeating-linear-gradient(90deg, rgba(255,255,255,0.5) 0 2px, transparent 2px 4px, rgba(255,255,255,0.5) 4px 5px, transparent 5px 8px)'}}/>
+                <div className="mt-3 mx-auto w-[70%] h-3 opacity-40" style={{background:'repeating-linear-gradient(90deg, rgba(255,255,255,0.5) 0 2px, transparent 2px 4px, rgba(255,255,255,0.5) 4px 5px, transparent 5px 8px)'}}/>
               </div>
             ))}
           </div>
