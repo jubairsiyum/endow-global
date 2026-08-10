@@ -6,7 +6,7 @@ const and = _and as any
 const like = _like as any
 const sql = _sql as any
 const desc = _desc as any
-import { courses, universities } from '@endow/db'
+import { courses, universities, courseModules, platformCourseIntakes } from '@endow/db'
 
 export const courseRouter = createTRPCRouter({
   list: publicProcedure
@@ -117,6 +117,17 @@ export const courseRouter = createTRPCRouter({
             hasScholarship: courses.hasScholarship,
             scholarshipDetails: courses.scholarshipDetails,
             description: courses.description,
+            campus: courses.campus,
+            modeOfStudy: courses.modeOfStudy,
+            highlights: courses.highlights,
+            professionalAccreditation: courses.professionalAccreditation,
+            offerResponseTime: courses.offerResponseTime,
+            backlogsAccepted: courses.backlogsAccepted,
+            gapYearsAccepted: courses.gapYearsAccepted,
+            englishTestWaiver: courses.englishTestWaiver,
+            expressOffer: courses.expressOffer,
+            applicationFee: courses.applicationFee,
+            brochureUrl: courses.brochureUrl,
             universityId: courses.universityId,
             universityName: universities.name,
             universitySlug: universities.slug,
@@ -136,11 +147,19 @@ export const courseRouter = createTRPCRouter({
           .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
           .limit(1)
 
-        if (!result[0]) {
-          return null
-        }
+        if (!result[0]) return null
+        const courseData = result[0] as any
 
-        return result[0]
+        let modules: any[] = []; let intakes: any[] = []
+        try {
+          const [m, i] = await Promise.all([
+            ctx.db.select().from(courseModules).where(eq(courseModules.courseId, courseData.id)),
+            ctx.db.select().from(platformCourseIntakes).where(eq(platformCourseIntakes.courseId, courseData.id)),
+          ])
+          modules = m || []; intakes = i || []
+        } catch {}
+
+        return { ...courseData, modules, intakes }
       } catch {
         return null
       }

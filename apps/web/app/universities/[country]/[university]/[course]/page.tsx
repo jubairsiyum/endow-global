@@ -1,24 +1,30 @@
-import { notFound } from 'next/navigation'
+'use client'
+
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
+import { trpc } from '@/lib/trpc-client'
 import { GraduationCap, ArrowLeft } from 'lucide-react'
 import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/button'
-import { appRouter } from '@/server/root'
-import { createTRPCContext } from '@/lib/trpc'
-import CourseDetailContent from './CourseDetailContent'
+import CourseDetailContent from '@/app/courses/[slug]/CourseDetailContent'
 
-export const dynamic = 'force-dynamic'
+export default function NestedCoursePage() {
+  const { course: courseSlug } = useParams<{ country: string; university: string; course: string }>()
+  const { data: course, isLoading } = trpc.course.getBySlug.useQuery({ slug: courseSlug as string })
 
-export default async function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const context = await createTRPCContext({ headers: new Headers() })
-  const caller = appRouter.createCaller(context)
-  const course = await caller.course.getBySlug({ slug })
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col bg-white">
+        <Navbar />
+        <div className="flex flex-1 items-center justify-center pt-16"><div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+      </div>
+    )
+  }
 
   if (!course) {
     return (
       <div className="w-full flex flex-col overflow-x-hidden">
-        <section className="relative overflow-x-hidden bg-white"><div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10"><div className="pt-4 pb-6 lg:pb-8"><Navbar /></div></div></section>
+        <section className="bg-white"><div className="max-w-7xl mx-auto px-6 pt-4 pb-6"><Navbar /></div></section>
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <GraduationCap className="mx-auto h-20 w-20 text-gray-300" />

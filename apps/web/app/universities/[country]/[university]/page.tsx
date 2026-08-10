@@ -186,7 +186,7 @@ export default function UniversityDetailPage() {
               ) : (
                 <div className="divide-y divide-gray-100 px-5 pb-4">
                   {courses.map((c: any) => (
-                    <Link key={c.id} href={`/courses/${c.slug}`} className="flex items-center justify-between py-3 group -mx-2 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <Link key={c.id} href={`/universities/${uni.country.toLowerCase().replace(/\s+/g, '-')}/${uni.slug}/${c.slug}`} className="flex items-center justify-between py-3 group -mx-2 px-2 rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-purple-50 group-hover:bg-purple-100 transition-colors"><BookOpen size={15} className="text-purple-600" /></div>
                         <div className="min-w-0">
