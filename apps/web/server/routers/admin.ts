@@ -313,32 +313,58 @@ export const adminRouter = createTRPCRouter({
         if (status) conditions.push(eq(schema.applications.status, status))
         if (cursor) conditions.push(sql`${schema.applications.id} < ${cursor}` as any)
 
-        const items = await db.query.applications.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          limit: limit + 1,
-          orderBy: [desc(schema.applications.id)],
-          with: {
-            student: { with: { user: true } },
-            course: { with: { university: true } },
-            counselor: { with: { user: true } },
-          },
-        })
+        const items = await db
+          .select()
+          .from(schema.applications)
+          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+          .orderBy(desc(schema.applications.id))
+          .limit(limit + 1)
 
-        // Client-side search filtering for simplicity if relation search is complex in Drizzle queries
-        let filteredItems = items
+        // Resolve relations manually
+        const itemIds = items.map(i => i.id)
+        const appDetails = itemIds.length > 0 ? await db.select().from(schema.applications)
+          .where(sql`${schema.applications.id} IN ${itemIds}` as any) : []
+
+        // Fetch related student/course/counselor data
+        const studentIds = Array.from(new Set(items.map(i => i.studentId)))
+        const courseIds = Array.from(new Set(items.map(i => i.courseId)))
+        const counselorIds = Array.from(new Set(items.map(i => i.counselorId).filter(Boolean) as string[]))
+
+        const [students, courses, counselors] = await Promise.all([
+          studentIds.length > 0 ? db.select().from(schema.users).where(or(...studentIds.map(id => eq(schema.users.id, id))) as any) : [],
+          courseIds.length > 0 ? db.select().from(schema.courses).where(or(...courseIds.map(id => eq(schema.courses.id, id))) as any) : [],
+          counselorIds.length > 0 ? db.select().from(schema.users).where(or(...counselorIds.map(id => eq(schema.users.id, id))) as any) : [],
+        ])
+        const universityIds = Array.from(new Set(courses.map(c => c.universityId)))
+        const unis = universityIds.length > 0 ? await db.select().from(schema.universities).where(or(...universityIds.map(id => eq(schema.universities.id, id))) as any) : []
+
+        const studentMap = new Map(students.map(s => [s.id, s]))
+        const courseMap = new Map(courses.map(c => [c.id, c]))
+        const counselorMap = new Map(counselors.map(c => [c.id, c]))
+        const uniMap = new Map(unis.map(u => [u.id, u]))
+
+        const enriched = items.map(item => ({
+          ...item,
+          student: item.studentId ? { user: studentMap.get(item.studentId) || null } : null,
+          course: item.courseId ? { ...courseMap.get(item.courseId), university: uniMap.get(courseMap.get(item.courseId)?.universityId || '') || null } : null,
+          counselor: item.counselorId ? { user: counselorMap.get(item.counselorId) || null } : null,
+        }))
+
+        // Client-side search filtering
+        let filteredItems = enriched
         if (search) {
           const lowerSearch = search.toLowerCase()
-          filteredItems = items.filter(
+          filteredItems = enriched.filter(
             (app) =>
               app.student?.user?.name?.toLowerCase().includes(lowerSearch) ||
-              app.course?.university?.name.toLowerCase().includes(lowerSearch) ||
-              app.course?.name.toLowerCase().includes(lowerSearch)
+              app.course?.university?.name?.toLowerCase().includes(lowerSearch) ||
+              app.course?.name?.toLowerCase().includes(lowerSearch)
           )
         }
 
         let nextCursor: typeof cursor | undefined = undefined
-        if (items.length > limit) {
-          const nextItem = items.pop()
+        if (filteredItems.length > limit) {
+          const nextItem = filteredItems.pop()
           nextCursor = nextItem!.id
         }
 

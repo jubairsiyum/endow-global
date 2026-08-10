@@ -3,9 +3,26 @@ import { z } from 'zod'
 import { fetchStudentOverviewFromEndow } from '@/lib/endowConnect'
 import { db, schema } from '@/lib/db'
 import { eq as _eq } from 'drizzle-orm'
+import fs from 'fs'
+import path from 'path'
 const eq = _eq as any
 
-const INQUIRIES: any[] = []
+const INQUIRIES_FILE = path.join(process.cwd(), 'data', 'inquiries.json')
+
+function readInquiries(): any[] {
+  try {
+    if (!fs.existsSync(INQUIRIES_FILE)) return []
+    return JSON.parse(fs.readFileSync(INQUIRIES_FILE, 'utf-8'))
+  } catch { return [] }
+}
+
+function saveInquiry(data: any) {
+  const dir = path.dirname(INQUIRIES_FILE)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+  const inquiries = readInquiries()
+  inquiries.push(data)
+  fs.writeFileSync(INQUIRIES_FILE, JSON.stringify(inquiries.slice(-200)))
+}
 
 export const endowRouter = createTRPCRouter({
   getOverview: protectedProcedure
@@ -81,12 +98,12 @@ export const endowRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session?.user?.id || null
       const data = { ...input, userId, id: globalThis.crypto.randomUUID(), submittedAt: new Date().toISOString() }
-      INQUIRIES.push(data)
+      saveInquiry(data)
       console.log('[Inquiry] New application:', JSON.stringify({ email: input.email, name: `${input.givenName} ${input.surname}` }))
       return { success: true, message: 'Application submitted successfully! Our team will contact you shortly.' }
     }),
 
   listInquiries: publicProcedure.query(async () => {
-    return INQUIRIES.slice(-50).reverse()
+    return readInquiries().slice(-50).reverse()
   }),
 })
