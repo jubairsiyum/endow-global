@@ -1,62 +1,61 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, useReducedMotion, type PanInfo } from 'framer-motion'
+import { motion, useReducedMotion, AnimatePresence, type PanInfo } from 'framer-motion'
 import Link from 'next/link'
-import { Search } from 'lucide-react'
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { trpc } from '@/lib/trpc-client'
 
 const BRAND_RED = '#C41E3A'
 const BRAND_NAVY = '#101B3D'
 const BRAND_GOLD = '#B8934A'
 
-const students = [
-  { src: '/student-1.jpg', alt: 'Student studying abroad' },
-  { src: '/student-2.jpg', alt: 'International student' },
-  { src: '/student-3.jpg', alt: 'University student' },
-  { src: '/student-4.jpg', alt: 'Graduate student' },
-  { src: '/student-5.jpg', alt: 'Exchange student' },
+const images = [
+  { src:'/student-1.jpg', alt:'Student studying abroad' },
+  { src:'/student-2.jpg', alt:'International student' },
+  { src:'/student-3.jpg', alt:'University student' },
+  { src:'/student-4.jpg', alt:'Graduate student' },
+  { src:'/student-5.jpg', alt:'Exchange student' },
 ]
-const COUNT = students.length
-const slotX = [-128, -64, 0, 64, 128]
-const slotRotate = [-3, -1, 0, 1, 3]
-const slotY = [12, 4, 0, 4, 12]
 
-function getSlot(i: number, activeIndex: number) {
-  const raw = ((i - activeIndex) % COUNT + COUNT) % COUNT
-  return raw > 2 ? raw - COUNT : raw
-}
+function mod(n:number,m:number){return((n%m)+m)%m}
+
+const SVGFallback = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260"><rect fill="%23e5e7eb" width="200" height="260"/><text x="100" y="130" text-anchor="middle" fill="%239ca3af" font-size="14">Student</text></svg>`
 
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
-  const [activeIndex, setActiveIndex] = useState(2)
+  const [[page, direction], setPage] = useState<[number,number]>([0,0])
   const [fCountry, setFCountry] = useState('')
   const [fLevel, setFLevel] = useState('')
-
   const { data: stats } = trpc.university.stats.useQuery()
   const uniCount = stats?.universities || 50
   const countryCount = stats?.countries || 2
 
-  function handleDragEnd(_: unknown, info: PanInfo) {
-    if (Math.abs(info.offset.x) < 40) return
-    setActiveIndex((p) => (info.offset.x > 0 ? (p - 1 + COUNT) % COUNT : (p + 1) % COUNT))
+  function paginate(dir:number){setPage([mod(page+dir,images.length),dir])}
+  function handleDragEnd(_:any, info:PanInfo){
+    if(Math.abs(info.offset.x)>60) paginate(info.offset.x<0?1:-1)
   }
 
-  function buildSearchUrl() {
-    const params = new URLSearchParams()
-    if (fCountry) params.set('country', fCountry)
-    if (fLevel) params.set('level', fLevel)
-    return `/courses?${params.toString()}`
+  const variants = {
+    enter: (d:number)=>({x:d>0?300:-300,opacity:0,scale:0.88,rotate:d>0?5:-5}),
+    center:{x:0,opacity:1,scale:1,rotate:0,zIndex:1},
+    exit: (d:number)=>({x:d>0?-200:200,opacity:0,scale:0.88,rotate:d>0?-3:3,zIndex:0}),
+  }
+
+  function buildSearchUrl(){
+    const p=new URLSearchParams()
+    if(fCountry)p.set('country',fCountry)
+    if(fLevel)p.set('level',fLevel)
+    return `/courses?${p.toString()}`
   }
 
   return (
     <section className="relative bg-[#F5F6F9] pt-20 sm:pt-24 pb-16 sm:pb-24 overflow-hidden">
       <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{backgroundImage:'radial-gradient(circle, #101B3D 1px, transparent 1px)',backgroundSize:'28px 28px'}}/>
-      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl" />
+      <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl"/>
+      <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl"/>
 
       <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-        {/* Top row: text + image slider */}
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center mb-12">
           {/* Left */}
           <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
@@ -78,35 +77,41 @@ export default function PremiumHero() {
             </div>
           </motion.div>
 
-          {/* Right: Image slider */}
-          <div className="relative flex items-center justify-center h-[340px] sm:h-[400px] select-none cursor-grab active:cursor-grabbing z-10">
-            {students.map((s, i) => {
-              const slot = getSlot(i, activeIndex)
-              if (slot < -2 || slot > 2) return null
-              const x = slotX[slot + 2]
-              const rotate = slotRotate[slot + 2]
-              const y = slotY[slot + 2]
-              const isCenter = slot === 0
-              return (
+          {/* Right: Animated slider */}
+          <div className="relative flex items-center justify-center h-[360px] sm:h-[420px] select-none z-10">
+            {/* Stacked background cards */}
+            <div className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl bg-gray-200 rotate-6 opacity-30"/>
+            <div className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl bg-gray-200 -rotate-3 opacity-20"/>
+
+            <div className="relative w-48 h-60 sm:w-56 sm:h-72">
+              <AnimatePresence initial={false} custom={direction} mode="popLayout">
                 <motion.div
-                  key={s.src}
-                  drag={!prefersReducedMotion ? 'x' : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.1}
+                  key={page}
+                  custom={direction}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  drag={prefersReducedMotion?false:'x'}
+                  dragConstraints={{left:0,right:0}}
+                  dragElastic={0.2}
                   onDragEnd={handleDragEnd}
-                  animate={{x, y, rotate, scale: isCenter ? 1 : 0.85, zIndex: isCenter ? 10 : 0, opacity: isCenter ? 1 : 0.6}}
-                  transition={{type:'spring',stiffness:300,damping:30}}
-                  className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl overflow-hidden shadow-2xl"
-                  style={{background:'#e5e7eb'}}
+                  transition={{type:'spring',stiffness:350,damping:30}}
+                  className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing"
                 >
-                  <img src={s.src} alt={s.alt} className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).src = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 300"><rect fill="%23e5e7eb" width="200" height="300"/><text x="100" y="150" text-anchor="middle" fill="%239ca3af" font-size="14">Student</text></svg>' }} />
+                  <img src={images[page].src} alt={images[page].alt} className="w-full h-full object-cover" onError={(e)=>{ (e.target as HTMLImageElement).src = `data:image/svg+xml,${SVGFallback}` }}/>
                 </motion.div>
-              )
-            })}
-            {/* Controls */}
-            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-              {students.map((_, i) => (
-                <button key={i} onClick={() => setActiveIndex(i)} className={`w-2 h-2 rounded-full transition-all ${i === activeIndex ? 'w-6 bg-[#C41E3A]' : 'bg-gray-300'}`} />
+              </AnimatePresence>
+            </div>
+
+            {/* Arrows */}
+            <button onClick={()=>paginate(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors z-20"><ChevronLeft size={18} className="text-gray-600"/></button>
+            <button onClick={()=>paginate(1)} className="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors z-20"><ChevronRight size={18} className="text-gray-600"/></button>
+
+            {/* Dots */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+              {images.map((_,i)=>(
+                <button key={i} onClick={()=>setPage([i,i>page?1:-1])} className={`rounded-full transition-all ${i===page?'w-5 h-2 bg-[#C41E3A]':'w-2 h-2 bg-gray-300 hover:bg-gray-400'}`}/>
               ))}
             </div>
           </div>
@@ -122,7 +127,6 @@ export default function PremiumHero() {
               </div>
               <span className="text-[10px] uppercase tracking-[0.08em] px-2.5 py-1 rounded font-medium" style={{fontFamily:"'IBM Plex Mono',monospace",color:BRAND_GOLD,background:'rgba(184,147,74,0.12)'}}>Search Class · All Routes</span>
             </div>
-
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 sm:gap-4 items-end">
               {[{label:'Country',val:fCountry,set:setFCountry,opts:['','South Korea','Australia']},{label:'Degree',val:fLevel,set:setFLevel,opts:['',"Bachelor's","Master's",'PhD','Diploma']},{label:'Budget',opts:['Any budget','Under $5k','$5k-$15k','$15k+']},{label:'Intake',opts:['Any intake','Spring 2026','Fall 2026','Spring 2027']}].map(f=>(
                 <div key={f.label} className="w-full">
@@ -132,11 +136,8 @@ export default function PremiumHero() {
                   </select>
                 </div>
               ))}
-              <Link href={buildSearchUrl()} className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:opacity-90 transition-opacity" style={{background:BRAND_RED}}>
-                <Search size={14}/> Search
-              </Link>
+              <Link href={buildSearchUrl()} className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold text-white whitespace-nowrap hover:opacity-90 transition-opacity" style={{background:BRAND_RED}}><Search size={14}/>Search</Link>
             </div>
-
             <div className="flex items-center gap-2 mt-4 flex-wrap text-[12px]" style={{color:'#9299a8'}}>
               Popular:{' '}
               {['Computer Science','MBA','Engineering','Data Science'].map(t=>(
@@ -144,14 +145,9 @@ export default function PremiumHero() {
               ))}
             </div>
           </div>
-
-          {/* Perforation */}
           <div className="relative mx-8 border-t-2 border-dashed" style={{borderColor:'rgba(16,27,61,0.13)'}}>
-            <div className="absolute -top-[11px] -left-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]" />
-            <div className="absolute -top-[11px] -right-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]" />
+            <div className="absolute -top-[11px] -left-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]"/><div className="absolute -top-[11px] -right-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]"/>
           </div>
-
-          {/* Stats stub row */}
           <div className="grid grid-cols-2 sm:grid-cols-4">
             {[{num:'2,000+',lbl:'Students placed'},{num:`${uniCount}+`,lbl:'Partner universities'},{num:`${countryCount}`,lbl:'Countries'},{num:'98%',lbl:'Success rate'}].map((s,i)=>(
               <div key={i} className="relative py-5 px-4 text-center text-white" style={{background:BRAND_NAVY}}>
