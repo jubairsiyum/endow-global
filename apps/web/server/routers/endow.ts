@@ -1,9 +1,11 @@
-import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { z } from 'zod'
 import { fetchStudentOverviewFromEndow } from '@/lib/endowConnect'
 import { db, schema } from '@/lib/db'
 import { eq as _eq } from 'drizzle-orm'
 const eq = _eq as any
+
+const INQUIRIES: any[] = []
 
 export const endowRouter = createTRPCRouter({
   getOverview: protectedProcedure
@@ -37,4 +39,54 @@ export const endowRouter = createTRPCRouter({
 
       return overview
     }),
+
+  submitInquiry: publicProcedure
+    .input(z.object({
+      surname: z.string().min(1),
+      givenName: z.string().min(1),
+      dob: z.string().optional(),
+      gender: z.string().optional(),
+      phone: z.string().min(1),
+      whatsapp: z.string().optional(),
+      email: z.string().email(),
+      fatherName: z.string().optional(),
+      motherName: z.string().optional(),
+      addressLine1: z.string().optional(),
+      addressLine2: z.string().optional(),
+      city: z.string().optional(),
+      state: z.string().optional(),
+      zipCode: z.string().optional(),
+      country: z.string().min(1),
+      applyingTo: z.string().optional(),
+      sscYear: z.string().optional(),
+      sscResult: z.string().optional(),
+      hscYear: z.string().optional(),
+      hscResult: z.string().optional(),
+      bachelorsYear: z.string().optional(),
+      bachelorsResult: z.string().optional(),
+      mastersYear: z.string().optional(),
+      mastersResult: z.string().optional(),
+      hometown: z.string().optional(),
+      nationality: z.string().optional(),
+      targetCountry: z.string().optional(),
+      targetUniversity: z.string().optional(),
+      reasonToChoose: z.string().optional(),
+      englishTest: z.string().optional(),
+      ieltsScore: z.string().optional(),
+      toeflScore: z.string().optional(),
+      topikLevel: z.string().optional(),
+      heardFrom: z.string().optional(),
+      referralName: z.string().optional(),
+    }))
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session?.user?.id || null
+      const data = { ...input, userId, id: globalThis.crypto.randomUUID(), submittedAt: new Date().toISOString() }
+      INQUIRIES.push(data)
+      console.log('[Inquiry] New application:', JSON.stringify({ email: input.email, name: `${input.givenName} ${input.surname}` }))
+      return { success: true, message: 'Application submitted successfully! Our team will contact you shortly.' }
+    }),
+
+  listInquiries: publicProcedure.query(async () => {
+    return INQUIRIES.slice(-50).reverse()
+  }),
 })

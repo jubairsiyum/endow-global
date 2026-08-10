@@ -77,8 +77,32 @@ export default function AdminPage() {
  <div className="flex xl:col-span-5"><TopCountries /></div>
  </div>
  </div>
- <div className="space-y-3 xl:col-span-3"><UpcomingConsultations /></div>
- </div>
- </div>
- )
+<div className="space-y-3 xl:col-span-3"><UpcomingConsultations /></div>
+        </div>
+
+        {/* Recent Inquiries */}
+        <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <h2 className="text-base font-semibold text-gray-900 mb-4">Recent Applications</h2>
+          <InquiriesList />
+        </div>
+      </div>
+    )
+}
+
+function InquiriesList() {
+  const { data: inquiries } = trpc.endow.listInquiries.useQuery()
+  if (!inquiries?.length) return <p className="text-sm text-gray-400">No applications yet.</p>
+  return (
+    <div className="space-y-2 max-h-60 overflow-y-auto">
+      {(inquiries||[]).slice(0,10).map((inq:any,i:number)=>(
+        <div key={i} className="flex items-center justify-between rounded-lg border border-gray-100 px-4 py-2.5 text-sm">
+          <div className="min-w-0">
+            <p className="font-medium text-gray-900 truncate">{inq.givenName} {inq.surname}</p>
+            <p className="text-xs text-gray-500">{inq.email} · {inq.phone} · {inq.targetUniversity || inq.targetCountry}</p>
+          </div>
+          <span className="text-xs text-gray-400 shrink-0 ml-3">{new Date(inq.submittedAt).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>
+        </div>
+      ))}
+    </div>
+  )
 }

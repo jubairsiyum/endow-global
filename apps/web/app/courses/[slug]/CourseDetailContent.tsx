@@ -217,7 +217,7 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 )}
 
                 {/* CTA */}
-                <a href="#" className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
+                <a href="/apply-now" className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
                   <Send size={16} /> Apply Now <ChevronRight size={15} />
                 </a>
               </div>
@@ -226,6 +226,13 @@ export default function CourseDetailContent({ course }: { course: any }) {
         </section>
       </main>
       <Footer />
+
+      {/* Floating Apply CTA — mobile */}
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3 lg:hidden">
+        <a href="/apply-now" className="flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] py-3 text-sm font-bold text-white shadow-lg">
+          <Send size={16} /> Apply Now
+        </a>
+      </div>
     </div>
   )
 }
