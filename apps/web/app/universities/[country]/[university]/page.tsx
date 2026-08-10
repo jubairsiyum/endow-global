@@ -54,7 +54,7 @@ export default function UniversityDetailPage() {
       <div className="relative z-30"><Navbar /></div>
 
       <section className="relative -mt-[72px]">
-        <div className="absolute inset-0 h-[480px] sm:h-[440px] overflow-hidden">
+        <div className="absolute inset-0 h-[540px] sm:h-[520px] overflow-hidden">
           {uni.coverImage ? (
             <img src={uni.coverImage} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -63,7 +63,7 @@ export default function UniversityDetailPage() {
           <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/60 to-[#0f172a]/25" />
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-5 pb-10 pt-[140px] sm:px-6 lg:px-8 sm:pb-12 sm:pt-[152px]">
+        <div className="relative mx-auto max-w-7xl px-5 pb-12 pt-[180px] sm:px-6 lg:px-8 sm:pb-16 sm:pt-[200px]">
           <div className="flex flex-col gap-5 sm:flex-row sm:gap-6">
             <div className="flex h-[88px] w-[88px] sm:h-[104px] sm:w-[104px] shrink-0 items-center justify-center rounded-2xl bg-white shadow-xl overflow-hidden">
               {uni.logo ? <img src={uni.logo} alt={uni.name} className="h-full w-full object-contain p-3" /> : <Building2 size={36} className="text-gray-400" />}
