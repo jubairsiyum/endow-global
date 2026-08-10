@@ -13,7 +13,9 @@ const modeLabels: Record<string, string> = { FULL_TIME: 'Full Time', PART_TIME: 
 
 function safeArray(v: any): string[] {
   if (Array.isArray(v)) return v
-  if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) ? p : [] } catch { return [] } }
+  if (typeof v === 'string') {
+    try { const p = JSON.parse(v); if (Array.isArray(p)) return p; if (typeof p === 'string') { const p2 = JSON.parse(p); return Array.isArray(p2) ? p2 : []; } } catch {}
+  }
   return []
 }
 

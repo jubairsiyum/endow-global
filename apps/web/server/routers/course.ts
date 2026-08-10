@@ -150,6 +150,13 @@ export const courseRouter = createTRPCRouter({
         if (!result[0]) return null
         const courseData = result[0] as any
 
+        // Parse JSON fields that may come as strings from MySQL
+        ;['highlights', 'requirements'].forEach((k) => {
+          if (typeof courseData[k] === 'string') {
+            try { courseData[k] = JSON.parse(courseData[k]) } catch {}
+          }
+        })
+
         let modules: any[] = []; let intakes: any[] = []
         try {
           const [m, i] = await Promise.all([

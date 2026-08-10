@@ -185,9 +185,13 @@ export default function CoursesPage() {
               {[{ l: 'Application Fee', k: 'applicationFee', t: 'number' }, { l: 'Offer Response Time', k: 'offerResponseTime', p: 'e.g. 2 days' }, { l: 'Professional Accreditation', k: 'professionalAccreditation', p: 'e.g. CMI Level 7' }, { l: 'Brochure URL', k: 'brochureUrl', p: 'https://…' }].map(f => (
                 <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type={f.t || 'text'} value={(form as any)[f.k]} onChange={e => setF(f.k, e.target.value)} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
               ))}
-              <div className="sm:col-span-2 flex flex-wrap gap-x-6 gap-y-2">
-                {[{ k: 'backlogsAccepted', label: 'Backlogs Accepted' }, { k: 'gapYearsAccepted', label: 'Gap Years Accepted' }, { k: 'englishTestWaiver', label: 'English Test Waiver' }, { k: 'expressOffer', label: 'Express Offer', icon: Star }].map(({ k, label, icon: Ic }) => (
-                  <label key={k} className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={(form as any)[k]} onChange={e => setF(k, e.target.checked)} className="h-4 w-4 rounded border-gray-300 accent-primary" />{Ic && <Ic size={13} className={(form as any)[k] ? 'text-amber-500' : 'text-gray-400'} />}<span className="text-sm text-gray-700">{label}</span></label>
+              <div className="sm:col-span-2 flex flex-wrap gap-3">
+                {[{ k: 'backlogsAccepted', l: 'Backlogs Accepted' }, { k: 'gapYearsAccepted', l: 'Gap Years Accepted' }, { k: 'englishTestWaiver', l: 'English Test Waiver' }, { k: 'expressOffer', l: 'Express Offer' }].map(({ k, l }) => (
+                  <button type="button" key={k} onClick={() => setF(k, !(form as any)[k])} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border transition-all ${(form as any)[k] ? 'bg-green-50 border-green-300 text-green-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${(form as any)[k] ? 'bg-green-500' : 'bg-gray-300'}`} />
+                    {l}
+                  </button>
                 ))}
               </div>
 
@@ -195,9 +199,13 @@ export default function CoursesPage() {
               <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-gray-700">Key Highlights (one per line)</label><textarea value={form.highlights} onChange={e => setF('highlights', e.target.value)} rows={4} placeholder="Recognised for quality: Triple accreditation&#10;Top 5% globally (QS World Rankings)" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
 
               {/* Toggles */}
-              <div className="sm:col-span-2 flex flex-wrap items-center gap-x-6 gap-y-2">
-                <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.isActive} onChange={e => setF('isActive', e.target.checked)} className="h-4 w-4 rounded border-gray-300 accent-primary" /><span className="text-sm text-gray-700">Active / Published</span></label>
-                <label className="flex items-center gap-2 cursor-pointer"><input type="checkbox" checked={form.hasScholarship} onChange={e => setF('hasScholarship', e.target.checked)} className="h-4 w-4 rounded border-gray-300 accent-primary" /><span className="text-sm text-gray-700">Has Scholarship</span></label>
+              <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
+                <button type="button" onClick={() => setF('isActive', !form.isActive)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border transition-all ${form.isActive ? 'bg-green-50 border-green-300 text-green-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                  <span className={`h-2 w-2 rounded-full ${form.isActive ? 'bg-green-500' : 'bg-gray-300'}`} />Active / Published
+                </button>
+                <button type="button" onClick={() => setF('hasScholarship', !form.hasScholarship)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border transition-all ${form.hasScholarship ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300'}`}>
+                  <span className={`h-2 w-2 rounded-full ${form.hasScholarship ? 'bg-amber-500' : 'bg-gray-300'}`} />Has Scholarship
+                </button>
                 {form.hasScholarship && <input value={form.scholarshipDetails} onChange={e => setF('scholarshipDetails', e.target.value)} placeholder="Scholarship details…" className="flex-1 min-w-[200px] rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm outline-none focus:border-primary" style={is} />}
               </div>
 
