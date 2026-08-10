@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
-import { Plus, Pencil, Trash2, X, Search, BookOpen, GraduationCap, DollarSign, EyeOff, Calendar, Star } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, Search, BookOpen, GraduationCap, DollarSign, EyeOff, Calendar, Star, FileText } from 'lucide-react'
 import { toast } from 'sonner'
 
 const LEVELS = ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']
@@ -52,6 +52,7 @@ export default function CoursesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<CourseForm>(emptyForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [reqItems, setReqItems] = useState<{ cat: string; title: string; desc: string }[]>([])
   const [levelFilter, setLevelFilter] = useState('')
   const [universityFilter, setUniversityFilter] = useState('')
 
@@ -74,7 +75,7 @@ export default function CoursesPage() {
   })
 
   function setF(key: string, value: any) { setForm(p => ({ ...p, [key]: value })) }
-  function openCreate() { setEditingId(null); setForm(emptyForm); setShowModal(true) }
+  function openCreate() { setEditingId(null); setForm(emptyForm); setReqItems([]); setShowModal(true) }
   function openEdit(c: any) {
     setEditingId(c.id)
     setForm({
@@ -94,6 +95,14 @@ export default function CoursesPage() {
       englishTestWaiver: c.englishTestWaiver || false, expressOffer: c.expressOffer || false,
     })
     setShowModal(true)
+    // Parse existing requirements
+    const existingReqs: any[] = Array.isArray(c.requirements) ? c.requirements : (typeof c.requirements === 'string' ? (() => { try { return JSON.parse(c.requirements) } catch { return [] } })() : [])
+    setReqItems(existingReqs.map((r: any) => {
+      if (typeof r === 'object' && r.title) return r
+      const str = typeof r === 'string' ? r : String(r)
+      const match = str.match(/^([^:]+):\s*(.+?)(?:\s*\(([^)]+)\))?$/)
+      return match ? { cat: match[1].trim(), title: match[2].trim(), desc: match[3]?.trim() || '' } : { cat: 'OTHER', title: str, desc: '' }
+    }))
   }
 
   function onSave() {
@@ -111,7 +120,7 @@ export default function CoursesPage() {
       professionalAccreditation: form.professionalAccreditation || undefined,
       campus: form.campus || undefined,
       modeOfStudy: form.modeOfStudy as any,
-      requirements: [],
+      requirements: reqItems.filter(r => r.title.trim()).map(r => `${r.cat}: ${r.title}${r.desc ? ` (${r.desc})` : ''}`),
       scholarshipDetails: form.scholarshipDetails || undefined,
     }
     if (editingId) updateMutation.mutate({ id: editingId, ...data })
@@ -163,9 +172,11 @@ export default function CoursesPage() {
               {/* Basic Info */}
               <div className="sm:col-span-2 mb-1"><h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><BookOpen size={15} className="text-[#C41E3A]" />Basic Information</h3></div>
               <div><label className="mb-1.5 block text-sm font-medium text-gray-700">University *</label><select value={form.universityId} onChange={e => setF('universityId', e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is}><option value="">Select…</option>{(universities || []).map((u: any) => <option key={u.id} value={u.id}>{u.name}</option>)}</select></div>
-              {[{ l: 'Course Name *', k: 'name' }, { l: 'URL Slug *', k: 'slug' }, { l: 'Subject', k: 'subject' }].map(f => (
-                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input value={(form as any)[f.k]} onChange={e => setF(f.k, e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
+              {[{ l: 'Course Name *', k: 'name', onCh: (v: string) => { setF('name', v); if (!editingId) setF('slug', v.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')) } }].map(f => (
+                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input value={(form as any)[f.k]} onChange={e => f.onCh ? f.onCh(e.target.value) : setF(f.k, e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
               ))}
+              <div><label className="mb-1.5 block text-sm font-medium text-gray-700">URL Slug *</label><input value={form.slug} onChange={e => setF('slug', e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-900 outline-none focus:border-primary font-mono" style={is} /></div>
+              <div><label className="mb-1.5 block text-sm font-medium text-gray-700">Subject</label><input value={form.subject} onChange={e => setF('subject', e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
               {[{ l: 'Level', k: 'level', type: 'select', options: LEVELS.map(l => ({ v: l, label: l.replace(/_/g, ' ') })) }, { l: 'Mode of Study', k: 'modeOfStudy', type: 'select', options: MODES.map(m => ({ v: m, label: m.replace(/_/g, ' ') })) }].map(f => (
                 <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><select value={(form as any)[f.k]} onChange={e => setF(f.k, e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is}>{f.options.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}</select></div>
               ))}
@@ -197,6 +208,30 @@ export default function CoursesPage() {
 
               {/* Highlights */}
               <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-gray-700">Key Highlights (one per line)</label><textarea value={form.highlights} onChange={e => setF('highlights', e.target.value)} rows={4} placeholder="Recognised for quality: Triple accreditation&#10;Top 5% globally (QS World Rankings)" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
+
+              {/* Requirements */}
+              <div className="sm:col-span-2">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><FileText size={15} className="text-[#C41E3A]" />Requirements</h3>
+                  <button type="button" onClick={() => setReqItems(p => [...p, { cat: 'ACADEMIC', title: '', desc: '' }])} className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors"><Plus size={12} />Add Requirement</button>
+                </div>
+                {reqItems.length === 0 ? (
+                  <div className="rounded-lg border border-dashed border-gray-200 py-4 text-center"><p className="text-xs text-gray-400">No requirements added yet. Click "Add Requirement" to start.</p></div>
+                ) : (
+                  <div className="space-y-2">
+                    {reqItems.map((r, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <select value={r.cat} onChange={e => setReqItems(p => p.map((x, j) => j === i ? { ...x, cat: e.target.value } : x))} className="w-[140px] shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-primary" style={is}>
+                          {['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER'].map(c => <option key={c} value={c}>{c.replace(/_/g, ' ')}</option>)}
+                        </select>
+                        <input value={r.title} onChange={e => setReqItems(p => p.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Requirement title" className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs outline-none focus:border-primary" style={is} />
+                        <input value={r.desc} onChange={e => setReqItems(p => p.map((x, j) => j === i ? { ...x, desc: e.target.value } : x))} placeholder="Min. %" className="w-[100px] shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs outline-none focus:border-primary" style={is} />
+                        <button type="button" onClick={() => setReqItems(p => p.filter((_, j) => j !== i))} className="shrink-0 p-1.5 rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><X size={14} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
 
               {/* Toggles */}
               <div className="sm:col-span-2 flex flex-wrap items-center gap-3">
