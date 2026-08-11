@@ -1,39 +1,53 @@
 import Link from 'next/link'
-import { ArrowRight, Sparkles } from 'lucide-react'
-import { FadeUp } from '@/components/home/FadeUp'
+import { ArrowRight } from 'lucide-react'
 
 export default function PremiumCTA() {
   return (
-    <section className="relative overflow-hidden bg-gray-950 py-20 lg:py-28">
-      <div className="absolute inset-0">
-        <div className="absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#C41E3A]/20 blur-[120px]" />
-      </div>
-      <div className="absolute inset-0 bg-grid opacity-[0.03]" />
-      <div className="relative mx-auto max-w-4xl px-5 text-center sm:px-6 lg:px-8">
-        <FadeUp>
-          <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-sm font-medium text-white/80 backdrop-blur-sm">
-            <Sparkles size={15} />
-            Start Today
-          </div>
-          <h2 className="text-4xl font-bold leading-tight tracking-tight text-white sm:text-5xl">
-            Your future abroad
-            <br />
-            starts with one step
-          </h2>
-          <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-white/50 sm:text-lg">
-            Join thousands of students who found their perfect university match in South Korea and Australia. Free consultation, zero hidden fees.
-          </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Link href="/register" className="group inline-flex h-12 items-center gap-2.5 rounded-full bg-white px-7 text-[15px] font-bold text-gray-950 shadow-[0_0_40px_rgba(255,255,255,0.1)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_0_60px_rgba(255,255,255,0.15)]">
-              Create Free Account
-              <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
-            </Link>
-            <Link href="/courses" className="inline-flex h-12 items-center gap-2 rounded-full border border-white/15 px-7 text-[15px] font-semibold text-white/80 transition-all duration-300 hover:border-white/25 hover:bg-white/5 hover:text-white">
-              Browse Courses
-            </Link>
-          </div>
-          <p className="mt-6 text-xs text-white/30">No credit card required · Free forever for students</p>
-        </FadeUp>
+    <section className="relative py-24 sm:py-28 text-center text-white overflow-hidden" style={{background:`radial-gradient(ellipse at 85% 0%, rgba(196,30,58,0.35), transparent 55%), linear-gradient(180deg, #0A0A0A 0%, #161616 100%)`}}>
+      {/* Grid pattern overlay */}
+      <div className="pointer-events-none absolute inset-0" style={{backgroundImage:'repeating-linear-gradient(90deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 64px)'}}/>
+
+      <div className="relative mx-auto max-w-[1180px] px-5 sm:px-8">
+        <span className="inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] uppercase tracking-[0.1em] font-semibold mb-6" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#D5342A',background:'rgba(213,52,42,0.12)',border:'1px solid rgba(213,52,42,0.35)'}}>
+          <span className="h-1.5 w-1.5 rounded-full bg-[#D5342A]"/> Start today
+        </span>
+
+        <h2 className="text-3xl sm:text-[38px] font-bold leading-[1.15] mb-4" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
+          Your future abroad <span style={{color:'#D5342A'}}>starts with one step.</span>
+        </h2>
+
+        <p className="max-w-[460px] mx-auto mb-10 text-[15px] leading-relaxed" style={{color:'rgba(255,255,255,0.6)'}}>
+          Join thousands of students who found their university match. Free consultation, zero hidden fees.
+        </p>
+
+        <div className="flex items-center justify-center gap-4 flex-wrap mb-11">
+          {/* Ticket button */}
+          <Link href="/register" className="group inline-flex rounded-full overflow-hidden shadow-[0_20px_44px_-16px_rgba(0,0,0,0.6)] hover:-translate-y-0.5 transition-transform">
+            <span className="px-7 py-4 font-semibold text-[15px] bg-white text-[#0A0A0A] group-hover:bg-gray-50 transition-colors">Create free account</span>
+            <span className="relative px-6 py-4 font-semibold text-[15px] text-white flex items-center gap-1.5" style={{background:'#D5342A'}}>
+              Board <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform"/>
+              {/* Perforation tear-line on the left edge */}
+              <span className="absolute left-0 top-0 bottom-0 w-[6px]" style={{
+                backgroundImage:'radial-gradient(circle at left, transparent 3px, #D5342A 3.5px)',
+                backgroundSize:'8px 8px',
+                backgroundRepeat:'repeat-y',
+                transform:'translateX(-50%)',
+              }}/>
+            </span>
+          </Link>
+          <Link href="/courses" className="px-6 py-4 rounded-full border text-[15px] font-semibold text-white hover:bg-white/5 transition-colors" style={{borderColor:'rgba(255,255,255,0.28)'}}>
+            Browse courses
+          </Link>
+        </div>
+
+        {/* Trust strip */}
+        <div className="inline-flex items-center justify-center gap-6 sm:gap-7 flex-wrap pt-8 border-t border-dashed text-[12px]" style={{fontFamily:"'IBM Plex Mono',monospace",color:'rgba(255,255,255,0.5)',borderColor:'rgba(255,255,255,0.14)'}}>
+          <span><b className="text-white font-semibold">2,000+</b> students placed</span>
+          <span className="w-1 h-1 rounded-full opacity-70" style={{background:'#D5342A'}}/>
+          <span><b className="text-white font-semibold">98%</b> visa success</span>
+          <span className="w-1 h-1 rounded-full opacity-70" style={{background:'#D5342A'}}/>
+          <span><b className="text-white font-semibold">Free</b> first consultation</span>
+        </div>
       </div>
     </section>
   )
