@@ -1,6 +1,7 @@
 'use client'
 
 import { Navbar } from '@/components/layout/Navbar'
+import { Footer } from '@/components/layout/Footer'
 import HeroSection from '@/components/universities/hero-section'
 import UniversityMarquee from '@/components/universities/university-marquee'
 import FeaturedUniversities from '@/components/universities/featured-universities'
@@ -9,7 +10,6 @@ import CountryExplorer from '@/components/universities/country-explorer'
 import ScholarshipSpotlight from '@/components/universities/scholarship-spotlight'
 import ApplicationRoadmap from '@/components/universities/application-roadmap'
 import PremiumConsultationCTA from '@/components/universities/premium-consultation-cta'
-import UniversitiesFooter from '@/components/universities/footer'
 
 export default function UniversitiesPage() {
   return (
@@ -25,7 +25,7 @@ export default function UniversitiesPage() {
         <StatisticsSection />
         <PremiumConsultationCTA />
       </main>
-      <UniversitiesFooter />
+      <Footer />
     </div>
   )
 }

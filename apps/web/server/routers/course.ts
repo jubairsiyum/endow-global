@@ -41,6 +41,9 @@ export const courseRouter = createTRPCRouter({
         if (hasScholarship !== undefined) {
           conditions.push(eq(courses.hasScholarship, hasScholarship))
         }
+        if (country) {
+          conditions.push(eq(universities.country, country))
+        }
 
         const where = and(...conditions)
 

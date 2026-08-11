@@ -80,7 +80,7 @@ export default function HeroSection() {
           {/* Search Bar */}
           <motion.div variants={itemVariants} className="mt-8 w-full max-w-xl">
             <form
-              action="/universities"
+              action="/universities/search"
               method="GET"
               className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-colors focus-within:border-[#C41E3A] sm:px-5 sm:py-3"
             >

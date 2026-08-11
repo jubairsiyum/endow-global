@@ -1,15 +1,52 @@
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc'
 import { z } from 'zod'
-import { eq as _eq, and as _and, sql as _sql, desc as _desc, count as _count } from 'drizzle-orm'
+import { eq as _eq, and as _and, or as _or, like as _like, sql as _sql, desc as _desc, count as _count } from 'drizzle-orm'
 import { universities, courses } from '@endow/db'
 
 const eq = _eq as any
 const and = _and as any
+const or = _or as any
+const like = _like as any
 const sql = _sql as any
 const desc = _desc as any
 const count = _count as any
 
 export const universityRouter = createTRPCRouter({
+  search: publicProcedure
+    .input(
+      z.object({
+        q: z.string().optional(),
+        country: z.string().optional(),
+        limit: z.number().min(1).max(50).default(24),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions: any[] = [eq(universities.isActive, true)]
+
+      if (input.country) {
+        conditions.push(eq(universities.country, input.country))
+      }
+
+      if (input.q && input.q.trim()) {
+        const term = `%${input.q.trim()}%`
+        conditions.push(
+          or(
+            like(universities.name, term),
+            like(universities.city, term),
+            like(universities.country, term),
+            sql`EXISTS (SELECT 1 FROM ${courses} WHERE ${courses.universityId} = ${universities.id} AND ${courses.isActive} = 1 AND (${courses.name} LIKE ${term} OR ${courses.subject} LIKE ${term}))` as any,
+          ) as any,
+        )
+      }
+
+      return ctx.db
+        .select()
+        .from(universities)
+        .where(and(...conditions))
+        .orderBy(desc(universities.featured), desc(universities.ranking))
+        .limit(input.limit)
+    }),
+
   featured: publicProcedure.query(async ({ ctx }) => {
     return ctx.db
       .select()

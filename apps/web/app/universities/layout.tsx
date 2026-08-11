@@ -1,3 +1,5 @@
+import { Suspense } from 'react'
+
 export const metadata = {
   title: 'Discover Your Perfect University | Global Education Platform',
   description:
@@ -5,5 +7,5 @@ export const metadata = {
 }
 
 export default function UniversitiesLayout({ children }: { children: React.ReactNode }) {
-  return children
+  return <Suspense fallback={<div className="min-h-screen" />}>{children}</Suspense>
 }
