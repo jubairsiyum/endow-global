@@ -47,6 +47,48 @@ function buildPath(pts: { x: number; y: number }[]): string {
   return d
 }
 
+function bezierVal(a: number, b: number, c: number, d: number, t: number): number {
+  const u = 1 - t
+  return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d
+}
+
+function segmentLen(
+  p0: { x: number; y: number },
+  cp1: { x: number; y: number },
+  cp2: { x: number; y: number },
+  p3: { x: number; y: number },
+  steps = 24,
+): number {
+  let len = 0
+  let px = p0.x, py = p0.y
+  for (let i = 1; i <= steps; i++) {
+    const t = i / steps
+    const x = bezierVal(p0.x, cp1.x, cp2.x, p3.x, t)
+    const y = bezierVal(p0.y, cp1.y, cp2.y, p3.y, t)
+    len += Math.sqrt((x - px) ** 2 + (y - py) ** 2)
+    px = x; py = y
+  }
+  return len
+}
+
+function computeCumulativeLengths(pts: { x: number; y: number }[]): number[] {
+  const cum: number[] = [0]
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[Math.max(i - 1, 0)]
+    const p1 = pts[i]
+    const p2 = pts[i + 1]
+    const p3 = pts[Math.min(i + 2, pts.length - 1)]
+    const k = 0.3
+    const cp1 = { x: p1.x + (p2.x - p0.x) * k, y: p1.y + (p2.y - p0.y) * k }
+    const cp2 = { x: p2.x - (p3.x - p1.x) * k, y: p2.y - (p3.y - p1.y) * k }
+    cum.push(cum[cum.length - 1] + segmentLen(p1, cp1, cp2, p2))
+  }
+  return cum
+}
+
+const DESKTOP_CUM_LENGTHS = computeCumulativeLengths(desktopWaypoints)
+const MOBILE_CUM_LENGTHS = computeCumulativeLengths(mobileWaypoints)
+
 function PlaneSvg({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className}>
@@ -63,21 +105,40 @@ interface FlightPathProps {
   isMobile: boolean
 }
 
+function usePathLen(isMobile: boolean) {
+  const cum = isMobile ? MOBILE_CUM_LENGTHS : DESKTOP_CUM_LENGTHS
+  return { total: cum[cum.length - 1], cum }
+}
+
 const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, activeStep, onStepClick, isMobile }: FlightPathProps) {
   const pathD = buildPath(waypoints)
-  const progress = activeStep / steps.length
+  const { total, cum } = usePathLen(isMobile)
+  const activeIdx = Math.min(activeStep, cum.length - 1)
+  const drawnLen = cum[activeIdx]
 
   const cardW = isMobile ? 135 : 140
   const cardH = isMobile ? 100 : 120
   const nodeR = isMobile ? 13 : 16
-  const dotR = isMobile ? 3.5 : 5
+  const dotR = isMobile ? 4 : 5
   const prefix = isMobile ? 'm' : 'd'
 
-  const wp = waypoints[Math.min(activeStep - 1, waypoints.length - 1)]
-  const nextWp = waypoints[Math.min(activeStep, waypoints.length - 1)]
-  const angleDeg = activeStep < steps.length
-    ? Math.atan2(nextWp.y - wp.y, nextWp.x - wp.x) * (180 / Math.PI)
-    : 0
+  const planeIdx = Math.min(Math.max(activeStep, 0), waypoints.length - 1)
+  const wp = waypoints[planeIdx]
+  const nextIdx = Math.min(planeIdx + 1, waypoints.length - 1)
+  const nextWp = waypoints[nextIdx]
+  const prevIdx = Math.max(planeIdx - 1, 0)
+  const prevWp = waypoints[prevIdx]
+  const angleDeg = activeStep <= 0
+    ? Math.atan2(waypoints[1].y - waypoints[0].y, waypoints[1].x - waypoints[0].x) * (180 / Math.PI)
+    : planeIdx >= waypoints.length - 1
+      ? Math.atan2(wp.y - prevWp.y, wp.x - prevWp.x) * (180 / Math.PI)
+      : Math.atan2(nextWp.y - wp.y, nextWp.x - wp.x) * (180 / Math.PI)
+
+  const dashStyle = {
+    strokeDasharray: total,
+    strokeDashoffset: total - drawnLen,
+    transition: 'stroke-dashoffset 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+  }
 
   return (
     <svg viewBox={viewBox} className="w-full" style={{ height: 'auto', overflow: 'visible' }}>
@@ -86,39 +147,32 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
           <stop offset="0%" stopColor="#C41E3A" />
           <stop offset="100%" stopColor="#f43f5e" />
         </linearGradient>
+        <linearGradient id={`traveling-grad-${prefix}`} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#C41E3A" stopOpacity="0" />
+          <stop offset="15%" stopColor="#C41E3A" stopOpacity="0.9" />
+          <stop offset="85%" stopColor="#C41E3A" stopOpacity="1" />
+          <stop offset="100%" stopColor="#f43f5e" stopOpacity="1" />
+        </linearGradient>
+        <filter id={`glow-${prefix}`}>
+          <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
       </defs>
 
       {/* Dashed background route */}
-      <path d={pathD} fill="none" stroke="#e5e7eb" strokeWidth={5} strokeDasharray="12 7" strokeLinecap="round" />
+      <path d={pathD} fill="none" stroke="#e5e7eb" strokeWidth={5} strokeDasharray="12 7" strokeLinecap="round" strokeLinejoin="round" />
 
-      {/* Animated progress route */}
-      <path
-        d={pathD}
-        fill="none"
-        stroke="#1f2937"
-        strokeWidth={isMobile ? 6 : 7}
-        strokeLinecap="round"
-        style={{
-          strokeDasharray: 2000,
-          strokeDashoffset: 2000 - (2000 * progress),
-          transition: 'stroke-dashoffset 1.2s cubic-bezier(0.25, 0.1, 0.25, 1)',
-        }}
-      />
+      {/* Animated progress route base */}
+      <path d={pathD} fill="none" stroke={`url(#grad-${prefix})`} strokeWidth={isMobile ? 3 : 4} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} />
 
-      {/* Crimson glow — simplified, no filter */}
-      <path
-        d={pathD}
-        fill="none"
-        stroke={`url(#grad-${prefix})`}
-        strokeWidth={isMobile ? 8 : 10}
-        strokeLinecap="round"
-        strokeOpacity={0.18}
-        style={{
-          strokeDasharray: 2000,
-          strokeDashoffset: 2000 - (2000 * progress),
-          transition: 'stroke-dashoffset 1.2s cubic-bezier(0.25, 0.1, 0.25, 1)',
-        }}
-      />
+      {/* Animated progress route bold */}
+      <path d={pathD} fill="none" stroke="#111827" strokeWidth={isMobile ? 6 : 8} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} />
+
+      {/* Crimson glow overlay */}
+      <path d={pathD} fill="none" stroke={`url(#traveling-grad-${prefix})`} strokeWidth={isMobile ? 9 : 11} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} filter={`url(#glow-${prefix})`} />
 
       {/* Connector lines + cards */}
       {waypoints.map((point, idx) => {
@@ -129,14 +183,21 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
         const cardY = point.y + (isMobile ? 28 : 38)
         return (
           <g key={step.number}>
+            {/* Connector line */}
             <line
               x1={point.x} y1={point.y + (isActive ? nodeR + 2 : nodeR)}
               x2={point.x} y2={cardY}
-              stroke={isActive ? `${step.color}40` : '#e5e7eb'}
-              strokeWidth={1}
-              strokeDasharray={isActive ? 'none' : '3 2'}
+              stroke={isPast ? `${step.color}40` : isActive ? step.color : '#e5e7eb'}
+              strokeWidth={isActive ? 2 : 1}
+              strokeDasharray={isActive ? 'none' : '4 3'}
+              style={{ transition: 'stroke 0.4s ease, stroke-width 0.4s ease' }}
             />
-            <circle cx={point.x} cy={cardY} r={2} fill={isActive ? step.color : '#d1d5db'} />
+            {/* Connector dot */}
+            <circle
+              cx={point.x} cy={cardY} r={isActive ? 3.5 : 2}
+              fill={isActive ? step.color : isPast ? `${step.color}60` : '#d1d5db'}
+              style={{ transition: 'all 0.4s ease' }}
+            />
 
             <foreignObject
               x={cardX} y={cardY + 4}
@@ -148,39 +209,68 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 style={{
                   cursor: 'pointer',
                   height: '100%',
-                  borderRadius: 10,
-                  border: `1px solid ${isActive ? `${step.color}25` : '#f3f4f6'}`,
-                  background: isActive ? `linear-gradient(135deg, ${step.color}08, white)` : 'white',
-                  boxShadow: isActive ? `0 4px 20px ${step.color}12, 0 1px 4px rgba(0,0,0,0.04)` : '0 1px 3px rgba(0,0,0,0.03)',
-                  padding: isMobile ? '8px 8px 6px' : '10px 10px 8px',
-                  transition: 'border-color 0.3s, background 0.3s, box-shadow 0.3s',
+                  borderRadius: 12,
+                  border: isActive ? `1.5px solid ${step.color}40` : isPast ? `1px solid ${step.color}20` : '1px solid #f3f4f6',
+                  background: isActive
+                    ? `linear-gradient(135deg, ${step.color}0f, white 60%)`
+                    : isPast
+                      ? `linear-gradient(135deg, ${step.color}05, white)`
+                      : 'white',
+                  boxShadow: isActive
+                    ? `0 8px 28px ${step.color}18, 0 2px 8px rgba(0,0,0,0.06)`
+                    : isPast
+                      ? `0 2px 8px ${step.color}08, 0 1px 3px rgba(0,0,0,0.03)`
+                      : '0 1px 3px rgba(0,0,0,0.04)',
+                  padding: isMobile ? '10px 9px 8px' : '12px 11px 10px',
+                  transition: 'all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                  transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                 }}
               >
-                <div style={{ height: 2, borderRadius: 1, background: isActive ? `linear-gradient(to right, ${step.color}, ${step.color}60)` : '#f3f4f6', marginBottom: isMobile ? 4 : 6 }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
+                {/* Accent bar */}
+                <div style={{
+                  height: 3, borderRadius: 2,
+                  background: isActive
+                    ? `linear-gradient(to right, ${step.color}, ${step.color}30)`
+                    : isPast ? `${step.color}30` : '#f3f4f6',
+                  marginBottom: isMobile ? 6 : 8,
+                  transition: 'background 0.4s ease',
+                }} />
+                {/* Header row */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
                   <div style={{
-                    width: isMobile ? 18 : 20, height: isMobile ? 18 : 20, borderRadius: 5,
+                    width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: 6,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: isActive ? `${step.color}15` : '#f9fafb', flexShrink: 0,
+                    backgroundColor: isActive ? `${step.color}18` : isPast ? `${step.color}0b` : '#f9fafb',
+                    flexShrink: 0,
+                    transition: 'background-color 0.4s ease',
                   }}>
-                    <step.icon size={isMobile ? 9 : 10} color={isActive ? step.color : '#d1d5db'} />
+                    <step.icon size={isMobile ? 10 : 11} color={isActive ? step.color : isPast ? `${step.color}80` : '#d1d5db'} />
                   </div>
                   <span style={{
-                    fontSize: isMobile ? 7 : 8, fontWeight: 800,
-                    textTransform: 'uppercase' as const, letterSpacing: '0.06em',
-                    color: isActive ? step.color : isPast ? `${step.color}70` : '#d1d5db',
+                    fontSize: isMobile ? 7.5 : 8.5, fontWeight: 800,
+                    textTransform: 'uppercase' as const, letterSpacing: '0.08em',
+                    color: isActive ? step.color : isPast ? `${step.color}60` : '#c4c8d0',
+                    transition: 'color 0.4s ease',
                   }}>
                     Stop {step.number}
                   </span>
                 </div>
+                {/* Title */}
                 <h4 style={{
-                  fontSize: isMobile ? 11 : 12, fontWeight: 700, lineHeight: 1.25,
-                  color: isActive ? '#111827' : isPast ? '#6b7280' : '#9ca3af', margin: 0,
+                  fontSize: isMobile ? 11 : 12.5, fontWeight: 700, lineHeight: 1.3,
+                  color: isActive ? '#111827' : isPast ? '#4b5563' : '#9ca3af',
+                  margin: 0,
+                  transition: 'color 0.4s ease',
                 }}>
                   {step.title}
                 </h4>
+                {/* Detail — only on active */}
                 {isActive && (
-                  <p style={{ fontSize: isMobile ? 9 : 10, lineHeight: 1.4, color: '#6b7280', marginTop: 3, marginBottom: 0 }}>
+                  <p style={{
+                    fontSize: isMobile ? 9.5 : 10.5, lineHeight: 1.45, color: '#6b7280',
+                    marginTop: 4, marginBottom: 0,
+                    animation: 'fade-in-up 0.35s ease-out',
+                  }}>
                     {step.description}
                   </p>
                 )}
@@ -195,57 +285,86 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
         const step = steps[idx]
         const isActive = activeStep === step.number
         const isPast = step.number < activeStep
+        const nextIsActive = activeStep === step.number + 1
         return (
           <g key={`node-${step.number}`}>
+            {/* Outer pulse ring */}
             {isActive && (
+              <>
+                <circle
+                  cx={point.x} cy={point.y} r={nodeR + 5}
+                  fill="none" stroke={step.color} strokeWidth={2} strokeOpacity={0.2}
+                  style={{ animation: 'pulse-ring 2s ease-in-out infinite' }}
+                />
+                <circle
+                  cx={point.x} cy={point.y} r={nodeR + 10}
+                  fill="none" stroke={step.color} strokeWidth={1} strokeOpacity={0.1}
+                  style={{ animation: 'pulse-ring 2s ease-in-out 0.4s infinite' }}
+                />
+              </>
+            )}
+            {/* Upcoming pulse for next stop */}
+            {nextIsActive && (
               <circle
-                cx={point.x} cy={point.y} r={nodeR + 4}
-                fill="none" stroke={step.color} strokeWidth={1.5} strokeOpacity={0.25}
-                style={{
-                  animation: 'pulse-ring 2s ease-in-out infinite',
-                }}
+                cx={point.x} cy={point.y} r={nodeR + 2}
+                fill="none" stroke={step.color} strokeWidth={1.5} strokeOpacity={0.15}
+                style={{ animation: 'pulse-ring 2.5s ease-in-out 1s infinite' }}
               />
             )}
+            {/* Main node circle */}
             <circle
               cx={point.x} cy={point.y}
-              r={isActive ? nodeR : nodeR - 3}
+              r={isActive ? nodeR : isPast ? nodeR - 1.5 : nodeR - 2.5}
               fill="white"
-              stroke={isActive ? step.color : isPast ? `${step.color}60` : '#e5e7eb'}
+              stroke={isActive ? step.color : isPast ? `${step.color}50` : '#d4d4d8'}
               strokeWidth={isActive ? 2.5 : 2}
-              style={{ cursor: 'pointer', transition: 'all 0.3s ease' }}
+              style={{ cursor: 'pointer', transition: 'all 0.35s ease' }}
               onClick={() => onStepClick(step.number)}
             />
+            {/* Inner dot */}
             <circle
               cx={point.x} cy={point.y}
-              r={isActive ? dotR : dotR - 1.5}
-              fill={isActive ? step.color : isPast ? `${step.color}80` : '#e5e7eb'}
-              style={{ pointerEvents: 'none', transition: 'all 0.3s ease' }}
+              r={isActive ? dotR + 1 : isPast ? dotR : dotR - 1}
+              fill={isActive ? step.color : isPast ? `${step.color}80` : '#d4d4d8'}
+              style={{ pointerEvents: 'none', transition: 'all 0.35s ease' }}
             />
+            {/* Number text */}
             <text
               x={point.x} y={point.y + 0.5}
               textAnchor="middle" dominantBaseline="central"
-              fill="white" fontSize={isMobile ? 5 : 6} fontWeight={800}
-              style={{ pointerEvents: 'none' }}
+              fill="white" fontSize={isMobile ? 9 : 10} fontWeight={800}
+              style={{ pointerEvents: 'none', fontFamily: "'Inter', sans-serif" }}
             >
               {step.number}
             </text>
+            {/* Hover hit area */}
+            <circle
+              cx={point.x} cy={point.y}
+              r={nodeR + 3}
+              fill="transparent"
+              style={{ cursor: 'pointer' }}
+              onClick={() => onStepClick(step.number)}
+            />
           </g>
         )
       })}
 
-      {/* Airplane — CSS transition, no framer-motion */}
+      {/* Airplane */}
       <g
         style={{
           transform: `translate(${wp.x}px, ${wp.y}px) rotate(${angleDeg}deg)`,
-          transition: 'transform 1.2s cubic-bezier(0.25, 0.1, 0.25, 1)',
+          transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
           transformOrigin: '0 0',
         }}
       >
-        <circle cx={0} cy={0} r={isMobile ? 15 : 18} fill="#C41E3A" opacity={0.08} />
-        <circle cx={0} cy={0} r={isMobile ? 11 : 14} fill="white" stroke="#C41E3A" strokeWidth={2.5} />
-        <foreignObject x={-8} y={-8} width={16} height={16}>
+        {/* Glow behind airplane */}
+        <circle cx={0} cy={0} r={isMobile ? 20 : 24} fill="#C41E3A" opacity={0.06} style={{ animation: 'airplane-glow 1.5s ease-in-out infinite' }} />
+        {/* Main circle */}
+        <circle cx={0} cy={0} r={isMobile ? 12 : 15} fill="white" stroke="#C41E3A" strokeWidth={2.5} style={{ transition: 'r 0.4s ease' }} />
+        {/* Inner icon */}
+        <foreignObject x={-9} y={-9} width={18} height={18}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            <PlaneSvg className="h-3.5 w-3.5 text-[#C41E3A]" />
+            <PlaneSvg className="h-4 w-4 text-[#C41E3A]" />
           </div>
         </foreignObject>
       </g>
@@ -267,7 +386,7 @@ export default function ApplicationRoadmap() {
         if (prev >= steps.length) { setAutoPlaying(false); return prev }
         return prev + 1
       })
-    }, 2000)
+    }, 2200)
     return () => clearInterval(id)
   }, [autoPlaying, isInView, prefersReducedMotion])
 
@@ -280,26 +399,101 @@ export default function ApplicationRoadmap() {
     <>
       <style>{`
         @keyframes pulse-ring {
-          0%, 100% { opacity: 0.25; transform: scale(1); }
-          50% { opacity: 0.08; transform: scale(1.2); }
+          0%, 100% { opacity: 0.22; transform: scale(1); }
+          50% { opacity: 0.05; transform: scale(1.25); }
+        }
+        @keyframes airplane-glow {
+          0%, 100% { opacity: 0.04; transform: scale(0.95); }
+          50% { opacity: 0.12; transform: scale(1.1); }
+        }
+        @keyframes fade-in-up {
+          0% { opacity: 0; transform: translateY(4px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes soft-float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
         }
       `}</style>
-      <section ref={sectionRef} className="relative bg-white px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
-        <div className="pointer-events-none absolute inset-0 opacity-[0.02]">
-          <div className="h-full w-full" style={{ backgroundImage: 'radial-gradient(circle, #000 0.5px, transparent 0.5px)', backgroundSize: '20px 20px' }} />
+      <section
+        ref={sectionRef}
+        className="relative overflow-hidden px-5 py-20 sm:px-6 lg:px-8 lg:py-28"
+        style={{
+          background: 'linear-gradient(175deg, #fefefe 0%, #F5F6F9 35%, #f0f2f7 100%)',
+        }}
+      >
+        {/* Decorative elements */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          {/* Top-right warm glow */}
+          <div className="absolute -right-20 -top-20 h-[500px] w-[500px] rounded-full bg-rose-100/20 blur-3xl" />
+          {/* Bottom-left cool glow */}
+          <div className="absolute -bottom-32 -left-20 h-[450px] w-[450px] rounded-full bg-blue-50/20 blur-3xl" />
+          {/* Center subtle amber glow */}
+          <div className="absolute left-1/2 top-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-50/15 blur-3xl" />
+
+          {/* Faint dot matrix */}
+          <div
+            className="absolute inset-0 opacity-[0.022]"
+            style={{
+              backgroundImage: 'radial-gradient(circle, #101B3D 0.6px, transparent 0.6px)',
+              backgroundSize: '24px 24px',
+            }}
+          />
+
+          {/* Compass rose watermark — centered */}
+          <svg
+            className="absolute left-1/2 top-1/2 h-full w-full max-w-[900px] -translate-x-1/2 -translate-y-1/2 opacity-[0.035]"
+            viewBox="0 0 600 600"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <g stroke="#101B3D" strokeWidth="0.8">
+              {/* Outer ring 1 */}
+              <circle cx="300" cy="300" r="280" />
+              {/* Outer ring 2 */}
+              <circle cx="300" cy="300" r="250" strokeDasharray="4 8" />
+              {/* Inner ring */}
+              <circle cx="300" cy="300" r="180" />
+              {/* Tick marks */}
+              {Array.from({ length: 72 }, (_, i) => {
+                const angle = (i * 5 * Math.PI) / 180
+                const r1 = i % 3 === 0 ? 240 : 248
+                const r2 = 256
+                const x1 = 300 + r1 * Math.sin(angle)
+                const y1 = 300 - r1 * Math.cos(angle)
+                const x2 = 300 + r2 * Math.sin(angle)
+                const y2 = 300 - r2 * Math.cos(angle)
+                return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} />
+              })}
+              {/* N-S-E-W compass lines */}
+              <line x1="300" y1="20" x2="300" y2="580" strokeWidth="1.2" />
+              <line x1="20" y1="300" x2="580" y2="300" strokeWidth="1.2" />
+              {/* Diagonal compass lines */}
+              <line x1="102" y1="102" x2="498" y2="498" strokeWidth="0.6" />
+              <line x1="498" y1="102" x2="102" y2="498" strokeWidth="0.6" />
+            </g>
+            {/* Cardinal dots */}
+            <circle cx="300" cy="45" r="4" fill="#101B3D" opacity="0.5" />
+            <circle cx="300" cy="555" r="4" fill="#101B3D" opacity="0.5" />
+            <circle cx="45" cy="300" r="4" fill="#101B3D" opacity="0.5" />
+            <circle cx="555" cy="300" r="4" fill="#101B3D" opacity="0.5" />
+            {/* Center dot */}
+            <circle cx="300" cy="300" r="6" fill="#C41E3A" opacity="0.3" />
+            <circle cx="300" cy="300" r="3" fill="#101B3D" opacity="0.4" />
+          </svg>
         </div>
 
         <div className="relative mx-auto max-w-7xl">
           {/* Header */}
-          <div className="mb-12 text-center">
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-gray-50 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-400">
-              <Plane size={13} />
+          <div className="mb-14 text-center">
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/90 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm backdrop-blur-sm">
+              <Plane size={14} className="text-[#C41E3A]" />
               Your Flight Path
             </span>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl lg:text-5xl" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               Application <span className="text-[#C41E3A]">roadmap</span>
             </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base text-gray-400">
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-400">
               Follow the flight from your first consultation to departure day.
             </p>
           </div>
@@ -332,14 +526,14 @@ export default function ApplicationRoadmap() {
 
           {/* CTA */}
           <div className="mt-16 text-center">
-            <div className="inline-flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white px-8 py-6 shadow-[0_1px_6px_rgba(0,0,0,0.03)] sm:flex-row sm:gap-6">
+            <div className="inline-flex flex-col items-center gap-4 rounded-2xl border border-gray-200/80 bg-white px-8 py-6 shadow-[0_4px_24px_rgba(16,27,61,0.06)] sm:flex-row sm:gap-6 backdrop-blur-sm">
               <div className="text-left">
                 <p className="text-sm font-bold text-gray-900">Ready to start your journey?</p>
                 <p className="text-xs text-gray-400">Average timeline: 3–4 months to departure</p>
               </div>
               <a
                 href="/register"
-                className="group inline-flex h-10 items-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-bold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.3)]"
+                className="group inline-flex h-10 items-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-bold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)]"
               >
                 Board Now
                 <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
