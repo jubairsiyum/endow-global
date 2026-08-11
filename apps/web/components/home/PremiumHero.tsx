@@ -78,7 +78,7 @@ export default function PremiumHero() {
           </motion.div>
 
           {/* Right: Animated slider */}
-          <div className="relative flex items-center justify-center h-[360px] sm:h-[420px] select-none z-10">
+          <div className="hidden lg:flex relative items-center justify-center h-[360px] sm:h-[420px] select-none z-10">
             {/* Stacked background cards */}
             <div className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl bg-gray-200 rotate-6 opacity-30"/>
             <div className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl bg-gray-200 -rotate-3 opacity-20"/>

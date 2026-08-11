@@ -1,63 +1,71 @@
-import { Compass, FileSearch, Send, Shield, Plane } from 'lucide-react'
+import { Compass, FileSearch, Send, Shield, Plane, ArrowRight } from 'lucide-react'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
 
 const steps = [
-  { icon: Compass, number: '01', title: 'Explore', desc: 'Discover universities, courses, and destinations that match your academic profile and career goals.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
-  { icon: FileSearch, number: '02', title: 'Shortlist', desc: 'Compare programs, scholarships, and costs. Build a balanced list of reach, match, and safety schools.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
-  { icon: Send, number: '03', title: 'Apply', desc: 'Submit polished applications with counselor-reviewed documents, SOPs, and recommendation letters.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
-  { icon: Shield, number: '04', title: 'Visa', desc: 'Navigate visa processing with complete support — document prep, mock interviews, and embassy coordination.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
-  { icon: Plane, number: '05', title: 'Departure', desc: 'Pre-departure briefing, accommodation help, and airport pickup. Your new chapter begins.', color: 'text-[#C41E3A]', bg: 'bg-rose-50', hover: 'hover:border-red-200' },
-] as const
+  { icon: Compass, num: '01', title: 'Explore', desc: 'Discover universities and programs matching your goals.', color: '#C41E3A', bg: 'from-red-500/5 to-red-500/0' },
+  { icon: FileSearch, num: '02', title: 'Shortlist', desc: 'Compare programs, scholarships, and costs.', color: '#7A0713', bg: 'from-red-700/5 to-red-700/0' },
+  { icon: Send, num: '03', title: 'Apply', desc: 'Submit polished applications with expert guidance.', color: '#A01830', bg: 'from-red-600/5 to-red-600/0' },
+  { icon: Shield, num: '04', title: 'Visa', desc: 'Document prep, mock interviews, embassy support.', color: '#7A0713', bg: 'from-red-700/5 to-red-700/0' },
+  { icon: Plane, num: '05', title: 'Departure', desc: 'Pre-departure briefing and arrival support.', color: '#C41E3A', bg: 'from-red-500/5 to-red-500/0' },
+]
 
 export default function ServiceTimeline() {
   return (
-    <section className="bg-gray-50 py-20 lg:py-28">
-      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+    <section className="relative bg-white py-20 sm:py-28 overflow-hidden">
+      {/* Subtle bg pattern */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.02]" style={{backgroundImage:'radial-gradient(circle, #C41E3A 1px, transparent 1px)',backgroundSize:'40px 40px'}}/>
+
+      <div className="relative z-10 mx-auto max-w-[1180px] px-5 sm:px-8">
         <FadeUp>
-          <div className="text-center">
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
-              Application Journey
-            </span>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-              From exploration to <span className="text-gradient-brand">departure</span>
-            </h2>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
-              A structured, five-phase process that transforms your study abroad dream into reality.
-            </p>
+          <div className="text-center mb-14">
+            <span className="text-[11px] uppercase tracking-[0.1em] mb-3 block font-semibold text-[#C41E3A]" style={{fontFamily:"'IBM Plex Mono',monospace"}}>Application Journey</span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900" style={{fontFamily:"'Space Grotesk',sans-serif"}}>From exploration to <span className="text-[#C41E3A]">departure</span></h2>
+            <p className="mt-3 mx-auto max-w-lg text-sm text-gray-500">A structured five-phase process that transforms your study abroad dream into reality.</p>
           </div>
         </FadeUp>
 
-        <FadeUpStagger className="mt-14 grid gap-6 md:grid-cols-5" amount={0.1}>
-          {steps.map((step, i) => {
-            const Icon = step.icon
-            return (
-              <FadeUpItem key={step.number}>
-                <article className={`group relative h-full rounded-2xl border border-gray-100 bg-white p-5 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${step.hover}`}>
-                  {/* Connector Line */}
-                  {i < steps.length - 1 && (
-                    <>
-                      {/* Desktop horizontal connector */}
-                      <div className="absolute left-full top-1/2 hidden h-0.5 w-6 -translate-y-1/2 lg:block">
-                        <div className="h-full w-full bg-gradient-to-r from-gray-200 via-rose-200 to-gray-200 opacity-60 transition-opacity group-hover:opacity-100" />
-                        <div className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 translate-x-1 rotate-45 border-r border-t border-gray-300 bg-white opacity-60 group-hover:opacity-100" />
+        {/* Timeline track */}
+        <div className="relative">
+          {/* Horizontal track line */}
+          <div className="absolute top-12 left-0 right-0 hidden lg:block">
+            <div className="h-0.5 mx-16 bg-gradient-to-r from-transparent via-gray-200 to-transparent"/>
+          </div>
+
+          <FadeUpStagger className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6" amount={0.08}>
+            {steps.map((s, i) => {
+              const Icon = s.icon
+              return (
+                <FadeUpItem key={s.num}>
+                  <div className="relative group text-center">
+                    {/* Step circle */}
+                    <div className="relative inline-flex">
+                      <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white border-2 border-gray-100 shadow-sm group-hover:shadow-md group-hover:border-[#C41E3A]/20 transition-all z-10 relative">
+                        <div className={`absolute inset-2 rounded-full bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity`} style={{background:`radial-gradient(circle, ${s.color}10, transparent 70%)`}}/>
+                        <Icon size={28} className="text-gray-400 group-hover:text-[#C41E3A] transition-colors relative z-10"/>
                       </div>
-                      {/* Mobile vertical connector */}
-                      <div className="absolute bottom-0 left-1/2 h-6 w-0.5 -translate-x-1/2 translate-y-full bg-gradient-to-b from-gray-200 via-rose-200 to-gray-200 opacity-60 md:hidden" />
-                    </>
-                  )}
-                  <div className="mb-4 flex items-center justify-between">
-                    <span className={`flex h-11 w-11 items-center justify-center rounded-xl ${step.bg} transition-transform group-hover:scale-110`}>
-                      <Icon size={20} className={step.color} />
-                    </span>
-                    <span className="text-[11px] font-bold tracking-widest text-gray-200">{step.number}</span>
+                      {/* Number badge */}
+                      <div className="absolute -top-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-[#C41E3A] text-[11px] font-bold text-white shadow-md" style={{fontFamily:"'IBM Plex Mono',monospace"}}>
+                        {i+1}
+                      </div>
+                    </div>
+
+                    {/* Connector arrow between steps */}
+                    {i < 4 && (
+                      <div className="hidden lg:flex absolute top-12 left-[calc(100%-2rem)] right-0 items-center justify-center z-0">
+                        <ArrowRight size={16} className="text-gray-300"/>
+                      </div>
+                    )}
+
+                    <div className="mt-5 px-2">
+                      <h3 className="text-base font-bold text-gray-900" style={{fontFamily:"'Space Grotesk',sans-serif"}}>{s.title}</h3>
+                      <p className="mt-1.5 text-[13px] text-gray-500 leading-relaxed">{s.desc}</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-bold text-gray-900">{step.title}</h3>
-                  <p className="mt-2 text-[13px] leading-relaxed text-gray-400">{step.desc}</p>
-                </article>
-              </FadeUpItem>
-            )
-          })}
-        </FadeUpStagger>
+                </FadeUpItem>
+              )
+            })}
+          </FadeUpStagger>
+        </div>
       </div>
     </section>
   )

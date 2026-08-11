@@ -35,24 +35,25 @@ const destinations = [
 
 export default function CountryCards() {
   return (
-    <section className="relative overflow-hidden bg-[#0a0a0f] py-24 lg:py-32">
-      {/* Subtle radial glow */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_30%,rgba(196,30,58,0.08),transparent_70%)]" />
+    <section className="relative overflow-hidden bg-[#F5F6F9] py-20 sm:py-28">
+      {/* Subtle glow */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_60%_40%_at_50%_30%,rgba(196,30,58,0.04),transparent_70%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.015]" style={{backgroundImage:'radial-gradient(circle, #C41E3A 1px, transparent 1px)',backgroundSize:'32px 32px'}}/>
 
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <FadeUp>
           <div className="text-center">
-            <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/70">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-600 shadow-sm">
               <MapPin size={13} className="text-[#C41E3A]" />
               Study Destinations
             </span>
-            <h2 className="mt-5 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+            <h2 className="mt-5 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl lg:text-5xl" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
               Choose your{' '}
-              <span className="bg-gradient-to-r from-[#C41E3A] to-rose-400 bg-clip-text text-transparent">
+              <span className="text-[#C41E3A]">
                 destination
               </span>
             </h2>
-            <p className="mx-auto mt-4 max-w-lg text-base text-white/60">
+            <p className="mx-auto mt-4 max-w-lg text-base text-gray-500">
               Two countries, endless possibilities. We specialize in helping
               students navigate education in South Korea and Australia.
             </p>
@@ -61,10 +62,10 @@ export default function CountryCards() {
 
         <FadeUpStagger className="mt-14 grid gap-6 sm:grid-cols-2" amount={0.08}>
           {destinations.map((dest) => (
-            <FadeUpItem key={dest.slug}>
-              <TiltCard tiltDegree={4}>
-                <Link href={`/universities?country=${dest.slug}`}>
-                  <article className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#12121a] p-8 transition-all duration-300 hover:border-white/[0.15] hover:bg-[#16161f] sm:p-9">
+            <FadeUpItem key={dest.slug} className="h-full">
+              <TiltCard tiltDegree={4} className="h-full">
+                <Link href={`/universities?country=${dest.slug}`} className="block h-full">
+                  <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-md hover:border-gray-300 sm:p-9">
                     {/* Accent gradient overlay on hover */}
                     <div
                       className={`absolute inset-0 bg-gradient-to-br ${dest.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
@@ -81,7 +82,7 @@ export default function CountryCards() {
                       <div className="mb-6 flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           {/* Country flag */}
-                          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-white/10 bg-white/5">
+                          <div className="relative h-14 w-14 overflow-hidden rounded-xl border border-gray-200 bg-gray-50">
                             <Image
                               src={`/flags/${dest.code.toLowerCase()}.png`}
                               alt={`${dest.country} flag`}
@@ -91,8 +92,8 @@ export default function CountryCards() {
                             />
                           </div>
                           <div>
-                            <h3 className="text-2xl font-bold text-white">{dest.country}</h3>
-                            <p className="mt-0.5 text-sm font-medium text-white/50">{dest.tagline}</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{dest.country}</h3>
+                            <p className="mt-0.5 text-sm font-medium text-gray-500">{dest.tagline}</p>
                           </div>
                         </div>
                         <span
@@ -109,14 +110,14 @@ export default function CountryCards() {
                       </div>
 
                       {/* Description */}
-                      <p className="text-sm leading-relaxed text-white/60">{dest.description}</p>
+                      <p className="text-sm leading-relaxed text-gray-500">{dest.description}</p>
 
                       {/* Programs */}
                       <div className="mt-5 flex flex-wrap gap-2">
                         {dest.programs.map((p) => (
                           <span
                             key={p}
-                            className="rounded-lg border border-white/[0.06] bg-white/[0.04] px-2.5 py-1 text-xs font-medium text-white/60"
+                            className="rounded-lg border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs font-medium text-gray-600"
                           >
                             {p}
                           </span>
