@@ -29,8 +29,8 @@ const desktopWaypoints = [
 ]
 
 const mobileWaypoints = [
-  { x: 250, y: 60 }, { x: 120, y: 180 }, { x: 340, y: 300 },
-  { x: 140, y: 420 }, { x: 320, y: 540 }, { x: 130, y: 660 }, { x: 250, y: 780 },
+  { x: 250, y: 50 }, { x: 110, y: 185 }, { x: 340, y: 320 },
+  { x: 130, y: 455 }, { x: 320, y: 590 }, { x: 120, y: 725 }, { x: 250, y: 860 },
 ]
 
 function buildPath(pts: { x: number; y: number }[]): string {
@@ -116,10 +116,10 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
   const activeIdx = Math.min(activeStep, cum.length - 1)
   const drawnLen = cum[activeIdx]
 
-  const cardW = isMobile ? 135 : 140
-  const cardH = isMobile ? 100 : 120
-  const nodeR = isMobile ? 13 : 16
-  const dotR = isMobile ? 4 : 5
+  const cardW = isMobile ? 142 : 150
+  const cardH = isMobile ? 112 : 134
+  const nodeR = isMobile ? 14 : 17
+  const dotR = isMobile ? 4.5 : 5.5
   const prefix = isMobile ? 'm' : 'd'
 
   const planeIdx = Math.min(Math.max(activeStep, 0), waypoints.length - 1)
@@ -204,13 +204,13 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
               width={cardW} height={cardH}
               style={{ pointerEvents: 'all', overflow: 'visible' }}
             >
-              <div
+                <div
                 onClick={() => onStepClick(step.number)}
                 style={{
                   cursor: 'pointer',
                   height: '100%',
                   borderRadius: 12,
-                  border: isActive ? `1.5px solid ${step.color}40` : isPast ? `1px solid ${step.color}20` : '1px solid #f3f4f6',
+                  border: isActive ? `1.5px solid ${step.color}40` : isPast ? `1px solid ${step.color}15` : '1px solid #f3f4f6',
                   background: isActive
                     ? `linear-gradient(135deg, ${step.color}0f, white 60%)`
                     : isPast
@@ -219,9 +219,10 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                   boxShadow: isActive
                     ? `0 8px 28px ${step.color}18, 0 2px 8px rgba(0,0,0,0.06)`
                     : isPast
-                      ? `0 2px 8px ${step.color}08, 0 1px 3px rgba(0,0,0,0.03)`
+                      ? `0 2px 8px ${step.color}05, 0 1px 3px rgba(0,0,0,0.03)`
                       : '0 1px 3px rgba(0,0,0,0.04)',
-                  padding: isMobile ? '10px 9px 8px' : '12px 11px 10px',
+                  opacity: isActive ? 1 : 0.8,
+                  padding: isMobile ? '10px 10px 12px' : '14px 13px 16px',
                   transition: 'all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
                   transform: isActive ? 'translateY(-2px)' : 'translateY(0)',
                 }}
@@ -230,26 +231,26 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 <div style={{
                   height: 3, borderRadius: 2,
                   background: isActive
-                    ? `linear-gradient(to right, ${step.color}, ${step.color}30)`
-                    : isPast ? `${step.color}30` : '#f3f4f6',
-                  marginBottom: isMobile ? 6 : 8,
+                    ? `linear-gradient(to right, ${step.color}, ${step.color}40)`
+                    : isPast ? `${step.color}40` : '#e5e7eb',
+                  marginBottom: isMobile ? 7 : 9,
                   transition: 'background 0.4s ease',
                 }} />
                 {/* Header row */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
                   <div style={{
-                    width: isMobile ? 22 : 24, height: isMobile ? 22 : 24, borderRadius: 6,
+                    width: isMobile ? 24 : 26, height: isMobile ? 24 : 26, borderRadius: 6,
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: isActive ? `${step.color}18` : isPast ? `${step.color}0b` : '#f9fafb',
+                    backgroundColor: isActive ? `${step.color}1a` : isPast ? `${step.color}0d` : '#f9fafb',
                     flexShrink: 0,
                     transition: 'background-color 0.4s ease',
                   }}>
-                    <step.icon size={isMobile ? 10 : 11} color={isActive ? step.color : isPast ? `${step.color}80` : '#d1d5db'} />
+                    <step.icon size={isMobile ? 11 : 12} color={isActive ? step.color : isPast ? `${step.color}80` : '#c4c8d0'} />
                   </div>
                   <span style={{
-                    fontSize: isMobile ? 7.5 : 8.5, fontWeight: 800,
-                    textTransform: 'uppercase' as const, letterSpacing: '0.08em',
-                    color: isActive ? step.color : isPast ? `${step.color}60` : '#c4c8d0',
+                    fontSize: isMobile ? 8 : 9, fontWeight: 800,
+                    textTransform: 'uppercase' as const, letterSpacing: '0.09em',
+                    color: isActive ? step.color : isPast ? `${step.color}70` : '#b0b5c0',
                     transition: 'color 0.4s ease',
                   }}>
                     Stop {step.number}
@@ -257,8 +258,8 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 </div>
                 {/* Title */}
                 <h4 style={{
-                  fontSize: isMobile ? 11 : 12.5, fontWeight: 700, lineHeight: 1.3,
-                  color: isActive ? '#111827' : isPast ? '#4b5563' : '#9ca3af',
+                  fontSize: isMobile ? 11.5 : 13, fontWeight: 700, lineHeight: 1.3,
+                  color: isActive ? '#0f172a' : isPast ? '#374151' : '#9ca3af',
                   margin: 0,
                   transition: 'color 0.4s ease',
                 }}>
@@ -267,8 +268,8 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 {/* Detail — only on active */}
                 {isActive && (
                   <p style={{
-                    fontSize: isMobile ? 9.5 : 10.5, lineHeight: 1.45, color: '#6b7280',
-                    marginTop: 4, marginBottom: 0,
+                    fontSize: isMobile ? 10 : 11, lineHeight: 1.5, color: '#4b5563',
+                    marginTop: 5, marginBottom: 0,
                     animation: 'fade-in-up 0.35s ease-out',
                   }}>
                     {step.description}
@@ -329,12 +330,12 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
               style={{ pointerEvents: 'none', transition: 'all 0.35s ease' }}
             />
             {/* Number text */}
-            <text
-              x={point.x} y={point.y + 0.5}
-              textAnchor="middle" dominantBaseline="central"
-              fill="white" fontSize={isMobile ? 9 : 10} fontWeight={800}
-              style={{ pointerEvents: 'none', fontFamily: "'Inter', sans-serif" }}
-            >
+              <text
+                  x={point.x} y={point.y + 0.5}
+                  textAnchor="middle" dominantBaseline="central"
+                  fill="white" fontSize={isMobile ? 10 : 11} fontWeight={800}
+                  style={{ pointerEvents: 'none', fontFamily: "'Inter', sans-serif" }}
+                >
               {step.number}
             </text>
             {/* Hover hit area */}
@@ -353,8 +354,9 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
       <g
         style={{
           transform: `translate(${wp.x}px, ${wp.y}px) rotate(${angleDeg}deg)`,
-          transition: 'transform 1s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: 'transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
           transformOrigin: '0 0',
+          willChange: 'transform',
         }}
       >
         {/* Glow behind airplane */}
@@ -376,8 +378,11 @@ export default function ApplicationRoadmap() {
   const [activeStep, setActiveStep] = useState(1)
   const [autoPlaying, setAutoPlaying] = useState(true)
   const sectionRef = useRef<HTMLDivElement>(null)
+  const activeStepRef = useRef(activeStep)
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
   const prefersReducedMotion = useReducedMotion()
+
+  useEffect(() => { activeStepRef.current = activeStep }, [activeStep])
 
   useEffect(() => {
     if (prefersReducedMotion || !autoPlaying || !isInView) return
@@ -392,7 +397,20 @@ export default function ApplicationRoadmap() {
 
   const handleStepClick = useCallback((num: number) => {
     setAutoPlaying(false)
-    setActiveStep((prev) => (prev === num ? 0 : num))
+    const current = activeStepRef.current
+    if (current === 0 && num === 0) return
+    if (current === num) {
+      setActiveStep(0)
+      return
+    }
+    if (current > num) {
+      setActiveStep(0)
+      setTimeout(() => {
+        setActiveStep(num)
+      }, 50)
+    } else {
+      setActiveStep(num)
+    }
   }, [])
 
   return (
@@ -516,7 +534,7 @@ export default function ApplicationRoadmap() {
             <div className="relative mx-auto w-full overflow-visible px-2">
               <FlightPathScene
                 waypoints={mobileWaypoints}
-                viewBox="0 0 500 860"
+                viewBox="0 0 500 950"
                 activeStep={activeStep}
                 onStepClick={handleStepClick}
                 isMobile={true}
