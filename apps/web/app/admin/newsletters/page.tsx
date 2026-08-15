@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
@@ -33,6 +34,9 @@ export default function NewslettersPage() {
  const [editingId, setEditingId] = useState<string | null>(null)
  const [form, setForm] = useState<SubscriberForm>(emptyForm)
  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+ const [mounted, setMounted] = useState(false)
+
+ useEffect(() => { setMounted(true) }, [])
 
  const utils = trpc.useUtils()
 
@@ -237,8 +241,8 @@ export default function NewslettersPage() {
  </AdminTable>
 
  {/* CREATE / EDIT MODAL */}
- {showModal && (
- <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 ">
+ {showModal && mounted && createPortal(
+ <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 ">
  <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white shadow-2xl">
  <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
  <h2 className="text-xl font-bold text-gray-900">
@@ -276,7 +280,8 @@ export default function NewslettersPage() {
  </div>
  </form>
  </div>
- </div>
+ </div>,
+ document.body
  )}
  </div>
  )

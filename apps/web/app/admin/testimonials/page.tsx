@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import { Star, Plus, Pencil, Trash2, X, Eye, EyeOff } from 'lucide-react'
@@ -32,6 +33,9 @@ export default function TestimonialsPage() {
  const [editingId, setEditingId] = useState<string | null>(null)
  const [form, setForm] = useState<TestimonialForm>(emptyForm)
  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+ const [mounted, setMounted] = useState(false)
+
+ useEffect(() => { setMounted(true) }, [])
 
  const utils = trpc.useUtils()
  const { data: testimonials, isLoading } = trpc.testimonial.admin.list.useQuery()
@@ -227,8 +231,8 @@ export default function TestimonialsPage() {
  </div>
 
  {/* MODAL */}
- {showModal && (
- <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 p-4">
+ {showModal && mounted && createPortal(
+ <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
  <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
  <div className="mb-6 flex items-center justify-between">
  <h3 className="text-lg font-semibold text-gray-900">
@@ -361,7 +365,8 @@ export default function TestimonialsPage() {
  </button>
  </div>
  </div>
- </div>
+ </div>,
+ document.body
  )}
  </div>
  )
