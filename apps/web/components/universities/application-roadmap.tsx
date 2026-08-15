@@ -29,8 +29,8 @@ const desktopWaypoints = [
 ]
 
 const mobileWaypoints = [
-  { x: 250, y: 50 }, { x: 110, y: 185 }, { x: 340, y: 320 },
-  { x: 130, y: 455 }, { x: 320, y: 590 }, { x: 120, y: 725 }, { x: 250, y: 860 },
+  { x: 250, y: 50 }, { x: 110, y: 210 }, { x: 340, y: 370 },
+  { x: 130, y: 530 }, { x: 320, y: 690 }, { x: 120, y: 850 }, { x: 250, y: 1010 },
 ]
 
 function buildPath(pts: { x: number; y: number }[]): string {
@@ -117,7 +117,8 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
   const drawnLen = cum[activeIdx]
 
   const cardW = isMobile ? 142 : 150
-  const cardH = isMobile ? 112 : 134
+  const cardH = isMobile ? 150 : 176
+  const descMaxH = isMobile ? 54 : 60
   const nodeR = isMobile ? 14 : 17
   const dotR = isMobile ? 4.5 : 5.5
   const prefix = isMobile ? 'm' : 'd'
@@ -208,7 +209,7 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 onClick={() => onStepClick(step.number)}
                 style={{
                   cursor: 'pointer',
-                  height: '100%',
+                  overflow: 'hidden',
                   borderRadius: 12,
                   border: isActive ? `1.5px solid ${step.color}40` : isPast ? `1px solid ${step.color}15` : '1px solid #f3f4f6',
                   background: isActive
@@ -265,16 +266,24 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 }}>
                   {step.title}
                 </h4>
-                {/* Detail — only on active */}
-                {isActive && (
+                {/* Detail */}
+                <div
+                  style={{
+                    maxHeight: isActive ? descMaxH : 0,
+                    opacity: isActive ? 1 : 0,
+                    overflow: 'hidden',
+                    transition: 'max-height 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.32s ease',
+                  }}
+                >
                   <p style={{
                     fontSize: isMobile ? 10 : 11, lineHeight: 1.5, color: '#4b5563',
                     marginTop: 5, marginBottom: 0,
-                    animation: 'fade-in-up 0.35s ease-out',
+                    transform: isActive ? 'translateY(0)' : 'translateY(-4px)',
+                    transition: 'transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
                   }}>
                     {step.description}
                   </p>
-                )}
+                </div>
               </div>
             </foreignObject>
           </g>
@@ -534,7 +543,7 @@ export default function ApplicationRoadmap() {
             <div className="relative mx-auto w-full overflow-visible px-2">
               <FlightPathScene
                 waypoints={mobileWaypoints}
-                viewBox="0 0 500 950"
+                viewBox="0 0 500 1230"
                 activeStep={activeStep}
                 onStepClick={handleStepClick}
                 isMobile={true}
