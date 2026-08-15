@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, BookOpen, ArrowRight } from 'lucide-react'
+import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, BookOpen, ArrowRight, SlidersHorizontal } from 'lucide-react'
 
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
@@ -10,6 +10,9 @@ import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc-client'
 import { formatCurrency } from '@/lib/utils'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
+import { CourseFilters } from './CourseFilters'
+import { EMPTY_FILTERS, countActiveFilters, serializeFilters } from './filter-utils'
+import type { CourseFilters as Filters } from './filter-utils'
 
 const levelLabels: Record<string, string> = {
   UNDERGRADUATE: 'Undergraduate',
@@ -72,28 +75,36 @@ type CourseListData = {
 
 type CoursesListContentProps = {
   initialData: CourseListData
-  initialSubjects: string[]
+  initialFilters?: Filters
 }
 
-export default function CoursesListContent({ initialData, initialSubjects }: CoursesListContentProps) {
+export default function CoursesListContent({ initialData, initialFilters }: CoursesListContentProps) {
   const [page, setPage] = useState(initialData.page)
 
   const [search, setSearch] = useState('')
-  const [subject, setSubject] = useState('')
-  const [level, setLevel] = useState('')
-  const [scholarship, setScholarship] = useState(false)
+  const [filters, setFilters] = useState<Filters>(initialFilters ?? EMPTY_FILTERS)
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [filtersTouched, setFiltersTouched] = useState(false)
 
   const resultsRef = useRef<HTMLDivElement>(null)
   const prevPageRef = useRef(page)
 
-  const isInitialQuery = page === initialData.page && !search && !subject && !level && !scholarship
+  const isInitialQuery = page === initialData.page && !search && !filtersTouched
 
   const { data, isLoading, isFetching } = trpc.course.list.useQuery(
     {
       query: search || undefined,
-      subject: subject || undefined,
-      level: level || undefined,
-      hasScholarship: scholarship || undefined,
+      countries: filters.countries.length ? filters.countries : undefined,
+      cities: filters.cities.length ? filters.cities : undefined,
+      institutionIds: filters.institutionIds.length ? filters.institutionIds : undefined,
+      levels: filters.levels.length ? filters.levels : undefined,
+      subjects: filters.subjects.length ? filters.subjects : undefined,
+      expressOffer: filters.expressOffer || undefined,
+      englishWaiver: filters.englishWaiver || undefined,
+      durations: filters.durations.length ? filters.durations : undefined,
+      startYears: filters.startYears.length ? filters.startYears : undefined,
+      feeMin: filters.feeMin ?? undefined,
+      feeMax: filters.feeMax ?? undefined,
       page,
       perPage: 12,
     },
@@ -102,21 +113,33 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
     }
   )
 
-  const { data: subjects } = trpc.course.getSubjects.useQuery(undefined, {
-    initialData: initialSubjects,
-  })
+  const { data: filterOptions } = trpc.course.getFilterOptions.useQuery(undefined)
 
-  const syncUrl = (nextPage: number) => {
-    const url = new URL(window.location.href)
-    if (nextPage > 1) url.searchParams.set('page', String(nextPage))
-    else url.searchParams.delete('page')
-    window.history.replaceState(window.history.state, '', url.pathname + url.search)
+  const syncUrl = (nextPage: number, nextFilters: Filters = filters) => {
+    const params = serializeFilters(nextFilters)
+    if (nextPage > 1) params.set('page', String(nextPage))
+    const qs = params.toString()
+    window.history.replaceState(window.history.state, '', `/courses${qs ? `?${qs}` : ''}`)
   }
 
   const goToPage = (next: number) => {
     const clamped = Math.max(1, next)
     setPage(clamped)
     syncUrl(clamped)
+  }
+
+  const updateFilters = (next: Filters) => {
+    setFiltersTouched(true)
+    setFilters(next)
+    setPage(1)
+    syncUrl(1, next)
+  }
+
+  const clearFilters = () => {
+    setFiltersTouched(true)
+    setFilters(EMPTY_FILTERS)
+    setPage(1)
+    syncUrl(1, EMPTY_FILTERS)
   }
 
   const resetPage = () => {
@@ -140,6 +163,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
     }
   }, [page])
 
+  const activeFilterCount = countActiveFilters(filters)
   const displayData = data
 
   function getAccent(subj: string): string {
@@ -203,47 +227,30 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
         {/* Filters + Results */}
         <section className="py-12 lg:py-20">
           <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-            {/* Filters */}
+            {/* Filters toolbar */}
             <FadeUp>
               <div className="flex flex-wrap items-center gap-3">
-                <select
-                  aria-label="Filter by subject"
-                  value={subject}
-                  onChange={(e) => { setSubject(e.target.value); resetPage() }}
-                  className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
-                >
-                  <option value="">All Subjects</option>
-                  {subjects?.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-
-                <select
-                  aria-label="Filter by study level"
-                  value={level}
-                  onChange={(e) => { setLevel(e.target.value); resetPage() }}
-                  className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
-                >
-                  <option value="">All Levels</option>
-                  <option value="UNDERGRADUATE">Undergraduate</option>
-                  <option value="POSTGRADUATE">Postgraduate</option>
-                  <option value="PHD">PhD</option>
-                  <option value="DIPLOMA">Diploma</option>
-                  <option value="CERTIFICATE">Certificate</option>
-                  <option value="FOUNDATION">Foundation</option>
-                </select>
-
                 <button
-                  onClick={() => { setScholarship(!scholarship); resetPage() }}
-                  className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
-                    scholarship
-                      ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
-                      : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                  onClick={() => setFiltersOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-[#C41E3A]/30 hover:bg-rose-50/50 hover:text-[#C41E3A]"
                 >
-                  <Award size={16} />
-                  Scholarships
+                  <SlidersHorizontal size={16} />
+                  Filters
+                  {activeFilterCount > 0 && (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C41E3A] px-1.5 text-[11px] font-bold text-white">
+                      {activeFilterCount}
+                    </span>
+                  )}
                 </button>
+
+                {activeFilterCount > 0 && (
+                  <button
+                    onClick={clearFilters}
+                    className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-[#C41E3A]"
+                  >
+                    Clear all filters
+                  </button>
+                )}
 
                 {displayData && (
                   <span className="ml-auto text-sm text-gray-500">
@@ -288,14 +295,14 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                     {['Computer Science', 'Business', 'Engineering', 'Healthcare'].map((s) => (
                       <button
                         key={s}
-                        onClick={() => { setSubject(s); setSearch(''); setLevel(''); setScholarship(false); resetPage() }}
+                        onClick={() => { setSearch(''); updateFilters({ ...filters, subjects: [s] }) }}
                         className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
                       >
                         {s}
                       </button>
                     ))}
                     <button
-                      onClick={() => { setSearch(''); setSubject(''); setLevel(''); setScholarship(false); resetPage() }}
+                      onClick={() => { setSearch(''); clearFilters() }}
                       className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
                     >
                       Clear All Filters
@@ -466,6 +473,16 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
           </div>
         </section>
       </main>
+
+      <CourseFilters
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        filters={filters}
+        onChange={updateFilters}
+        onClear={clearFilters}
+        options={filterOptions ?? { countries: [], cities: [], institutions: [], subjects: [] }}
+        resultsCount={displayData?.total ?? 0}
+      />
 
       <Footer />
     </div>
