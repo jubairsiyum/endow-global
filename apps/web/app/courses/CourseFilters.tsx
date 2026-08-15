@@ -27,7 +27,7 @@ export type FilterOptions = {
   subjects: string[]
 }
 
-type SelectOption = { value: string; label: string; flag?: string; covered?: boolean }
+type SelectOption = { value: string; label: string; flag?: string }
 
 const COUNTRY_FLAGS: Record<string, string> = {
   'United Kingdom': '🇬🇧',
@@ -52,29 +52,6 @@ const COUNTRY_FLAGS: Record<string, string> = {
   Singapore: '🇸🇬',
   'South Korea': '🇰🇷',
 }
-
-const SPEC_COUNTRIES = [
-  'United Kingdom',
-  'United States',
-  'Canada',
-  'Australia',
-  'Germany',
-  'New Zealand',
-  'Ireland',
-  'Netherlands',
-  'France',
-  'Switzerland',
-  'Spain',
-  'United Arab Emirates',
-  'Poland',
-  'Malta',
-  'Cyprus',
-  'Hungary',
-  'Italy',
-  'Malaysia',
-  'Mauritius',
-  'Singapore',
-]
 
 const LEVEL_OPTIONS: { label: string; value: string }[] = [
   { label: 'Undergraduate', value: 'UNDERGRADUATE' },
@@ -254,11 +231,6 @@ function SearchableMultiSelect({
               />
               {option.flag && <span className="text-base leading-none">{option.flag}</span>}
               <span className="min-w-0 flex-1 truncate text-sm text-gray-700">{option.label}</span>
-              {option.covered && (
-                <span className="shrink-0 rounded-full bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600">
-                  Covered
-                </span>
-              )}
             </label>
           )
         })}
@@ -307,17 +279,15 @@ export function CourseFilters({
 }) {
   const set = (patch: Partial<CourseFilters>) => onChange({ ...filters, ...patch })
 
-  const countryOptions = useMemo<SelectOption[]>(() => {
-    const covered = options.countries ?? []
-    const rest = SPEC_COUNTRIES.filter((name) => !covered.includes(name))
-    const ordered = [...covered, ...rest]
-    return ordered.map((name) => ({
-      value: name,
-      label: name,
-      flag: COUNTRY_FLAGS[name] ?? '🌍',
-      covered: covered.includes(name),
-    }))
-  }, [options.countries])
+  const countryOptions = useMemo<SelectOption[]>(
+    () =>
+      (options.countries ?? []).map((name) => ({
+        value: name,
+        label: name,
+        flag: COUNTRY_FLAGS[name] ?? '🌍',
+      })),
+    [options.countries]
+  )
 
   const cityOptions = useMemo<SelectOption[]>(
     () => options.cities.map((c) => ({ value: c, label: c })),
