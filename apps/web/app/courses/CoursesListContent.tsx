@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, BookOpen, ArrowRight } from 'lucide-react'
 
@@ -27,6 +27,20 @@ const subjectAccents: Record<string, string> = {
   'Healthcare': '#991B1B',
   'Data Science': '#C41E3A',
   'Arts': '#A01830',
+}
+
+function getPageItems(current: number, total: number): (number | '...')[] {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1)
+  }
+  const items: (number | '...')[] = [1]
+  const start = Math.max(2, current - 1)
+  const end = Math.min(total - 1, current + 1)
+  if (start > 2) items.push('...')
+  for (let i = start; i <= end; i++) items.push(i)
+  if (end < total - 1) items.push('...')
+  items.push(total)
+  return items
 }
 
 type CourseListData = {
@@ -62,28 +76,71 @@ type CoursesListContentProps = {
 }
 
 export default function CoursesListContent({ initialData, initialSubjects }: CoursesListContentProps) {
+  const [page, setPage] = useState(initialData.page)
+
   const [search, setSearch] = useState('')
   const [subject, setSubject] = useState('')
   const [level, setLevel] = useState('')
   const [scholarship, setScholarship] = useState(false)
-  const [page, setPage] = useState(1)
 
-  const { data, isLoading } = trpc.course.list.useQuery({
-    query: search || undefined,
-    subject: subject || undefined,
-    level: level || undefined,
-    hasScholarship: scholarship || undefined,
-    page,
-    perPage: 12,
-  }, {
-    initialData,
-  })
+  const resultsRef = useRef<HTMLDivElement>(null)
+  const prevPageRef = useRef(page)
+
+  const isInitialQuery = page === initialData.page && !search && !subject && !level && !scholarship
+
+  const { data, isLoading, isFetching } = trpc.course.list.useQuery(
+    {
+      query: search || undefined,
+      subject: subject || undefined,
+      level: level || undefined,
+      hasScholarship: scholarship || undefined,
+      page,
+      perPage: 12,
+    },
+    {
+      initialData: isInitialQuery ? initialData : undefined,
+    }
+  )
 
   const { data: subjects } = trpc.course.getSubjects.useQuery(undefined, {
     initialData: initialSubjects,
   })
 
-  const displayData = data ?? initialData
+  const syncUrl = (nextPage: number) => {
+    const url = new URL(window.location.href)
+    if (nextPage > 1) url.searchParams.set('page', String(nextPage))
+    else url.searchParams.delete('page')
+    window.history.replaceState(window.history.state, '', url.pathname + url.search)
+  }
+
+  const goToPage = (next: number) => {
+    const clamped = Math.max(1, next)
+    setPage(clamped)
+    syncUrl(clamped)
+  }
+
+  const resetPage = () => {
+    if (page !== 1) {
+      setPage(1)
+      syncUrl(1)
+    }
+  }
+
+  useEffect(() => {
+    if (prevPageRef.current !== page) {
+      prevPageRef.current = page
+      const el = resultsRef.current
+      if (!el) return
+      const lenis = window.__lenis
+      if (lenis && typeof lenis.scrollTo === 'function') {
+        lenis.scrollTo(el, { offset: -96 })
+      } else {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }, [page])
+
+  const displayData = data
 
   function getAccent(subj: string): string {
     for (const [key, color] of Object.entries(subjectAccents)) {
@@ -126,11 +183,11 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                     type="text"
                     placeholder="Search courses, subjects..."
                     value={search}
-                    onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+                    onChange={(e) => { setSearch(e.target.value); resetPage() }}
                     className="w-full border-0 border-none bg-transparent p-0 text-sm text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400 sm:text-[15px]"
                   />
                   <Button
-                    onClick={() => setPage(1)}
+                    onClick={() => resetPage()}
                     className="shrink-0 rounded-full bg-[#C41E3A] px-5 text-[13px] hover:bg-[#A01830]"
                   >
                     Search
@@ -152,7 +209,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                 <select
                   aria-label="Filter by subject"
                   value={subject}
-                  onChange={(e) => { setSubject(e.target.value); setPage(1) }}
+                  onChange={(e) => { setSubject(e.target.value); resetPage() }}
                   className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
                 >
                   <option value="">All Subjects</option>
@@ -164,7 +221,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                 <select
                   aria-label="Filter by study level"
                   value={level}
-                  onChange={(e) => { setLevel(e.target.value); setPage(1) }}
+                  onChange={(e) => { setLevel(e.target.value); resetPage() }}
                   className="h-10 rounded-xl border border-gray-200 bg-white px-3 text-sm outline-none transition-colors focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
                 >
                   <option value="">All Levels</option>
@@ -177,7 +234,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                 </select>
 
                 <button
-                  onClick={() => { setScholarship(!scholarship); setPage(1) }}
+                  onClick={() => { setScholarship(!scholarship); resetPage() }}
                   className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition ${
                     scholarship
                       ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
@@ -197,7 +254,7 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
             </FadeUp>
 
             {/* Results Grid */}
-            <div className="mt-8">
+            <div ref={resultsRef} className="mt-8 scroll-mt-24">
               {isLoading ? (
                 <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
                   {Array.from({ length: 6 }).map((_, i) => (
@@ -231,14 +288,14 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                     {['Computer Science', 'Business', 'Engineering', 'Healthcare'].map((s) => (
                       <button
                         key={s}
-                        onClick={() => { setSubject(s); setSearch(''); setLevel(''); setScholarship(false); setPage(1) }}
+                        onClick={() => { setSubject(s); setSearch(''); setLevel(''); setScholarship(false); resetPage() }}
                         className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
                       >
                         {s}
                       </button>
                     ))}
                     <button
-                      onClick={() => { setSearch(''); setSubject(''); setLevel(''); setScholarship(false); setPage(1) }}
+                      onClick={() => { setSearch(''); setSubject(''); setLevel(''); setScholarship(false); resetPage() }}
                       className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
                     >
                       Clear All Filters
@@ -260,9 +317,12 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
                 <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
                   {displayData?.hits.map((course) => {
                     const accent = getAccent(course.subject)
+                    const courseUrl = course.universitySlug
+                      ? `/institutions/${course.universitySlug}/${(course.level || 'postgraduate').toLowerCase()}/${course.slug}`
+                      : `/courses/${course.slug}`
                     return (
                       <FadeUpItem key={course.id}>
-                        <Link href={`/courses/${course.slug}`}>
+                        <Link href={courseUrl}>
                           <article className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
                             {/* Top accent line */}
                             <div
@@ -354,38 +414,52 @@ export default function CoursesListContent({ initialData, initialSubjects }: Cou
             {/* Pagination */}
             {displayData && displayData.totalPages > 1 && (
               <FadeUp>
-                <div className="mt-10 flex items-center justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    disabled={page === 1}
-                  >
-                    <ChevronLeft size={16} />
-                  </Button>
-                  {Array.from({ length: Math.min(5, displayData.totalPages) }, (_, i) => {
-                    const start = Math.max(1, Math.min(page - 2, displayData.totalPages - 4))
-                    const p = start + i
-                    if (p > displayData.totalPages) return null
-                    return (
-                      <Button
-                        key={p}
-                        variant={p === page ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setPage(p)}
-                      >
-                        {p}
-                      </Button>
-                    )
-                  })}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setPage((p) => Math.min(displayData.totalPages, p + 1))}
-                    disabled={page === displayData.totalPages}
-                  >
-                    <ChevronRight size={16} />
-                  </Button>
+                <div className="mt-12 flex flex-col items-center gap-3">
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(page - 1)}
+                      disabled={page === 1 || isFetching}
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft size={16} />
+                    </Button>
+
+                    {getPageItems(page, displayData.totalPages).map((item, index) =>
+                      item === '...' ? (
+                        <span key={`ellipsis-${index}`} className="px-1.5 text-sm font-medium text-gray-400">
+                          …
+                        </span>
+                      ) : (
+                        <Button
+                          key={item}
+                          variant={item === page ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => goToPage(item)}
+                          disabled={isFetching}
+                          aria-current={item === page ? 'page' : undefined}
+                        >
+                          {item}
+                        </Button>
+                      )
+                    )}
+
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(page + 1)}
+                      disabled={page === displayData.totalPages || isFetching}
+                      aria-label="Next page"
+                    >
+                      <ChevronRight size={16} />
+                    </Button>
+                  </div>
+
+                  <p className="text-sm text-gray-500">
+                    Page {page} of {displayData.totalPages}
+                    {isFetching && <span className="ml-2 text-[#C41E3A]">Loading…</span>}
+                  </p>
                 </div>
               </FadeUp>
             )}

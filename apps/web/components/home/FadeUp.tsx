@@ -4,9 +4,9 @@ import { motion, useReducedMotion } from 'framer-motion'
 import type { HTMLMotionProps, Variants } from 'framer-motion'
 import type { ReactNode } from 'react'
 
-function buildFadeUpVariants(_reducedMotion: boolean): Variants {
+function buildFadeUpVariants(): Variants {
   return {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { y: 20 },
     visible: {
       opacity: 1,
       y: 0,
@@ -27,7 +27,7 @@ export function FadeUp({
   ...rest
 }: DivMotionProps & { children: ReactNode; amount?: number }) {
   const prefersReducedMotion = useReducedMotion()
-  const variants = buildFadeUpVariants(!!prefersReducedMotion)
+  const variants = buildFadeUpVariants()
 
   return (
     <motion.div
@@ -88,7 +88,7 @@ export function FadeUpItem({
   ...rest
 }: DivMotionProps & { children: ReactNode }) {
   const prefersReducedMotion = useReducedMotion()
-  const variants = buildFadeUpVariants(!!prefersReducedMotion)
+  const variants = buildFadeUpVariants()
 
   return (
     <motion.div
