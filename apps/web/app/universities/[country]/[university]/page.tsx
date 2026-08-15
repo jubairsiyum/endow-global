@@ -10,6 +10,21 @@ import { MapPin, Globe, Award, Building2, BookOpen, ExternalLink, Clock, Users, 
 
 function stripHtml(html: string) { return html.replace(/<[^>]+>/g, '') }
 
+function toArray(value: unknown): any[] {
+  if (Array.isArray(value)) return value
+  if (typeof value !== 'string') return []
+  let parsed: unknown = value
+  for (let i = 0; i < 2; i++) {
+    try {
+      parsed = JSON.parse(parsed as string)
+    } catch {
+      return []
+    }
+    if (!Array.isArray(parsed) && typeof parsed !== 'string') return []
+  }
+  return Array.isArray(parsed) ? parsed : []
+}
+
 export default function UniversityDetailPage() {
   const { university } = useParams<{ country: string; university: string }>()
   const { data: uni, isLoading } = trpc.university.getBySlug.useQuery({ slug: university as string })
@@ -43,8 +58,8 @@ export default function UniversityDetailPage() {
   }
 
   const courses = (uni as any).courses || []
-  const highlights = Array.isArray((uni as any).highlights) ? (uni as any).highlights : (typeof (uni as any).highlights === 'string' ? JSON.parse(((uni as any).highlights || '[]')) : [])
-  const rankings = Array.isArray((uni as any).rankings) ? (uni as any).rankings : (typeof (uni as any).rankings === 'string' ? JSON.parse(((uni as any).rankings || '[]')) : [])
+  const highlights = toArray((uni as any).highlights)
+  const rankings = toArray((uni as any).rankings)
   const descText = uni.description ? stripHtml(uni.description) : ''
   const descLong = descText.length > 160
   const descDisplay = descExpanded || !descLong ? descText : descText.slice(0, 160).trimEnd() + '…'
