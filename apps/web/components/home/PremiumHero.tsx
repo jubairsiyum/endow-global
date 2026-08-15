@@ -148,13 +148,13 @@ export default function PremiumHero() {
           <div className="relative mx-8 border-t-2 border-dashed" style={{borderColor:'rgba(16,27,61,0.13)'}}>
             <div className="absolute -top-[11px] -left-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]"/><div className="absolute -top-[11px] -right-[45px] w-[22px] h-[22px] rounded-full bg-[#F5F6F9]"/>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 bg-gradient-to-r from-[#EEF2FF] via-[#F4E8FF] to-[#FFE4F0]">
             {[{num:'2,000+',lbl:'Students placed'},{num:`${uniCount}+`,lbl:'Partner universities'},{num:`${countryCount}`,lbl:'Countries'},{num:'98%',lbl:'Success rate'}].map((s,i)=>(
-              <div key={i} className="relative py-5 px-4 text-center text-white" style={{background:BRAND_NAVY}}>
-                {i<3&&<div className="absolute right-0 top-3 bottom-3 border-r-[1.5px] border-dashed border-white/20"/>}
-                <div className="text-2xl sm:text-[26px] font-semibold text-white" style={{fontFamily:"'IBM Plex Mono',monospace"}}>{s.num}</div>
-                <div className="text-[9px] uppercase tracking-[0.09em] mt-1.5" style={{fontFamily:"'IBM Plex Mono',monospace",color:'rgba(255,255,255,0.5)'}}>{s.lbl}</div>
-                <div className="mt-3 mx-auto w-[70%] h-3 opacity-40" style={{background:'repeating-linear-gradient(90deg, rgba(255,255,255,0.5) 0 2px, transparent 2px 4px, rgba(255,255,255,0.5) 4px 5px, transparent 5px 8px)'}}/>
+              <div key={i} className="relative py-5 px-4 text-center">
+                {i<3&&<div className="absolute right-0 top-3 bottom-3 border-r-[1.5px] border-dashed border-[#101B3D]/15"/>}
+                <div className="text-2xl sm:text-[26px] font-semibold text-[#101B3D]" style={{fontFamily:"'IBM Plex Mono',monospace"}}>{s.num}</div>
+                <div className="text-[9px] uppercase tracking-[0.09em] mt-1.5" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#5b6070'}}>{s.lbl}</div>
+                <div className="mt-3 mx-auto w-[70%] h-3 opacity-40" style={{background:'repeating-linear-gradient(90deg, rgba(16,27,61,0.5) 0 2px, transparent 2px 4px, rgba(16,27,61,0.5) 4px 5px, transparent 5px 8px)'}}/>
               </div>
             ))}
           </div>
