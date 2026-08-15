@@ -6,6 +6,12 @@ import Lenis from 'lenis'
 
 const PORTAL_PREFIXES = ['/sa', '/admin', '/counselor']
 
+declare global {
+  interface Window {
+    __lenis?: Lenis
+  }
+}
+
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
 
@@ -20,6 +26,8 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       infinite: false,
     })
 
+    window.__lenis = lenis
+
     function raf(time: number) {
       lenis.raf(time)
       requestAnimationFrame(raf)
@@ -28,6 +36,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     requestAnimationFrame(raf)
 
     return () => {
+      if (window.__lenis === lenis) delete window.__lenis
       lenis.destroy()
     }
   }, [pathname])

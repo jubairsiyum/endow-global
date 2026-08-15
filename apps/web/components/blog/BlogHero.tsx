@@ -1,16 +1,14 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Zap } from 'lucide-react'
 
-export function BlogHero() {
+export function BlogHero({ featured }: { featured: any | null }) {
   const containerVariants = {
     hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
+    show: { opacity: 1, transition: { staggerChildren: 0.1 } },
   }
 
   const itemVariants = {
@@ -50,10 +48,7 @@ export function BlogHero() {
               className="mb-4 max-w-[700px] text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
             >
               <div className="mb-4 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
-              <div className="text-gray-950">
-                Global Education
-              </div>
-
+              <div className="text-gray-950">Global Education</div>
               <div className="bg-gradient-to-r from-[#C41E3A] to-[#EF4444] bg-clip-text text-transparent">
                 Insights &amp; Guides
               </div>
@@ -72,81 +67,72 @@ export function BlogHero() {
               <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
                 <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">500+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
-                  Expert Articles
-                </p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">Expert Articles</p>
               </div>
-
               <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
                 <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">25K+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
-                  Monthly Readers
-                </p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">Monthly Readers</p>
               </div>
-
               <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
                 <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
                 <p className="text-xl font-bold text-[#111827]">20+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">
-                  Partner Universities
-                </p>
+                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">Partner Universities</p>
               </div>
             </motion.div>
           </div>
 
           {/* RIGHT - FEATURED ARTICLE CARD */}
-          <motion.div
-            variants={itemVariants}
-            whileHover={{ y: -8 }}
-            className="relative ml-auto w-full"
-          >
-            <div className="group overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,23,42,0.15)]">
-              {/* CARD IMAGE */}
-              <div className="relative h-[220px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
+          {featured && (
+            <motion.div variants={itemVariants} whileHover={{ y: -8 }} className="relative ml-auto w-full">
+              <Link href={`/blog/${featured.slug}`} className="group block overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,23,42,0.15)]">
+                <div className="relative h-[220px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
+                  {featured.coverImage ? (
+                    <Image
+                      src={featured.coverImage}
+                      alt={featured.title}
+                      fill
+                      priority
+                      className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-gray-200">
+                      {featured.title?.charAt(0)?.toUpperCase() || 'E'}
+                    </div>
+                  )}
+                </div>
 
-                <Image
-                  src="/blog/gks-scholarship-guide.jpg"
-                  alt="Complete GKS Scholarship Guide 2024"
-                  fill
-                  priority
-                  className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
-                />
+                <div className="p-4">
+                  <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827]">
+                    {featured.title}
+                  </h3>
 
+                  <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
+                    {featured.description || ''}
+                  </p>
 
-              </div>
+                  <div className="flex items-center justify-between border-t border-[#E5E7EB] pt-4 text-xs text-[#6B7280]">
+                    <div className="flex items-center gap-3">
+                      {featured.author && <span>By {featured.author}</span>}
+                      {featured.category && (
+                        <>
+                          <span>•</span>
+                          <span>{featured.category}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
 
-              {/* CARD CONTENT */}
-              <div className="p-4">
-                {/* TITLE */}
-                <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827] lg:text-[20px]">
-                  From Dream University to Acceptance Letter
-                </h3>
-
-                {/* DESCRIPTION */}
-                <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
-                 Discover proven strategies, scholarship opportunities, and application insights that help students achieve international education success.
-                </p>
-
-                {/* META */}
-                <div className="flex items-center justify-between border-t border-[#E5E7EB] pt-4 text-xs text-[#6B7280]">
-                  <div className="flex items-center gap-3">
-                    <span>By Endow Team</span>
-                    <span>•</span>
-                    <span>3 min read</span>
+                  <div className="mt-3">
+                    <span className="flex h-11 items-center gap-2 rounded-full bg-[#C41E3A] px-4 text-sm font-semibold text-white transition-all hover:bg-[#B11A33]">
+                      Read Article
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </span>
                   </div>
                 </div>
-
-                {/* CTA */}
-                <div className="mt-3">
-                  <button className="flex h-11 items-center gap-2 rounded-full bg-[#C41E3A] px-4 text-sm font-semibold text-white transition-all hover:bg-[#B11A33]">
-                    Read Article
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.div>
+              </Link>
+            </motion.div>
+          )}
         </motion.div>
       </div>
     </section>

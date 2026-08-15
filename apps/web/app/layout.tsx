@@ -12,6 +12,8 @@ import SkipToContent from '@/components/ui/SkipToContent'
 import PageTransition from '@/components/providers/PageTransition'
 
 import './globals.css'
+import 'react-quill-new/dist/quill.snow.css'
+import '@/components/super-admin/shared/quill-editor.css'
 
 const appUrlRaw = process.env.NEXT_PUBLIC_APP_URL
 const appUrl = (() => {

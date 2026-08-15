@@ -1,14 +1,17 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Globe, Users, BookOpen, Award, ArrowRight } from 'lucide-react'
+import { Globe, ArrowRight } from 'lucide-react'
 
-export function UniversitySpotlight() {
+export function UniversitySpotlight({ university }: { university: any | null }) {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
+
+  if (!university) return null
 
   return (
     <section className="relative border-y border-[#E5E7EB] bg-[#F8FAFC] py-24 lg:py-32">
@@ -42,12 +45,13 @@ export function UniversitySpotlight() {
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* IMAGE */}
             <div className="relative h-96 overflow-hidden lg:h-full">
-              <Image
-                src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=800&h=600&fit=crop"
-                alt="Hanseo University"
-                fill
-                className="object-cover"
-              />
+              {university.coverImage ? (
+                <Image src={university.coverImage} alt={university.title} fill className="object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-[#F8FAFC] text-6xl font-bold text-gray-200">
+                  {university.title?.charAt(0)?.toUpperCase() || 'U'}
+                </div>
+              )}
               <div className="absolute inset-0 bg-[#111827]/25" />
             </div>
 
@@ -66,62 +70,24 @@ export function UniversitySpotlight() {
                   </div>
                 </div>
 
-                <h3 className="mb-2 text-4xl font-bold text-[#111827]">Hanseo University</h3>
-                <p className="mb-8 text-lg text-[#6B7280]">
-                  South Korea | Seosan, Chungcheongnam-do
-                </p>
-
-                {/* QUICK FACTS */}
-                <div className="mb-10 grid grid-cols-2 gap-6 border-b border-[#E5E7EB] pb-10">
-                  <div className="flex items-start gap-4">
-                    <Award className="mt-1 h-6 w-6 flex-shrink-0 text-[#C41E3A]" />
-                    <div>
-                      <p className="text-sm text-[#6B7280]">World Ranking</p>
-                      <p className="text-2xl font-bold text-[#111827]">Top 2000</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-4">
-                    <Users className="mt-1 h-6 w-6 flex-shrink-0 text-[#C41E3A]" />
-                    <div>
-                      <p className="text-sm text-[#6B7280]">Intl Students</p>
-                      <p className="text-2xl font-bold text-[#111827]">3000+</p>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="mb-2 text-4xl font-bold text-[#111827]">{university.title}</h3>
+                {university.category && (
+                  <p className="mb-8 text-lg text-[#6B7280]">{university.category}</p>
+                )}
 
                 {/* DESCRIPTION */}
                 <p className="mb-8 text-base leading-relaxed text-[#6B7280]">
-                  Hanseo University is one of South Korea's leading private universities, offering
-                  excellent programs in engineering, business, humanities, and sciences. Known for
-                  its strong industry partnerships and scholarship opportunities for international
-                  students.
+                  {university.description || ''}
                 </p>
 
-                {/* KEY HIGHLIGHTS */}
-                <div className="mb-8 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-[#C41E3A]" />
-                    <p className="text-[#111827]">
-                      Strong scholarship opportunities for international students
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-[#C41E3A]" />
-                    <p className="text-[#111827]">Modern campus with state-of-the-art facilities</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="h-2 w-2 rounded-full bg-[#C41E3A]" />
-                    <p className="text-[#111827]">
-                      Active exchange programs with 100+ partner universities
-                    </p>
-                  </div>
-                </div>
-
                 {/* CTA */}
-                <button className="group inline-flex h-12 items-center gap-2 rounded-lg bg-[#C41E3A] px-8 font-semibold text-white transition-colors hover:bg-red-700">
-                  Learn More{' '}
+                <Link
+                  href={`/blog/${university.slug}`}
+                  className="group inline-flex h-12 items-center gap-2 rounded-lg bg-[#C41E3A] px-8 font-semibold text-white transition-colors hover:bg-red-700"
+                >
+                  Learn More
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </button>
+                </Link>
               </motion.div>
             </div>
           </div>

@@ -29,7 +29,7 @@ export function Navbar() {
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 20)
+    const onScroll = () => setIsScrolled(window.scrollY > 50)
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
@@ -73,7 +73,7 @@ export function Navbar() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          className={`flex w-full max-w-6xl items-center justify-between gap-4 rounded-full px-4 py-2.5 transition-all duration-300 sm:px-5 sm:py-3 ${
+          className={`flex w-full max-w-6xl min-h-[64px] items-center justify-between gap-4 rounded-full px-4 py-2.5 transition-all duration-300 sm:px-6 sm:py-3 ${
             isScrolled
               ? 'bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.8] ring-1 ring-black/[0.04]'
               : 'bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.5] ring-1 ring-white/40'
@@ -113,7 +113,7 @@ export function Navbar() {
                   >
                     <button
                       onClick={() => setIsCountriesOpen(!isCountriesOpen)}
-                      className={`relative flex items-center gap-1 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                      className={`relative flex items-center gap-1 rounded-full px-6 py-2.5 text-[13px] font-medium transition-colors ${
                         isCountriesActive
                           ? 'text-[#C41E3A]'
                           : 'text-gray-500 hover:text-gray-900'
@@ -163,14 +163,14 @@ export function Navbar() {
                 )
               }
 
-              const isActive = pathname === item.href
+              const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
               return (
                 <Link
                   key={item.href}
                   href={item.href}
                   prefetch={true}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex items-center gap-1 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                  className={`relative flex items-center gap-1 rounded-full px-6 py-2.5 text-[13px] font-medium transition-colors ${
                     isActive
                       ? 'text-[#C41E3A]'
                       : 'text-gray-500 hover:text-gray-900'

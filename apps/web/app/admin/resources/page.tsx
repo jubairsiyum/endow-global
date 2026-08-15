@@ -5,10 +5,11 @@ import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
+import { QuillEditor } from '@/components/super-admin/shared/QuillEditor'
 import { toast } from 'sonner'
 import {
   Plus, Pencil, Trash2, X, Search, BookOpen, FileText, Upload, EyeOff,
-  ExternalLink, Loader2, Globe, Tag,
+  ExternalLink, Loader2, Globe, Tag, Star,
 } from 'lucide-react'
 
 interface ResourceForm {
@@ -19,6 +20,7 @@ interface ResourceForm {
   content: string
   coverImage: string
   category: string
+  section: string
   tags: string
   author: string
   fileUrl: string
@@ -26,20 +28,34 @@ interface ResourceForm {
   mimeType: string
   fileSize: string
   isPublished: boolean
+  deadline: string
   metaTitle: string
   metaDescription: string
   keywords: string
   canonicalUrl: string
   ogImageUrl: string
   noIndex: boolean
+  featured: boolean
+}
+
+const SECTIONS = [
+  { value: '', label: 'General (no section)' },
+  { value: 'trending', label: 'Trending Now' },
+  { value: 'scholarship', label: 'Latest Scholarships' },
+  { value: 'visa', label: 'Visa Updates' },
+  { value: 'featured_university', label: 'Featured University' },
+]
+
+function sectionLabel(key: string | null | undefined): string {
+  return SECTIONS.find((s) => s.value === key)?.label || ''
 }
 
 const emptyForm: ResourceForm = {
   type: 'BLOG',
   title: '', slug: '', description: '', content: '', coverImage: '',
-  category: '', tags: '', author: '', fileUrl: '', fileName: '', mimeType: '', fileSize: '',
-  isPublished: true, metaTitle: '', metaDescription: '', keywords: '', canonicalUrl: '', ogImageUrl: '',
-  noIndex: false,
+  category: '', section: '', tags: '', author: '', fileUrl: '', fileName: '', mimeType: '', fileSize: '',
+  isPublished: true, deadline: '', metaTitle: '', metaDescription: '', keywords: '', canonicalUrl: '', ogImageUrl: '',
+  noIndex: false, featured: false,
 }
 
 function splitComma(s: string): string[] {
@@ -118,6 +134,7 @@ export default function ResourcesPage() {
       content: r.content || '',
       coverImage: r.coverImage || '',
       category: r.category || '',
+      section: r.section || '',
       tags: toCommaList(r.tags),
       author: r.author || '',
       fileUrl: r.fileUrl || '',
@@ -125,12 +142,14 @@ export default function ResourcesPage() {
       mimeType: r.mimeType || '',
       fileSize: r.fileSize?.toString() || '',
       isPublished: r.isPublished ?? true,
+      deadline: r.deadline ? new Date(r.deadline).toISOString().slice(0, 10) : '',
       metaTitle: r.metaTitle || '',
       metaDescription: r.metaDescription || '',
       keywords: toCommaList(r.keywords),
       canonicalUrl: r.canonicalUrl || '',
       ogImageUrl: r.ogImageUrl || '',
       noIndex: r.noIndex ?? false,
+      featured: r.featured ?? false,
     })
     setShowModal(true)
   }
@@ -180,6 +199,7 @@ export default function ResourcesPage() {
       content: form.content || null,
       coverImage: form.coverImage || null,
       category: form.category || null,
+      section: form.section || null,
       tags: splitComma(form.tags),
       author: form.author || null,
       fileUrl: form.fileUrl || null,
@@ -187,12 +207,14 @@ export default function ResourcesPage() {
       mimeType: form.mimeType || null,
       fileSize: form.fileSize ? parseInt(form.fileSize, 10) || null : null,
       isPublished: form.isPublished,
+      deadline: form.deadline ? new Date(form.deadline) : null,
       metaTitle: form.metaTitle || null,
       metaDescription: form.metaDescription || null,
       keywords: splitComma(form.keywords),
       canonicalUrl: form.canonicalUrl || null,
       ogImageUrl: form.ogImageUrl || null,
       noIndex: form.noIndex,
+      featured: form.featured,
     }
 
     if (editingId) updateMutation.mutate({ id: editingId, ...payload })
@@ -268,7 +290,10 @@ export default function ResourcesPage() {
                     {r.type === 'BLOG' ? <BookOpen size={16} /> : <FileText size={16} />}
                   </div>
                   <div className="min-w-0">
-                    <div className="truncate font-semibold text-gray-900">{r.title}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="truncate font-semibold text-gray-900">{r.title}</span>
+                      {r.featured && <Star size={13} className="shrink-0 text-amber-500" />}
+                    </div>
                     <div className="truncate text-xs text-gray-400">/{r.slug}</div>
                   </div>
                 </div>
@@ -277,7 +302,10 @@ export default function ResourcesPage() {
                     {r.type === 'BLOG' ? 'Blog' : 'File'}
                   </span>
                 </div>
-                <div className="truncate text-sm text-gray-600">{r.category || '—'}</div>
+                <div className="truncate text-sm text-gray-600">
+                  {r.category || '—'}
+                  {r.section && <span className="ml-2 inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500">{sectionLabel(r.section)}</span>}
+                </div>
                 <div className="flex items-center gap-1.5">
                   {r.isPublished ? (
                     <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Published</span>
@@ -363,9 +391,29 @@ export default function ResourcesPage() {
                     <label className={labelCls}>Description / Excerpt</label>
                     <textarea value={form.description} onChange={(e) => setF('description', e.target.value)} rows={2} placeholder="Short summary shown in listings and search results." className={inputCls} style={is} />
                   </div>
+                  <div>
+                    <label className={labelCls}>Section</label>
+                    <select value={form.section} onChange={(e) => setF('section', e.target.value)} className={inputCls} style={is}>
+                      {SECTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Deadline (for scholarships)</label>
+                    <input type="date" value={form.deadline} onChange={(e) => setF('deadline', e.target.value)} className={inputCls} style={is} />
+                  </div>
+                  <div className="sm:col-span-2 flex items-center gap-3">
+                    <button type="button" onClick={() => setF('featured', !form.featured)} className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium border transition-all ${form.featured ? 'bg-[#C41E3A]/5 border-[#C41E3A]/40 text-[#C41E3A]' : 'bg-white border-gray-200 text-gray-500'}`}>
+                      <Star size={14} /> Feature on blog hero
+                    </button>
+                  </div>
                   <div className="sm:col-span-2">
-                    <label className={labelCls}>Content (HTML supported)</label>
-                    <textarea value={form.content} onChange={(e) => setF('content', e.target.value)} rows={8} placeholder="<h2>Heading</h2><p>Body text…</p>" className={`${inputCls} font-mono text-xs`} style={is} />
+                    <label className={labelCls}>Content</label>
+                    <QuillEditor
+                      value={form.content}
+                      onChange={(v) => setF('content', v)}
+                      placeholder="Write the article content…"
+                      minHeight={240}
+                    />
                   </div>
                   <div className="sm:col-span-2">
                     <label className={labelCls}>Cover Image</label>

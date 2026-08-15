@@ -1,7 +1,4 @@
-/* quill-editor.css â€” SA Dark Theme override */
-
-/* â”€â”€ Import snow theme â”€â”€ */
-@import 'react-quill-new/dist/quill.snow.css';
+/* quill-editor.css — SA Dark Theme override */
 
 /* â”€â”€ Toolbar: fix button sizing â”€â”€ */
 .sa-quill-editor .ql-toolbar.ql-snow {

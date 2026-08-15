@@ -1,7 +1,6 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import './quill-editor.css'
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false })
 

@@ -17,6 +17,7 @@ const resourceInput = z.object({
   content: z.string().optional().nullable(),
   coverImage: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
+  section: z.string().optional().nullable(),
   tags: z.array(z.string()).default([]),
   author: z.string().optional().nullable(),
   fileUrl: z.string().optional().nullable(),
@@ -25,12 +26,14 @@ const resourceInput = z.object({
   fileSize: z.number().int().min(0).optional().nullable(),
   isPublished: z.boolean().default(false),
   publishedAt: z.date().optional().nullable(),
+  deadline: z.date().optional().nullable(),
   metaTitle: z.string().optional().nullable(),
   metaDescription: z.string().optional().nullable(),
   keywords: z.array(z.string()).default([]),
   canonicalUrl: z.string().optional().nullable(),
   ogImageUrl: z.string().optional().nullable(),
   noIndex: z.boolean().default(false),
+  featured: z.boolean().default(false),
 })
 
 export const resourceRouter = createTRPCRouter({

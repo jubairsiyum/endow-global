@@ -30,17 +30,17 @@ export function Footer() {
     <footer className="bg-[#f6f7fb]">
       {/* Main Footer */}
       <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 sm:py-14 lg:px-8">
-        {/* Mobile: stacked layout | lg: 4-column grid */}
-        <div className="grid gap-6 lg:grid-cols-4 lg:gap-8">
-          {/* Brand Column — full width on mobile */}
-          <div className="lg:col-span-1">
+        {/* 4-column grid */}
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Brand Column */}
+          <div>
             <Link href="/" className="inline-flex items-center gap-2.5">
               <Image
                 src="/logo/endoedu.svg"
                 alt="Endow Global Education"
-                width={32}
-                height={32}
-                className="h-8 w-8"
+                width={36}
+                height={36}
+                className="h-9 w-9"
               />
               <div className="leading-none">
                 <span className="block text-[13px] font-bold tracking-tight text-gray-900">
@@ -61,10 +61,10 @@ export function Footer() {
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-all duration-300 hover:bg-[#C41E3A] hover:text-white hover:shadow-[0_4px_12px_rgba(196,30,58,0.2)]"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 text-gray-400 transition-opacity duration-150 hover:bg-[#C41E3A] hover:text-white hover:opacity-80 hover:shadow-[0_4px_12px_rgba(196,30,58,0.2)]"
                   aria-label={social.label}
                 >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 320 512" fill="currentColor">
+                  <svg className="h-5 w-5" viewBox="0 0 320 512" fill="currentColor">
                     <path d={social.path} />
                   </svg>
                 </a>
@@ -72,49 +72,46 @@ export function Footer() {
             </div>
           </div>
 
-          {/* 2-column wrapper for About + Helpful on mobile */}
-          <div className="grid grid-cols-2 gap-6 sm:gap-8 lg:col-span-2 lg:grid-cols-2 lg:gap-8">
-            {/* About Endow */}
-            <div>
-              <h5 className="text-sm font-bold text-gray-900">About Endow</h5>
-              <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
-              <ul className="space-y-1.5 sm:space-y-2.5">
-                {aboutLinks.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
-                    >
-                      <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Helpful Links */}
-            <div>
-              <h5 className="text-sm font-bold text-gray-900">Helpful Links</h5>
-              <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
-              <ul className="space-y-1.5 sm:space-y-2.5">
-                {helpfulLinks.map((link) => (
-                  <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
-                    >
-                      <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          {/* About Endow */}
+          <div>
+            <h5 className="text-sm font-bold text-gray-900">About Endow</h5>
+            <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
+            <ul className="space-y-1.5 sm:space-y-2.5">
+              {aboutLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                  >
+                    <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          {/* Get in Touch — full width on mobile */}
-          <div className="sm:col-span-2 lg:col-span-1">
+          {/* Helpful Links */}
+          <div>
+            <h5 className="text-sm font-bold text-gray-900">Helpful Links</h5>
+            <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
+            <ul className="space-y-1.5 sm:space-y-2.5">
+              {helpfulLinks.map((link) => (
+                <li key={link.label}>
+                  <Link
+                    href={link.href}
+                    className="group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]"
+                  >
+                    <ArrowRight size={11} className="text-[#C41E3A]/40 transition-transform group-hover:translate-x-0.5" />
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Get in Touch */}
+          <div>
             <h5 className="text-sm font-bold text-gray-900">Get in Touch</h5>
             <div className="mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4" />
             <ul className="space-y-2 sm:space-y-3">
@@ -159,17 +156,17 @@ export function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-gray-200/80">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-4 sm:flex-row sm:gap-4 sm:py-6 sm:px-6 lg:px-8">
-          <p className="text-[12px] text-gray-400 sm:text-[13px]">
+          <p className="text-[13px] text-[#9ca3af]">
             &copy; {new Date().getFullYear()} Endow Global Education. All rights reserved.
           </p>
           <div className="flex items-center gap-4 sm:gap-5">
-            <Link href="/terms" className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]">
+            <Link href="/terms" className="text-[13px] text-[#9ca3af] transition-colors hover:text-gray-700">
               Terms of Service
             </Link>
-            <Link href="/privacy" className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]">
+            <Link href="/privacy" className="text-[13px] text-[#9ca3af] transition-colors hover:text-gray-700">
               Privacy Policy
             </Link>
-            <Link href="/cookies" className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]">
+            <Link href="/cookies" className="text-[13px] text-[#9ca3af] transition-colors hover:text-gray-700">
               Cookie Policy
             </Link>
           </div>
