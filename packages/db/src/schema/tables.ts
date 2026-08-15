@@ -487,6 +487,43 @@ export const branches = mysqlTable('branch', {
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
+// ─── Resources (Blogs & Files) ──────────────────────────────
+
+export const resources = mysqlTable(
+  'resource',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    type: mysqlEnum('type', ['BLOG', 'FILE']).notNull(),
+    title: varchar('title', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    description: text('description'),
+    content: text('content'),
+    coverImage: varchar('cover_image', { length: 500 }),
+    category: varchar('category', { length: 100 }),
+    tags: json('tags').default('[]').notNull(),
+    author: varchar('author', { length: 255 }),
+    fileUrl: varchar('file_url', { length: 500 }),
+    fileName: varchar('file_name', { length: 255 }),
+    mimeType: varchar('mime_type', { length: 100 }),
+    fileSize: int('file_size'),
+    isPublished: boolean('is_published').default(false).notNull(),
+    publishedAt: datetime('published_at', { mode: 'date' }),
+    metaTitle: varchar('meta_title', { length: 255 }),
+    metaDescription: text('meta_description'),
+    keywords: json('keywords').default('[]').notNull(),
+    canonicalUrl: varchar('canonical_url', { length: 500 }),
+    ogImageUrl: varchar('og_image_url', { length: 500 }),
+    noIndex: boolean('no_index').default(false).notNull(),
+    viewCount: int('view_count').default(0).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    typeIdx: index('idx_resource_type').on(table.type),
+    publishedTypeIdx: index('idx_resource_published_type').on(table.isPublished, table.type),
+  })
+)
+
 // ─── Student Inquiries ──────────────────────────────────────
 
 export const studentInquiries = mysqlTable('student_inquiry', {

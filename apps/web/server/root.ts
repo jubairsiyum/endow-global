@@ -12,6 +12,7 @@ import { aiRouter } from './routers/ai'
 import { endowRouter } from './routers/endow'
 import { testimonialRouter } from './routers/testimonial'
 import { universityRouter } from './routers/university'
+import { resourceRouter } from './routers/resource'
 
 export const appRouter = createTRPCRouter({
   user: userRouter,
@@ -27,6 +28,7 @@ export const appRouter = createTRPCRouter({
   endow: endowRouter,
   testimonial: testimonialRouter,
   university: universityRouter,
+  resource: resourceRouter,
 })
 
 export type AppRouter = typeof appRouter

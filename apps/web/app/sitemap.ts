@@ -1,11 +1,14 @@
 import { MetadataRoute } from 'next'
 import { db, schema } from '@/lib/db'
-import { eq } from 'drizzle-orm'
+import { eq as _eq, and as _and } from 'drizzle-orm'
+
+const eq = _eq as any
+const and = _and as any
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  const staticPages = ['', '/universities', '/blog', '/about', '/faq', '/opportunities'].map(
+  const staticPages = ['', '/universities', '/blog', '/resources', '/about', '/faq', '/opportunities'].map(
     (path) => ({
       url: `${baseUrl}${path}`,
       lastModified: new Date(),
@@ -27,7 +30,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }))
 
-    return [...staticPages, ...universityPages]
+    const blogs = await db
+      .select({ slug: schema.resources.slug, updatedAt: schema.resources.updatedAt })
+      .from(schema.resources)
+      .where(and(eq(schema.resources.type, 'BLOG'), eq(schema.resources.isPublished, true)))
+
+    const blogPages = blogs.map((b) => ({
+      url: `${baseUrl}/blog/${b.slug}`,
+      lastModified: b.updatedAt,
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    }))
+
+    return [...staticPages, ...universityPages, ...blogPages]
   } catch {
     return staticPages
   }
