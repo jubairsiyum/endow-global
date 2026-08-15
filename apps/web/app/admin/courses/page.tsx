@@ -44,6 +44,25 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue
 }
 
+// Normalize a "list" value (array, JSON string, or plain string) into a
+// newline-separated text for the textarea. Handles single- and double-encoded
+// JSON strings so editing always renders one item per line.
+function highlightsToText(value: unknown): string {
+  if (Array.isArray(value)) return value.filter((v) => typeof v === 'string').join('\n')
+  if (typeof value !== 'string') return ''
+  let current: unknown = value
+  for (let i = 0; i < 2; i++) {
+    try {
+      current = JSON.parse(current as string)
+    } catch {
+      break
+    }
+    if (Array.isArray(current)) return current.filter((v) => typeof v === 'string').join('\n')
+    if (typeof current !== 'string') break
+  }
+  return typeof current === 'string' ? current : ''
+}
+
 const is = { background: '#fff', borderColor: '#e5e7eb', color: '#111827' }
 
 export default function CoursesPage() {
@@ -88,7 +107,7 @@ export default function CoursesPage() {
       tuitionFee: c.tuitionFee?.toString() || '', currency: c.currency || 'USD', language: c.language || 'English',
       description: c.description || '', isActive: c.isActive ?? true,
       campus: c.campus || '', modeOfStudy: c.modeOfStudy || 'FULL_TIME',
-      highlights: Array.isArray(c.highlights) ? c.highlights.join('\n') : (c.highlights || ''),
+      highlights: highlightsToText(c.highlights),
       professionalAccreditation: c.professionalAccreditation || '',
       offerResponseTime: c.offerResponseTime || '', applicationFee: c.applicationFee?.toString() || '',
       brochureUrl: c.brochureUrl || '',
