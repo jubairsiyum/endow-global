@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
@@ -46,6 +47,9 @@ export default function UniversitiesPage() {
  const [form, setForm] = useState<UniForm>(emptyForm)
  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
  const [countryFilter, setCountryFilter] = useState('')
+ const [mounted, setMounted] = useState(false)
+
+ useEffect(() => { setMounted(true) }, [])
 
  const utils = trpc.useUtils()
 
@@ -251,8 +255,8 @@ export default function UniversitiesPage() {
  </AdminTable>
 
  {/* CREATE / EDIT MODAL */}
- {showModal && (
- <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 ">
+ {showModal && mounted && createPortal(
+ <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 ">
  <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
  <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
  <h2 className="text-xl font-bold text-gray-900">
@@ -326,12 +330,13 @@ export default function UniversitiesPage() {
  </div>
  </form>
  </div>
- </div>
+ </div>,
+ document.body
  )}
 
  {/* DELETE CONFIRMATION MODAL */}
- {deleteConfirm && (
- <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 px-4 ">
+ {deleteConfirm && mounted && createPortal(
+ <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4 ">
  <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
  <h3 className="text-lg font-bold text-gray-900">Delete University?</h3>
  <p className="mt-2 text-sm text-gray-500">This action cannot be undone. All associated courses will also be removed.</p>
@@ -342,7 +347,8 @@ export default function UniversitiesPage() {
  </button>
  </div>
  </div>
- </div>
+ </div>,
+ document.body
  )}
  </div>
  )

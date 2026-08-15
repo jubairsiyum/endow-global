@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
@@ -55,6 +56,9 @@ export default function CoursesPage() {
   const [reqItems, setReqItems] = useState<{ cat: string; title: string; desc: string }[]>([])
   const [levelFilter, setLevelFilter] = useState('')
   const [universityFilter, setUniversityFilter] = useState('')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   const utils = trpc.useUtils()
   const { data: courses, isLoading } = trpc.admin.courses.list.useQuery({ search: debouncedSearch || undefined, level: (levelFilter as any) || undefined, universityId: universityFilter || undefined })
@@ -163,8 +167,8 @@ export default function CoursesPage() {
         </div>
       </AdminTable>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4">
+      {showModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
           <div className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5"><h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Course' : 'Add Course'}</h2><button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"><X size={18} /></button></div>
             <div className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
@@ -250,7 +254,8 @@ export default function CoursesPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
