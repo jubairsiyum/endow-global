@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 import {
   Search,
   X,
+  Check,
   RotateCcw,
   ChevronDown,
   Globe,
@@ -18,7 +19,7 @@ import {
   DollarSign,
   FileCheck2,
 } from 'lucide-react'
-import { FEE_MAX_LIMIT } from './filter-utils'
+import { FEE_MAX_LIMIT, countActiveFilters } from './filter-utils'
 import type { CourseFilters } from './filter-utils'
 
 export type FilterOptions = {
@@ -80,47 +81,51 @@ const DURATION_OPTIONS: { label: string; value: string }[] = [
 function Section({
   icon,
   title,
-  right,
+  count = 0,
   children,
-  defaultOpen = true,
 }: {
   icon: ReactNode
   title: string
-  right?: ReactNode
+  count?: number
   children: ReactNode
-  defaultOpen?: boolean
 }) {
-  const [open, setOpen] = useState(defaultOpen)
+  const [open, setOpen] = useState(false)
   return (
     <div className="border-b border-gray-100">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2.5 py-3 text-left"
+        className="flex w-full items-center gap-2.5 py-2.5 text-left"
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.08] text-[#C41E3A]">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
           {icon}
         </span>
-        <span className="min-w-0 flex-1 text-[13px] font-bold uppercase tracking-wide text-gray-900">{title}</span>
-        {right}
+        <span className={`flex-1 text-[13px] font-semibold ${count > 0 ? 'text-[#C41E3A]' : 'text-gray-800'}`}>
+          {title}
+        </span>
+        {count > 0 && (
+          <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[10px] font-bold text-white">
+            {count}
+          </span>
+        )}
         <ChevronDown
           size={15}
           className={`shrink-0 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         />
       </button>
-      <div className={open ? 'pb-4' : 'hidden'}>{children}</div>
+      <div className={open ? 'pb-3' : 'hidden'}>{children}</div>
     </div>
   )
 }
 
-function SelectionCounter({ count, limit }: { count: number; limit?: number }) {
+function CheckIndicator({ checked }: { checked: boolean }) {
   return (
     <span
-      className={`shrink-0 text-[11px] font-medium ${
-        limit !== undefined && count >= limit ? 'text-[#C41E3A]' : 'text-gray-400'
+      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+        checked ? 'border-[#C41E3A] bg-gradient-to-br from-[#C41E3A] to-[#A01830]' : 'border-gray-300 bg-white'
       }`}
     >
-      {count > 0 ? `${count} selected` : limit !== undefined ? `Up to ${limit}` : ''}
+      {checked && <Check size={12} strokeWidth={3} className="text-white" />}
     </span>
   )
 }
@@ -135,14 +140,18 @@ function CheckboxRow({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors hover:bg-gray-50">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="h-4 w-4 shrink-0 rounded border-gray-300 accent-[#C41E3A]"
-      />
-      <span className="flex-1 text-sm text-gray-700">{label}</span>
+    <label
+      className={`flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors ${
+        checked ? 'bg-rose-50' : 'hover:bg-gray-50'
+      }`}
+    >
+      <input type="checkbox" className="sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <CheckIndicator checked={checked} />
+      <span
+        className={`min-w-0 flex-1 text-[13px] leading-5 ${checked ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'}`}
+      >
+        {label}
+      </span>
     </label>
   )
 }
@@ -166,24 +175,24 @@ function ToggleRow({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center gap-3 rounded-lg px-1.5 py-2 text-left transition-colors hover:bg-gray-50"
+      className="flex w-full items-center gap-2.5 py-2.5 text-left transition-colors hover:bg-gray-50"
     >
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.08] text-[#C41E3A]">
+      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-gray-800">{label}</span>
+        <span className={`block text-[13px] font-semibold ${checked ? 'text-[#C41E3A]' : 'text-gray-800'}`}>{label}</span>
         {description && <span className="block text-[11px] leading-4 text-gray-400">{description}</span>}
       </span>
       <span
         aria-hidden="true"
-        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
-          checked ? 'bg-[#C41E3A]' : 'bg-gray-300'
+        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
+          checked ? 'bg-gradient-to-r from-[#C41E3A] to-[#A01830]' : 'bg-gray-300'
         }`}
       >
         <span
-          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
-            checked ? 'translate-x-5' : 'translate-x-0'
+          className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
+            checked ? 'translate-x-4' : 'translate-x-0'
           }`}
         />
       </span>
@@ -239,7 +248,7 @@ function SearchableMultiSelect({
         )}
       </div>
 
-      <div className="mt-1.5 max-h-44 space-y-0.5 overflow-y-auto pr-1">
+      <div className="filter-scroll mt-1.5 max-h-56 space-y-0.5 overflow-y-auto overscroll-contain pr-1">
         {filtered.map((option) => {
           const isSelected = selected.includes(option.value)
           const isDisabled = limit !== undefined && !isSelected && selected.length >= limit
@@ -247,22 +256,29 @@ function SearchableMultiSelect({
             <label
               key={option.value}
               className={`flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors ${
-                isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-50'
-              }`}
+                isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
+              } ${isSelected ? 'bg-rose-50' : 'hover:bg-gray-50'}`}
             >
               <input
                 type="checkbox"
+                className="sr-only"
                 checked={isSelected}
                 disabled={isDisabled}
                 onChange={() => toggle(option.value)}
-                className="h-4 w-4 shrink-0 rounded border-gray-300 accent-[#C41E3A]"
               />
+              <CheckIndicator checked={isSelected} />
               {option.flag && <span className="text-base leading-none">{option.flag}</span>}
-              <span className="min-w-0 flex-1 truncate text-sm text-gray-700">{option.label}</span>
+              <span
+                className={`min-w-0 flex-1 truncate text-[13px] ${
+                  isSelected ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'
+                }`}
+              >
+                {option.label}
+              </span>
             </label>
           )
         })}
-        {filtered.length === 0 && <p className="px-1.5 py-2 text-sm text-gray-400">No matches found</p>}
+        {filtered.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No matches found</p>}
       </div>
 
       {selected.length > 0 && (
@@ -308,6 +324,17 @@ export function CourseFilters({
   const set = (patch: Partial<CourseFilters>) => onChange({ ...filters, ...patch })
 
   const feeMax = options.feeMax || FEE_MAX_LIMIT
+  const activeCount = countActiveFilters(filters)
+
+  useEffect(() => {
+    const lenis = window.__lenis
+    if (!lenis) return
+    if (open) {
+      lenis.stop()
+    } else {
+      lenis.start()
+    }
+  }, [open])
 
   const countryOptions = useMemo<SelectOption[]>(
     () =>
@@ -354,17 +381,20 @@ export function CourseFilters({
       />
 
       <div
-        className={`absolute right-0 top-0 flex h-full w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-200 ease-out ${
+        data-lenis-prevent
+        className={`absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl transition-transform duration-200 ease-out ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
-          <div className="flex items-center gap-2.5">
+        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+          <div className="flex items-center gap-2">
             <h3 className="text-base font-bold text-gray-900">Filters</h3>
-            <span className="rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-xs font-semibold text-[#C41E3A]">
-              {resultsCount} results
-            </span>
+            {activeCount > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[11px] font-bold text-white">
+                {activeCount}
+              </span>
+            )}
           </div>
           <button
             onClick={onClose}
@@ -376,13 +406,8 @@ export function CourseFilters({
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5">
-          {/* Destination */}
-          <Section
-            icon={<Globe size={15} />}
-            title="Destination"
-            right={<SelectionCounter count={filters.countries.length} />}
-          >
+        <div className="min-h-0 flex-1 overflow-y-auto px-4">
+          <Section icon={<Globe size={15} />} title="Destination" count={filters.countries.length}>
             <SearchableMultiSelect
               label="Destination"
               options={countryOptions}
@@ -392,12 +417,7 @@ export function CourseFilters({
             />
           </Section>
 
-          {/* City */}
-          <Section
-            icon={<MapPin size={15} />}
-            title="City"
-            right={<SelectionCounter count={filters.cities.length} limit={5} />}
-          >
+          <Section icon={<MapPin size={15} />} title="City" count={filters.cities.length}>
             <SearchableMultiSelect
               label="City"
               options={cityOptions}
@@ -407,12 +427,7 @@ export function CourseFilters({
             />
           </Section>
 
-          {/* Institution */}
-          <Section
-            icon={<Building2 size={15} />}
-            title="Institution"
-            right={<SelectionCounter count={filters.institutionIds.length} limit={5} />}
-          >
+          <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
             <SearchableMultiSelect
               label="Institution"
               options={institutionOptions}
@@ -422,13 +437,8 @@ export function CourseFilters({
             />
           </Section>
 
-          {/* Study Level */}
-          <Section
-            icon={<GraduationCap size={15} />}
-            title="Study Level"
-            right={<SelectionCounter count={filters.levels.length} />}
-          >
-            <div className="space-y-0.5">
+          <Section icon={<GraduationCap size={15} />} title="Study Level" count={filters.levels.length}>
+            <div className="grid grid-cols-2 gap-x-3">
               {levelOptions.map((l) => (
                 <CheckboxRow
                   key={l.value}
@@ -441,16 +451,11 @@ export function CourseFilters({
                   label={l.label}
                 />
               ))}
-              {levelOptions.length === 0 && <p className="px-1.5 py-2 text-sm text-gray-400">No levels available</p>}
             </div>
+            {levelOptions.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No levels available</p>}
           </Section>
 
-          {/* Subject */}
-          <Section
-            icon={<BookOpen size={15} />}
-            title="Subject"
-            right={<SelectionCounter count={filters.subjects.length} limit={5} />}
-          >
+          <Section icon={<BookOpen size={15} />} title="Subject" count={filters.subjects.length}>
             <SearchableMultiSelect
               label="Subject"
               options={subjectOptions}
@@ -460,13 +465,8 @@ export function CourseFilters({
             />
           </Section>
 
-          {/* Duration */}
-          <Section
-            icon={<Clock size={15} />}
-            title="Duration"
-            right={<SelectionCounter count={filters.durations.length} />}
-          >
-            <div className="space-y-0.5">
+          <Section icon={<Clock size={15} />} title="Duration" count={filters.durations.length}>
+            <div className="grid grid-cols-2 gap-x-3">
               {DURATION_OPTIONS.map((d) => (
                 <CheckboxRow
                   key={d.value}
@@ -482,12 +482,7 @@ export function CourseFilters({
             </div>
           </Section>
 
-          {/* Start Year */}
-          <Section
-            icon={<CalendarDays size={15} />}
-            title="Start Year"
-            right={<SelectionCounter count={filters.startYears.length} />}
-          >
+          <Section icon={<CalendarDays size={15} />} title="Start Year" count={filters.startYears.length}>
             {startYears.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {startYears.map((year) => {
@@ -502,7 +497,7 @@ export function CourseFilters({
                             : [...filters.startYears, year],
                         })
                       }
-                      className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                      className={`rounded-lg border px-3 py-1 text-[13px] font-semibold transition-colors ${
                         active
                           ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
                           : 'border-gray-200 text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
@@ -514,71 +509,54 @@ export function CourseFilters({
                 })}
               </div>
             ) : (
-              <p className="px-1.5 py-2 text-sm text-gray-400">No intake years available</p>
+              <p className="px-1 py-2 text-sm text-gray-400">No intake years available</p>
             )}
           </Section>
 
-          {/* Fee Range */}
-          <Section
-            icon={<DollarSign size={15} />}
-            title="Fee Range"
-            right={<span className="shrink-0 text-[11px] text-gray-400">USD / year</span>}
-          >
+          <Section icon={<DollarSign size={15} />} title="Fee Range" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min</label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={feeMax}
-                    value={filters.feeMin ?? ''}
-                    onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
-                    placeholder="0"
-                    className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
-                  />
-                </div>
+                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min ($)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={feeMax}
+                  value={filters.feeMin ?? ''}
+                  onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
+                  placeholder="0"
+                  className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
+                />
               </div>
               <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max</label>
-                <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
-                    $
-                  </span>
-                  <input
-                    type="number"
-                    min={0}
-                    max={feeMax}
-                    value={filters.feeMax ?? ''}
-                    onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
-                    placeholder={feeMax.toLocaleString()}
-                    className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
-                  />
-                </div>
+                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max ($)</label>
+                <input
+                  type="number"
+                  min={0}
+                  max={feeMax}
+                  value={filters.feeMax ?? ''}
+                  onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
+                  placeholder={feeMax.toLocaleString()}
+                  className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
+                />
               </div>
             </div>
           </Section>
 
-          {/* Express Offer */}
           <div className="border-b border-gray-100">
             <ToggleRow
               icon={<Zap size={15} />}
               label="Express Offer"
-              description="Offer in Principle in just a few hours"
+              description="Offer in Principle in hours"
               checked={filters.expressOffer}
               onChange={(expressOffer) => set({ expressOffer })}
             />
           </div>
 
-          {/* English Waiver */}
           <div className="border-b border-gray-100">
             <ToggleRow
               icon={<FileCheck2 size={15} />}
               label="English Test Waiver"
-              description="Accept students without an English test"
+              description="No English test required"
               checked={filters.englishWaiver}
               onChange={(englishWaiver) => set({ englishWaiver })}
             />
@@ -586,19 +564,21 @@ export function CourseFilters({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 border-t border-gray-100 px-5 py-3.5">
-          <button
-            onClick={onClear}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
-          >
-            <RotateCcw size={15} />
-            Clear all
-          </button>
+        <div className="flex items-center gap-2 border-t border-gray-100 px-4 py-3">
+          {activeCount > 0 && (
+            <button
+              onClick={onClear}
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+            >
+              <RotateCcw size={15} />
+              Reset
+            </button>
+          )}
           <button
             onClick={onClose}
-            className="flex-1 rounded-lg bg-[#C41E3A] py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#A01830]"
+            className="flex-1 rounded-lg bg-gradient-to-r from-[#EEF2FF] via-[#F4E8FF] to-[#FFE4F0] py-2.5 text-sm font-bold text-[#C41E3A] transition-opacity hover:opacity-90"
           >
-            Apply filters
+            Show {resultsCount} results
           </button>
         </div>
       </div>

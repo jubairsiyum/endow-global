@@ -182,6 +182,32 @@ body {
 }
 
 /* =========================
+   FILTER LIST SCROLLBAR
+======================= */
+
+.filter-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
+.filter-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.filter-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filter-scroll::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 999px;
+}
+
+.filter-scroll::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* =========================
    SELECTION
 ======================== */
 

@@ -2,6 +2,7 @@ export const SITE_CONFIG = {
   companyName: 'Endow Global Education',
   shortName: 'Endow Global',
   tagline: 'Education',
+  servedCountries: ['South Korea', 'Australia'],
   email: 'contact@endowglobaledu.com',
   phoneBD: '+880 190146 3204',
   phoneBDHref: 'tel:+8801901463204',

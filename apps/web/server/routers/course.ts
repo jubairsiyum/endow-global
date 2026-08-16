@@ -23,6 +23,7 @@ const lt = _lt as any
 const gt = _gt as any
 const or = _or as any
 import { courses, universities, courseModules, platformCourseIntakes } from '@endow/db'
+import { SITE_CONFIG } from '@/lib/config/site'
 
 export const courseRouter = createTRPCRouter({
   list: publicProcedure
@@ -218,11 +219,10 @@ export const courseRouter = createTRPCRouter({
           .where(eq(courses.isActive, true)),
       ])
 
+      const dbCountries = countryRows.map((r) => r.country).filter((c): c is string => Boolean(c))
+
       return {
-        countries: countryRows
-          .map((r) => r.country)
-          .filter((c): c is string => Boolean(c))
-          .sort((a, b) => a.localeCompare(b)),
+        countries: Array.from(new Set([...SITE_CONFIG.servedCountries, ...dbCountries])),
         cities: cityRows
           .map((r) => r.city)
           .filter((c): c is string => Boolean(c))
@@ -242,7 +242,15 @@ export const courseRouter = createTRPCRouter({
         feeMax: Number(feeRow[0]?.max ?? 0),
       }
     } catch {
-      return { countries: [], cities: [], institutions: [], subjects: [], levels: [], startYears: [], feeMax: 0 }
+      return {
+        countries: [...SITE_CONFIG.servedCountries],
+        cities: [],
+        institutions: [],
+        subjects: [],
+        levels: [],
+        startYears: [],
+        feeMax: 0,
+      }
     }
   }),
 
