@@ -11,10 +11,9 @@ export async function sendEmail({
   text?: string
   html?: string
 }) {
-  const user = process.env.GMAIL_USER
-  if (!user) throw new Error('GMAIL_USER is not set')
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER
+  if (!from) throw new Error('SMTP_FROM or SMTP_USER is not set')
 
-  const from = `Endow Global Education <${user}>`
   const transporter = getTransporter()
 
   console.log('[email] Sending email:', { from, to, subject })

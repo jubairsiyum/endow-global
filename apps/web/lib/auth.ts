@@ -123,6 +123,7 @@ export const auth = betterAuth({
       otpLength: 6,
       expiresIn: 300,
       allowedAttempts: 5,
+      resendStrategy: 'reuse',
       sendVerificationOnSignUp: false,
       disableSignUp: false,
       async sendVerificationOTP({ email, otp, type }) {

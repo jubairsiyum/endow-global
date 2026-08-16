@@ -4,15 +4,22 @@ let _transporter: ReturnType<typeof nodemailer.createTransport> | null = null
 
 export function getTransporter() {
   if (!_transporter) {
-    const user = process.env.GMAIL_USER
-    const pass = process.env.GMAIL_APP_PASSWORD
-    if (!user || !pass) {
+    const host = process.env.SMTP_HOST
+    const port = Number(process.env.SMTP_PORT || 587)
+    const secure = process.env.SMTP_SECURE === 'true'
+    const user = process.env.SMTP_USER
+    const pass = process.env.SMTP_PASSWORD
+
+    if (!host || !user || !pass) {
       throw new Error(
-        'GMAIL_USER and GMAIL_APP_PASSWORD must be set in environment variables'
+        'SMTP_HOST, SMTP_USER and SMTP_PASSWORD must be set in environment variables'
       )
     }
+
     _transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host,
+      port,
+      secure,
       auth: { user, pass },
     })
   }

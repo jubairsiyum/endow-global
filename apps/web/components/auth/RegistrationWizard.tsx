@@ -106,6 +106,7 @@ export default function RegistrationWizard() {
         type: 'sign-in',
       })
       if (error) { toast.error(error.message || 'Failed to send OTP'); return }
+      setOtp(['', '', '', '', '', ''])
       toast.success('Verification code sent to your email')
       goTo('otp')
       setResendTimer(60)
