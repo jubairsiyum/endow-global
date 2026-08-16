@@ -6,7 +6,8 @@ import { toast } from 'sonner'
 import { trpc } from '@/lib/trpc-client'
 import { useSession } from '@/lib/auth-client'
 import { SAButton as Button } from '@/components/super-admin/shared/SAButton'
-import { Save, User, Mail, Phone, MapPin, Globe, GraduationCap } from 'lucide-react'
+import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
+import { Save, User, Mail, Phone, MapPin, Globe, GraduationCap, Copy, Check, Gift } from 'lucide-react'
 
 const COUNTRIES = [
   'Bangladesh', 'India', 'Pakistan', 'Nepal', 'Sri Lanka', 'Nigeria', 'Kenya', 'Ghana',
@@ -18,7 +19,7 @@ const EDUCATION_LEVELS = ['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD'] as const
 
 export default function SettingsPage() {
   const { data: session } = useSession()
-  const { data: profile, isLoading } = trpc.user.getProfile.useQuery()
+  const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery()
   const updateProfile = trpc.user.updateProfile.useMutation({
     onSuccess: () => { toast.success('Profile updated'); utils.user.getProfile.invalidate() },
     onError: (e) => toast.error(e.message),
@@ -32,6 +33,21 @@ export default function SettingsPage() {
   const [education, setEducation] = useState<string>('')
   const [targetCountries, setTargetCountries] = useState<string[]>([])
   const [intakeYear, setIntakeYear] = useState<number>(new Date().getFullYear() + 1)
+  const [copied, setCopied] = useState(false)
+
+  const referralCode = (profile?.studentProfile as any)?.referralCode ?? ''
+  const referralBalance = (profile?.studentProfile as any)?.referralBalance ?? 0
+
+  async function copyReferral() {
+    if (!referralCode) return
+    try {
+      await navigator.clipboard.writeText(referralCode)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error('Could not copy the referral code')
+    }
+  }
 
   useEffect(() => {
     if (profile) {
@@ -65,18 +81,18 @@ export default function SettingsPage() {
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    )
+    return <DashboardLoading rows={4} className="mx-auto max-w-2xl" />
+  }
+
+  if (isError) {
+    return <DashboardError onRetry={() => refetch()} />
   }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Profile Settings</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your personal information and preferences</p>
+        <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">Settings <span aria-hidden>⚙️</span></h1>
+        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your profile, preferences and referral code</p>
       </motion.div>
 
       <motion.form
@@ -182,6 +198,40 @@ export default function SettingsPage() {
           </Button>
         </div>
       </motion.form>
+
+      {/* Referral */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, delay: 0.1 }}
+        className="rounded-2xl border border-gray-200 bg-gradient-to-br from-red-50/60 to-white p-6 dark:border-gray-800 dark:from-[#2a1114]/40 dark:to-[#11131a]"
+      >
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+          <Gift size={15} className="text-primary" /> Refer a friend, get rewarded
+        </h2>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Share your code and earn credits when your friends join. 💰
+        </p>
+        <div className="mt-3 flex items-center gap-2">
+          <code className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold tracking-widest text-primary dark:border-gray-700 dark:bg-[#1a1d25]">
+            {referralCode || '—'}
+          </code>
+          <button
+            type="button"
+            onClick={copyReferral}
+            disabled={!referralCode}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#A01830] disabled:opacity-50"
+          >
+            {copied ? <Check size={15} /> : <Copy size={15} />}
+            {copied ? 'Copied!' : 'Copy'}
+          </button>
+        </div>
+        {referralBalance > 0 && (
+          <p className="mt-2 text-xs font-semibold text-gray-700 dark:text-gray-200">
+            Current balance: {referralBalance.toLocaleString()} credits
+          </p>
+        )}
+      </motion.div>
     </div>
   )
 }

@@ -8,6 +8,13 @@
       "when": 1785756346293,
       "tag": "0000_sudden_ender_wiggin",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1786862692616,
+      "tag": "0001_noisy_dragon_lord",
+      "breakpoints": true
     }
   ]
 }

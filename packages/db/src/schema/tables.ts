@@ -325,6 +325,33 @@ export const shortlistedCourses = mysqlTable(
   })
 )
 
+// ─── Student Documents ─────────────────────────────────────
+
+export const studentDocuments = mysqlTable(
+  'student_document',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    studentId: varchar('student_id', { length: 25 }).notNull(),
+    applicationId: varchar('application_id', { length: 25 }),
+    category: varchar('category', { length: 100 }).notNull(),
+    label: varchar('label', { length: 255 }).notNull(),
+    fileUrl: varchar('file_url', { length: 500 }),
+    fileName: varchar('file_name', { length: 255 }),
+    fileSize: int('file_size'),
+    status: mysqlEnum('status', ['PENDING', 'UPLOADED', 'VERIFIED', 'REJECTED'])
+      .default('PENDING')
+      .notNull(),
+    rejectionReason: text('rejection_reason'),
+    uploadedAt: timestamp('uploaded_at', { mode: 'date' }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    studentIdx: index('idx_sd_student').on(table.studentId),
+    appIdx: index('idx_sd_application').on(table.applicationId),
+  })
+)
+
 // ─── AI Match Results ──────────────────────────────────────
 
 export const matchResults = mysqlTable(

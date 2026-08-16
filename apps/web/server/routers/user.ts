@@ -17,11 +17,15 @@ export const userRouter = createTRPCRouter({
       return { exists: Boolean(user) }
     }),
 
-  getProfile: protectedProcedure.query(({ ctx }) => {
-    return ctx.db.query.users.findFirst({
-      where: (u, { eq }) => eq(u.id, ctx.session.user.id),
-      with: { studentProfile: true, counselorProfile: true },
-    })
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db
+      .select({ user: schema.users, studentProfile: schema.studentProfiles })
+      .from(schema.users)
+      .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
+      .where(eq(schema.users.id, ctx.session.user.id))
+      .limit(1)
+    const row = rows[0]
+    return row ? { ...row.user, studentProfile: row.studentProfile } : null
   }),
 
   setPassword: protectedProcedure

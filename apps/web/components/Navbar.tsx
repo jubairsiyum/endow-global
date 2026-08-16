@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
-import { ArrowRight, Menu, X, ChevronDown } from 'lucide-react'
+import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
+import { authClient, useSession } from '@/lib/auth-client'
 
 const countries = [
   { label: 'South Korea', href: '/universities/country/south-korea', flag: 'https://flagcdn.com/w40/kr.png' },
@@ -22,9 +23,12 @@ const navItems = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const router = useRouter()
+  const { data: session, isPending: sessionPending } = useSession()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCountriesOpen, setIsCountriesOpen] = useState(false)
+  const [isSigningOut, setIsSigningOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -65,6 +69,28 @@ export function Navbar() {
   }
 
   const isCountriesActive = pathname.startsWith('/universities/country/')
+  const role = (session?.user as { role?: string } | undefined)?.role
+  const portalHref = role === 'COUNSELOR' ? '/counselor' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'
+  const portalLabel = role === 'COUNSELOR' ? 'Counselor portal' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? 'Admin portal' : 'Student portal'
+  const userName = session?.user?.name || 'Account'
+  const userInitials = userName
+    .split(' ')
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
+  async function handleSignOut() {
+    if (isSigningOut) return
+    setIsSigningOut(true)
+    try {
+      await authClient.signOut()
+      router.push('/')
+      router.refresh()
+    } finally {
+      setIsSigningOut(false)
+    }
+  }
 
   return (
     <>
@@ -191,31 +217,68 @@ export function Navbar() {
 
           {/* Desktop CTA */}
           <div className="hidden items-center gap-2 lg:flex">
-            <Link
-              href="/login"
-              prefetch={true}
-              className="rounded-full px-4 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900"
-            >
-              Sign in
-            </Link>
-            <Link
-              href="/register"
-              prefetch={true}
-              className="group inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
-            >
-              Get Started
-              <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-            </Link>
+            {sessionPending ? (
+              <div className="h-9 w-28 animate-pulse rounded-full bg-gray-100" aria-hidden />
+            ) : session ? (
+              <>
+                <Link
+                  href={portalHref}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:-translate-y-0.5"
+                >
+                  <LayoutDashboard size={14} />
+                  {portalLabel}
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={isSigningOut}
+                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900 disabled:opacity-50"
+                >
+                  <LogOut size={14} />
+                  {isSigningOut ? 'Signing out…' : 'Sign out'}
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  prefetch={true}
+                  className="rounded-full px-4 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/register"
+                  prefetch={true}
+                  className="group inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
+                >
+                  Get Started
+                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile CTA + Toggle */}
           <div className="flex items-center gap-2 lg:hidden">
-            <Link
-              href="/register"
-              className="inline-flex items-center rounded-full bg-[#C41E3A] px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)]"
-            >
-              Get Started
-            </Link>
+            {sessionPending ? (
+              <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" aria-hidden />
+            ) : session ? (
+              <Link
+                href={portalHref}
+                aria-label={portalLabel}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#263238] text-[11px] font-bold text-white"
+              >
+                {userInitials}
+              </Link>
+            ) : (
+              <Link
+                href="/register"
+                className="inline-flex items-center rounded-full bg-[#C41E3A] px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)]"
+              >
+                Get Started
+              </Link>
+            )}
             <button
               className="flex h-9 w-9 items-center justify-center rounded-full text-gray-600 transition-colors hover:bg-gray-100/60"
               aria-label={isMobileOpen ? 'Close menu' : 'Open menu'}
@@ -337,18 +400,41 @@ export function Navbar() {
               </div>
 
               <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3">
-                <Link
-                  href="/login"
-                  className="flex items-center justify-center rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/register"
-                  className="flex items-center justify-center rounded-full bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
-                >
-                  Get Started
-                </Link>
+                {sessionPending ? (
+                  <div className="h-10 animate-pulse rounded-xl bg-gray-100" aria-hidden />
+                ) : session ? (
+                  <>
+                    <Link
+                      href={portalHref}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
+                    >
+                      <LayoutDashboard size={15} /> {portalLabel}
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      disabled={isSigningOut}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      <LogOut size={15} /> {isSigningOut ? 'Signing out…' : 'Sign out'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className="flex items-center justify-center rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                    >
+                      Sign in
+                    </Link>
+                    <Link
+                      href="/register"
+                      className="flex items-center justify-center rounded-full bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
+                    >
+                      Get Started
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>

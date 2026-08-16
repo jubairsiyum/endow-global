@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useSession } from '@/lib/auth-client'
 
 import { DashboardSidebar } from './Sidebar'
-import { DashboardTopbar } from './Topbar'
-import { mockStudent } from '@/lib/mockData'
+import { StudentHeader } from './StudentHeader'
 
 interface Props {
   children: React.ReactNode
@@ -40,55 +39,56 @@ export function DashboardShell({ children }: Props) {
   }, [])
 
   const user = {
-    name: session?.user?.name ?? mockStudent.name,
-    email: session?.user?.email ?? mockStudent.email,
+    name: session?.user?.name ?? 'Student',
+    email: session?.user?.email ?? '',
     initials:
       session?.user?.name
         ?.split(' ')
         .map((n) => n[0])
         .join('')
         .toUpperCase()
-        .slice(0, 2) ?? mockStudent.initials,
+        .slice(0, 2) ?? 'ST',
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f6f7fb] text-gray-900 transition-colors duration-300 dark:bg-[#0b0f19] dark:text-white">
-      {/* DESKTOP FULL SIDEBAR */}
-      <div className="hidden lg:block">
-        <DashboardSidebar variant="full" user={user} />
-      </div>
+    <>
+      <StudentHeader
+        onMenuClick={() => setDrawerOpen(true)}
+        userName={user.name}
+        userInitials={user.initials}
+      />
+      <div className="flex flex-1">
+        {/* DESKTOP FULL SIDEBAR */}
+        <div className="hidden lg:block">
+          <DashboardSidebar variant="full" user={user} />
+        </div>
 
-      {/* TABLET ICON RAIL */}
-      <div className="hidden md:block lg:hidden">
-        <DashboardSidebar variant="rail" user={user} />
-      </div>
+        {/* TABLET ICON RAIL */}
+        <div className="hidden md:block lg:hidden">
+          <DashboardSidebar variant="rail" user={user} />
+        </div>
 
-      {/* MOBILE DRAWER */}
-      {drawerOpen && (
+        {/* MOBILE DRAWER */}
+        {drawerOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/40 md:hidden"
+            onClick={() => setDrawerOpen(false)}
+            aria-hidden
+          />
+        )}
         <div
-          className="fixed inset-0 z-40 bg-black/40 md:hidden"
-          onClick={() => setDrawerOpen(false)}
-          aria-hidden
-        />
-      )}
-      <div
-        className={`fixed left-0 top-0 z-50 transition-transform duration-300 md:hidden ${
-          drawerOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <DashboardSidebar variant="drawer" user={user} onNavigate={() => setDrawerOpen(false)} />
-      </div>
+          className={`fixed left-0 top-0 z-50 transition-transform duration-300 md:hidden ${
+            drawerOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
+          <DashboardSidebar variant="drawer" user={user} onNavigate={() => setDrawerOpen(false)} />
+        </div>
 
-      {/* MAIN */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <DashboardTopbar
-          onMenuClick={() => setDrawerOpen(true)}
-          userName={user.name}
-          userInitials={user.initials}
-          unreadNotifications={mockStudent.unreadMessages}
-        />
-        <main className="min-h-0 flex-1 overflow-y-auto p-4 lg:p-6">{children}</main>
+        {/* MAIN */}
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="flex-1 p-4 lg:p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

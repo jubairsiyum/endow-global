@@ -14,6 +14,7 @@ import {
   relatedCourses,
   applications,
   shortlistedCourses,
+  studentDocuments,
   matchResults,
   bookingSessions,
   conversations,
@@ -64,6 +65,7 @@ export const studentProfilesRelations = relations(studentProfiles, ({ one, many 
   bookingSessions: many(bookingSessions),
   conversations: many(conversations, { relationName: 'studentConversations' }),
   matchResults: many(matchResults),
+  documents: many(studentDocuments),
 }))
 
 export const counselorProfilesRelations = relations(counselorProfiles, ({ one, many }) => ({
@@ -114,6 +116,17 @@ export const shortlistedCoursesRelations = relations(shortlistedCourses, ({ one 
     references: [studentProfiles.id],
   }),
   course: one(courses, { fields: [shortlistedCourses.courseId], references: [courses.id] }),
+}))
+
+export const studentDocumentsRelations = relations(studentDocuments, ({ one }) => ({
+  student: one(studentProfiles, {
+    fields: [studentDocuments.studentId],
+    references: [studentProfiles.id],
+  }),
+  application: one(applications, {
+    fields: [studentDocuments.applicationId],
+    references: [applications.id],
+  }),
 }))
 
 export const matchResultsRelations = relations(matchResults, ({ one }) => ({

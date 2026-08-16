@@ -1,65 +1,295 @@
 'use client'
 
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
-import { MessageSquare, Send } from 'lucide-react'
+import { toast } from 'sonner'
+import { MessageSquare, Plus, Send } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 
-const demoMessages = [
-  { id: '1', from: 'Dr. Rahman', role: 'Counselor', message: 'Hello! I have reviewed your application. There are a few documents we need to discuss.', time: '10:30 AM', unread: true },
-  { id: '2', from: 'Sarah Kim', role: 'Admissions - SNU', message: 'Your application has been received. Please complete the supplemental form by next week.', time: 'Yesterday', unread: false },
-  { id: '3', from: 'Support Team', role: 'Endow Global', message: 'Welcome to Endow Global! Here are some tips to get started with your study abroad journey.', time: 'Jun 1', unread: false },
-]
+import { trpc } from '@/lib/trpc-client'
+import { useSession } from '@/lib/auth-client'
+import { cn, getInitials } from '@/lib/utils'
+import { DashboardError } from '@/components/dashboard/DashboardState'
 
 export default function MessagesPage() {
+  const { data: session } = useSession()
+  const utils = trpc.useUtils()
+  const { data: conversations, isLoading, isError: conversationsError, refetch: refetchConversations } = trpc.dashboard.messages.conversations.useQuery()
+  const { data: counselors, isError: counselorsError } = trpc.dashboard.sessions.counselors.useQuery()
+  const send = trpc.dashboard.messages.send.useMutation()
+  const markRead = trpc.dashboard.messages.markRead.useMutation()
+
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [composing, setComposing] = useState(false)
+  const [draft, setDraft] = useState('')
+  const [newCounselorId, setNewCounselorId] = useState('')
+  const [firstMessage, setFirstMessage] = useState('')
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  const { data: threadData, isError: threadError, refetch: refetchThread } = trpc.dashboard.messages.thread.useQuery(
+    { conversationId: selectedId! },
+    { enabled: !!selectedId }
+  )
+
+  const selectedConvo = threadData?.conversation ?? null
+  const messages = threadData?.messages ?? []
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages.length, selectedId])
+
+  useEffect(() => {
+    if (selectedId) {
+      markRead.mutate(
+        { conversationId: selectedId },
+        { onSuccess: () => utils.dashboard.messages.conversations.invalidate() }
+      )
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedId])
+
+  async function handleSend() {
+    const convo = selectedConvo
+    if (!convo || !draft.trim()) return
+    try {
+      await send.mutateAsync({ counselorId: convo.counselorId, content: draft.trim() })
+      setDraft('')
+      utils.dashboard.messages.thread.invalidate()
+      utils.dashboard.messages.conversations.invalidate()
+    } catch (e: any) {
+      toast.error(e.message || 'Failed to send')
+    }
+  }
+
+  async function handleStartConversation(e: React.FormEvent) {
+    e.preventDefault()
+    if (!newCounselorId || !firstMessage.trim()) {
+      toast.error('Pick a counselor and write a message')
+      return
+    }
+    try {
+      const res = await send.mutateAsync({ counselorId: newCounselorId, content: firstMessage.trim() })
+      setFirstMessage('')
+      setComposing(false)
+      setSelectedId(res.conversationId)
+      utils.dashboard.messages.conversations.invalidate()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to send')
+    }
+  }
+
+  const currentUserId = session?.user?.id
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Messages</h1>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Communicate with counselors and university representatives</p>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between gap-3"
+      >
+        <div>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
+            Messages <span aria-hidden>💬</span>
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Chat with your counselor and university reps
+          </p>
+        </div>
+        <button
+          onClick={() => setComposing((v) => !v)}
+          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A01830]"
+        >
+          <Plus size={15} /> New message
+        </button>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.05 }}
-        className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-[#11131a]">
-
-        {/* Search + Compose */}
-        <div className="flex items-center gap-3 border-b border-gray-100 px-5 py-3 dark:border-gray-800">
-          <input type="text" placeholder="Search messages..."
-            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white" />
-          <button className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-[#A01830] transition-colors">
-            <Send size={14} /> New Message
-          </button>
-        </div>
-
-        {demoMessages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <MessageSquare size={32} className="text-gray-300 dark:text-gray-600" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No Messages</h3>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Messages from counselors and universities will appear here.</p>
+      {composing && (
+        <motion.form
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          onSubmit={handleStartConversation}
+          className="overflow-hidden rounded-[28px] border border-gray-200 bg-white p-5 shadow-premium-sm dark:border-gray-800 dark:bg-[#12141c]"
+        >
+          <div className="space-y-3">
+            <select
+              value={newCounselorId}
+              onChange={(e) => setNewCounselorId(e.target.value)}
+              disabled={counselorsError}
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white"
+            >
+              <option value="">Select a counselor…</option>
+              {(counselors ?? []).map((c: any) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+            {counselorsError && <p className="text-xs text-red-600 dark:text-red-300">Counselors are temporarily unavailable. Try again shortly.</p>}
+            <textarea
+              value={firstMessage}
+              onChange={(e) => setFirstMessage(e.target.value)}
+              rows={2}
+              placeholder="Say hi 👋"
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white"
+            />
+            <button
+              type="submit"
+              disabled={send.isPending}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A01830] disabled:opacity-60"
+            >
+              Start conversation
+            </button>
           </div>
-        ) : (
-          <div>
-            {demoMessages.map(msg => (
-              <div key={msg.id}
-                className="flex items-start gap-4 border-b border-gray-50 px-5 py-4 transition-colors hover:bg-gray-50/50 cursor-pointer last:border-0 dark:border-gray-800 dark:hover:bg-[#1a1d25]/50">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <span className="text-sm font-bold text-primary">{msg.from[0]}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{msg.from}</span>
-                      <span className="rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-[#1a1d25] dark:text-gray-400">
-                        {msg.role}
-                      </span>
-                      {msg.unread && <span className="h-2 w-2 rounded-full bg-primary" />}
-                    </div>
-                    <span className="text-xs text-gray-400 dark:text-gray-500">{msg.time}</span>
-                  </div>
-                  <p className="mt-0.5 truncate text-sm text-gray-600 dark:text-gray-400">{msg.message}</p>
-                </div>
+        </motion.form>
+      )}
+
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-premium-sm dark:border-gray-800 dark:bg-[#12141c]"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr]">
+          {/* Conversation list */}
+          <div className={cn('border-gray-100 dark:border-gray-800', selectedId ? 'hidden md:block md:border-r' : '')}>
+            <div className="border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Inbox</p>
+            </div>
+            {isLoading ? (
+              <div className="space-y-1 p-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-16 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800/60" />
+                ))}
               </div>
-            ))}
+            ) : conversationsError ? (
+              <div className="p-4">
+                <DashboardError title="Inbox unavailable" message="We could not load your conversations." onRetry={() => refetchConversations()} />
+              </div>
+            ) : (conversations ?? []).length === 0 ? (
+              <div className="px-4 py-12 text-center">
+                <MessageSquare size={28} className="mx-auto text-gray-300 dark:text-gray-600" />
+                <p className="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-200">No conversations</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Start one with your counselor</p>
+              </div>
+            ) : (
+              <ul>
+                {(conversations ?? []).map((c: any) => (
+                  <li key={c.id}>
+                    <button
+                      onClick={() => setSelectedId(c.id)}
+                      className={cn(
+                        'flex w-full items-start gap-3 border-b border-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-50/60 dark:border-gray-800/60 dark:hover:bg-[#1a1d25]/50',
+                        selectedId === c.id && 'bg-red-50/50 dark:bg-[#2a1114]/40'
+                      )}
+                    >
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-xs font-bold text-white">
+                        {getInitials(c.counselor?.user?.name ?? 'C')}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                          <span className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                            {c.counselor?.user?.name ?? 'Counselor'}
+                          </span>
+                          <span className="shrink-0 text-[10px] text-gray-400">
+                            {c.lastMessageAt ? formatDistanceToNow(new Date(c.lastMessageAt), { addSuffix: true }) : ''}
+                          </span>
+                        </div>
+                        <p className="truncate text-xs text-gray-500 dark:text-gray-400">{c.lastMessage}</p>
+                      </div>
+                      {c.unread > 0 && (
+                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
+                          {c.unread}
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
-        )}
+
+          {/* Thread */}
+          <div className={cn('flex h-[520px] flex-col', selectedId ? '' : 'hidden md:flex')}>
+            {threadError ? (
+              <div className="flex flex-1 items-center p-6">
+                <DashboardError title="Conversation unavailable" message="This conversation could not be loaded." onRetry={() => refetchThread()} />
+              </div>
+            ) : !selectedConvo ? (
+              <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
+                <MessageSquare size={36} className="text-gray-300 dark:text-gray-600" />
+                <p className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-200">Select a conversation</p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Or start a new one to reach your counselor</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+                  <button onClick={() => setSelectedId(null)} className="text-gray-400 hover:text-gray-600 md:hidden">
+                    ←
+                  </button>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-xs font-bold text-white">
+                    {getInitials(selectedConvo.counselor?.user?.name ?? 'C')}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                      {selectedConvo.counselor?.user?.name ?? 'Counselor'}
+                    </p>
+                    <p className="text-[11px] text-gray-400">Counselor</p>
+                  </div>
+                </div>
+
+                <div className="flex-1 space-y-3 overflow-y-auto p-4">
+                  {messages.length === 0 ? (
+                    <p className="pt-10 text-center text-xs text-gray-400">No messages yet — say hi 👋</p>
+                  ) : (
+                    messages.map((m: any) => {
+                      const isMine = currentUserId ? m.senderId === currentUserId : false
+                      return (
+                        <div key={m.id} className={cn('flex', isMine ? 'justify-end' : 'justify-start')}>
+                          <div
+                            className={cn(
+                              'max-w-[75%] rounded-2xl px-4 py-2.5 text-sm',
+                              isMine
+                                ? 'rounded-br-md bg-primary text-white'
+                                : 'rounded-bl-md bg-gray-100 text-gray-800 dark:bg-[#1a1d25] dark:text-gray-200'
+                            )}
+                          >
+                            {m.content}
+                            <span className={cn('mt-1 block text-right text-[10px]', isMine ? 'text-white/70' : 'text-gray-400')}>
+                              {m.createdAt ? formatDistanceToNow(new Date(m.createdAt), { addSuffix: true }) : ''}
+                            </span>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                  <div ref={bottomRef} />
+                </div>
+
+                <div className="border-t border-gray-100 p-3 dark:border-gray-800">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      handleSend()
+                    }}
+                    className="flex items-center gap-2"
+                  >
+                    <input
+                      value={draft}
+                      onChange={(e) => setDraft(e.target.value)}
+                      placeholder="Type a message…"
+                      className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={send.isPending || !draft.trim()}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white transition-colors hover:bg-[#A01830] disabled:opacity-50"
+                      aria-label="Send"
+                    >
+                      <Send size={16} />
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       </motion.div>
     </div>
   )

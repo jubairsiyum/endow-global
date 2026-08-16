@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -50,8 +49,8 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
   const router = useRouter()
 
   const isFull = variant === 'full'
-  const isRail = variant === 'rail'
   const compact = !isFull
+  const isDrawer = variant === 'drawer'
 
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -69,38 +68,39 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
     <aside
       aria-label="Student dashboard navigation"
       className={cn(
-        'relative flex h-screen flex-col overflow-hidden border-r border-gray-200 bg-white',
+        'relative flex flex-col overflow-hidden border-r border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-[#12141c]',
+        isDrawer ? 'h-screen' : 'sticky top-[76px] h-[calc(100vh-76px)] self-start',
         isFull ? 'w-[260px]' : 'w-[72px]'
       )}
     >
-      {/* LOGO */}
-      <div
-        className={cn(
-          'flex shrink-0 items-center border-b border-gray-100',
-          isFull ? 'h-[68px] px-5' : 'h-[68px] justify-center px-2'
-        )}
-      >
-        <Link
-          href="/dashboard"
-          onClick={onNavigate}
-          className="flex items-center gap-2"
-          aria-label="Endow Global Education"
-        >
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-sm font-black text-white shadow-sm">
-            E
-          </span>
-          {isFull && (
-            <span className="font-heading text-base font-bold tracking-tight text-gray-900">
-              Endow
-              <span className="text-primary"> Global</span>
-            </span>
-          )}
-        </Link>
-      </div>
+      {user && isFull && (
+        <div className="mx-3 mt-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#263238] text-sm font-bold text-white">
+              {user.initials}
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-bold text-gray-900 dark:text-white">{user.name}</p>
+              <p className="truncate text-xs text-gray-500 dark:text-gray-400">Student account</p>
+            </div>
+          </div>
+          <Link
+            href="/dashboard/settings"
+            onClick={onNavigate}
+            className="mt-3 block rounded-xl bg-[#f4f1ff] px-3 py-2 text-center text-xs font-bold text-[#6425c8] transition-colors hover:bg-[#ebe5ff] dark:bg-[#2c2147] dark:text-[#c4aaff] dark:hover:bg-[#39295a]"
+          >
+            Complete your profile
+          </Link>
+        </div>
+      )}
 
       {/* NAV */}
       <nav
-        className={cn('mt-3 flex-1 space-y-1 overflow-hidden', isFull ? 'px-3' : 'px-2')}
+        className={cn(
+          'flex-1 space-y-1 overflow-hidden',
+          isDrawer ? 'pt-6' : 'pt-6',
+          isFull ? 'px-3' : 'px-2'
+        )}
         aria-label="Primary"
       >
         {navItems.map((item) => {
@@ -118,13 +118,15 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
               className={cn(
                 'group relative flex items-center rounded-2xl text-sm font-medium transition-all duration-300',
                 isFull ? 'gap-3 px-3 py-2.5' : 'h-11 w-full justify-center',
-                isActive ? 'text-primary' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                isActive
+                  ? 'text-primary'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-[#1a1d25] dark:hover:text-white'
               )}
             >
               {isActive && (
                 <motion.span
                   layoutId={variant === 'full' ? 'sidebar-active-pill' : undefined}
-                  className="absolute inset-0 rounded-2xl bg-red-50"
+                  className="absolute inset-0 rounded-2xl bg-red-50 dark:bg-[#2a1114]"
                   transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                 />
               )}
@@ -132,7 +134,9 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
                 size={18}
                 className={cn(
                   'relative z-10 shrink-0 transition-colors',
-                  isActive ? 'text-primary' : 'text-gray-500 group-hover:text-gray-700'
+                  isActive
+                    ? 'text-primary'
+                    : 'text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-200'
                 )}
                 aria-hidden
               />
@@ -143,15 +147,15 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
       </nav>
 
       {/* USER + SIGN OUT */}
-      <div className={cn('shrink-0 border-t border-gray-100 p-2')}>
+      <div className={cn('shrink-0 border-t border-gray-100 p-2 dark:border-gray-800')}>
         {user && isFull && (
-          <div className="mb-2 flex items-center gap-2.5 rounded-2xl bg-gray-50 px-3 py-2.5">
+          <div className="mb-2 flex items-center gap-2.5 rounded-2xl bg-gray-50 px-3 py-2.5 dark:bg-[#1a1d25]">
             <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-xs font-bold text-white">
               {user.initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-gray-900">{user.name}</p>
-              <p className="truncate text-[11px] text-gray-500">{user.email}</p>
+              <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>
+              <p className="truncate text-[11px] text-gray-500 dark:text-gray-400">{user.email}</p>
             </div>
           </div>
         )}
@@ -161,7 +165,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
           disabled={isSigningOut}
           title={compact ? 'Sign out' : undefined}
           className={cn(
-            'group flex w-full items-center rounded-2xl text-sm font-medium text-gray-600 transition-all duration-300 hover:bg-red-50 hover:text-primary disabled:pointer-events-none disabled:opacity-50',
+            'group flex w-full items-center rounded-2xl text-sm font-medium text-gray-600 transition-all duration-300 hover:bg-red-50 hover:text-primary disabled:pointer-events-none disabled:opacity-50 dark:text-gray-400 dark:hover:bg-[#2a1114]',
             isFull ? 'gap-3 px-3 py-2.5' : 'h-11 justify-center'
           )}
         >
@@ -170,7 +174,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
           ) : (
             <LogOut
               size={18}
-              className="shrink-0 text-gray-500 group-hover:text-primary"
+              className="shrink-0 text-gray-500 group-hover:text-primary dark:text-gray-400"
               aria-hidden
             />
           )}

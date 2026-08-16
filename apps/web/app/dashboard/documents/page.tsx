@@ -1,86 +1,259 @@
 'use client'
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Upload, FileText, Image, File, CheckCircle2, Clock, AlertCircle, Trash2 } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'sonner'
+import { FileText, Plus, Trash2, Upload } from 'lucide-react'
 
-const demoDocs = [
-  { id: '1', name: 'passport-scan.pdf', type: 'pdf', size: '1.2 MB', status: 'verified', uploaded: '2025-06-10' },
-  { id: '2', name: 'transcript-bachelors.pdf', type: 'pdf', size: '3.8 MB', status: 'pending', uploaded: '2025-06-12' },
-  { id: '3', name: 'ielts-score-report.pdf', type: 'pdf', size: '890 KB', status: 'verified', uploaded: '2025-05-28' },
-  { id: '4', name: 'recommendation-letter.pdf', type: 'pdf', size: '420 KB', status: 'required', uploaded: null },
-  { id: '5', name: 'statement-of-purpose.pdf', type: 'pdf', size: '180 KB', status: 'pending', uploaded: '2025-06-15' },
-]
+import { trpc } from '@/lib/trpc-client'
+import { DOCUMENT_STATUS, formatBytes } from '@/lib/dashboard'
+import type { DocumentStatus } from '@/lib/dashboard'
+import { StatusPill } from '@/components/dashboard/StatusPill'
+import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
+import { cn } from '@/lib/utils'
 
-const statusIcons: Record<string, React.ElementType> = {
-  verified: CheckCircle2,
-  pending: Clock,
-  required: AlertCircle,
-}
-
-const statusColors: Record<string, string> = {
-  verified: 'text-green-500 bg-green-50 dark:bg-green-500/10',
-  pending: 'text-amber-500 bg-amber-50 dark:bg-amber-500/10',
-  required: 'text-red-500 bg-red-50 dark:bg-red-500/10',
+async function uploadFile(file: File): Promise<{ url: string; name: string; size: number }> {
+  const fd = new FormData()
+  fd.append('file', file)
+  const res = await fetch('/api/upload-file', { method: 'POST', body: fd })
+  if (!res.ok) throw new Error('Upload failed')
+  return res.json()
 }
 
 export default function DocumentsPage() {
-  const [docs] = useState(demoDocs)
+  const { data, isLoading, isError, refetch } = trpc.dashboard.documents.list.useQuery()
+  const documents = data ?? []
+  const utils = trpc.useUtils()
+  const addDoc = trpc.dashboard.documents.add.useMutation()
+  const uploadDoc = trpc.dashboard.documents.upload.useMutation()
+  const removeDoc = trpc.dashboard.documents.remove.useMutation()
+
+  const fileInput = useRef<HTMLInputElement>(null)
+  const [targetDocId, setTargetDocId] = useState<string | null>(null)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [newLabel, setNewLabel] = useState('')
+
+  const invalidate = () => utils.dashboard.documents.list.invalidate()
+
+  const verified = documents.filter((d) => d.status === 'VERIFIED').length
+  const pct = documents.length ? Math.round((verified / documents.length) * 100) : 0
+
+  async function handleFile(file: File, docId?: string) {
+    setBusy(docId ?? '__new__')
+    try {
+      const uploaded = await uploadFile(file)
+      let id = docId
+      if (!id) {
+        const label = file.name.replace(/\.[^.]+$/, '').replace(/[-_]/g, ' ')
+        const created = await addDoc.mutateAsync({ label, category: 'OTHER' })
+        id = created.id
+      }
+      if (!id) throw new Error('Missing document id')
+      await uploadDoc.mutateAsync({
+        id,
+        fileUrl: uploaded.url,
+        fileName: file.name,
+        fileSize: file.size,
+      })
+      toast.success('Document uploaded 🎉')
+      invalidate()
+    } catch (e: any) {
+      toast.error(e.message || 'Upload failed')
+    } finally {
+      setBusy(null)
+      setTargetDocId(null)
+    }
+  }
+
+  function openPicker(docId?: string) {
+    setTargetDocId(docId ?? null)
+    fileInput.current?.click()
+  }
+
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault()
+    const label = newLabel.trim()
+    if (!label) return
+    try {
+      await addDoc.mutateAsync({ label, category: 'OTHER' })
+      toast.success('Requirement added')
+      setNewLabel('')
+      invalidate()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
+  }
+
+  async function handleRemove(id: string) {
+    try {
+      await removeDoc.mutateAsync({ id })
+      toast.success('Removed')
+      invalidate()
+    } catch (e: any) {
+      toast.error(e.message)
+    }
+  }
 
   return (
     <div className="mx-auto max-w-4xl space-y-6">
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-        className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex items-center justify-between gap-3"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documents</h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Upload and manage your application documents</p>
+          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
+            Documents <span aria-hidden>📁</span>
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Upload and manage your application documents
+          </p>
+        </div>
+      </motion.div>
+
+      <input
+        ref={fileInput}
+        type="file"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0]
+          if (f) handleFile(f, targetDocId ?? undefined)
+          e.target.value = ''
+        }}
+      />
+
+      {/* Progress summary */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-premium-sm dark:border-gray-800 dark:bg-[#12141c]"
+      >
+        <div className="flex items-center justify-between">
+          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+            {verified}/{documents.length} verified
+          </p>
+          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{pct}% complete</span>
+        </div>
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-[#C41E3A] to-[#ff4d6d]"
+            animate={{ width: `${pct}%` }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          />
         </div>
       </motion.div>
 
       {/* Upload area */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.05 }}
-        className="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-8 text-center transition-colors hover:border-primary/30 dark:border-gray-700 dark:bg-[#11131a] dark:hover:border-primary/30">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5 mx-auto">
+      <motion.button
+        type="button"
+        onClick={() => openPicker()}
+        disabled={busy !== null}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="group flex w-full flex-col items-center rounded-[28px] border-2 border-dashed border-gray-200 bg-white p-8 text-center transition-colors hover:border-primary/40 dark:border-gray-700 dark:bg-[#12141c] disabled:opacity-60"
+      >
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5 transition-transform group-hover:scale-110">
           <Upload size={24} className="text-primary" />
         </div>
-        <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">Upload Documents</h3>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Drag and drop or click to browse. PDFs up to 8 MB, images up to 4 MB.</p>
-        <button className="mt-4 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white hover:bg-[#A01830] transition-colors">
-          Browse Files
+        <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">
+          {busy === '__new__' ? 'Uploading…' : 'Drop it like it’s hot'}
+        </h3>
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Click to browse — PDFs up to 8 MB, images up to 4 MB
+        </p>
+      </motion.button>
+
+      {/* Add requirement */}
+      <form onSubmit={handleAdd} className="flex items-center gap-2">
+        <input
+          value={newLabel}
+          onChange={(e) => setNewLabel(e.target.value)}
+          placeholder="Add a requirement (e.g. Reference letter #2)"
+          className="flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none placeholder:text-gray-400 focus:border-primary dark:border-gray-700 dark:bg-[#12141c] dark:text-white"
+        />
+        <button
+          type="submit"
+          disabled={addDoc.isPending || !newLabel.trim()}
+          className="inline-flex items-center gap-1.5 rounded-2xl bg-primary px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#A01830] disabled:opacity-50"
+        >
+          <Plus size={15} /> Add
         </button>
-      </motion.div>
+      </form>
 
       {/* Document list */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }}>
-        <h2 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">Uploaded Documents</h2>
-        <div className="space-y-2">
-          {docs.map(doc => {
-            const StatusIcon = statusIcons[doc.status]
-            const statusClass = statusColors[doc.status]
-            return (
-              <div key={doc.id}
-                className="flex items-center gap-4 rounded-xl border border-gray-200 bg-white p-4 transition-all hover:shadow-sm dark:border-gray-800 dark:bg-[#11131a]">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-[#1a1d25]">
-                  <FileText size={18} className="text-gray-500 dark:text-gray-400" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{doc.name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    {doc.size} {doc.uploaded ? `· Uploaded ${doc.uploaded}` : '· Not uploaded'}
-                  </p>
-                </div>
-                <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${statusClass}`}>
-                  <StatusIcon size={12} />
-                  {doc.status.charAt(0).toUpperCase() + doc.status.slice(1)}
-                </span>
-                <button className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors" title="Delete">
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            )
-          })}
-        </div>
-      </motion.div>
+      <div className="space-y-2">
+        {isLoading ? (
+          <DashboardLoading rows={3} />
+        ) : isError ? (
+          <DashboardError onRetry={() => refetch()} />
+        ) : documents.length === 0 ? (
+          <div className="rounded-[28px] border border-dashed border-gray-200 bg-white py-14 text-center dark:border-gray-700 dark:bg-[#12141c]">
+            <FileText size={32} className="mx-auto text-gray-300 dark:text-gray-600" />
+            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No documents yet</h3>
+            <p className="mx-auto mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
+              Upload your first document to kick things off. 📄
+            </p>
+          </div>
+        ) : (
+          <AnimatePresence initial={false}>
+            {documents.map((doc) => {
+              const status = DOCUMENT_STATUS[doc.status as DocumentStatus] ?? DOCUMENT_STATUS.PENDING
+              const pending = doc.status === 'PENDING' || doc.status === 'REJECTED'
+              return (
+                <motion.div
+                  key={doc.id}
+                  layout
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:shadow-sm dark:border-gray-800 dark:bg-[#12141c]"
+                >
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#1a1d25]">
+                    <FileText size={18} className="text-gray-500 dark:text-gray-400" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{doc.label}</p>
+                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                      {doc.fileName
+                        ? `${doc.fileName} · ${formatBytes(doc.fileSize)}`
+                        : doc.status === 'REJECTED' && doc.rejectionReason
+                          ? doc.rejectionReason
+                          : 'Not uploaded yet'}
+                    </p>
+                  </div>
+                  <StatusPill label={status.label} config={status} />
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    {pending && (
+                      <button
+                        type="button"
+                        onClick={() => openPicker(doc.id)}
+                        disabled={busy !== null}
+                        title="Upload"
+                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-primary hover:text-primary dark:border-gray-700 disabled:opacity-50"
+                      >
+                        {busy === doc.id ? (
+                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+                        ) : (
+                          <Upload size={14} />
+                        )}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(doc.id)}
+                      disabled={removeDoc.isPending}
+                      title="Remove"
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 disabled:opacity-50"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </motion.div>
+              )
+            })}
+          </AnimatePresence>
+        )}
+      </div>
     </div>
   )
 }
