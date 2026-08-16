@@ -1,16 +1,55 @@
-import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
 import { eq as _eq } from 'drizzle-orm'
 const eq = _eq as any
 import { z } from 'zod'
+import { hash as bcryptHash } from 'bcryptjs'
+
+const BCRYPT_SALT_ROUNDS = 12
 
 export const userRouter = createTRPCRouter({
+  checkEmailExists: publicProcedure
+    .input(z.object({ email: z.string().email() }))
+    .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.query.users.findFirst({
+        where: (u, { eq }) => eq(u.email, input.email.trim().toLowerCase()),
+      })
+      return { exists: Boolean(user) }
+    }),
+
   getProfile: protectedProcedure.query(({ ctx }) => {
     return ctx.db.query.users.findFirst({
       where: (u, { eq }) => eq(u.id, ctx.session.user.id),
       with: { studentProfile: true, counselorProfile: true },
     })
   }),
+
+  setPassword: protectedProcedure
+    .input(z.object({ password: z.string().min(8).max(128) }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id
+      const hashed = await bcryptHash(input.password, BCRYPT_SALT_ROUNDS)
+
+      const existing = await ctx.db.query.accounts.findFirst({
+        where: (a, { eq, and }) => and(eq(a.userId, userId), eq(a.providerId, 'credential')),
+      })
+
+      if (existing) {
+        await ctx.db
+          .update(schema.accounts)
+          .set({ password: hashed })
+          .where(eq(schema.accounts.id, existing.id))
+      } else {
+        await ctx.db.insert(schema.accounts).values({
+          userId,
+          providerId: 'credential',
+          accountId: userId,
+          password: hashed,
+        })
+      }
+
+      return { success: true }
+    }),
 
   updateProfile: protectedProcedure
     .input(

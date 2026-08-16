@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { Mail, ArrowRight, ArrowLeft, Check, User, Phone, Globe, BookOpen, CalendarDays, Shield } from 'lucide-react'
+import { Mail, LockKeyhole, Eye, EyeOff, ArrowRight, ArrowLeft, Check, User, Phone, Globe, BookOpen, CalendarDays, Shield } from 'lucide-react'
 
 import Spinner from '@/components/ui/Spinner'
 import { authClient } from '@/lib/auth-client'
@@ -70,6 +70,8 @@ export default function RegistrationWizard() {
   const [step, setStep] = useState<Step>('email')
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [otpVerified, setOtpVerified] = useState(false)
   const [resendTimer, setResendTimer] = useState(0)
@@ -85,6 +87,7 @@ export default function RegistrationWizard() {
   const [startDate, setStartDate] = useState('')
 
   const updateProfile = trpc.user.updateProfile.useMutation()
+  const setPasswordMutation = trpc.user.setPassword.useMutation()
 
   useEffect(() => {
     if (resendTimer <= 0) return
@@ -99,6 +102,7 @@ export default function RegistrationWizard() {
 
   const sendOtp = useCallback(async () => {
     if (!email) { toast.error('Please enter your email'); return }
+    if (password.length < 8) { toast.error('Password must be at least 8 characters'); return }
     setIsLoading(true)
     try {
       const { error } = await authClient.emailOtp.sendVerificationOtp({
@@ -115,7 +119,7 @@ export default function RegistrationWizard() {
     } finally {
       setIsLoading(false)
     }
-  }, [email, goTo])
+  }, [email, password, goTo])
 
   const verifyOtp = useCallback(async () => {
     const code = otp.join('')
@@ -130,6 +134,7 @@ export default function RegistrationWizard() {
         toast.error(result.error.message || 'Invalid or expired verification code')
         return
       }
+      await setPasswordMutation.mutateAsync({ password })
       setOtpVerified(true)
       goTo('profile')
     } catch {
@@ -137,7 +142,7 @@ export default function RegistrationWizard() {
     } finally {
       setIsLoading(false)
     }
-  }, [otp, email, goTo])
+  }, [otp, email, password, goTo, setPasswordMutation])
 
   const completeRegistration = useCallback(async () => {
     if (!name.trim()) { toast.error('Please enter your full name'); return }
@@ -285,10 +290,10 @@ export default function RegistrationWizard() {
                   Start your <span className="text-red-600">journey</span>
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-slate-500">
-                  Enter your email and we&apos;ll send you a verification code.
+                  Create your account with an email, password, and a verification code.
                 </p>
 
-                <div className="mt-6">
+                <div className="mt-6 space-y-4">
                   <InputField icon={Mail} label="Email Address">
                     <input
                       type="email"
@@ -296,16 +301,38 @@ export default function RegistrationWizard() {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="you@example.com"
                       disabled={isLoading}
+                      autoComplete="email"
                       onKeyDown={(e) => e.key === 'Enter' && sendOtp()}
                       className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
                     />
+                  </InputField>
+
+                  <InputField icon={LockKeyhole} label="Password">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Create a password"
+                      disabled={isLoading}
+                      autoComplete="new-password"
+                      className="h-full w-full bg-transparent px-1 text-sm font-medium text-slate-900 outline-none placeholder:text-slate-400 disabled:opacity-50"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="shrink-0 rounded-lg p-1 text-slate-400 hover:text-slate-600"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </InputField>
                 </div>
 
                 <button
                   type="button"
                   onClick={sendOtp}
-                  disabled={isLoading || !email}
+                  disabled={isLoading || !email || password.length < 8}
                   className="mt-6 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50"
                 >
                   {isLoading ? <Spinner size={16} className="text-white" /> : <ArrowRight size={16} />}
