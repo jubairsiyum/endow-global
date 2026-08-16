@@ -254,6 +254,22 @@ export const courseRouter = createTRPCRouter({
     }
   }),
 
+  getPopularSearches: publicProcedure.query(async ({ ctx }) => {
+    try {
+      const rows = await ctx.db
+        .select({ subject: courses.subject })
+        .from(courses)
+        .where(eq(courses.isActive, true))
+        .groupBy(courses.subject)
+        .orderBy(sql`count(*) desc`)
+        .limit(6)
+
+      return rows.map((r) => r.subject).filter((s): s is string => Boolean(s))
+    } catch {
+      return []
+    }
+  }),
+
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {

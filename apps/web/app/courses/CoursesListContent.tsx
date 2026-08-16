@@ -106,6 +106,8 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
 
   const { data: filterOptions } = trpc.course.getFilterOptions.useQuery(undefined)
 
+  const { data: popularSearches } = trpc.course.getPopularSearches.useQuery(undefined)
+
   const syncUrl = (nextPage: number, nextFilters: Filters = filters) => {
     const params = serializeFilters(nextFilters)
     if (nextPage > 1) params.set('page', String(nextPage))
@@ -158,7 +160,7 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
   const displayData = data
 
   return (
-    <div className="w-full flex flex-col overflow-x-hidden">
+    <div className="w-full flex flex-col overflow-x-clip">
       {/* Hero */}
       <section className="relative overflow-hidden bg-white">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
@@ -201,6 +203,25 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
                     Search
                   </Button>
                 </div>
+
+                {/* Popular searches */}
+                {popularSearches && popularSearches.length > 0 && (
+                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                    <span className="text-sm font-medium text-gray-400">Popular:</span>
+                    {popularSearches.map((term) => (
+                      <button
+                        key={term}
+                        onClick={() => {
+                          setSearch(term)
+                          resetPage()
+                        }}
+                        className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition-colors hover:border-[#C41E3A]/30 hover:bg-rose-50/50 hover:text-[#C41E3A]"
+                      >
+                        {term}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </FadeUp>
           </div>
@@ -211,7 +232,7 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
         {/* Filters (sidebar) + Results */}
         <section className="py-8 lg:py-12">
           <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
-            <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
+            <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-8">
               {/* Filters sidebar (desktop) */}
               <aside className="sticky top-24 hidden lg:block">
                 <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
