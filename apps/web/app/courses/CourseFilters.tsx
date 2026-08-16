@@ -6,6 +6,7 @@ import {
   Search,
   X,
   RotateCcw,
+  ChevronDown,
   Globe,
   MapPin,
   Building2,
@@ -25,6 +26,9 @@ export type FilterOptions = {
   cities: string[]
   institutions: { id: string; name: string }[]
   subjects: string[]
+  levels: string[]
+  startYears: number[]
+  feeMax: number
 }
 
 type SelectOption = { value: string; label: string; flag?: string }
@@ -53,12 +57,16 @@ const COUNTRY_FLAGS: Record<string, string> = {
   'South Korea': '🇰🇷',
 }
 
-const LEVEL_OPTIONS: { label: string; value: string }[] = [
-  { label: 'Undergraduate', value: 'UNDERGRADUATE' },
-  { label: 'Postgraduate', value: 'POSTGRADUATE' },
-  { label: 'Foundation', value: 'FOUNDATION' },
-  { label: 'Doctorate', value: 'PHD' },
-]
+const LEVEL_LABELS: Record<string, string> = {
+  FOUNDATION: 'Foundation',
+  UNDERGRADUATE: 'Undergraduate',
+  POSTGRADUATE: 'Postgraduate',
+  PHD: 'Doctorate',
+  DIPLOMA: 'Diploma',
+  CERTIFICATE: 'Certificate',
+}
+
+const LEVEL_ORDER = ['FOUNDATION', 'UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE']
 
 const DURATION_OPTIONS: { label: string; value: string }[] = [
   { label: 'Less than 1 year', value: 'lt1' },
@@ -69,36 +77,49 @@ const DURATION_OPTIONS: { label: string; value: string }[] = [
   { label: 'More than 5 years', value: 'gt5' },
 ]
 
-const START_YEARS = [2026, 2027, 2028, 2029]
-
-function SectionHeader({
+function Section({
   icon,
   title,
-  hint,
   right,
+  children,
+  defaultOpen = true,
 }: {
   icon: ReactNode
   title: string
-  hint?: string
   right?: ReactNode
+  children: ReactNode
+  defaultOpen?: boolean
 }) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="flex items-center gap-2.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#C41E3A]/[0.08] text-[#C41E3A]">
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <h4 className="text-[13px] font-bold uppercase tracking-wide text-gray-900">{title}</h4>
-        {hint && <p className="text-[11px] leading-4 text-gray-400">{hint}</p>}
-      </div>
-      {right}
+    <div className="border-b border-gray-100">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="flex w-full items-center gap-2.5 py-3 text-left"
+      >
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.08] text-[#C41E3A]">
+          {icon}
+        </span>
+        <span className="min-w-0 flex-1 text-[13px] font-bold uppercase tracking-wide text-gray-900">{title}</span>
+        {right}
+        <ChevronDown
+          size={15}
+          className={`shrink-0 text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+        />
+      </button>
+      <div className={open ? 'pb-4' : 'hidden'}>{children}</div>
     </div>
   )
 }
 
 function SelectionCounter({ count, limit }: { count: number; limit?: number }) {
   return (
-    <span className={`shrink-0 text-[11px] font-medium ${limit !== undefined && count >= limit ? 'text-[#C41E3A]' : 'text-gray-400'}`}>
+    <span
+      className={`shrink-0 text-[11px] font-medium ${
+        limit !== undefined && count >= limit ? 'text-[#C41E3A]' : 'text-gray-400'
+      }`}
+    >
       {count > 0 ? `${count} selected` : limit !== undefined ? `Up to ${limit}` : ''}
     </span>
   )
@@ -114,7 +135,7 @@ function CheckboxRow({
   onChange: (checked: boolean) => void
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-50">
+    <label className="flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors hover:bg-gray-50">
       <input
         type="checkbox"
         checked={checked}
@@ -126,7 +147,7 @@ function CheckboxRow({
   )
 }
 
-function Toggle({
+function ToggleRow({
   icon,
   label,
   description,
@@ -142,21 +163,28 @@ function Toggle({
   return (
     <button
       type="button"
+      role="switch"
+      aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className={`flex w-full items-center gap-3 rounded-xl border px-3.5 py-3 text-left transition-colors ${
-        checked ? 'border-[#C41E3A]/30 bg-rose-50/50' : 'border-gray-200 bg-white hover:border-[#C41E3A]/20 hover:bg-gray-50'
-      }`}
+      className="flex w-full items-center gap-3 rounded-lg px-1.5 py-2 text-left transition-colors hover:bg-gray-50"
     >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#C41E3A]/[0.08] text-[#C41E3A]">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.08] text-[#C41E3A]">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block text-sm font-semibold text-gray-800">{label}</span>
-        {description && <span className="mt-0.5 block text-xs leading-4 text-gray-400">{description}</span>}
+        {description && <span className="block text-[11px] leading-4 text-gray-400">{description}</span>}
       </span>
-      <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${checked ? 'bg-[#C41E3A]' : 'bg-gray-300'}`}>
+      <span
+        aria-hidden="true"
+        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
+          checked ? 'bg-[#C41E3A]' : 'bg-gray-300'
+        }`}
+      >
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`}
+          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
+            checked ? 'translate-x-5' : 'translate-x-0'
+          }`}
         />
       </span>
     </button>
@@ -196,7 +224,7 @@ function SearchableMultiSelect({
 
   return (
     <div>
-      <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-[#C41E3A] focus-within:ring-2 focus-within:ring-[#C41E3A]/10">
+      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 focus-within:border-[#C41E3A] focus-within:ring-1 focus-within:ring-[#C41E3A]/10">
         <Search size={14} className="shrink-0 text-gray-400" />
         <input
           value={search}
@@ -211,14 +239,14 @@ function SearchableMultiSelect({
         )}
       </div>
 
-      <div className="mt-2 max-h-52 space-y-0.5 overflow-y-auto pr-1">
+      <div className="mt-1.5 max-h-44 space-y-0.5 overflow-y-auto pr-1">
         {filtered.map((option) => {
           const isSelected = selected.includes(option.value)
           const isDisabled = limit !== undefined && !isSelected && selected.length >= limit
           return (
             <label
               key={option.value}
-              className={`flex items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors ${
+              className={`flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors ${
                 isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-50'
               }`}
             >
@@ -234,11 +262,11 @@ function SearchableMultiSelect({
             </label>
           )
         })}
-        {filtered.length === 0 && <p className="px-2 py-3 text-sm text-gray-400">No matches found</p>}
+        {filtered.length === 0 && <p className="px-1.5 py-2 text-sm text-gray-400">No matches found</p>}
       </div>
 
       {selected.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-1.5">
+        <div className="mt-1.5 flex flex-wrap gap-1.5">
           {selected.map((value) => {
             const option = options.find((o) => o.value === value)
             return (
@@ -279,6 +307,8 @@ export function CourseFilters({
 }) {
   const set = (patch: Partial<CourseFilters>) => onChange({ ...filters, ...patch })
 
+  const feeMax = options.feeMax || FEE_MAX_LIMIT
+
   const countryOptions = useMemo<SelectOption[]>(
     () =>
       (options.countries ?? []).map((name) => ({
@@ -302,6 +332,20 @@ export function CourseFilters({
     [options.subjects]
   )
 
+  const levelOptions = useMemo<SelectOption[]>(() => {
+    const levels = [...(options.levels ?? [])].sort((a, b) => {
+      const ia = LEVEL_ORDER.indexOf(a)
+      const ib = LEVEL_ORDER.indexOf(b)
+      if (ia === -1 && ib === -1) return a.localeCompare(b)
+      if (ia === -1) return 1
+      if (ib === -1) return -1
+      return ia - ib
+    })
+    return levels.map((l) => ({ value: l, label: LEVEL_LABELS[l] ?? l }))
+  }, [options.levels])
+
+  const startYears = options.startYears ?? []
+
   return (
     <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
       <div
@@ -315,10 +359,10 @@ export function CourseFilters({
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-          <div className="flex items-center gap-3">
-            <h3 className="text-lg font-bold text-gray-900">Filters</h3>
-            <span className="rounded-full bg-[#C41E3A]/10 px-2.5 py-0.5 text-xs font-semibold text-[#C41E3A]">
+        <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3.5">
+          <div className="flex items-center gap-2.5">
+            <h3 className="text-base font-bold text-gray-900">Filters</h3>
+            <span className="rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-xs font-semibold text-[#C41E3A]">
               {resultsCount} results
             </span>
           </div>
@@ -332,63 +376,60 @@ export function CourseFilters({
         </div>
 
         {/* Body */}
-        <div className="flex-1 space-y-6 overflow-y-auto px-5 py-5">
+        <div className="flex-1 overflow-y-auto px-5">
           {/* Destination */}
-          <div>
-            <SectionHeader
-              icon={<Globe size={15} />}
-              title="Destination"
-              hint="Where do you want to study?"
-              right={<SelectionCounter count={filters.countries.length} />}
+          <Section
+            icon={<Globe size={15} />}
+            title="Destination"
+            right={<SelectionCounter count={filters.countries.length} />}
+          >
+            <SearchableMultiSelect
+              label="Destination"
+              options={countryOptions}
+              selected={filters.countries}
+              onChange={(countries) => set({ countries })}
+              placeholder="Search country..."
             />
-            <div className="mt-3">
-              <SearchableMultiSelect
-                label="Destination"
-                options={countryOptions}
-                selected={filters.countries}
-                onChange={(countries) => set({ countries })}
-                placeholder="Search country..."
-              />
-            </div>
-          </div>
+          </Section>
 
           {/* City */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader icon={<MapPin size={15} />} title="City" right={<SelectionCounter count={filters.cities.length} limit={5} />} />
-            <div className="mt-3">
-              <SearchableMultiSelect
-                label="City"
-                options={cityOptions}
-                selected={filters.cities}
-                onChange={(cities) => set({ cities })}
-                limit={5}
-              />
-            </div>
-          </div>
+          <Section
+            icon={<MapPin size={15} />}
+            title="City"
+            right={<SelectionCounter count={filters.cities.length} limit={5} />}
+          >
+            <SearchableMultiSelect
+              label="City"
+              options={cityOptions}
+              selected={filters.cities}
+              onChange={(cities) => set({ cities })}
+              limit={5}
+            />
+          </Section>
 
           {/* Institution */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader
-              icon={<Building2 size={15} />}
-              title="Institution"
-              right={<SelectionCounter count={filters.institutionIds.length} limit={5} />}
+          <Section
+            icon={<Building2 size={15} />}
+            title="Institution"
+            right={<SelectionCounter count={filters.institutionIds.length} limit={5} />}
+          >
+            <SearchableMultiSelect
+              label="Institution"
+              options={institutionOptions}
+              selected={filters.institutionIds}
+              onChange={(institutionIds) => set({ institutionIds })}
+              limit={5}
             />
-            <div className="mt-3">
-              <SearchableMultiSelect
-                label="Institution"
-                options={institutionOptions}
-                selected={filters.institutionIds}
-                onChange={(institutionIds) => set({ institutionIds })}
-                limit={5}
-              />
-            </div>
-          </div>
+          </Section>
 
           {/* Study Level */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader icon={<GraduationCap size={15} />} title="Study Level" />
-            <div className="mt-2 space-y-0.5">
-              {LEVEL_OPTIONS.map((l) => (
+          <Section
+            icon={<GraduationCap size={15} />}
+            title="Study Level"
+            right={<SelectionCounter count={filters.levels.length} />}
+          >
+            <div className="space-y-0.5">
+              {levelOptions.map((l) => (
                 <CheckboxRow
                   key={l.value}
                   checked={filters.levels.includes(l.value)}
@@ -400,38 +441,32 @@ export function CourseFilters({
                   label={l.label}
                 />
               ))}
+              {levelOptions.length === 0 && <p className="px-1.5 py-2 text-sm text-gray-400">No levels available</p>}
             </div>
-          </div>
+          </Section>
 
           {/* Subject */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader icon={<BookOpen size={15} />} title="Subject" right={<SelectionCounter count={filters.subjects.length} limit={5} />} />
-            <div className="mt-3">
-              <SearchableMultiSelect
-                label="Subject"
-                options={subjectOptions}
-                selected={filters.subjects}
-                onChange={(subjects) => set({ subjects })}
-                limit={5}
-              />
-            </div>
-          </div>
-
-          {/* Express Offer */}
-          <div className="border-t border-gray-100 pt-5">
-            <Toggle
-              icon={<Zap size={17} />}
-              label="Express Offer"
-              description="Offer in Principle in just a few hours"
-              checked={filters.expressOffer}
-              onChange={(expressOffer) => set({ expressOffer })}
+          <Section
+            icon={<BookOpen size={15} />}
+            title="Subject"
+            right={<SelectionCounter count={filters.subjects.length} limit={5} />}
+          >
+            <SearchableMultiSelect
+              label="Subject"
+              options={subjectOptions}
+              selected={filters.subjects}
+              onChange={(subjects) => set({ subjects })}
+              limit={5}
             />
-          </div>
+          </Section>
 
           {/* Duration */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader icon={<Clock size={15} />} title="Duration" />
-            <div className="mt-2 space-y-0.5">
+          <Section
+            icon={<Clock size={15} />}
+            title="Duration"
+            right={<SelectionCounter count={filters.durations.length} />}
+          >
+            <div className="space-y-0.5">
               {DURATION_OPTIONS.map((d) => (
                 <CheckboxRow
                   key={d.value}
@@ -445,80 +480,105 @@ export function CourseFilters({
                 />
               ))}
             </div>
-          </div>
+          </Section>
 
           {/* Start Year */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader icon={<CalendarDays size={15} />} title="Start Year" />
-            <div className="mt-2 grid grid-cols-4 gap-2">
-              {START_YEARS.map((year) => {
-                const active = filters.startYears.includes(year)
-                return (
-                  <button
-                    key={year}
-                    onClick={() =>
-                      set({
-                        startYears: active
-                          ? filters.startYears.filter((v) => v !== year)
-                          : [...filters.startYears, year],
-                      })
-                    }
-                    className={`rounded-lg border px-2 py-2 text-sm font-semibold transition-colors ${
-                      active
-                        ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
-                        : 'border-gray-200 text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
-                    }`}
-                  >
-                    {year}
-                  </button>
-                )
-              })}
-            </div>
-          </div>
+          <Section
+            icon={<CalendarDays size={15} />}
+            title="Start Year"
+            right={<SelectionCounter count={filters.startYears.length} />}
+          >
+            {startYears.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {startYears.map((year) => {
+                  const active = filters.startYears.includes(year)
+                  return (
+                    <button
+                      key={year}
+                      onClick={() =>
+                        set({
+                          startYears: active
+                            ? filters.startYears.filter((v) => v !== year)
+                            : [...filters.startYears, year],
+                        })
+                      }
+                      className={`rounded-lg border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                        active
+                          ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
+                          : 'border-gray-200 text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
+                      }`}
+                    >
+                      {year}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="px-1.5 py-2 text-sm text-gray-400">No intake years available</p>
+            )}
+          </Section>
 
           {/* Fee Range */}
-          <div className="border-t border-gray-100 pt-5">
-            <SectionHeader icon={<DollarSign size={15} />} title="Fee Range" hint="Tuition fee per year (USD)" />
-            <div className="mt-3 grid grid-cols-2 gap-3">
+          <Section
+            icon={<DollarSign size={15} />}
+            title="Fee Range"
+            right={<span className="shrink-0 text-[11px] text-gray-400">USD / year</span>}
+          >
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min</label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                    $
+                  </span>
                   <input
                     type="number"
                     min={0}
-                    max={FEE_MAX_LIMIT}
+                    max={feeMax}
                     value={filters.feeMin ?? ''}
                     onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
                     placeholder="0"
-                    className="w-full rounded-xl border border-gray-200 py-2.5 pl-7 pr-3 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
+                    className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
                   />
                 </div>
               </div>
               <div>
                 <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max</label>
                 <div className="relative">
-                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">$</span>
+                  <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-400">
+                    $
+                  </span>
                   <input
                     type="number"
                     min={0}
-                    max={FEE_MAX_LIMIT}
+                    max={feeMax}
                     value={filters.feeMax ?? ''}
                     onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
-                    placeholder={FEE_MAX_LIMIT.toLocaleString()}
-                    className="w-full rounded-xl border border-gray-200 py-2.5 pl-7 pr-3 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
+                    placeholder={feeMax.toLocaleString()}
+                    className="w-full rounded-lg border border-gray-200 py-2 pl-7 pr-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
                   />
                 </div>
               </div>
             </div>
+          </Section>
+
+          {/* Express Offer */}
+          <div className="border-b border-gray-100">
+            <ToggleRow
+              icon={<Zap size={15} />}
+              label="Express Offer"
+              description="Offer in Principle in just a few hours"
+              checked={filters.expressOffer}
+              onChange={(expressOffer) => set({ expressOffer })}
+            />
           </div>
 
           {/* English Waiver */}
-          <div className="border-t border-gray-100 pt-5">
-            <Toggle
-              icon={<FileCheck2 size={17} />}
+          <div className="border-b border-gray-100">
+            <ToggleRow
+              icon={<FileCheck2 size={15} />}
               label="English Test Waiver"
-              description="Show courses that accept students without an English test"
+              description="Accept students without an English test"
               checked={filters.englishWaiver}
               onChange={(englishWaiver) => set({ englishWaiver })}
             />
@@ -526,7 +586,7 @@ export function CourseFilters({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-3 border-t border-gray-100 px-5 py-4">
+        <div className="flex items-center gap-3 border-t border-gray-100 px-5 py-3.5">
           <button
             onClick={onClear}
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"

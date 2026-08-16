@@ -187,7 +187,7 @@ export const courseRouter = createTRPCRouter({
 
   getFilterOptions: publicProcedure.query(async ({ ctx }) => {
     try {
-      const [countryRows, cityRows, institutionRows, subjectRows] = await Promise.all([
+      const [countryRows, cityRows, institutionRows, subjectRows, levelRows, yearRows, feeRow] = await Promise.all([
         ctx.db
           .selectDistinct({ country: universities.country })
           .from(universities)
@@ -202,6 +202,18 @@ export const courseRouter = createTRPCRouter({
           .where(eq(universities.isActive, true)),
         ctx.db
           .selectDistinct({ subject: courses.subject })
+          .from(courses)
+          .where(eq(courses.isActive, true)),
+        ctx.db
+          .selectDistinct({ level: courses.level })
+          .from(courses)
+          .where(eq(courses.isActive, true)),
+        ctx.db
+          .selectDistinct({ year: sql<number>`YEAR(${courses.startDate})` })
+          .from(courses)
+          .where(and(eq(courses.isActive, true), sql`${courses.startDate} IS NOT NULL`)),
+        ctx.db
+          .select({ max: sql<number>`COALESCE(MAX(${courses.tuitionFee}), 0)` })
           .from(courses)
           .where(eq(courses.isActive, true)),
       ])
@@ -222,9 +234,15 @@ export const courseRouter = createTRPCRouter({
           .map((r) => r.subject)
           .filter((s): s is string => Boolean(s))
           .sort((a, b) => a.localeCompare(b)),
+        levels: levelRows.map((r) => r.level as string),
+        startYears: yearRows
+          .map((r) => r.year)
+          .filter((y) => Number.isFinite(y))
+          .sort((a, b) => a - b),
+        feeMax: Number(feeRow[0]?.max ?? 0),
       }
     } catch {
-      return { countries: [], cities: [], institutions: [], subjects: [] }
+      return { countries: [], cities: [], institutions: [], subjects: [], levels: [], startYears: [], feeMax: 0 }
     }
   }),
 

@@ -480,7 +480,7 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
         filters={filters}
         onChange={updateFilters}
         onClear={clearFilters}
-        options={filterOptions ?? { countries: [], cities: [], institutions: [], subjects: [] }}
+        options={filterOptions ?? { countries: [], cities: [], institutions: [], subjects: [], levels: [], startYears: [], feeMax: 0 }}
         resultsCount={displayData?.total ?? 0}
       />
 
