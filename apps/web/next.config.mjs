@@ -80,7 +80,7 @@ const nextConfig = {
               : "script-src 'self' 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data: blob: https://www.google.com https://github.githubassets.com https://upload.wikimedia.org https://images.unsplash.com",
+            "img-src 'self' data: blob: https://www.google.com https://github.githubassets.com https://upload.wikimedia.org https://images.unsplash.com https://flagcdn.com",
             "connect-src 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",

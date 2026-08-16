@@ -32,30 +32,30 @@ export type FilterOptions = {
   feeMax: number
 }
 
-type SelectOption = { value: string; label: string; flag?: string }
+type SelectOption = { value: string; label: string; code?: string }
 
-const COUNTRY_FLAGS: Record<string, string> = {
-  'United Kingdom': '🇬🇧',
-  'United States': '🇺🇸',
-  Canada: '🇨🇦',
-  Australia: '🇦🇺',
-  Germany: '🇩🇪',
-  'New Zealand': '🇳🇿',
-  Ireland: '🇮🇪',
-  Netherlands: '🇳🇱',
-  France: '🇫🇷',
-  Switzerland: '🇨🇭',
-  Spain: '🇪🇸',
-  'United Arab Emirates': '🇦🇪',
-  Poland: '🇵🇱',
-  Malta: '🇲🇹',
-  Cyprus: '🇨🇾',
-  Hungary: '🇭🇺',
-  Italy: '🇮🇹',
-  Malaysia: '🇲🇾',
-  Mauritius: '🇲🇺',
-  Singapore: '🇸🇬',
-  'South Korea': '🇰🇷',
+const COUNTRY_CODES: Record<string, string> = {
+  'United Kingdom': 'gb',
+  'United States': 'us',
+  Canada: 'ca',
+  Australia: 'au',
+  Germany: 'de',
+  'New Zealand': 'nz',
+  Ireland: 'ie',
+  Netherlands: 'nl',
+  France: 'fr',
+  Switzerland: 'ch',
+  Spain: 'es',
+  'United Arab Emirates': 'ae',
+  Poland: 'pl',
+  Malta: 'mt',
+  Cyprus: 'cy',
+  Hungary: 'hu',
+  Italy: 'it',
+  Malaysia: 'my',
+  Mauritius: 'mu',
+  Singapore: 'sg',
+  'South Korea': 'kr',
 }
 
 const LEVEL_LABELS: Record<string, string> = {
@@ -267,7 +267,13 @@ function SearchableMultiSelect({
                 onChange={() => toggle(option.value)}
               />
               <CheckIndicator checked={isSelected} />
-              {option.flag && <span className="text-base leading-none">{option.flag}</span>}
+              {option.code && (
+                <img
+                  src={`https://flagcdn.com/w40/${option.code}.png`}
+                  alt=""
+                  className="h-4 w-6 shrink-0 rounded-[2px] object-cover"
+                />
+              )}
               <span
                 className={`min-w-0 flex-1 truncate text-[13px] ${
                   isSelected ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'
@@ -290,7 +296,13 @@ function SearchableMultiSelect({
                 key={value}
                 className="inline-flex items-center gap-1 rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-xs font-medium text-[#C41E3A]"
               >
-                {option?.flag && <span>{option.flag}</span>}
+                {option?.code && (
+                  <img
+                    src={`https://flagcdn.com/w40/${option.code}.png`}
+                    alt=""
+                    className="h-3.5 w-5 shrink-0 rounded-[2px] object-cover"
+                  />
+                )}
                 {option?.label ?? value}
                 <button type="button" onClick={() => toggle(value)} className="text-[#C41E3A]/60 hover:text-[#C41E3A]">
                   <X size={11} />
@@ -304,44 +316,25 @@ function SearchableMultiSelect({
   )
 }
 
-export function CourseFilters({
-  open,
-  onClose,
+export function FilterPanel({
   filters,
   onChange,
-  onClear,
   options,
-  resultsCount,
 }: {
-  open: boolean
-  onClose: () => void
   filters: CourseFilters
   onChange: (next: CourseFilters) => void
-  onClear: () => void
   options: FilterOptions
-  resultsCount: number
 }) {
   const set = (patch: Partial<CourseFilters>) => onChange({ ...filters, ...patch })
 
   const feeMax = options.feeMax || FEE_MAX_LIMIT
-  const activeCount = countActiveFilters(filters)
-
-  useEffect(() => {
-    const lenis = window.__lenis
-    if (!lenis) return
-    if (open) {
-      lenis.stop()
-    } else {
-      lenis.start()
-    }
-  }, [open])
 
   const countryOptions = useMemo<SelectOption[]>(
     () =>
       (options.countries ?? []).map((name) => ({
         value: name,
         label: name,
-        flag: COUNTRY_FLAGS[name] ?? '🌍',
+        code: COUNTRY_CODES[name],
       })),
     [options.countries]
   )
@@ -372,6 +365,195 @@ export function CourseFilters({
   }, [options.levels])
 
   const startYears = options.startYears ?? []
+
+  return (
+    <div>
+      <Section icon={<Globe size={15} />} title="Destination" count={filters.countries.length}>
+        <SearchableMultiSelect
+          label="Destination"
+          options={countryOptions}
+          selected={filters.countries}
+          onChange={(countries) => set({ countries })}
+          placeholder="Search country..."
+        />
+      </Section>
+
+      <Section icon={<MapPin size={15} />} title="City" count={filters.cities.length}>
+        <SearchableMultiSelect
+          label="City"
+          options={cityOptions}
+          selected={filters.cities}
+          onChange={(cities) => set({ cities })}
+          limit={5}
+        />
+      </Section>
+
+      <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
+        <SearchableMultiSelect
+          label="Institution"
+          options={institutionOptions}
+          selected={filters.institutionIds}
+          onChange={(institutionIds) => set({ institutionIds })}
+          limit={5}
+        />
+      </Section>
+
+      <Section icon={<GraduationCap size={15} />} title="Study Level" count={filters.levels.length}>
+        <div className="grid grid-cols-2 gap-x-3">
+          {levelOptions.map((l) => (
+            <CheckboxRow
+              key={l.value}
+              checked={filters.levels.includes(l.value)}
+              onChange={(checked) =>
+                set({
+                  levels: checked ? [...filters.levels, l.value] : filters.levels.filter((v) => v !== l.value),
+                })
+              }
+              label={l.label}
+            />
+          ))}
+        </div>
+        {levelOptions.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No levels available</p>}
+      </Section>
+
+      <Section icon={<BookOpen size={15} />} title="Subject" count={filters.subjects.length}>
+        <SearchableMultiSelect
+          label="Subject"
+          options={subjectOptions}
+          selected={filters.subjects}
+          onChange={(subjects) => set({ subjects })}
+          limit={5}
+        />
+      </Section>
+
+      <Section icon={<Clock size={15} />} title="Duration" count={filters.durations.length}>
+        <div className="grid grid-cols-2 gap-x-3">
+          {DURATION_OPTIONS.map((d) => (
+            <CheckboxRow
+              key={d.value}
+              checked={filters.durations.includes(d.value)}
+              onChange={(checked) =>
+                set({
+                  durations: checked ? [...filters.durations, d.value] : filters.durations.filter((v) => v !== d.value),
+                })
+              }
+              label={d.label}
+            />
+          ))}
+        </div>
+      </Section>
+
+      <Section icon={<CalendarDays size={15} />} title="Start Year" count={filters.startYears.length}>
+        {startYears.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {startYears.map((year) => {
+              const active = filters.startYears.includes(year)
+              return (
+                <button
+                  key={year}
+                  onClick={() =>
+                    set({
+                      startYears: active
+                        ? filters.startYears.filter((v) => v !== year)
+                        : [...filters.startYears, year],
+                    })
+                  }
+                  className={`rounded-lg border px-3 py-1 text-[13px] font-semibold transition-colors ${
+                    active
+                      ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
+                      : 'border-gray-200 text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
+                  }`}
+                >
+                  {year}
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="px-1 py-2 text-sm text-gray-400">No intake years available</p>
+        )}
+      </Section>
+
+      <Section icon={<DollarSign size={15} />} title="Fee Range" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min ($)</label>
+            <input
+              type="number"
+              min={0}
+              max={feeMax}
+              value={filters.feeMin ?? ''}
+              onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
+              placeholder="0"
+              className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max ($)</label>
+            <input
+              type="number"
+              min={0}
+              max={feeMax}
+              value={filters.feeMax ?? ''}
+              onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
+              placeholder={feeMax.toLocaleString()}
+              className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
+            />
+          </div>
+        </div>
+      </Section>
+
+      <div className="border-b border-gray-100">
+        <ToggleRow
+          icon={<Zap size={15} />}
+          label="Express Offer"
+          description="Offer in Principle in hours"
+          checked={filters.expressOffer}
+          onChange={(expressOffer) => set({ expressOffer })}
+        />
+      </div>
+
+      <div className="border-b border-gray-100">
+        <ToggleRow
+          icon={<FileCheck2 size={15} />}
+          label="English Test Waiver"
+          description="No English test required"
+          checked={filters.englishWaiver}
+          onChange={(englishWaiver) => set({ englishWaiver })}
+        />
+      </div>
+    </div>
+  )
+}
+
+export function CourseFilters({
+  open,
+  onClose,
+  filters,
+  onChange,
+  onClear,
+  options,
+  resultsCount,
+}: {
+  open: boolean
+  onClose: () => void
+  filters: CourseFilters
+  onChange: (next: CourseFilters) => void
+  onClear: () => void
+  options: FilterOptions
+  resultsCount: number
+}) {
+  const activeCount = countActiveFilters(filters)
+
+  useEffect(() => {
+    const lenis = window.__lenis
+    if (!lenis) return
+    if (open) {
+      lenis.stop()
+    } else {
+      lenis.start()
+    }
+  }, [open])
 
   return (
     <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
@@ -407,160 +589,7 @@ export function CourseFilters({
 
         {/* Body */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4">
-          <Section icon={<Globe size={15} />} title="Destination" count={filters.countries.length}>
-            <SearchableMultiSelect
-              label="Destination"
-              options={countryOptions}
-              selected={filters.countries}
-              onChange={(countries) => set({ countries })}
-              placeholder="Search country..."
-            />
-          </Section>
-
-          <Section icon={<MapPin size={15} />} title="City" count={filters.cities.length}>
-            <SearchableMultiSelect
-              label="City"
-              options={cityOptions}
-              selected={filters.cities}
-              onChange={(cities) => set({ cities })}
-              limit={5}
-            />
-          </Section>
-
-          <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
-            <SearchableMultiSelect
-              label="Institution"
-              options={institutionOptions}
-              selected={filters.institutionIds}
-              onChange={(institutionIds) => set({ institutionIds })}
-              limit={5}
-            />
-          </Section>
-
-          <Section icon={<GraduationCap size={15} />} title="Study Level" count={filters.levels.length}>
-            <div className="grid grid-cols-2 gap-x-3">
-              {levelOptions.map((l) => (
-                <CheckboxRow
-                  key={l.value}
-                  checked={filters.levels.includes(l.value)}
-                  onChange={(checked) =>
-                    set({
-                      levels: checked ? [...filters.levels, l.value] : filters.levels.filter((v) => v !== l.value),
-                    })
-                  }
-                  label={l.label}
-                />
-              ))}
-            </div>
-            {levelOptions.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No levels available</p>}
-          </Section>
-
-          <Section icon={<BookOpen size={15} />} title="Subject" count={filters.subjects.length}>
-            <SearchableMultiSelect
-              label="Subject"
-              options={subjectOptions}
-              selected={filters.subjects}
-              onChange={(subjects) => set({ subjects })}
-              limit={5}
-            />
-          </Section>
-
-          <Section icon={<Clock size={15} />} title="Duration" count={filters.durations.length}>
-            <div className="grid grid-cols-2 gap-x-3">
-              {DURATION_OPTIONS.map((d) => (
-                <CheckboxRow
-                  key={d.value}
-                  checked={filters.durations.includes(d.value)}
-                  onChange={(checked) =>
-                    set({
-                      durations: checked ? [...filters.durations, d.value] : filters.durations.filter((v) => v !== d.value),
-                    })
-                  }
-                  label={d.label}
-                />
-              ))}
-            </div>
-          </Section>
-
-          <Section icon={<CalendarDays size={15} />} title="Start Year" count={filters.startYears.length}>
-            {startYears.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {startYears.map((year) => {
-                  const active = filters.startYears.includes(year)
-                  return (
-                    <button
-                      key={year}
-                      onClick={() =>
-                        set({
-                          startYears: active
-                            ? filters.startYears.filter((v) => v !== year)
-                            : [...filters.startYears, year],
-                        })
-                      }
-                      className={`rounded-lg border px-3 py-1 text-[13px] font-semibold transition-colors ${
-                        active
-                          ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
-                          : 'border-gray-200 text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
-                      }`}
-                    >
-                      {year}
-                    </button>
-                  )
-                })}
-              </div>
-            ) : (
-              <p className="px-1 py-2 text-sm text-gray-400">No intake years available</p>
-            )}
-          </Section>
-
-          <Section icon={<DollarSign size={15} />} title="Fee Range" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min ($)</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={feeMax}
-                  value={filters.feeMin ?? ''}
-                  onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
-                  placeholder="0"
-                  className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max ($)</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={feeMax}
-                  value={filters.feeMax ?? ''}
-                  onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
-                  placeholder={feeMax.toLocaleString()}
-                  className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
-                />
-              </div>
-            </div>
-          </Section>
-
-          <div className="border-b border-gray-100">
-            <ToggleRow
-              icon={<Zap size={15} />}
-              label="Express Offer"
-              description="Offer in Principle in hours"
-              checked={filters.expressOffer}
-              onChange={(expressOffer) => set({ expressOffer })}
-            />
-          </div>
-
-          <div className="border-b border-gray-100">
-            <ToggleRow
-              icon={<FileCheck2 size={15} />}
-              label="English Test Waiver"
-              description="No English test required"
-              checked={filters.englishWaiver}
-              onChange={(englishWaiver) => set({ englishWaiver })}
-            />
-          </div>
+          <FilterPanel filters={filters} onChange={onChange} options={options} />
         </div>
 
         {/* Footer */}

@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc-client'
 import { formatCurrency } from '@/lib/utils'
 import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
-import { CourseFilters } from './CourseFilters'
+import { CourseFilters, FilterPanel } from './CourseFilters'
 import { EMPTY_FILTERS, countActiveFilters, serializeFilters } from './filter-utils'
 import type { CourseFilters as Filters } from './filter-utils'
 
@@ -21,15 +21,6 @@ const levelLabels: Record<string, string> = {
   DIPLOMA: 'Diploma',
   CERTIFICATE: 'Certificate',
   FOUNDATION: 'Foundation',
-}
-
-const subjectAccents: Record<string, string> = {
-  'Computer Science': '#C41E3A',
-  'Business': '#A01830',
-  'Engineering': '#8B0E1A',
-  'Healthcare': '#991B1B',
-  'Data Science': '#C41E3A',
-  'Arts': '#A01830',
 }
 
 function getPageItems(current: number, total: number): (number | '...')[] {
@@ -166,13 +157,6 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
   const activeFilterCount = countActiveFilters(filters)
   const displayData = data
 
-  function getAccent(subj: string): string {
-    for (const [key, color] of Object.entries(subjectAccents)) {
-      if (subj.toLowerCase().includes(key.toLowerCase())) return color
-    }
-    return '#C41E3A'
-  }
-
   return (
     <div className="w-full flex flex-col overflow-x-hidden">
       {/* Hero */}
@@ -224,46 +208,72 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
       </section>
 
       <main className="flex-grow bg-gray-50">
-        {/* Filters + Results */}
-        <section className="py-12 lg:py-20">
-          <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-            {/* Filters toolbar */}
-            <FadeUp>
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => setFiltersOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-[#C41E3A]/30 hover:bg-rose-50/50 hover:text-[#C41E3A]"
-                >
-                  <SlidersHorizontal size={16} />
-                  Filters
-                  {activeFilterCount > 0 && (
-                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C41E3A] px-1.5 text-[11px] font-bold text-white">
-                      {activeFilterCount}
+        {/* Filters (sidebar) + Results */}
+        <section className="py-8 lg:py-12">
+          <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
+            <div className="lg:grid lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
+              {/* Filters sidebar (desktop) */}
+              <aside className="sticky top-24 hidden lg:block">
+                <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                  <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3">
+                    <h3 className="text-base font-bold text-gray-900">Filters</h3>
+                    {activeFilterCount > 0 && (
+                      <button
+                        onClick={clearFilters}
+                        className="text-sm font-medium text-[#C41E3A] transition-colors hover:underline"
+                      >
+                        Reset all
+                      </button>
+                    )}
+                  </div>
+                  <div data-lenis-prevent className="filter-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
+                    <FilterPanel
+                      filters={filters}
+                      onChange={updateFilters}
+                      options={
+                        filterOptions ?? {
+                          countries: [],
+                          cities: [],
+                          institutions: [],
+                          subjects: [],
+                          levels: [],
+                          startYears: [],
+                          feeMax: 0,
+                        }
+                      }
+                    />
+                  </div>
+                </div>
+              </aside>
+
+              {/* Results */}
+              <div className="min-w-0">
+                {/* Toolbar */}
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <button
+                    onClick={() => setFiltersOpen(true)}
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-[#C41E3A]/30 hover:bg-rose-50/50 hover:text-[#C41E3A] lg:hidden"
+                  >
+                    <SlidersHorizontal size={16} />
+                    Filters
+                    {activeFilterCount > 0 && (
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[11px] font-bold text-white">
+                        {activeFilterCount}
+                      </span>
+                    )}
+                  </button>
+
+                  {displayData && (
+                    <span className="ml-auto text-sm text-gray-500">
+                      {displayData.total} course{displayData.total !== 1 ? 's' : ''} found
                     </span>
                   )}
-                </button>
-
-                {activeFilterCount > 0 && (
-                  <button
-                    onClick={clearFilters}
-                    className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors hover:text-[#C41E3A]"
-                  >
-                    Clear all filters
-                  </button>
-                )}
-
-                {displayData && (
-                  <span className="ml-auto text-sm text-gray-500">
-                    {displayData.total} course{displayData.total !== 1 ? 's' : ''} found
-                  </span>
-                )}
-              </div>
-            </FadeUp>
+                </div>
 
             {/* Results Grid */}
-            <div ref={resultsRef} className="mt-8 scroll-mt-24">
+            <div ref={resultsRef} className="scroll-mt-24">
               {isLoading ? (
-                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
+                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3" amount={0.08}>
                   {Array.from({ length: 6 }).map((_, i) => (
                     <FadeUpItem key={i}>
                       <div className="animate-pulse overflow-hidden rounded-2xl border border-gray-100 bg-white">
@@ -321,92 +331,83 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
                   </div>
                 </div>
               ) : (
-                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
+                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3" amount={0.08}>
                   {displayData?.hits.map((course) => {
-                    const accent = getAccent(course.subject)
                     const courseUrl = course.universitySlug
                       ? `/institutions/${course.universitySlug}/${(course.level || 'postgraduate').toLowerCase()}/${course.slug}`
                       : `/courses/${course.slug}`
                     return (
                       <FadeUpItem key={course.id}>
-                        <Link href={courseUrl}>
-                          <article className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-                            {/* Top accent line */}
-                            <div
-                              className="h-[2px] w-full opacity-60 transition-opacity duration-300 group-hover:opacity-100"
-                              style={{ background: `linear-gradient(to right, transparent, ${accent}, transparent)` }}
-                            />
-
-                            <div className="flex h-full flex-col p-6">
-                              {/* Header */}
-                              <div className="mb-4 flex items-start justify-between">
-                                <span
-                                  className="inline-flex items-center rounded-lg border px-2.5 py-1 text-[11px] font-bold"
-                                  style={{
-                                    borderColor: `${accent}20`,
-                                    backgroundColor: `${accent}08`,
-                                    color: accent,
-                                  }}
-                                >
-                                  {levelLabels[course.level] ?? course.level}
-                                </span>
-                                {course.universityLogo && (
-                                  <img
-                                    src={course.universityLogo}
-                                    alt={course.universityName ?? ''}
-                                    className="h-9 w-9 rounded-lg object-contain"
-                                  />
-                                )}
-                              </div>
-
-                              {/* Content */}
-                              <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#C41E3A] transition-colors">
-                                {course.name}
-                              </h3>
-                              <p className="mt-1 text-sm font-medium text-gray-500">
-                                {course.universityName}
-                              </p>
-                              <p className="mt-2 line-clamp-2 text-sm leading-relaxed text-gray-500">
-                                {course.description}
-                              </p>
-
-                              {/* Tags */}
-                              <div className="mt-3 flex flex-wrap gap-1.5">
-                                <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
-                                  <Clock size={10} />
-                                  {course.duration} {course.durationUnit?.toLowerCase()}
-                                </span>
-                                {course.universityCountry && (
-                                  <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
-                                    <MapPin size={10} />
+                        <Link href={courseUrl} className="block h-full">
+                          <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-0.5 hover:border-[#C41E3A]/25 hover:shadow-[0_12px_40px_rgba(196,30,58,0.08)]">
+                            {/* Header: logo + university + level */}
+                            <div className="flex items-start gap-3 border-b border-gray-100 p-4 sm:p-5">
+                              {course.universityLogo ? (
+                                <img
+                                  src={course.universityLogo}
+                                  alt={course.universityName ?? ''}
+                                  className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-1"
+                                />
+                              ) : (
+                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-base font-bold text-gray-400">
+                                  {(course.universityName ?? 'U').charAt(0)}
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-gray-900">{course.universityName}</p>
+                                <p className="mt-0.5 flex items-center gap-1 text-xs text-gray-500">
+                                  <MapPin size={11} className="shrink-0" />
+                                  <span className="truncate">
+                                    {course.universityCity ? `${course.universityCity}, ` : ''}
                                     {course.universityCountry}
                                   </span>
+                                </p>
+                              </div>
+                              <span className="shrink-0 rounded-md bg-[#C41E3A]/[0.07] px-2 py-1 text-[11px] font-bold text-[#C41E3A]">
+                                {levelLabels[course.level] ?? course.level}
+                              </span>
+                            </div>
+
+                            {/* Body */}
+                            <div className="flex flex-1 flex-col p-4 sm:p-5">
+                              <h3 className="line-clamp-2 text-base font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A]">
+                                {course.name}
+                              </h3>
+
+                              <div className="mt-3 flex flex-wrap gap-1.5">
+                                <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600">
+                                  <Clock size={11} />
+                                  {course.duration} {course.durationUnit?.toLowerCase()}
+                                </span>
+                                {course.language && (
+                                  <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-600">
+                                    {course.language}
+                                  </span>
                                 )}
                               </div>
 
-                              {/* Footer */}
-                              <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
+                              <div className="my-4 border-t border-dashed border-gray-200" />
+
+                              <div className="flex items-end justify-between gap-3">
                                 <div>
-                                  <span className="text-base font-bold text-gray-900">
+                                  <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Annual Tuition</p>
+                                  <p className="mt-0.5 text-lg font-bold text-gray-900">
                                     {formatCurrency(course.tuitionFee, course.currency)}
-                                  </span>
-                                  <span className="text-xs text-gray-400"> / year</span>
+                                  </p>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {course.hasScholarship && (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700">
-                                      <Award size={10} />
-                                      Scholarship
-                                    </span>
-                                  )}
-                                  <span
-                                    className="inline-flex items-center gap-1 text-sm font-semibold transition-all group-hover:gap-2"
-                                    style={{ color: accent }}
-                                  >
-                                    View
-                                    <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                                {course.hasScholarship && (
+                                  <span className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-[11px] font-semibold text-green-700">
+                                    <Award size={11} />
+                                    Scholarship
                                   </span>
-                                </div>
+                                )}
+                              </div>
+
+                              <div className="mt-4">
+                                <span className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#C41E3A]/25 bg-[#C41E3A]/[0.05] py-2 text-sm font-semibold text-[#C41E3A] transition-colors group-hover:border-transparent group-hover:bg-gradient-to-r group-hover:from-[#C41E3A] group-hover:to-[#A01830] group-hover:text-white">
+                                  View Details
+                                  <ArrowRight size={14} />
+                                </span>
                               </div>
                             </div>
                           </article>
@@ -470,6 +471,8 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
                 </div>
               </FadeUp>
             )}
+              </div>
+            </div>
           </div>
         </section>
       </main>
