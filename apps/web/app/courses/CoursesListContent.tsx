@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, BookOpen, ArrowRight, SlidersHorizontal } from 'lucide-react'
+import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, BookOpen, ArrowRight, SlidersHorizontal, X } from 'lucide-react'
 
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
@@ -108,39 +108,45 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
 
   const { data: popularSearches } = trpc.course.getPopularSearches.useQuery(undefined)
 
-  const syncUrl = (nextPage: number, nextFilters: Filters = filters) => {
+  const syncUrl = useCallback((nextPage: number, nextFilters: Filters) => {
     const params = serializeFilters(nextFilters)
     if (nextPage > 1) params.set('page', String(nextPage))
     const qs = params.toString()
     window.history.replaceState(window.history.state, '', `/courses${qs ? `?${qs}` : ''}`)
-  }
+  }, [])
 
-  const goToPage = (next: number) => {
-    const clamped = Math.max(1, next)
-    setPage(clamped)
-    syncUrl(clamped)
-  }
+  const goToPage = useCallback(
+    (next: number) => {
+      const clamped = Math.max(1, next)
+      setPage(clamped)
+      syncUrl(clamped, filters)
+    },
+    [syncUrl, filters]
+  )
 
-  const updateFilters = (next: Filters) => {
-    setFiltersTouched(true)
-    setFilters(next)
-    setPage(1)
-    syncUrl(1, next)
-  }
+  const updateFilters = useCallback(
+    (next: Filters) => {
+      setFiltersTouched(true)
+      setFilters(next)
+      setPage(1)
+      syncUrl(1, next)
+    },
+    [syncUrl]
+  )
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFiltersTouched(true)
     setFilters(EMPTY_FILTERS)
     setPage(1)
     syncUrl(1, EMPTY_FILTERS)
-  }
+  }, [syncUrl])
 
-  const resetPage = () => {
+  const resetPage = useCallback(() => {
     if (page !== 1) {
       setPage(1)
-      syncUrl(1)
+      syncUrl(1, filters)
     }
-  }
+  }, [page, syncUrl, filters])
 
   useEffect(() => {
     if (prevPageRef.current !== page) {
@@ -159,23 +165,94 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
   const activeFilterCount = countActiveFilters(filters)
   const displayData = data
 
+  const activeFilterChips = useMemo(() => {
+    const chips: { key: string; label: string; remove: () => void }[] = []
+
+    filters.countries.forEach((c) =>
+      chips.push({
+        key: `country-${c}`,
+        label: c,
+        remove: () => updateFilters({ ...filters, countries: filters.countries.filter((x) => x !== c) }),
+      })
+    )
+    filters.cities.forEach((c) =>
+      chips.push({
+        key: `city-${c}`,
+        label: c,
+        remove: () => updateFilters({ ...filters, cities: filters.cities.filter((x) => x !== c) }),
+      })
+    )
+    filters.levels.forEach((l) =>
+      chips.push({
+        key: `level-${l}`,
+        label: levelLabels[l] ?? l,
+        remove: () => updateFilters({ ...filters, levels: filters.levels.filter((x) => x !== l) }),
+      })
+    )
+    filters.subjects.forEach((s) =>
+      chips.push({
+        key: `subject-${s}`,
+        label: s,
+        remove: () => updateFilters({ ...filters, subjects: filters.subjects.filter((x) => x !== s) }),
+      })
+    )
+    filters.institutionIds.forEach((id) => {
+      const inst = filterOptions?.institutions.find((u) => u.id === id)
+      chips.push({
+        key: `inst-${id}`,
+        label: inst?.name ?? id,
+        remove: () =>
+          updateFilters({ ...filters, institutionIds: filters.institutionIds.filter((x) => x !== id) }),
+      })
+    })
+    if (filters.expressOffer) {
+      chips.push({
+        key: 'express',
+        label: 'Express Offer',
+        remove: () => updateFilters({ ...filters, expressOffer: false }),
+      })
+    }
+    if (filters.englishWaiver) {
+      chips.push({
+        key: 'waiver',
+        label: 'English Waiver',
+        remove: () => updateFilters({ ...filters, englishWaiver: false }),
+      })
+    }
+    if (filters.feeMin !== null || filters.feeMax !== null) {
+      chips.push({
+        key: 'fee',
+        label: 'Fee range',
+        remove: () => updateFilters({ ...filters, feeMin: null, feeMax: null }),
+      })
+    }
+
+    return chips
+  }, [filters, filterOptions, updateFilters])
+
   return (
     <div className="w-full flex flex-col overflow-x-clip">
       {/* Hero */}
-      <section className="relative overflow-hidden bg-white">
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
+      <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#FDFDFF] to-[#F4F6FB]">
+        <div className="pointer-events-none absolute inset-0">
+          <div className="absolute left-1/2 top-0 h-[420px] w-[720px] -translate-x-1/2 rounded-full bg-rose-50/70 blur-[120px]" />
+          <div className="absolute -right-24 top-32 h-72 w-72 rounded-full bg-blue-50/60 blur-3xl" />
+          <div className="absolute -left-24 top-48 h-72 w-72 rounded-full bg-amber-50/50 blur-3xl" />
+        </div>
+
+        <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
           <div className="pt-4 pb-6 lg:pb-8">
             <Navbar />
           </div>
 
-          <div className="py-16 lg:py-24">
+          <div className="pb-14 pt-16 lg:pb-20 lg:pt-24">
             <FadeUp>
               <div className="text-center">
-                <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm">
+                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/15 bg-[#C41E3A]/[0.04] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
                   <BookOpen size={13} />
                   Course Catalog
                 </span>
-                <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+                <h1 className="text-3xl font-extrabold tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
                   Find Your <span className="text-[#C41E3A]">Perfect Course</span>
                 </h1>
                 <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-gray-500 sm:text-lg">
@@ -224,6 +301,23 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
                 )}
               </div>
             </FadeUp>
+
+            {/* Trust stats */}
+            <FadeUp>
+              <div className="mx-auto mt-12 flex max-w-3xl items-stretch divide-x divide-gray-100 rounded-2xl border border-gray-200 bg-white/80 px-2 py-5 shadow-sm backdrop-blur sm:px-4">
+                {[
+                  { value: `${displayData?.total ?? initialData.total}`, label: 'Courses' },
+                  { value: `${filterOptions?.institutions.length ?? 0}`, label: 'Universities' },
+                  { value: `${filterOptions?.countries.length ?? 0}`, label: 'Countries' },
+                  { value: '98%', label: 'Visa Success' },
+                ].map((s, i) => (
+                  <div key={i} className="flex-1 px-3 text-center">
+                    <p className="text-2xl font-extrabold text-gray-900 sm:text-3xl">{s.value}</p>
+                    <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 sm:text-xs">{s.label}</p>
+                  </div>
+                ))}
+              </div>
+            </FadeUp>
           </div>
         </div>
       </section>
@@ -269,25 +363,47 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
 
               {/* Results */}
               <div className="min-w-0">
-                {/* Toolbar */}
-                <div className="mb-5 flex items-center justify-between gap-3">
-                  <button
-                    onClick={() => setFiltersOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-[#C41E3A]/30 hover:bg-rose-50/50 hover:text-[#C41E3A] lg:hidden"
-                  >
-                    <SlidersHorizontal size={16} />
-                    Filters
-                    {activeFilterCount > 0 && (
-                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[11px] font-bold text-white">
-                        {activeFilterCount}
-                      </span>
-                    )}
-                  </button>
+                {/* Results header */}
+                <div className="mb-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 className="text-lg font-bold text-gray-900 sm:text-xl">
+                      {displayData
+                        ? `${displayData.total} ${displayData.total === 1 ? 'course' : 'courses'} found`
+                        : 'Courses'}
+                    </h2>
+                    <button
+                      onClick={() => setFiltersOpen(true)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-[#C41E3A]/30 hover:bg-rose-50/50 hover:text-[#C41E3A] lg:hidden"
+                    >
+                      <SlidersHorizontal size={16} />
+                      Filters
+                      {activeFilterCount > 0 && (
+                        <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[11px] font-bold text-white">
+                          {activeFilterCount}
+                        </span>
+                      )}
+                    </button>
+                  </div>
 
-                  {displayData && (
-                    <span className="ml-auto text-sm text-gray-500">
-                      {displayData.total} course{displayData.total !== 1 ? 's' : ''} found
-                    </span>
+                  {activeFilterChips.length > 0 && (
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {activeFilterChips.map((chip) => (
+                        <button
+                          key={chip.key}
+                          onClick={chip.remove}
+                          className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:border-[#C41E3A]/40 hover:text-[#C41E3A]"
+                        >
+                          {chip.label}
+                          <X size={12} className="text-gray-400" />
+                        </button>
+                      ))}
+                      <button
+                        onClick={clearFilters}
+                        className="text-xs font-semibold text-[#C41E3A] transition-colors hover:underline"
+                      >
+                        Clear all
+                      </button>
+                    </div>
                   )}
                 </div>
 
