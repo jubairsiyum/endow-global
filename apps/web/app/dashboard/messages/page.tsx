@@ -10,6 +10,7 @@ import { trpc } from '@/lib/trpc-client'
 import { useSession } from '@/lib/auth-client'
 import { cn, getInitials } from '@/lib/utils'
 import { DashboardError } from '@/components/dashboard/DashboardState'
+import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 
 export default function MessagesPage() {
   const { data: session } = useSession()
@@ -81,34 +82,15 @@ export default function MessagesPage() {
   const currentUserId = session?.user?.id
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between gap-3"
-      >
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Messages <span aria-hidden>💬</span>
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Chat with your counselor and university reps
-          </p>
-        </div>
-        <button
-          onClick={() => setComposing((v) => !v)}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A01830]"
-        >
-          <Plus size={15} /> New message
-        </button>
-      </motion.div>
+    <div className="mx-auto max-w-[1100px] space-y-6">
+      <StudentPageHeader eyebrow="Stay connected" title="Messages" description="Keep conversations with your counselor and university contacts in one place." action={<button onClick={() => setComposing((v) => !v)} className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"><Plus size={15} /> New message</button>} />
 
       {composing && (
         <motion.form
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           onSubmit={handleStartConversation}
-          className="overflow-hidden rounded-[28px] border border-gray-200 bg-white p-5 shadow-premium-sm dark:border-gray-800 dark:bg-[#12141c]"
+          className={`${studentPanel} overflow-hidden p-5`}
         >
           <div className="space-y-3">
             <select
@@ -144,7 +126,7 @@ export default function MessagesPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="overflow-hidden rounded-[28px] border border-gray-200 bg-white shadow-premium-sm dark:border-gray-800 dark:bg-[#12141c]"
+        className={`${studentPanel} overflow-hidden`}
       >
         <div className="grid grid-cols-1 md:grid-cols-[300px_1fr]">
           {/* Conversation list */}

@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FileText, GraduationCap } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -10,27 +11,36 @@ import { APPLICATION_STATUS } from '@/lib/dashboard'
 import type { ApplicationStatus } from '@/lib/dashboard'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
+import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 
 export default function ApplicationPage() {
   const { data, isLoading, isError, refetch } = trpc.application.getAll.useQuery()
   const applications = (data ?? []) as any[]
+  const [filter, setFilter] = useState<'all' | 'active' | 'submitted' | 'decided'>('all')
+
+  const visibleApplications = applications.filter((application) => {
+    if (filter === 'active') return ['DRAFT', 'IN_PROGRESS', 'DOCUMENTS_REQUIRED', 'UNDER_REVIEW'].includes(application.status)
+    if (filter === 'submitted') return ['SUBMITTED', 'WAITLISTED'].includes(application.status)
+    if (filter === 'decided') return ['ACCEPTED', 'REJECTED', 'WITHDRAWN'].includes(application.status)
+    return true
+  })
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between gap-3"
-      >
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            My applications <span aria-hidden>🎓</span>
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Track every application, one step at a time
-          </p>
-        </div>
-      </motion.div>
+    <div className="mx-auto max-w-[1000px] space-y-6">
+      <StudentPageHeader eyebrow="Your journey" title="My applications" description="Track every application, one step at a time. We’ll keep the next action clear." action={<Link href="/courses" className="inline-flex h-11 items-center rounded-xl bg-rose-600 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600">Explore courses</Link>} />
+
+      <div className={`${studentPanel} flex gap-1 overflow-x-auto p-1.5`} role="tablist" aria-label="Application filters">
+        {([
+          ['all', 'All'],
+          ['active', 'In progress'],
+          ['submitted', 'Submitted'],
+          ['decided', 'Decided'],
+        ] as const).map(([value, label]) => (
+          <button key={value} type="button" role="tab" aria-selected={filter === value} onClick={() => setFilter(value)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 ${filter === value ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'}`}>
+            {label} <span className="ml-1 text-xs opacity-70">{value === 'all' ? applications.length : applications.filter((application) => value === 'active' ? ['DRAFT', 'IN_PROGRESS', 'DOCUMENTS_REQUIRED', 'UNDER_REVIEW'].includes(application.status) : value === 'submitted' ? ['SUBMITTED', 'WAITLISTED'].includes(application.status) : ['ACCEPTED', 'REJECTED', 'WITHDRAWN'].includes(application.status)).length}</span>
+          </button>
+        ))}
+      </div>
 
       {isLoading ? (
         <DashboardLoading rows={2} />
@@ -50,9 +60,15 @@ export default function ApplicationPage() {
             Explore courses
           </Link>
         </div>
+      ) : visibleApplications.length === 0 ? (
+        <div className={`${studentPanel} py-14 text-center`}>
+          <GraduationCap size={32} className="mx-auto text-gray-300 dark:text-gray-600" />
+          <h3 className="mt-3 text-base font-bold text-gray-900 dark:text-white">Nothing in this view</h3>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Try another filter to see your applications.</p>
+        </div>
       ) : (
         <div className="space-y-4">
-          {applications.map((app: any, i: number) => {
+          {visibleApplications.map((app: any, i: number) => {
             const status = APPLICATION_STATUS[app.status as ApplicationStatus] ?? APPLICATION_STATUS.DRAFT
             const total = app.totalSteps || 5
             const step = Math.min(Math.max(app.currentStep || 0, 0), total)
@@ -63,7 +79,7 @@ export default function ApplicationPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.05 }}
-                className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-premium-sm transition-all hover:shadow-md dark:border-gray-800 dark:bg-[#12141c]"
+                className={`${studentPanel} p-5 transition-shadow hover:shadow-md`}
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-4">

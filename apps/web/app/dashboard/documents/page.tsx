@@ -10,7 +10,7 @@ import { DOCUMENT_STATUS, formatBytes } from '@/lib/dashboard'
 import type { DocumentStatus } from '@/lib/dashboard'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
-import { cn } from '@/lib/utils'
+import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 
 async function uploadFile(file: File): Promise<{ url: string; name: string; size: number }> {
   const fd = new FormData()
@@ -32,11 +32,13 @@ export default function DocumentsPage() {
   const [targetDocId, setTargetDocId] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [newLabel, setNewLabel] = useState('')
+  const [filter, setFilter] = useState<'all' | 'attention' | 'verified'>('all')
 
   const invalidate = () => utils.dashboard.documents.list.invalidate()
 
   const verified = documents.filter((d) => d.status === 'VERIFIED').length
   const pct = documents.length ? Math.round((verified / documents.length) * 100) : 0
+  const visibleDocuments = documents.filter((document) => filter === 'all' ? true : filter === 'verified' ? document.status === 'VERIFIED' : ['PENDING', 'REJECTED'].includes(document.status))
 
   async function handleFile(file: File, docId?: string) {
     setBusy(docId ?? '__new__')
@@ -95,21 +97,8 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex items-center justify-between gap-3"
-      >
-        <div>
-          <h1 className="font-display text-2xl font-bold text-gray-900 dark:text-white">
-            Documents <span aria-hidden>📁</span>
-          </h1>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Upload and manage your application documents
-          </p>
-        </div>
-      </motion.div>
+    <div className="mx-auto max-w-[1000px] space-y-6">
+      <StudentPageHeader eyebrow="Application checklist" title="Documents" description="Keep your application moving by uploading clear, current documents." />
 
       <input
         ref={fileInput}
@@ -126,7 +115,7 @@ export default function DocumentsPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="rounded-[28px] border border-gray-200 bg-white p-5 shadow-premium-sm dark:border-gray-800 dark:bg-[#12141c]"
+        className={`${studentPanel} p-5`}
       >
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -150,7 +139,7 @@ export default function DocumentsPage() {
         disabled={busy !== null}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="group flex w-full flex-col items-center rounded-[28px] border-2 border-dashed border-gray-200 bg-white p-8 text-center transition-colors hover:border-primary/40 dark:border-gray-700 dark:bg-[#12141c] disabled:opacity-60"
+        className="group flex w-full flex-col items-center rounded-2xl border-2 border-dashed border-gray-200 bg-white p-8 text-center transition-colors hover:border-rose-400 hover:bg-rose-50/30 dark:border-gray-700 dark:bg-[#12141c] dark:hover:bg-rose-950/10 disabled:opacity-60"
       >
         <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/5 transition-transform group-hover:scale-110">
           <Upload size={24} className="text-primary" />
@@ -162,6 +151,14 @@ export default function DocumentsPage() {
           Click to browse — PDFs up to 8 MB, images up to 4 MB
         </p>
       </motion.button>
+
+      <div className={`${studentPanel} flex gap-1 overflow-x-auto p-1.5`} role="tablist" aria-label="Document filters">
+        {([['all', 'All'], ['attention', 'Needs attention'], ['verified', 'Verified']] as const).map(([value, label]) => (
+          <button key={value} type="button" role="tab" aria-selected={filter === value} onClick={() => setFilter(value)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 ${filter === value ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
 
       {/* Add requirement */}
       <form onSubmit={handleAdd} className="flex items-center gap-2">
@@ -194,9 +191,11 @@ export default function DocumentsPage() {
               Upload your first document to kick things off. 📄
             </p>
           </div>
+        ) : visibleDocuments.length === 0 ? (
+          <div className={`${studentPanel} py-12 text-center`}><FileText size={30} className="mx-auto text-gray-300 dark:text-gray-600" /><p className="mt-3 text-sm font-bold text-gray-900 dark:text-white">No documents in this view</p><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Try another filter to see your checklist.</p></div>
         ) : (
           <AnimatePresence initial={false}>
-            {documents.map((doc) => {
+            {visibleDocuments.map((doc) => {
               const status = DOCUMENT_STATUS[doc.status as DocumentStatus] ?? DOCUMENT_STATUS.PENDING
               const pending = doc.status === 'PENDING' || doc.status === 'REJECTED'
               return (
@@ -206,7 +205,7 @@ export default function DocumentsPage() {
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -6 }}
-                  className="flex items-center gap-4 rounded-2xl border border-gray-200 bg-white p-4 transition-all hover:shadow-sm dark:border-gray-800 dark:bg-[#12141c]"
+                  className={`${studentPanel} flex items-center gap-4 p-4 transition-all hover:shadow-sm`}
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 dark:bg-[#1a1d25]">
                     <FileText size={18} className="text-gray-500 dark:text-gray-400" />
