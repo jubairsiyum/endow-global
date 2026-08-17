@@ -473,9 +473,7 @@ export const adminRouter = createTRPCRouter({
             image: image || undefined,
             role: 'COUNSELOR' as any,
           })
-          const profileId = globalThis.crypto.randomUUID()
           await db.insert(schema.counselorProfiles).values({
-            id: profileId,
             userId,
             expertiseCountries: JSON.stringify(profileData.expertiseCountries || []),
             expertiseSubjects: JSON.stringify(profileData.expertiseSubjects || []),
@@ -801,8 +799,8 @@ const course = await db.select().from(schema.courses)
         })
       )
       .mutation(async ({ input }) => {
-        const id = globalThis.crypto.randomUUID()
-        await db.insert(schema.courses).values({ ...input, id })
+        const inserted = await db.insert(schema.courses).values(input as any).$returningId()
+        const id = (inserted as any)?.[0]?.id
         return { success: true, id }
       }),
 

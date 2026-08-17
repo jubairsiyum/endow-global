@@ -14,7 +14,8 @@ import {
 } from 'drizzle-orm/mysql-core'
 
 function genId() {
-  return globalThis.crypto.randomUUID()
+  // 25 chars: fits every varchar(25) primary-key/foreign-key column in this schema.
+  return globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 25)
 }
 
 // ─── Auth (Better Auth compatible) ──
@@ -87,7 +88,7 @@ export const verificationTokens = mysqlTable('verification', {
 
 export const studentProfiles = mysqlTable('student_profile', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  userId: varchar('user_id', { length: 25 }).notNull().unique(),
+  userId: varchar('user_id', { length: 255 }).notNull().unique(),
   phone: varchar('phone', { length: 50 }),
   nationality: varchar('nationality', { length: 100 }),
   countryOfResidence: varchar('country_of_residence', { length: 100 }),
@@ -121,7 +122,7 @@ export const studentProfiles = mysqlTable('student_profile', {
 
 export const counselorProfiles = mysqlTable('counselor_profile', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  userId: varchar('user_id', { length: 25 }).notNull().unique(),
+  userId: varchar('user_id', { length: 255 }).notNull().unique(),
   bio: text('bio'),
   expertiseCountries: json('expertise_countries').default('[]').notNull(),
   expertiseSubjects: json('expertise_subjects').default('[]').notNull(),
@@ -417,7 +418,7 @@ export const conversations = mysqlTable(
 export const messages = mysqlTable('message', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
   conversationId: varchar('conversation_id', { length: 25 }).notNull(),
-  senderId: varchar('sender_id', { length: 25 }).notNull(),
+  senderId: varchar('sender_id', { length: 255 }).notNull(),
   content: text('content').notNull(),
   attachmentUrl: varchar('attachment_url', { length: 255 }),
   attachmentType: varchar('attachment_type', { length: 50 }),
@@ -429,7 +430,7 @@ export const messages = mysqlTable('message', {
 
 export const notifications = mysqlTable('notification', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  userId: varchar('user_id', { length: 25 }).notNull(),
+  userId: varchar('user_id', { length: 255 }).notNull(),
   type: mysqlEnum('type', [
     'SESSION_REMINDER',
     'APPLICATION_UPDATE',
@@ -449,8 +450,8 @@ export const notifications = mysqlTable('notification', {
 
 export const referrals = mysqlTable('referral', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  referrerId: varchar('referrer_id', { length: 25 }).notNull(),
-  referredId: varchar('referred_id', { length: 25 }).notNull().unique(),
+  referrerId: varchar('referrer_id', { length: 255 }).notNull(),
+  referredId: varchar('referred_id', { length: 255 }).notNull().unique(),
   status: varchar('status', { length: 20 }).default('PENDING').notNull(),
   creditAmount: int('credit_amount').default(500).notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
@@ -472,7 +473,7 @@ export const newsletterSubscribers = mysqlTable('newsletter_subscriber', {
 
 export const chatHistory = mysqlTable('chat_history', {
   id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
-  userId: varchar('user_id', { length: 25 }),
+  userId: varchar('user_id', { length: 255 }),
   sessionId: varchar('session_id', { length: 255 }).notNull(),
   messages: json('messages').notNull(),
   createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
@@ -588,6 +589,8 @@ export const studentInquiries = mysqlTable('student_inquiry', {
   mastersResult: varchar('masters_result', { length: 50 }),
   targetCountry: varchar('target_country', { length: 100 }),
   targetUniversity: varchar('target_university', { length: 255 }),
+  courseName: varchar('course_name', { length: 255 }),
+  courseSlug: varchar('course_slug', { length: 255 }),
   reasonToChoose: text('reason_to_choose'),
   englishTest: varchar('english_test', { length: 50 }),
   ieltsScore: varchar('ielts_score', { length: 10 }),

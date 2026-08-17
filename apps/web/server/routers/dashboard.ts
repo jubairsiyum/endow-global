@@ -11,6 +11,7 @@ import {
   gte as _gte,
 } from 'drizzle-orm'
 import { z } from 'zod'
+import { hasMatchSignals, scoreCourse } from '../utils/courseMatch'
 
 const eq = _eq as any
 const and = _and as any
@@ -48,6 +49,54 @@ function daysUntil(date: Date | string | null | undefined): number | null {
   const d = new Date(date)
   if (Number.isNaN(d.getTime())) return null
   return Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24))
+}
+
+async function computeStudentMatches(ctx: any, profile: any) {
+  if (!profile || !hasMatchSignals(profile)) return []
+  const rows = await ctx.db
+    .select({
+      id: schema.courses.id,
+      name: schema.courses.name,
+      slug: schema.courses.slug,
+      subject: schema.courses.subject,
+      level: schema.courses.level,
+      duration: schema.courses.duration,
+      tuitionFee: schema.courses.tuitionFee,
+      currency: schema.courses.currency,
+      hasScholarship: schema.courses.hasScholarship,
+      englishTestWaiver: schema.courses.englishTestWaiver,
+      expressOffer: schema.courses.expressOffer,
+      startDate: schema.courses.startDate,
+      universityName: schema.universities.name,
+      universityCountry: schema.universities.country,
+      universityCity: schema.universities.city,
+    })
+    .from(schema.courses)
+    .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+    .where(eq(schema.courses.isActive, true))
+
+  return rows
+    .map((row: any) => {
+      const result = scoreCourse(profile, row)
+      return {
+        id: row.id,
+        score: result.score,
+        matchReasons: result.reasons,
+        course: {
+          id: row.id,
+          name: row.name,
+          slug: row.slug,
+          subject: row.subject,
+          level: row.level,
+          tuitionFee: row.tuitionFee,
+          currency: row.currency,
+          hasScholarship: row.hasScholarship,
+          university: { name: row.universityName, country: row.universityCountry, city: row.universityCity },
+        },
+      }
+    })
+    .filter((match: any) => match.score >= 30)
+    .sort((a: any, b: any) => b.score - a.score)
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -91,7 +140,7 @@ export const dashboardRouter = createTRPCRouter({
 
     const now = new Date()
 
-    const [applicationRows, intakeRows, shortlistRows, matchRows, sessionRows, documents, notifications, counselorRows, unreadMessages, unreadNotifications] = await Promise.all([
+    const [applicationRows, intakeRows, shortlistRows, matches, sessionRows, documents, notifications, counselorRows, unreadMessages, unreadNotifications] = await Promise.all([
       ctx.db.select({
         id: schema.applications.id,
         studentId: schema.applications.studentId,
@@ -138,24 +187,7 @@ export const dashboardRouter = createTRPCRouter({
         .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
         .where(eq(schema.shortlistedCourses.studentId, studentId))
         .orderBy(desc(schema.shortlistedCourses.createdAt)),
-      ctx.db.select({
-        id: schema.matchResults.id,
-        studentId: schema.matchResults.studentId,
-        courseId: schema.matchResults.courseId,
-        score: schema.matchResults.score,
-        matchReasons: schema.matchResults.matchReasons,
-        courseName: schema.courses.name,
-        courseSlug: schema.courses.slug,
-        tuitionFee: schema.courses.tuitionFee,
-        currency: schema.courses.currency,
-        hasScholarship: schema.courses.hasScholarship,
-        universityName: schema.universities.name,
-        universityCountry: schema.universities.country,
-      }).from(schema.matchResults)
-        .leftJoin(schema.courses, eq(schema.courses.id, schema.matchResults.courseId))
-        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
-        .where(eq(schema.matchResults.studentId, studentId))
-        .orderBy(desc(schema.matchResults.score)),
+      computeStudentMatches(ctx, profile),
       ctx.db.select({
         id: schema.bookingSessions.id,
         studentId: schema.bookingSessions.studentId,
@@ -207,10 +239,6 @@ export const dashboardRouter = createTRPCRouter({
     const shortlisted = (shortlistRows as any[]).map((row) => ({
       ...row,
       course: { id: row.courseId, name: row.courseName, slug: row.courseSlug, subject: row.subject, level: row.level, duration: row.duration, tuitionFee: row.tuitionFee, currency: row.currency, hasScholarship: row.hasScholarship, university: { name: row.universityName, country: row.universityCountry, city: row.universityCity } },
-    }))
-    const matches = (matchRows as any[]).map((row) => ({
-      ...row,
-      course: { name: row.courseName, slug: row.courseSlug, tuitionFee: row.tuitionFee, currency: row.currency, hasScholarship: row.hasScholarship, university: { name: row.universityName, country: row.universityCountry } },
     }))
     const upcomingSessions = (sessionRows as any[]).map((row) => ({ ...row, counselor: { user: { name: row.counselorName } } }))
 
@@ -689,28 +717,10 @@ export const dashboardRouter = createTRPCRouter({
   matches: createTRPCRouter({
     list: protectedProcedure.query(async ({ ctx }) => {
       const user = await resolveStudent(ctx)
-      const studentId = user?.studentProfile?.id
-      if (!studentId) return []
-      const rows = await ctx.db.select({
-        id: schema.matchResults.id,
-        studentId: schema.matchResults.studentId,
-        courseId: schema.matchResults.courseId,
-        score: schema.matchResults.score,
-        matchReasons: schema.matchResults.matchReasons,
-        courseName: schema.courses.name,
-        courseSlug: schema.courses.slug,
-        tuitionFee: schema.courses.tuitionFee,
-        currency: schema.courses.currency,
-        hasScholarship: schema.courses.hasScholarship,
-        universityName: schema.universities.name,
-        universityCountry: schema.universities.country,
-      }).from(schema.matchResults)
-        .leftJoin(schema.courses, eq(schema.courses.id, schema.matchResults.courseId))
-        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
-        .where(eq(schema.matchResults.studentId, studentId))
-        .orderBy(desc(schema.matchResults.score))
-        .limit(6)
-      return rows.map((row: any) => ({ ...row, course: { name: row.courseName, slug: row.courseSlug, tuitionFee: row.tuitionFee, currency: row.currency, hasScholarship: row.hasScholarship, university: { name: row.universityName, country: row.universityCountry } } }))
+      const profile = user?.studentProfile ?? null
+      if (!profile) return []
+      const matches = await computeStudentMatches(ctx, profile)
+      return matches.slice(0, 12)
     }),
   }),
 })

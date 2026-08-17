@@ -4,6 +4,7 @@ import { db } from './db'
 import superjson from 'superjson'
 import { ZodError } from 'zod'
 import { UserRole } from '@endow/types'
+import { zodErrorToMessage } from './utils'
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
@@ -19,11 +20,13 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
+    const zodError = error.cause instanceof ZodError ? error.cause : null
     return {
       ...shape,
+      message: zodError ? zodErrorToMessage(zodError) : shape.message,
       data: {
         ...shape.data,
-        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
+        zodError: zodError ? zodError.flatten() : null,
       },
     }
   },

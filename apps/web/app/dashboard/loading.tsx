@@ -2,7 +2,7 @@ export default function DashboardLoading() {
   return (
     <div className="animate-pulse space-y-6" aria-busy="true" aria-live="polite">
       {/* Banner skeleton */}
-      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25] sm:p-7">
+      <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#12141c] sm:p-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="space-y-3">
             <div className="h-5 w-28 rounded-full bg-gray-100 dark:bg-[#222530]" />
@@ -21,7 +21,7 @@ export default function DashboardLoading() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]"
+            className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-[#12141c]"
           >
             <div className="flex items-start gap-3">
               <div className="h-10 w-10 rounded-2xl bg-gray-100 dark:bg-[#222530]" />
@@ -41,7 +41,7 @@ export default function DashboardLoading() {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]"
+              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#12141c]"
             >
               <div className="mb-5 flex items-center justify-between">
                 <div className="space-y-2">
@@ -68,7 +68,7 @@ export default function DashboardLoading() {
           {[0, 1].map((i) => (
             <div
               key={i}
-              className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#1a1d25]"
+              className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#12141c]"
             >
               <div className="mb-4 space-y-2">
                 <div className="h-5 w-32 rounded bg-gray-100 dark:bg-[#222530]" />
@@ -80,8 +80,8 @@ export default function DashboardLoading() {
                     key={j}
                     className="rounded-2xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#222530]"
                   >
-                    <div className="h-10 w-10 rounded-xl bg-gray-100 dark:bg-[#1a1d25]" />
-                    <div className="mt-3 h-3 w-24 rounded bg-gray-100 dark:bg-[#1a1d25]" />
+                    <div className="h-10 w-10 rounded-xl bg-gray-100 dark:bg-[#12141c]" />
+                    <div className="mt-3 h-3 w-24 rounded bg-gray-100 dark:bg-[#12141c]" />
                   </div>
                 ))}
               </div>

@@ -5,15 +5,15 @@ import { CalendarClock, FileCheck2, FileText, Heart } from 'lucide-react'
 
 import { trpc } from '@/lib/trpc-client'
 import { useSession } from '@/lib/auth-client'
+import { asStringArray } from '@/lib/utils'
 
 import { OverviewHeader } from '@/components/dashboard/OverviewHeader'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { ApplicationsPanel } from '@/components/dashboard/ApplicationsPanel'
-import { ShortlistedPanel } from '@/components/dashboard/ShortlistedPanel'
-import { RecommendedPanel } from '@/components/dashboard/RecommendedPanel'
 import { TasksPanel } from '@/components/dashboard/TasksPanel'
 import { SessionsPanel } from '@/components/dashboard/SessionsPanel'
 import { DashboardError } from '@/components/dashboard/DashboardState'
+import { DashboardCourseShelf, DashboardInstitutionShelf, DashboardResourceShelf } from '@/components/dashboard/DashboardDiscovery'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
@@ -31,7 +31,7 @@ export default function DashboardPage() {
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-[1180px]">
+      <div className="mx-auto max-w-[1200px]">
         <DashboardError onRetry={() => refetch()} />
       </div>
     )
@@ -45,7 +45,7 @@ export default function DashboardPage() {
         hidden: { opacity: 0 },
         show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
       }}
-      className="mx-auto max-w-[1180px] space-y-7"
+      className="mx-auto max-w-[1200px] space-y-6"
     >
       <OverviewHeader
         name={name}
@@ -54,12 +54,11 @@ export default function DashboardPage() {
             ? `${data.profile.preferredIntakeMonth} ${data.profile.preferredIntakeYear ?? ''}`.trim()
             : undefined
         }
-        targetCountries={data?.profile?.targetCountries ?? []}
+        targetCountries={asStringArray(data?.profile?.targetCountries)}
         matchCount={stats.matches ?? 0}
       />
 
-      {/* Stat cards */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Applications"
           value={stats.applications ?? 0}
@@ -104,13 +103,11 @@ export default function DashboardPage() {
         />
       </section>
 
-      {/* Main grid */}
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-3">
+        <div className="space-y-5 lg:col-span-3">
           <ApplicationsPanel applications={data?.applications ?? []} index={2} />
-          <ShortlistedPanel shortlisted={data?.shortlisted ?? []} index={3} />
         </div>
-        <div className="space-y-6 lg:col-span-2">
+        <div className="space-y-5 lg:col-span-2">
           <TasksPanel
             documents={data?.documents ?? []}
             deadlines={data?.deadlines ?? []}
@@ -120,8 +117,12 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Recommendations */}
-      <RecommendedPanel matches={data?.matches ?? []} index={4} />
+      <DashboardCourseShelf matches={data?.matches ?? []} />
+
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <DashboardInstitutionShelf />
+        <DashboardResourceShelf />
+      </section>
 
       <div className="h-2" aria-hidden />
     </motion.div>
@@ -130,20 +131,25 @@ export default function DashboardPage() {
 
 function OverviewSkeleton() {
   return (
-      <div className="space-y-5">
-      <div className="h-[180px] animate-pulse rounded-[28px] bg-gray-100 dark:bg-gray-800/60" />
+    <div className="mx-auto max-w-[1200px] space-y-6">
+      <div className="h-[180px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-[110px] animate-pulse rounded-[28px] bg-gray-100 dark:bg-gray-800/60" />
+          <div key={i} className="h-[110px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="space-y-6 lg:col-span-3">
-          <div className="h-[320px] animate-pulse rounded-[28px] bg-gray-100 dark:bg-gray-800/60" />
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+        <div className="space-y-5 lg:col-span-3">
+          <div className="h-[320px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
         </div>
-        <div className="space-y-6 lg:col-span-2">
-          <div className="h-[320px] animate-pulse rounded-[28px] bg-gray-100 dark:bg-gray-800/60" />
+        <div className="space-y-5 lg:col-span-2">
+          <div className="h-[320px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
         </div>
+      </div>
+      <div className="h-48 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="h-56 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
+        <div className="h-56 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
       </div>
     </div>
   )

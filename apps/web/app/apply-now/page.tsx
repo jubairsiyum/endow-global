@@ -1,12 +1,41 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
-import { ChevronRight, ChevronLeft, CheckCircle2, User, GraduationCap, FileText, Send, ArrowRight, BookOpen, Globe, Star } from 'lucide-react'
+import { ChevronRight, ChevronLeft, CheckCircle2, User, GraduationCap, FileText, Send, ArrowRight, BookOpen, Globe, Star, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { trpc } from '@/lib/trpc-client'
+import { useSession } from '@/lib/auth-client'
+import { getErrorMessage } from '@/lib/utils'
+
+const COUNTRY_ALIASES: Record<string, string> = {
+  'United Kingdom': 'UK',
+  'United States': 'USA',
+  'United States of America': 'USA',
+}
+
+function mapCountry(value?: string | null): string {
+  if (!value) return ''
+  return COUNTRY_ALIASES[value] ?? value
+}
+
+const LEVEL_TO_APPLYING: Record<string, string> = {
+  UNDERGRADUATE: 'Undergraduate',
+  POSTGRADUATE: 'Masters',
+  PHD: 'Doctorate',
+  DIPLOMA: 'Undergraduate',
+  CERTIFICATE: 'Undergraduate',
+  FOUNDATION: 'Undergraduate',
+}
+
+const EDUCATION_TO_APPLYING: Record<string, string> = {
+  HIGH_SCHOOL: 'Undergraduate',
+  BACHELORS: 'Masters',
+  MASTERS: 'Doctorate',
+}
 
 const COUNTRIES = ['Afghanistan','Albania','Algeria','Argentina','Australia','Austria','Azerbaijan','Bahrain','Bangladesh','Belgium','Bhutan','Bolivia','Brazil','Brunei','Bulgaria','Cambodia','Cameroon','Canada','Chile','China','Colombia','Costa Rica','Croatia','Cuba','Cyprus','Czech Republic','Denmark','Ecuador','Egypt','Estonia','Ethiopia','Fiji','Finland','France','Georgia','Germany','Ghana','Greece','Hong Kong','Hungary','Iceland','India','Indonesia','Iran','Iraq','Ireland','Israel','Italy','Japan','Jordan','Kazakhstan','Kenya','Kuwait','Laos','Latvia','Lebanon','Libya','Lithuania','Luxembourg','Malaysia','Maldives','Malta','Mauritius','Mexico','Mongolia','Morocco','Myanmar','Namibia','Nepal','Netherlands','New Zealand','Nigeria','North Korea','Norway','Oman','Pakistan','Palestine','Peru','Philippines','Poland','Portugal','Qatar','Romania','Russia','Rwanda','Saudi Arabia','Serbia','Singapore','Slovakia','Slovenia','Somalia','South Africa','South Korea','Spain','Sri Lanka','Sudan','Sweden','Switzerland','Syria','Taiwan','Tajikistan','Tanzania','Thailand','Tunisia','Turkey','Uganda','Ukraine','UAE','UK','USA','Uruguay','Uzbekistan','Venezuela','Vietnam','Yemen','Zambia','Zimbabwe']
 const HEARD_FROM = ['Social Sites','Website','Family, Friends & Relatives']
@@ -25,6 +54,18 @@ const academicFields: Record<string, { label: string; keys: string[] }[]> = {
 }
 
 export default function ApplyNowPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-2 border-[#C41E3A] border-t-transparent" /></div>}>
+      <ApplyNowContent />
+    </Suspense>
+  )
+}
+
+function ApplyNowContent() {
+  const searchParams = useSearchParams()
+  const { data: session } = useSession()
+  const { data: profile } = trpc.user.getProfile.useQuery(undefined, { enabled: !!session?.user })
+
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
   const [accepted, setAccepted] = useState(false)
@@ -34,7 +75,7 @@ export default function ApplyNowPage() {
     addressLine1: '', addressLine2: '', city: '', state: '', zipCode: '', country: 'Bangladesh',
     applyingTo: '', sscYear: '', sscResult: '', hscYear: '', hscResult: '',
     bachelorsYear: '', bachelorsResult: '', mastersYear: '', mastersResult: '',
-    targetCountry: 'South Korea', targetUniversity: '', reasonToChoose: '',
+    targetCountry: 'South Korea', targetUniversity: '', courseName: '', courseSlug: '', reasonToChoose: '',
     englishTest: 'None', ieltsScore: '', toeflScore: '', satScore: '', topikLevel: '',
     heardFrom: '', referralName: '',
   })
@@ -46,11 +87,74 @@ export default function ApplyNowPage() {
 
   const inquiryMutation = trpc.endow.submitInquiry.useMutation({
     onSuccess: () => { setSubmitted(true); toast.success('Application submitted!') },
-    onError: (e:any) => toast.error(e?.message || 'Submission failed'),
+    onError: (e:any) => toast.error(getErrorMessage(e, 'Submission failed')),
   })
 
   const setF = (k:string,v:any) => setForm((p:any)=>({...p,[k]:v}))
   const academicLevels = academicFields[form.applyingTo] || academicFields.Undergraduate
+
+  function validateForm(): string | null {
+    if (!form.surname.trim()) return 'Surname is required'
+    if (!form.givenName.trim()) return 'Given name is required'
+    if (!form.phone.trim()) return 'Phone is required'
+    if (!form.email.trim()) return 'Email is required'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) return 'Enter a valid email address'
+    if (!form.country) return 'Country is required'
+    if (!form.applyingTo) return 'Please select a degree level'
+    const yearFields: [string, string][] = [
+      ['sscYear', 'SSC passing year'],
+      ['hscYear', 'HSC passing year'],
+      ['bachelorsYear', "Bachelor's passing year"],
+      ['mastersYear', "Master's passing year"],
+    ]
+    for (const [key, label] of yearFields) {
+      const value = (form[key] || '').trim()
+      if (value && !/^\d{4}$/.test(value)) return `${label} should be a 4-digit year (e.g. 2022)`
+    }
+    return null
+  }
+
+  // Pre-populate personal details from the signed-in user's profile, and
+  // carry course context through from the course page's "Apply Now" link.
+  useEffect(() => {
+    if (profile) {
+      const student = profile.studentProfile as any
+      const parts = (profile.name || '').trim().split(/\s+/)
+      const givenName = parts[0] || ''
+      const surname = parts.slice(1).join(' ')
+      const phone = student?.phone || ''
+      const inferredApplying = EDUCATION_TO_APPLYING[student?.highestEducation] || ''
+      setForm((p:any) => ({
+        ...p,
+        givenName: p.givenName || givenName,
+        surname: p.surname || surname,
+        email: p.email || profile.email || '',
+        phone: p.phone || phone,
+        whatsapp: p.whatsapp || phone,
+        nationality: p.nationality === 'Bangladeshi' && student?.nationality ? student.nationality : p.nationality,
+        country: p.country === 'Bangladesh' && student?.countryOfResidence ? mapCountry(student.countryOfResidence) : p.country,
+        applyingTo: p.applyingTo || inferredApplying,
+      }))
+    }
+  }, [profile])
+
+  useEffect(() => {
+    const courseName = searchParams.get('courseName')
+    const courseSlug = searchParams.get('slug') || searchParams.get('course')
+    const university = searchParams.get('university')
+    const country = searchParams.get('country')
+    const level = searchParams.get('level')
+    if (!courseName && !courseSlug && !university && !country && !level) return
+    const applyingFromLevel = level ? LEVEL_TO_APPLYING[level.toUpperCase()] : undefined
+    setForm((p:any) => ({
+      ...p,
+      courseName: p.courseName || courseName || '',
+      courseSlug: p.courseSlug || courseSlug || '',
+      targetUniversity: p.targetUniversity || university || '',
+      targetCountry: p.targetCountry === 'South Korea' && country ? mapCountry(country) : p.targetCountry,
+      applyingTo: applyingFromLevel || p.applyingTo,
+    }))
+  }, [searchParams])
 
   function canProceed(s: number): boolean {
     if (s===1) return !!form.surname && !!form.givenName && !!form.phone && !!form.email && !!form.country
@@ -60,6 +164,8 @@ export default function ApplyNowPage() {
 
   function handleSubmit() {
     if (!accepted) { toast.error('Please accept the terms'); return }
+    const validationError = validateForm()
+    if (validationError) { toast.error(validationError); return }
     inquiryMutation.mutate(form)
   }
 
@@ -133,8 +239,8 @@ export default function ApplyNowPage() {
                         <div key={group.label} className="rounded-xl border border-gray-100 bg-gray-50/50 p-4">
                           <p className="text-sm font-semibold text-gray-800 mb-3 flex items-center gap-2"><BookOpen size={14} className="text-[#C41E3A]"/>{group.label}</p>
                           <div className="grid grid-cols-2 gap-3">
-                            <div><label className="text-xs text-gray-500 mb-1 block">Passing Year</label><input value={form[group.keys[0]]} onChange={e=>setF(group.keys[0],e.target.value)} className={inputCls} placeholder="e.g. 2022"/></div>
-                            <div><label className="text-xs text-gray-500 mb-1 block">Result (GPA/Score)</label><input value={form[group.keys[1]]} onChange={e=>setF(group.keys[1],e.target.value)} className={inputCls} placeholder="e.g. 4.50"/></div>
+                            <div><label className="text-xs text-gray-500 mb-1 block">Passing Year</label><input value={form[group.keys[0]]} onChange={e=>setF(group.keys[0],e.target.value)} className={inputCls} placeholder="e.g. 2022" maxLength={4}/></div>
+                            <div><label className="text-xs text-gray-500 mb-1 block">Result (GPA/Score)</label><input value={form[group.keys[1]]} onChange={e=>setF(group.keys[1],e.target.value)} className={inputCls} placeholder="e.g. 4.50" maxLength={50}/></div>
                           </div>
                         </div>
                       ))}
@@ -146,6 +252,16 @@ export default function ApplyNowPage() {
               {step===3 && (
                 <motion.div key="s3" initial={{opacity:0,x:20}} animate={{opacity:1,x:0}} exit={{opacity:0,x:-20}} className="space-y-4">
                   <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2"><FileText size={20} className="text-[#C41E3A]"/>Preferences & Submit</h2>
+                  {form.courseName && (
+                    <div className="flex items-start gap-3 rounded-xl border border-[#C41E3A]/15 bg-[#C41E3A]/5 p-3.5">
+                      <Sparkles size={16} className="mt-0.5 shrink-0 text-[#C41E3A]" />
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-gray-500">You&apos;re applying to</p>
+                        <p className="text-sm font-bold text-gray-900">{form.courseName}</p>
+                        {form.targetUniversity && <p className="text-xs text-gray-500">{form.targetUniversity}</p>}
+                      </div>
+                    </div>
+                  )}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div><label className={labelCls}>Study Destination</label><select value={form.targetCountry} onChange={e=>setF('targetCountry',e.target.value)} className={inputCls}>{destCountries.map((c:string)=><option key={c} value={c}>{c}</option>)}</select></div>
                     <div><label className={labelCls}>Preferred University</label><select value={form.targetUniversity} onChange={e=>setF('targetUniversity',e.target.value)} className={inputCls}><option value="">Select...</option>{universities.map((u:string)=><option key={u} value={u}>{u}</option>)}</select></div>

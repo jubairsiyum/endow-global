@@ -18,6 +18,12 @@ interface Props {
   userInitials: string
 }
 
+const navLinks = [
+  { label: 'Courses', href: '/courses' },
+  { label: 'Universities', href: '/universities' },
+  { label: 'About', href: '/about' },
+]
+
 export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
   const router = useRouter()
   const [query, setQuery] = useState('')
@@ -50,64 +56,66 @@ export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-[#e7e9ee] bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-[#12141c]/95">
-      <div className="mx-auto flex h-[76px] max-w-[1440px] items-center gap-4 px-4 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur-md dark:border-gray-800 dark:bg-[#12141c]/90">
+      <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-2 px-4 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={onMenuClick}
           aria-label="Open student navigation"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-200 text-gray-700 lg:hidden dark:border-gray-700 dark:text-gray-200"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 lg:hidden dark:text-gray-200 dark:hover:bg-gray-800"
         >
-          <Menu size={19} />
+          <Menu size={20} />
         </button>
 
-        <Link href="/dashboard" className="flex shrink-0 items-center gap-2" aria-label="Student dashboard">
-          <Image src="/logo/endoedu.svg" alt="Endow Global Education" width={38} height={38} className="h-9 w-9" priority />
-          <span className="hidden text-[17px] font-bold tracking-[-0.04em] text-[#ed1b35] sm:block">endow</span>
+        <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5" aria-label="Student dashboard">
+          <Image src="/logo/endoedu.svg" alt="Endow Global Education" width={34} height={34} className="h-8 w-8" priority />
+          <span className="hidden text-lg font-bold tracking-[-0.04em] text-rose-600 sm:block">endow</span>
         </Link>
 
-        <form onSubmit={handleSearch} className="hidden min-w-0 max-w-[430px] flex-1 md:block">
-          <label className="flex h-11 items-center gap-2.5 rounded-full border border-[#c6cad3] bg-[#fbfbfc] px-4 transition-colors focus-within:border-[#7c3aed] dark:border-gray-700 dark:bg-[#1a1d25]">
-            <Search size={17} className="shrink-0 text-gray-500" aria-hidden />
+        <form onSubmit={handleSearch} className="hidden min-w-0 max-w-[400px] flex-1 md:mx-4 md:block">
+          <label className="flex h-10 items-center gap-2.5 rounded-xl border border-gray-200 bg-gray-50 px-3.5 transition-colors focus-within:border-rose-500 focus-within:bg-white dark:border-gray-700 dark:bg-[#1a1d25] dark:focus-within:bg-[#12141c]">
+            <Search size={16} className="shrink-0 text-gray-400" aria-hidden />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search courses, universities..."
-              className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-500 dark:text-white"
+              className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400 dark:text-white"
               aria-label="Search courses and universities"
             />
           </label>
         </form>
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex" aria-label="Student portal links">
-          <Link href="/courses" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">
-            Courses
-          </Link>
-          <Link href="/universities" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">
-            Countries
-          </Link>
-          <Link href="/about" className="rounded-full px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800">
-            About
-          </Link>
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
-        <div className="ml-auto flex items-center gap-2 lg:ml-3">
+        <div className="ml-auto flex items-center gap-1.5 lg:ml-0">
           <div className="relative" ref={popoverRef}>
             <button
               type="button"
               onClick={() => setNotificationsOpen((open) => !open)}
-              aria-label="Notifications"
-              className="relative flex h-10 w-10 items-center justify-center rounded-xl text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+              aria-label={`Notifications${unread ? ` (${unread} unread)` : ''}`}
+              className="relative flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               <Bell size={19} />
-              {unread > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[#ed1b35]" aria-hidden />}
+              {unread > 0 && (
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-rose-600 ring-2 ring-white dark:ring-[#12141c]" aria-hidden />
+              )}
             </button>
             {notificationsOpen && (
-              <div className="absolute right-0 top-12 z-50 w-[320px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-[#12141c]">
+              <div className="absolute right-0 top-12 z-50 w-[340px] overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-[#12141c]">
                 <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">Notifications</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">Notifications</p>
                   {unread > 0 && (
-                    <button type="button" onClick={() => markAllRead.mutate()} className="inline-flex items-center gap-1 text-xs font-semibold text-[#6d28d9] hover:underline">
+                    <button type="button" onClick={() => markAllRead.mutate()} className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-300">
                       <CheckCheck size={13} /> Mark all read
                     </button>
                   )}
@@ -127,7 +135,7 @@ export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
                     <li className="px-4 py-10 text-center text-sm text-gray-500">No notifications yet</li>
                   ) : (
                     (notifications ?? []).map((notification: any) => (
-                      <li key={notification.id} className={cn('flex gap-3 border-b border-gray-50 px-4 py-3 last:border-0 dark:border-gray-800/60', !notification.isRead && 'bg-red-50/40 dark:bg-[#2a1114]/30')}>
+                      <li key={notification.id} className={cn('flex gap-3 border-b border-gray-50 px-4 py-3 last:border-0 dark:border-gray-800/60', !notification.isRead && 'bg-rose-50/40 dark:bg-rose-500/5')}>
                         <span className="text-lg" aria-hidden>{NOTIFICATION_EMOJI[notification.type] ?? '🔔'}</span>
                         <div className="min-w-0 flex-1">
                           <p className="text-sm font-semibold text-gray-900 dark:text-white">{notification.title}</p>
@@ -142,8 +150,8 @@ export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
             )}
           </div>
           <ThemeToggle />
-          <div className="flex items-center gap-2 rounded-full border border-gray-200 py-1 pl-1 pr-2 dark:border-gray-700">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#263238] text-xs font-bold text-white">{userInitials}</span>
+          <div className="ml-1 flex items-center gap-2.5 rounded-full border border-gray-200 py-1 pl-1 pr-2.5 dark:border-gray-700">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-[11px] font-bold text-white">{userInitials}</span>
             <span className="hidden max-w-[130px] truncate text-sm font-semibold text-gray-800 xl:block dark:text-gray-200">{userName}</span>
           </div>
         </div>

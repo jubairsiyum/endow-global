@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
-import { MessageSquare, Plus, Send } from 'lucide-react'
+import { MessageSquare, Paperclip, Plus, Send } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 import { trpc } from '@/lib/trpc-client'
@@ -11,6 +11,7 @@ import { useSession } from '@/lib/auth-client'
 import { cn, getInitials } from '@/lib/utils'
 import { DashboardError } from '@/components/dashboard/DashboardState'
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
+import { btnPrimary, input } from '@/components/dashboard/ui'
 
 export default function MessagesPage() {
   const { data: session } = useSession()
@@ -83,7 +84,16 @@ export default function MessagesPage() {
 
   return (
     <div className="mx-auto max-w-[1100px] space-y-6">
-      <StudentPageHeader eyebrow="Stay connected" title="Messages" description="Keep conversations with your counselor and university contacts in one place." action={<button onClick={() => setComposing((v) => !v)} className="inline-flex h-11 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"><Plus size={15} /> New message</button>} />
+      <StudentPageHeader
+        eyebrow="Stay connected"
+        title="Messages"
+        description="Keep conversations with your counselor and university contacts in one place."
+        action={
+          <button onClick={() => setComposing((v) => !v)} className={btnPrimary}>
+            <Plus size={15} /> New message
+          </button>
+        }
+      />
 
       {composing && (
         <motion.form
@@ -97,7 +107,7 @@ export default function MessagesPage() {
               value={newCounselorId}
               onChange={(e) => setNewCounselorId(e.target.value)}
               disabled={counselorsError}
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white"
+              className={input}
             >
               <option value="">Select a counselor…</option>
               {(counselors ?? []).map((c: any) => (
@@ -109,30 +119,25 @@ export default function MessagesPage() {
               value={firstMessage}
               onChange={(e) => setFirstMessage(e.target.value)}
               rows={2}
-              placeholder="Say hi 👋"
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white"
+              placeholder="Say hi"
+              className={cn(input, 'h-auto min-h-[72px] resize-none py-3')}
             />
-            <button
-              type="submit"
-              disabled={send.isPending}
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A01830] disabled:opacity-60"
-            >
+            <button type="submit" disabled={send.isPending} className={btnPrimary}>
               Start conversation
             </button>
           </div>
         </motion.form>
       )}
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className={`${studentPanel} overflow-hidden`}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-[300px_1fr]">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`${studentPanel} overflow-hidden`}>
+        <div className="grid grid-cols-1 md:grid-cols-[320px_1fr]">
           {/* Conversation list */}
           <div className={cn('border-gray-100 dark:border-gray-800', selectedId ? 'hidden md:block md:border-r' : '')}>
-            <div className="border-b border-gray-100 px-4 py-3 dark:border-gray-800">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Inbox</p>
+            <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+              <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Inbox</p>
+              {(conversations ?? []).length > 0 && (
+                <span className="text-xs font-semibold text-gray-400">{conversations?.length}</span>
+              )}
             </div>
             {isLoading ? (
               <div className="space-y-1 p-3">
@@ -152,37 +157,45 @@ export default function MessagesPage() {
               </div>
             ) : (
               <ul>
-                {(conversations ?? []).map((c: any) => (
-                  <li key={c.id}>
-                    <button
-                      onClick={() => setSelectedId(c.id)}
-                      className={cn(
-                        'flex w-full items-start gap-3 border-b border-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-50/60 dark:border-gray-800/60 dark:hover:bg-[#1a1d25]/50',
-                        selectedId === c.id && 'bg-red-50/50 dark:bg-[#2a1114]/40'
-                      )}
-                    >
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-xs font-bold text-white">
-                        {getInitials(c.counselor?.user?.name ?? 'C')}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between">
-                          <span className="truncate text-sm font-semibold text-gray-900 dark:text-white">
-                            {c.counselor?.user?.name ?? 'Counselor'}
-                          </span>
-                          <span className="shrink-0 text-[10px] text-gray-400">
-                            {c.lastMessageAt ? formatDistanceToNow(new Date(c.lastMessageAt), { addSuffix: true }) : ''}
-                          </span>
+                {(conversations ?? []).map((c: any) => {
+                  const active = selectedId === c.id
+                  const unread = c.unread > 0
+                  return (
+                    <li key={c.id}>
+                      <button
+                        onClick={() => setSelectedId(c.id)}
+                        className={cn(
+                          'flex w-full items-start gap-3 border-b border-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-50/60 dark:border-gray-800/60 dark:hover:bg-[#1a1d25]/50',
+                          active && 'bg-rose-50/60 dark:bg-rose-500/10'
+                        )}
+                      >
+                        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-xs font-bold text-white">
+                          {getInitials(c.counselor?.user?.name ?? 'C')}
                         </div>
-                        <p className="truncate text-xs text-gray-500 dark:text-gray-400">{c.lastMessage}</p>
-                      </div>
-                      {c.unread > 0 && (
-                        <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
-                          {c.unread}
-                        </span>
-                      )}
-                    </button>
-                  </li>
-                ))}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={cn('truncate text-sm text-gray-900 dark:text-white', unread ? 'font-bold' : 'font-semibold')}>
+                              {c.counselor?.user?.name ?? 'Counselor'}
+                            </span>
+                            <span className="shrink-0 text-[10px] text-gray-400">
+                              {c.lastMessageAt ? formatDistanceToNow(new Date(c.lastMessageAt), { addSuffix: true }) : ''}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 flex items-center justify-between gap-2">
+                            <p className={cn('truncate text-xs', unread ? 'font-medium text-gray-700 dark:text-gray-200' : 'text-gray-500 dark:text-gray-400')}>
+                              {c.lastMessage}
+                            </p>
+                            {unread && (
+                              <span className="flex h-5 min-w-[20px] shrink-0 items-center justify-center rounded-full bg-rose-600 px-1.5 text-[10px] font-bold text-white">
+                                {c.unread}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             )}
           </div>
@@ -202,14 +215,14 @@ export default function MessagesPage() {
             ) : (
               <>
                 <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
-                  <button onClick={() => setSelectedId(null)} className="text-gray-400 hover:text-gray-600 md:hidden">
+                  <button onClick={() => setSelectedId(null)} className="text-gray-400 hover:text-gray-600 md:hidden" aria-label="Back to inbox">
                     ←
                   </button>
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#C41E3A] to-[#A01830] text-xs font-bold text-white">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-xs font-bold text-white">
                     {getInitials(selectedConvo.counselor?.user?.name ?? 'C')}
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">
                       {selectedConvo.counselor?.user?.name ?? 'Counselor'}
                     </p>
                     <p className="text-[11px] text-gray-400">Counselor</p>
@@ -218,7 +231,7 @@ export default function MessagesPage() {
 
                 <div className="flex-1 space-y-3 overflow-y-auto p-4">
                   {messages.length === 0 ? (
-                    <p className="pt-10 text-center text-xs text-gray-400">No messages yet — say hi 👋</p>
+                    <p className="pt-10 text-center text-xs text-gray-400">No messages yet — say hi</p>
                   ) : (
                     messages.map((m: any) => {
                       const isMine = currentUserId ? m.senderId === currentUserId : false
@@ -228,7 +241,7 @@ export default function MessagesPage() {
                             className={cn(
                               'max-w-[75%] rounded-2xl px-4 py-2.5 text-sm',
                               isMine
-                                ? 'rounded-br-md bg-primary text-white'
+                                ? 'rounded-br-md bg-rose-600 text-white'
                                 : 'rounded-bl-md bg-gray-100 text-gray-800 dark:bg-[#1a1d25] dark:text-gray-200'
                             )}
                           >
@@ -252,16 +265,24 @@ export default function MessagesPage() {
                     }}
                     className="flex items-center gap-2"
                   >
+                    <button
+                      type="button"
+                      aria-label="Attach file"
+                      onClick={() => toast.info('Attachments are coming soon')}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800"
+                    >
+                      <Paperclip size={17} />
+                    </button>
                     <input
                       value={draft}
                       onChange={(e) => setDraft(e.target.value)}
                       placeholder="Type a message…"
-                      className="flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm outline-none focus:border-primary dark:border-gray-700 dark:bg-[#1a1d25] dark:text-white"
+                      className={input}
                     />
                     <button
                       type="submit"
                       disabled={send.isPending || !draft.trim()}
-                      className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white transition-colors hover:bg-[#A01830] disabled:opacity-50"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-rose-600 text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 disabled:cursor-not-allowed disabled:opacity-50"
                       aria-label="Send"
                     >
                       <Send size={16} />

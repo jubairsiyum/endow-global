@@ -51,13 +51,13 @@ export function StatCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45, delay: index * 0.08 + 0.08, ease: EASE }}
-      className="group rounded-2xl border border-[#e6e8ee] bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-[#1a1d25]"
+      className="group rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-[#12141c]"
     >
       <div className="flex items-start gap-3">
         {icon && (
           <div
             className={cn(
-              'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-50 to-red-100 text-primary shadow-inner dark:from-[#3a1218] dark:to-[#2a1114]',
+              'relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300',
               pulse && 'animate-pulse'
             )}
           >
@@ -70,7 +70,7 @@ export function StatCard({
           </p>
           <p
             className={cn(
-              'mt-1 font-heading text-3xl font-bold leading-none tracking-tight',
+              'mt-1 font-display text-3xl font-bold leading-none tracking-tight',
               TONE_VALUE[tone]
             )}
           >
@@ -82,7 +82,7 @@ export function StatCard({
             )}
           </p>
           {caption && (
-            <p className="mt-1.5 text-[11px] text-gray-500 dark:text-gray-400">{caption}</p>
+            <p className="mt-1.5 truncate text-[11px] text-gray-500 dark:text-gray-400">{caption}</p>
           )}
         </div>
       </div>

@@ -12,32 +12,63 @@ import type { ApplicationStatus } from '@/lib/dashboard'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
+import { btnPrimary, progressTrack, progressFill } from '@/components/dashboard/ui'
+
+type Filter = 'all' | 'active' | 'submitted' | 'decided'
+
+const FILTERS: { value: Filter; label: string }[] = [
+  { value: 'all', label: 'All' },
+  { value: 'active', label: 'In progress' },
+  { value: 'submitted', label: 'Submitted' },
+  { value: 'decided', label: 'Decided' },
+]
+
+const FILTER_STATUS: Record<Exclude<Filter, 'all'>, string[]> = {
+  active: ['DRAFT', 'IN_PROGRESS', 'DOCUMENTS_REQUIRED', 'UNDER_REVIEW'],
+  submitted: ['SUBMITTED', 'WAITLISTED'],
+  decided: ['ACCEPTED', 'REJECTED', 'WITHDRAWN'],
+}
 
 export default function ApplicationPage() {
   const { data, isLoading, isError, refetch } = trpc.application.getAll.useQuery()
   const applications = (data ?? []) as any[]
-  const [filter, setFilter] = useState<'all' | 'active' | 'submitted' | 'decided'>('all')
+  const [filter, setFilter] = useState<Filter>('all')
 
-  const visibleApplications = applications.filter((application) => {
-    if (filter === 'active') return ['DRAFT', 'IN_PROGRESS', 'DOCUMENTS_REQUIRED', 'UNDER_REVIEW'].includes(application.status)
-    if (filter === 'submitted') return ['SUBMITTED', 'WAITLISTED'].includes(application.status)
-    if (filter === 'decided') return ['ACCEPTED', 'REJECTED', 'WITHDRAWN'].includes(application.status)
-    return true
-  })
+  const countFor = (value: Filter) =>
+    value === 'all' ? applications.length : applications.filter((a) => FILTER_STATUS[value].includes(a.status)).length
+
+  const visibleApplications = applications.filter((application) =>
+    filter === 'all' ? true : FILTER_STATUS[filter].includes(application.status)
+  )
 
   return (
     <div className="mx-auto max-w-[1000px] space-y-6">
-      <StudentPageHeader eyebrow="Your journey" title="My applications" description="Track every application, one step at a time. We’ll keep the next action clear." action={<Link href="/courses" className="inline-flex h-11 items-center rounded-xl bg-rose-600 px-4 text-sm font-bold text-white transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600">Explore courses</Link>} />
+      <StudentPageHeader
+        eyebrow="Your journey"
+        title="My applications"
+        description="Track every application, one step at a time. We'll keep the next action clear."
+        action={
+          <Link href="/courses" className={btnPrimary}>
+            Explore courses
+          </Link>
+        }
+      />
 
       <div className={`${studentPanel} flex gap-1 overflow-x-auto p-1.5`} role="tablist" aria-label="Application filters">
-        {([
-          ['all', 'All'],
-          ['active', 'In progress'],
-          ['submitted', 'Submitted'],
-          ['decided', 'Decided'],
-        ] as const).map(([value, label]) => (
-          <button key={value} type="button" role="tab" aria-selected={filter === value} onClick={() => setFilter(value)} className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 ${filter === value ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800'}`}>
-            {label} <span className="ml-1 text-xs opacity-70">{value === 'all' ? applications.length : applications.filter((application) => value === 'active' ? ['DRAFT', 'IN_PROGRESS', 'DOCUMENTS_REQUIRED', 'UNDER_REVIEW'].includes(application.status) : value === 'submitted' ? ['SUBMITTED', 'WAITLISTED'].includes(application.status) : ['ACCEPTED', 'REJECTED', 'WITHDRAWN'].includes(application.status)).length}</span>
+        {FILTERS.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={filter === value}
+            onClick={() => setFilter(value)}
+            className={`whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 ${
+              filter === value
+                ? 'bg-rose-600 text-white'
+                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+            }`}
+          >
+            {label} <span className="ml-1 text-xs opacity-70">{countFor(value)}</span>
           </button>
         ))}
       </div>
@@ -47,16 +78,13 @@ export default function ApplicationPage() {
       ) : isError ? (
         <DashboardError onRetry={() => refetch()} />
       ) : applications.length === 0 ? (
-        <div className="rounded-[28px] border border-dashed border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-[#12141c]">
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-[#12141c]">
           <GraduationCap size={36} className="mx-auto text-gray-300 dark:text-gray-600" />
           <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No applications yet</h3>
           <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">
             Your dream degree is waiting. Browse courses and start your first application today.
           </p>
-          <Link
-            href="/courses"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#A01830]"
-          >
+          <Link href="/courses" className={`${btnPrimary} mt-5`}>
             Explore courses
           </Link>
         </div>
@@ -83,8 +111,8 @@ export default function ApplicationPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/5">
-                      <FileText size={18} className="text-primary" />
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-500/10">
+                      <FileText size={18} className="text-rose-600 dark:text-rose-300" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">{app.course?.name || 'Application'}</h3>
@@ -97,11 +125,8 @@ export default function ApplicationPage() {
                 </div>
 
                 <div className="mt-4 flex items-center gap-3">
-                  <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-[#C41E3A] to-[#ff4d6d]"
-                      style={{ width: `${pct}%` }}
-                    />
+                  <div className={`${progressTrack} flex-1`}>
+                    <div className={progressFill} style={{ width: `${pct}%` }} />
                   </div>
                   <span className="shrink-0 text-xs font-semibold text-gray-500 dark:text-gray-400">
                     Step {step} of {total}
@@ -116,8 +141,8 @@ export default function ApplicationPage() {
                 </div>
 
                 {app.counselorNotes && (
-                  <div className="mt-4 rounded-2xl bg-gray-50 px-4 py-3 dark:bg-[#1a1d25]">
-                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">💬 Counselor notes</p>
+                  <div className="mt-4 rounded-xl bg-gray-50 px-4 py-3 dark:bg-[#1a1d25]">
+                    <p className="text-xs font-semibold text-gray-500 dark:text-gray-400">Counselor notes</p>
                     <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">{app.counselorNotes}</p>
                   </div>
                 )}
