@@ -133,6 +133,74 @@ export const endowRouter = createTRPCRouter({
         referralName: input.referralName,
       } as any)
 
+      // If a signed-in student applied to a specific course, also create an
+      // application record so it shows up under /dashboard/application (and in
+      // the dashboard overview stats). Non-course inquiries and guests are skipped.
+      if (userId && input.courseSlug) {
+        try {
+          const [profile] = await db
+            .select({ id: schema.studentProfiles.id })
+            .from(schema.studentProfiles)
+            .where(eq(schema.studentProfiles.userId, userId))
+            .limit(1)
+
+          const [course] = await db
+            .select({ id: schema.courses.id })
+            .from(schema.courses)
+            .where(eq(schema.courses.slug, input.courseSlug))
+            .limit(1)
+
+          if (profile && course) {
+            const [existing] = await db
+              .select({ id: schema.applications.id })
+              .from(schema.applications)
+              .where(
+                and(
+                  eq(schema.applications.studentId, profile.id),
+                  eq(schema.applications.courseId, course.id)
+                )
+              )
+              .limit(1)
+
+            if (!existing) {
+              await db.insert(schema.applications).values({
+                studentId: profile.id,
+                courseId: course.id,
+                status: 'SUBMITTED',
+                currentStep: 5,
+                totalSteps: 5,
+                submittedAt: new Date(),
+                personalInfo: {
+                  givenName: input.givenName,
+                  surname: input.surname,
+                  email: input.email,
+                  phone: input.phone,
+                  whatsapp: input.whatsapp,
+                  dob: input.dob,
+                  gender: input.gender,
+                  nationality: input.nationality,
+                  country: input.country,
+                  city: input.city,
+                },
+                academicHistory: {
+                  applyingTo: input.applyingTo,
+                  sscYear: input.sscYear,
+                  sscResult: input.sscResult,
+                  hscYear: input.hscYear,
+                  hscResult: input.hscResult,
+                  bachelorsYear: input.bachelorsYear,
+                  bachelorsResult: input.bachelorsResult,
+                  mastersYear: input.mastersYear,
+                  mastersResult: input.mastersResult,
+                },
+              } as any)
+            }
+          }
+        } catch {
+          // Linking the dashboard application must never fail the inquiry submission.
+        }
+      }
+
       return { success: true, message: 'Application submitted! Our team will contact you shortly.' }
     }),
 
