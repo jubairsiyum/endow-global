@@ -7,6 +7,7 @@ import {
   CalendarDays,
   FileText,
   FolderOpen,
+  Heart,
   LayoutGrid,
   LogOut,
   MessageSquare,
@@ -28,6 +29,7 @@ interface NavItem {
 const primaryNav: NavItem[] = [
   { name: 'Overview', href: '/dashboard', icon: LayoutGrid },
   { name: 'My Application', href: '/dashboard/application', icon: FileText },
+  { name: 'Shortlisted', href: '/dashboard/shortlisted', icon: Heart },
   { name: 'Documents', href: '/dashboard/documents', icon: FolderOpen },
   { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarDays },

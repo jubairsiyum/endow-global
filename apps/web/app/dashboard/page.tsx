@@ -10,6 +10,7 @@ import { asStringArray } from '@/lib/utils'
 import { OverviewHeader } from '@/components/dashboard/OverviewHeader'
 import { StatCard } from '@/components/dashboard/StatCard'
 import { ApplicationsPanel } from '@/components/dashboard/ApplicationsPanel'
+import { ShortlistedPanel } from '@/components/dashboard/ShortlistedPanel'
 import { TasksPanel } from '@/components/dashboard/TasksPanel'
 import { SessionsPanel } from '@/components/dashboard/SessionsPanel'
 import { DashboardError } from '@/components/dashboard/DashboardState'
@@ -45,7 +46,7 @@ export default function DashboardPage() {
         hidden: { opacity: 0 },
         show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
       }}
-      className="mx-auto max-w-[1200px] space-y-6"
+      className="mx-auto max-w-[1200px] space-y-5"
     >
       <OverviewHeader
         name={name}
@@ -103,23 +104,24 @@ export default function DashboardPage() {
         />
       </section>
 
-      <section className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <div className="space-y-5 lg:col-span-3">
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <div className="space-y-4 lg:col-span-3">
           <ApplicationsPanel applications={data?.applications ?? []} index={2} />
+          <ShortlistedPanel shortlisted={data?.shortlisted ?? []} index={3} />
         </div>
-        <div className="space-y-5 lg:col-span-2">
+        <div className="space-y-4 lg:col-span-2">
           <TasksPanel
             documents={data?.documents ?? []}
             deadlines={data?.deadlines ?? []}
             index={2}
           />
-          <SessionsPanel sessions={data?.upcomingSessions ?? []} index={3} />
+          <SessionsPanel sessions={data?.upcomingSessions ?? []} index={4} />
         </div>
       </section>
 
       <DashboardCourseShelf matches={data?.matches ?? []} />
 
-      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
         <DashboardInstitutionShelf />
         <DashboardResourceShelf />
       </section>

@@ -31,8 +31,8 @@ export function ShortlistedPanel({ shortlisted, index = 0 }: Props) {
             {shortlisted.length ? 'Saved for later — keep an eye on these' : 'Tap the heart on any course to save it here'}
           </p>
         </div>
-        <Link href="/courses" className={viewAllLink}>
-          Explore <ArrowUpRight size={13} />
+        <Link href="/dashboard/shortlisted" className={viewAllLink}>
+          View shortlist <ArrowUpRight size={13} />
         </Link>
       </header>
 
