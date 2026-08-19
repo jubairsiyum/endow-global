@@ -6,6 +6,7 @@ import { useSession } from '@/lib/auth-client'
 
 import { DashboardSidebar } from './Sidebar'
 import { StudentHeader } from './StudentHeader'
+import { Footer } from '@/components/layout/Footer'
 
 interface Props {
   children: React.ReactNode
@@ -52,41 +53,44 @@ export function DashboardShell({ children }: Props) {
 
   return (
     <>
+      {/* Fixed header */}
       <StudentHeader
         onMenuClick={() => setDrawerOpen(true)}
         userName={user.name}
         userInitials={user.initials}
       />
-      <div className="flex flex-1">
-        {/* DESKTOP FULL SIDEBAR */}
-        <div className="hidden lg:block">
-          <DashboardSidebar variant="full" user={user} />
-        </div>
 
-        {/* TABLET ICON RAIL */}
-        <div className="hidden md:block lg:hidden">
-          <DashboardSidebar variant="rail" user={user} />
-        </div>
+      {/* Fixed desktop full sidebar */}
+      <div className="hidden lg:block">
+        <DashboardSidebar variant="full" user={user} />
+      </div>
 
-        {/* MOBILE DRAWER */}
-        {drawerOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-black/40 md:hidden"
-            onClick={() => setDrawerOpen(false)}
-            aria-hidden
-          />
-        )}
+      {/* Fixed tablet icon rail */}
+      <div className="hidden md:block lg:hidden">
+        <DashboardSidebar variant="rail" user={user} />
+      </div>
+
+      {/* Mobile drawer */}
+      {drawerOpen && (
         <div
-          className={`fixed left-0 top-0 z-50 transition-transform duration-300 md:hidden ${
-            drawerOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        >
-          <DashboardSidebar variant="drawer" user={user} onNavigate={() => setDrawerOpen(false)} />
-        </div>
+          className="fixed inset-0 z-40 bg-black/40 md:hidden"
+          onClick={() => setDrawerOpen(false)}
+          aria-hidden
+        />
+      )}
+      <div
+        className={`fixed left-0 top-0 z-50 transition-transform duration-300 md:hidden ${
+          drawerOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <DashboardSidebar variant="drawer" user={user} onNavigate={() => setDrawerOpen(false)} />
+      </div>
 
-        {/* MAIN */}
-        <div className="flex min-w-0 flex-1 flex-col">
-          <main className="flex-1 p-4 lg:p-6">{children}</main>
+      {/* Content: offset below fixed header and right of fixed sidebar */}
+      <div className="pt-16">
+        <div className="flex min-h-[calc(100vh-64px)] flex-col md:pl-[72px] lg:pl-[248px]">
+          <main className="flex-1 p-4 sm:p-5 lg:p-6">{children}</main>
+          <Footer />
         </div>
       </div>
     </>

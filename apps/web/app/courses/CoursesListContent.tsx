@@ -67,12 +67,13 @@ type CourseListData = {
 type CoursesListContentProps = {
   initialData: CourseListData
   initialFilters?: Filters
+  initialQuery?: string
 }
 
-export default function CoursesListContent({ initialData, initialFilters }: CoursesListContentProps) {
+export default function CoursesListContent({ initialData, initialFilters, initialQuery }: CoursesListContentProps) {
   const [page, setPage] = useState(initialData.page)
 
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(initialQuery ?? '')
   const [filters, setFilters] = useState<Filters>(initialFilters ?? EMPTY_FILTERS)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [filtersTouched, setFiltersTouched] = useState(false)
@@ -80,7 +81,7 @@ export default function CoursesListContent({ initialData, initialFilters }: Cour
   const resultsRef = useRef<HTMLDivElement>(null)
   const prevPageRef = useRef(page)
 
-  const isInitialQuery = page === initialData.page && !search && !filtersTouched
+  const isInitialQuery = page === initialData.page && search === (initialQuery ?? '') && !filtersTouched
 
   const { data, isLoading, isFetching } = trpc.course.list.useQuery(
     {

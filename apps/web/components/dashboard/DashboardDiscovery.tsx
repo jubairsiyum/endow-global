@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
-import { ArrowRight, BookOpen, Building2, CalendarDays, Heart, MapPin, Newspaper, Search, Sparkles } from 'lucide-react'
+import { ArrowRight, BookOpen, Building2, CalendarDays, Heart, MapPin, Newspaper, Search, SlidersHorizontal, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { trpc } from '@/lib/trpc-client'
@@ -235,7 +235,7 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
           </div>
           <div className="flex items-center gap-2">
             <button type="button" role="switch" aria-checked={scholarship} onClick={() => { setScholarship((value) => !value); setPage(1) }} className={`relative h-6 w-11 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 ${scholarship ? 'bg-rose-600' : 'bg-gray-200 dark:bg-gray-700'}`}>
-              <span className={`absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${scholarship ? 'translate-x-6' : 'translate-x-1'}`} />
+              <span className={`absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${scholarship ? 'translate-x-5' : 'translate-x-0'}`} />
             </button>
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-300">Scholarships only</span>
             {coursesQuery.data ? <span className="ml-auto text-xs font-semibold text-gray-500">{coursesQuery.data.total} courses</span> : null}
@@ -257,6 +257,14 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
             <p className="mx-auto mt-1 max-w-sm text-xs text-gray-500 dark:text-gray-400">
               {tab === 'matches' ? 'Tell us your target countries, subjects, and budget to see courses that fit you.' : tab === 'shortlisted' ? 'Tap the heart on any course to save it here for later.' : 'Try adjusting your search or filters.'}
             </p>
+            {tab === 'matches' && (
+              <Link
+                href="/dashboard/settings?tab=study"
+                className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-rose-700"
+              >
+                <SlidersHorizontal size={14} /> Set study preferences
+              </Link>
+            )}
           </div>
         ) : (
           <>
@@ -279,11 +287,33 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
   )
 }
 
-export function DashboardInstitutionShelf() {
+export function DashboardInstitutionShelf({ recommendedUniversities = [] }: { recommendedUniversities?: any[] }) {
   const { data, isLoading, isError, refetch } = trpc.university.featured.useQuery()
   const countries = useMemo(() => Array.from(new Set((data ?? []).map((institution: any) => institution.country).filter(Boolean))), [data])
   const [country, setCountry] = useState('All')
   const institutions = (data ?? []).filter((institution: any) => country === 'All' || institution.country === country)
+
+  if (recommendedUniversities.length > 0) {
+    return (
+      <section className={`${panel} p-5 sm:p-6`}>
+        <WidgetHeader icon={Building2} title="Recommended universities" description="Matched to your study preferences, ranked by fit." href="/universities" />
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          {recommendedUniversities.slice(0, 6).map((uni: any) => (
+            <Link key={uni.id} href={`/universities/${uni.slug}`} className="group rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-rose-200 hover:bg-rose-50/30 focus-visible:outline-2 focus-visible:outline-rose-600 dark:border-gray-800 dark:bg-[#1a1d25] dark:hover:border-rose-900/50 dark:hover:bg-rose-500/5">
+              <div className="flex items-center justify-between">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-sm font-bold text-rose-600 dark:bg-[#12141c] dark:text-rose-300">{uni.name?.charAt(0) || 'U'}</div>
+                {typeof uni.matchScore === 'number' && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{uni.matchScore}% fit</span>}
+              </div>
+              <h3 className="mt-3 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-300">{uni.name}</h3>
+              <p className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><MapPin size={12} /> {[uni.city, uni.country].filter(Boolean).join(', ')}</p>
+              {uni.topCourse?.name && <p className="mt-2 truncate text-xs font-medium text-gray-600 dark:text-gray-300">{uni.topCourse.name}</p>}
+              {uni.matchReasons?.[0] && <p className="mt-1 truncate text-[11px] text-gray-400 dark:text-gray-500">{uni.matchReasons[0]}</p>}
+            </Link>
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className={`${panel} p-5 sm:p-6`}>

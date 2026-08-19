@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   Bell,
@@ -27,6 +28,7 @@ import { DashboardError, DashboardLoading } from '@/components/dashboard/Dashboa
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 import { btnPrimary, btnSecondary, input } from '@/components/dashboard/ui'
 import { cn, asStringArray } from '@/lib/utils'
+import { SUBJECT_OPTIONS } from '@/server/utils/courseMatch'
 
 type Tab = 'personal' | 'study' | 'security'
 type SaveState = 'idle' | 'saving' | 'success'
@@ -95,6 +97,15 @@ const EDUCATION_OPTIONS: Option[] = [
 ]
 
 const INTAKE_YEARS = ['2025', '2026', '2027', '2028']
+
+const BUDGET_OPTIONS: { label: string; value: number | '' }[] = [
+  { label: 'No limit', value: '' },
+  { label: 'Under $10,000 / year', value: 10000 },
+  { label: 'Under $20,000 / year', value: 20000 },
+  { label: 'Under $30,000 / year', value: 30000 },
+  { label: 'Under $50,000 / year', value: 50000 },
+  { label: 'Under $75,000 / year', value: 75000 },
+]
 
 const TABS: { id: Tab; label: string; icon: typeof UserRound }[] = [
   { id: 'personal', label: 'Personal info', icon: UserRound },
@@ -255,13 +266,22 @@ function Toggle({ checked, onChange, label, description }: { checked: boolean; o
         onClick={() => onChange(!checked)}
         className={cn('relative h-6 w-11 shrink-0 rounded-full transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', checked ? 'bg-rose-600' : 'bg-gray-200 dark:bg-gray-700')}
       >
-        <span className={cn('absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform', checked ? 'translate-x-6' : 'translate-x-1')} />
+        <span className={cn('absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform', checked ? 'translate-x-5' : 'translate-x-0')} />
       </button>
     </div>
   )
 }
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={<DashboardLoading rows={5} className="mx-auto max-w-[1200px]" />}>
+      <SettingsContent />
+    </Suspense>
+  )
+}
+
+function SettingsContent() {
+  const searchParams = useSearchParams()
   const { data: session } = useSession()
   const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery()
   const dashboard = trpc.dashboard.overview.useQuery()
@@ -269,7 +289,22 @@ export default function SettingsPage() {
   const setPassword = trpc.user.setPassword.useMutation()
   const utils = trpc.useUtils()
 
-  const [activeTab, setActiveTab] = useState<Tab>('personal')
+  const tabParam = searchParams.get('tab')
+  const [activeTab, setActiveTab] = useState<Tab>(() =>
+    tabParam === 'study' || tabParam === 'security' || tabParam === 'personal' ? tabParam : 'personal'
+  )
+
+  const selectTab = useCallback((tab: Tab) => {
+    setActiveTab(tab)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      if (tab === 'personal') params.delete('tab')
+      else params.set('tab', tab)
+      const qs = params.toString()
+      window.history.replaceState(window.history.state, '', `/dashboard/settings${qs ? `?${qs}` : ''}`)
+    }
+  }, [])
+
   const [name, setName] = useState('')
   const [nationality, setNationality] = useState('')
   const [country, setCountry] = useState('')
@@ -277,6 +312,11 @@ export default function SettingsPage() {
   const [phone, setPhone] = useState('')
   const [education, setEducation] = useState('')
   const [targetCountries, setTargetCountries] = useState<string[]>([])
+  const [targetSubjects, setTargetSubjects] = useState<string[]>([])
+  const [budgetMax, setBudgetMax] = useState<number | ''>('')
+  const [gpa, setGpa] = useState('')
+  const [ieltsScore, setIeltsScore] = useState('')
+  const [toeflScore, setToeflScore] = useState('')
   const [intakeYear, setIntakeYear] = useState('2026')
   const [countrySearch, setCountrySearch] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
@@ -298,6 +338,11 @@ export default function SettingsPage() {
       if (storedPrefix) setPhonePrefix(storedPrefix.value)
       setEducation(student?.highestEducation || '')
       setTargetCountries(asStringArray(student?.targetCountries))
+      setTargetSubjects(asStringArray(student?.targetSubjects))
+      setBudgetMax(typeof student?.budgetMax === 'number' ? student.budgetMax : '')
+      setGpa(student?.gpa != null ? String(student.gpa) : '')
+      setIeltsScore(student?.ieltsScore != null ? String(student.ieltsScore) : '')
+      setToeflScore(student?.toeflScore != null ? String(student.toeflScore) : '')
       setIntakeYear(String(student?.preferredIntakeYear || '2026'))
     }
   }, [profile])
@@ -331,9 +376,15 @@ export default function SettingsPage() {
         phone: phone ? `${phonePrefix} ${phone}` : undefined,
         highestEducation: education || undefined,
         targetCountries: asStringArray(targetCountries),
+        targetSubjects: asStringArray(targetSubjects),
+        budgetMax: budgetMax === '' ? null : Number(budgetMax),
+        gpa: gpa.trim() ? Number(gpa) : null,
+        ieltsScore: ieltsScore.trim() ? Number(ieltsScore) : null,
+        toeflScore: toeflScore.trim() ? Number(toeflScore) : null,
         preferredIntakeYear: intakeYear ? Number(intakeYear) : undefined,
       } as any)
       await utils.user.getProfile.invalidate()
+      utils.dashboard.overview.invalidate()
       setSaveState('success')
       toast.success('Profile updated successfully')
       window.setTimeout(() => setSaveState('idle'), 2200)
@@ -341,7 +392,7 @@ export default function SettingsPage() {
       setSaveState('idle')
       toast.error(error.message || 'Could not save your profile')
     }
-  }, [country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, updateProfile, utils.user.getProfile])
+  }, [country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, updateProfile, utils])
 
   async function changePassword(event: React.FormEvent) {
     event.preventDefault()
@@ -365,6 +416,10 @@ export default function SettingsPage() {
 
   function toggleCountry(value: string) {
     setTargetCountries((current) => current.includes(value) ? current.filter((countryValue) => countryValue !== value) : current.length < 5 ? [...current, value] : current)
+  }
+
+  function toggleSubject(value: string) {
+    setTargetSubjects((current) => current.includes(value) ? current.filter((subject) => subject !== value) : current.length < 5 ? [...current, value] : current)
   }
 
   async function copyReferral() {
@@ -413,7 +468,7 @@ export default function SettingsPage() {
       />
 
       <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[272px_minmax(0,1fr)] lg:gap-8">
-        <aside className="space-y-4 lg:sticky lg:top-6">
+        <aside className="space-y-4 lg:sticky lg:top-20">
           <div className={`${studentPanel} p-5`}>
             <div className="flex items-center gap-4">
               <ProfileRing progress={completion} />
@@ -423,7 +478,7 @@ export default function SettingsPage() {
                 <p className="mt-2 text-xs font-semibold text-rose-600 dark:text-rose-300">{completion >= 80 ? 'Profile ready' : 'Keep completing it'}</p>
               </div>
             </div>
-            <button type="button" onClick={() => setActiveTab('personal')} className="mt-5 w-full rounded-xl border border-rose-200 px-3 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-500/10">
+            <button type="button" onClick={() => selectTab('personal')} className="mt-5 w-full rounded-xl border border-rose-200 px-3 py-2.5 text-xs font-bold text-rose-700 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-500/10">
               Complete profile
             </button>
           </div>
@@ -438,7 +493,7 @@ export default function SettingsPage() {
                   type="button"
                   role="tab"
                   aria-selected={active}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => selectTab(tab.id)}
                   className={cn('relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600', active ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white')}
                 >
                   {active && <span className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-rose-600" aria-hidden />}
@@ -461,7 +516,7 @@ export default function SettingsPage() {
         <main className="min-w-0">
           <div className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-800 dark:bg-[#12141c]" role="tablist" aria-label="Settings tabs">
             {TABS.map((tab) => (
-              <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => setActiveTab(tab.id)} className={cn('whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 sm:px-4 sm:text-sm', activeTab === tab.id ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white')}>
+              <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => selectTab(tab.id)} className={cn('whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 sm:px-4 sm:text-sm', activeTab === tab.id ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white')}>
                 {tab.label}
               </button>
             ))}
@@ -523,6 +578,31 @@ export default function SettingsPage() {
                     {filteredCountries.map((option) => { const selected = targetCountries.includes(option.value); const limitReached = targetCountries.length >= 5 && !selected; return <button key={option.value} type="button" aria-pressed={selected} disabled={limitReached} onClick={() => toggleCountry(option.value)} className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', selected ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300' : limitReached ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300')}><Flag url={option.flag} />{option.label}</button> })}
                   </div>
                 </div>
+
+                <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><SectionLabel>Fields of interest</SectionLabel><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose up to 5 subjects you want to study.</p></div><span className="text-xs font-bold text-gray-500">{targetSubjects.length} / 5 selected</span></div>
+                  <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Target subjects">
+                    {SUBJECT_OPTIONS.map((subject) => { const selected = targetSubjects.includes(subject); const limitReached = targetSubjects.length >= 5 && !selected; return <button key={subject} type="button" aria-pressed={selected} disabled={limitReached} onClick={() => toggleSubject(subject)} className={cn('inline-flex items-center rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', selected ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300' : limitReached ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300')}>{subject}</button> })}
+                  </div>
+                </div>
+
+                <div className="mt-6 grid grid-cols-1 gap-6 border-t border-gray-100 pt-6 md:grid-cols-2 dark:border-gray-800">
+                  <Field label="Maximum budget" hint="Used to filter courses within your budget.">
+                    <select value={budgetMax === '' ? '' : String(budgetMax)} onChange={(event) => setBudgetMax(event.target.value === '' ? '' : Number(event.target.value))} className={input}>
+                      {BUDGET_OPTIONS.map((option) => <option key={option.label} value={option.value === '' ? '' : String(option.value)}>{option.label}</option>)}
+                    </select>
+                  </Field>
+                  <Field label="GPA" hint="Your current grade point average (e.g. 3.75).">
+                    <input value={gpa} onChange={(event) => setGpa(event.target.value)} inputMode="decimal" placeholder="e.g. 3.75" className={input} />
+                  </Field>
+                  <Field label="IELTS band" hint="Overall band score (0–9), if taken.">
+                    <input value={ieltsScore} onChange={(event) => setIeltsScore(event.target.value)} inputMode="decimal" placeholder="e.g. 6.5" className={input} />
+                  </Field>
+                  <Field label="TOEFL score" hint="Total score (0–120), if taken.">
+                    <input value={toeflScore} onChange={(event) => setToeflScore(event.target.value)} inputMode="numeric" placeholder="e.g. 90" className={input} />
+                  </Field>
+                </div>
+
               </div>
             </section>
           )}

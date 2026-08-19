@@ -53,8 +53,9 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
   const router = useRouter()
 
   const isFull = variant === 'full'
-  const compact = !isFull
+  const isRail = variant === 'rail'
   const isDrawer = variant === 'drawer'
+  const showLabels = !isRail
 
   const [isSigningOut, setIsSigningOut] = useState(false)
 
@@ -85,10 +86,10 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
         href={item.href}
         onClick={onNavigate}
         aria-current={active ? 'page' : undefined}
-        title={compact ? item.name : undefined}
+        title={isRail ? item.name : undefined}
         className={cn(
           'group relative flex items-center rounded-xl text-sm font-medium transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600',
-          isFull ? 'h-10 gap-3 px-3' : 'h-11 w-full justify-center',
+          showLabels ? 'h-10 gap-3 px-3' : 'h-11 w-full justify-center',
           active
             ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 active:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-white dark:active:bg-gray-800'
@@ -96,7 +97,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
       >
         {active && (
           <motion.span
-            layoutId={variant === 'full' ? 'sidebar-active-bar' : undefined}
+            layoutId={isFull ? 'sidebar-active-bar' : undefined}
             className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-rose-600"
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
           />
@@ -119,8 +120,8 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
             </span>
           )}
         </span>
-        {isFull && <span className="relative truncate">{item.name}</span>}
-        {isFull && isMessages && unreadMessages > 0 && (
+        {showLabels && <span className="relative truncate">{item.name}</span>}
+        {showLabels && isMessages && unreadMessages > 0 && (
           <span className="relative ml-auto text-[10px] font-bold text-rose-600">{unreadMessages} new</span>
         )}
       </Link>
@@ -131,9 +132,9 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
     <aside
       aria-label="Student dashboard navigation"
       className={cn(
-        'relative flex flex-col overflow-hidden border-r border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-[#12141c]',
-        isDrawer ? 'h-screen' : 'sticky top-[64px] h-[calc(100vh-64px)] self-start',
-        isFull ? 'w-[248px]' : 'w-[72px]'
+        'flex flex-col overflow-hidden border-r border-gray-200 bg-white transition-colors duration-300 dark:border-gray-800 dark:bg-[#12141c]',
+        isDrawer ? 'h-screen' : 'fixed bottom-0 left-0 top-16 z-30',
+        isRail ? 'w-[72px]' : 'w-[248px]'
       )}
     >
       {/* Identity (drawer only — desktop identity lives in the footer) */}
@@ -156,20 +157,20 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
         className={cn(
           'flex-1 overflow-y-auto',
           isDrawer ? 'p-3' : 'px-3 pt-4',
-          !isFull && !isDrawer && 'px-2.5'
+          isRail && 'px-2.5'
         )}
         aria-label="Primary"
       >
-        {isFull && (
+        {showLabels && (
           <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">
             Menu
           </p>
         )}
-        <div className={cn('space-y-1', isFull && 'mb-4')}>
+        <div className={cn('space-y-1', showLabels && 'mb-4')}>
           {primaryNav.map(renderItem)}
         </div>
 
-        {isFull && (
+        {showLabels && (
           <p className="mb-1.5 px-3 text-[10px] font-bold uppercase tracking-[0.14em] text-gray-400 dark:text-gray-500">
             Account
           </p>
@@ -194,10 +195,10 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
           type="button"
           onClick={handleSignOut}
           disabled={isSigningOut}
-          title={compact ? 'Sign out' : undefined}
+          title={isRail ? 'Sign out' : undefined}
           className={cn(
             'group flex w-full items-center rounded-xl text-sm font-medium text-gray-500 transition-colors duration-200 hover:bg-gray-50 hover:text-gray-900 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 dark:text-gray-400 dark:hover:bg-gray-800/70 dark:hover:text-white',
-            isFull ? 'h-10 gap-3 px-3' : 'h-11 justify-center'
+            showLabels ? 'h-10 gap-3 px-3' : 'h-11 justify-center'
           )}
         >
           {isSigningOut ? (
@@ -210,7 +211,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
               aria-hidden
             />
           )}
-          {isFull && <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>}
+          {showLabels && <span>{isSigningOut ? 'Signing out...' : 'Sign out'}</span>}
         </button>
       </div>
 

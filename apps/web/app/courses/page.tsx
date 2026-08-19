@@ -23,10 +23,12 @@ export default async function CoursesPage({
   const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1
 
   const filters = parseFilters(params)
+  const query = params.get('query') ?? ''
 
   const initialData = await caller.course.list({
     page,
     perPage: 12,
+    query: query || undefined,
     countries: filters.countries.length ? filters.countries : undefined,
     cities: filters.cities.length ? filters.cities : undefined,
     institutionIds: filters.institutionIds.length ? filters.institutionIds : undefined,
@@ -40,5 +42,5 @@ export default async function CoursesPage({
     feeMax: filters.feeMax ?? undefined,
   })
 
-  return <CoursesListContent initialData={initialData} initialFilters={filters} />
+  return <CoursesListContent initialData={initialData} initialFilters={filters} initialQuery={query} />
 }

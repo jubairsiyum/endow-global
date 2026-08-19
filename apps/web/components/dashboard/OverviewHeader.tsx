@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, SlidersHorizontal, Sparkles } from 'lucide-react'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -62,13 +62,22 @@ export function OverviewHeader({
               )}
             </p>
           </div>
-          <Link
-            href="/universities"
-            className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
-          >
-            {matchCount > 0 ? `See ${matchCount} matches` : 'Find my matches'}
-            <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-          </Link>
+          <div className="flex shrink-0 flex-col items-start gap-2.5 lg:items-end">
+            <Link
+              href={matchCount > 0 ? '/universities' : '/dashboard/settings?tab=study'}
+              className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+            >
+              {matchCount > 0 ? `See ${matchCount} matches` : 'Set study preferences'}
+              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+            </Link>
+            <Link
+              href="/dashboard/settings?tab=study"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 transition-colors hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200"
+            >
+              <SlidersHorizontal size={14} />
+              Study preferences
+            </Link>
+          </div>
         </div>
       </div>
     </motion.section>

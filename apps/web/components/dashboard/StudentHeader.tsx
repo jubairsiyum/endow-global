@@ -56,8 +56,8 @@ export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-gray-200/80 bg-white/90 backdrop-blur-md dark:border-gray-800 dark:bg-[#12141c]/90">
-      <div className="mx-auto flex h-16 max-w-[1440px] items-center gap-2 px-4 sm:px-6 lg:px-8">
+    <header className="fixed inset-x-0 top-0 z-40 h-16 border-b border-gray-200/80 bg-white/90 backdrop-blur-md dark:border-gray-800 dark:bg-[#12141c]/90">
+      <div className="flex h-full items-center gap-2 px-4 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={onMenuClick}
@@ -67,9 +67,12 @@ export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
           <Menu size={20} />
         </button>
 
-        <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5" aria-label="Student dashboard">
-          <Image src="/logo/endoedu.svg" alt="Endow Global Education" width={34} height={34} className="h-8 w-8" priority />
-          <span className="hidden text-lg font-bold tracking-[-0.04em] text-rose-600 sm:block">endow</span>
+        <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5" aria-label="Endow Global Education home">
+          <Image src="/logo/endoedu.svg" alt="Endow Global Education" width={36} height={36} className="h-8 w-8 shrink-0 sm:h-9 sm:w-9" priority />
+          <div className="w-fit leading-none">
+            <span className="block text-[13px] font-bold tracking-tight text-gray-900 dark:text-white">Endow Global</span>
+            <span className="block text-[11px] font-semibold uppercase tracking-[0.22em] text-gray-400 dark:text-gray-500">Education</span>
+          </div>
         </Link>
 
         <form onSubmit={handleSearch} className="hidden min-w-0 max-w-[400px] flex-1 md:mx-4 md:block">

@@ -3,7 +3,6 @@ import { headers } from 'next/headers'
 import { auth } from '@/lib/auth'
 import { UserRole } from '@endow/types'
 import { DashboardShell } from '@/components/dashboard/DashboardShell'
-import { Footer } from '@/components/layout/Footer'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,9 +26,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#f6f7fb] text-gray-900 transition-colors duration-300 dark:bg-[#0b0f19] dark:text-white">
+    <div className="min-h-screen bg-[#f6f7fb] text-gray-900 transition-colors duration-300 dark:bg-[#0b0f19] dark:text-white">
       <DashboardShell>{children}</DashboardShell>
-      <Footer />
     </div>
   )
 }

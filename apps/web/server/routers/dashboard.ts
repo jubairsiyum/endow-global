@@ -11,7 +11,7 @@ import {
   gte as _gte,
 } from 'drizzle-orm'
 import { z } from 'zod'
-import { hasMatchSignals, scoreCourse } from '../utils/courseMatch'
+import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
 
 const eq = _eq as any
 const and = _and as any
@@ -52,7 +52,7 @@ function daysUntil(date: Date | string | null | undefined): number | null {
 }
 
 async function computeStudentMatches(ctx: any, profile: any) {
-  if (!profile || !hasMatchSignals(profile)) return []
+  if (!profile || !hasMatchSignals(profile)) return { matches: [], universities: [] }
   const rows = await ctx.db
     .select({
       id: schema.courses.id,
@@ -67,15 +67,19 @@ async function computeStudentMatches(ctx: any, profile: any) {
       englishTestWaiver: schema.courses.englishTestWaiver,
       expressOffer: schema.courses.expressOffer,
       startDate: schema.courses.startDate,
+      universityId: schema.universities.id,
       universityName: schema.universities.name,
+      universitySlug: schema.universities.slug,
       universityCountry: schema.universities.country,
       universityCity: schema.universities.city,
+      universityLogo: schema.universities.logo,
+      universityRanking: schema.universities.ranking,
     })
     .from(schema.courses)
     .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
     .where(eq(schema.courses.isActive, true))
 
-  return rows
+  const scored = rows
     .map((row: any) => {
       const result = scoreCourse(profile, row)
       return {
@@ -91,12 +95,60 @@ async function computeStudentMatches(ctx: any, profile: any) {
           tuitionFee: row.tuitionFee,
           currency: row.currency,
           hasScholarship: row.hasScholarship,
-          university: { name: row.universityName, country: row.universityCountry, city: row.universityCity },
+          university: { id: row.universityId, name: row.universityName, country: row.universityCountry, city: row.universityCity },
+        },
+        university: {
+          id: row.universityId,
+          name: row.universityName,
+          slug: row.universitySlug,
+          country: row.universityCountry,
+          city: row.universityCity,
+          logo: row.universityLogo,
+          ranking: row.universityRanking,
         },
       }
     })
     .filter((match: any) => match.score >= 30)
     .sort((a: any, b: any) => b.score - a.score)
+
+  // Aggregate course scores into university-level recommendations
+  const universityMap = new Map<string, any>()
+  for (const match of scored) {
+    const uniId = match.university.id
+    if (!uniId) continue
+    if (!universityMap.has(uniId)) {
+      universityMap.set(uniId, { ...match.university, courseScores: [] as number[], topCourse: match.course })
+    }
+    const entry = universityMap.get(uniId)
+    entry.courseScores.push(match.score)
+  }
+
+  const universities = Array.from(universityMap.values())
+    .map((uni) => {
+      const result = scoreUniversity(
+        profile,
+        { country: uni.country, ranking: uni.ranking },
+        uni.courseScores.map((s: number) => ({ score: s }))
+      )
+      return {
+        id: uni.id,
+        name: uni.name,
+        slug: uni.slug,
+        country: uni.country,
+        city: uni.city,
+        logo: uni.logo,
+        ranking: uni.ranking,
+        matchScore: result.score,
+        matchReasons: result.reasons,
+        matchedCourseCount: uni.courseScores.length,
+        topCourse: uni.topCourse,
+      }
+    })
+    .filter((uni: any) => uni.matchScore >= 30)
+    .sort((a: any, b: any) => b.matchScore - a.matchScore)
+    .slice(0, 6)
+
+  return { matches: scored, universities }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -131,6 +183,7 @@ export const dashboardRouter = createTRPCRouter({
         applications: [],
         shortlisted: [],
         matches: [],
+        recommendedUniversities: [],
         upcomingSessions: [],
         documents: [],
         notifications: [],
@@ -140,7 +193,7 @@ export const dashboardRouter = createTRPCRouter({
 
     const now = new Date()
 
-    const [applicationRows, intakeRows, shortlistRows, matches, sessionRows, documents, notifications, counselorRows, unreadMessages, unreadNotifications] = await Promise.all([
+    const [applicationRows, intakeRows, shortlistRows, matchData, sessionRows, documents, notifications, counselorRows, unreadMessages, unreadNotifications] = await Promise.all([
       ctx.db.select({
         id: schema.applications.id,
         studentId: schema.applications.studentId,
@@ -226,6 +279,8 @@ export const dashboardRouter = createTRPCRouter({
     ])
 
     const intakesByCourse = groupByCourse(intakeRows as any[])
+    const matches = matchData.matches ?? []
+    const recommendedUniversities = matchData.universities ?? []
     const applications = (applicationRows as any[]).map((row) => ({
       ...row,
       course: row.courseId ? {
@@ -299,11 +354,15 @@ export const dashboardRouter = createTRPCRouter({
         nationality: profile.nationality,
         countryOfResidence: profile.countryOfResidence,
         targetCountries: profile.targetCountries,
+        targetSubjects: profile.targetSubjects,
+        budgetMin: profile.budgetMin,
+        budgetMax: profile.budgetMax,
         preferredIntakeMonth: profile.preferredIntakeMonth,
         preferredIntakeYear: profile.preferredIntakeYear,
         highestEducation: profile.highestEducation,
         gpa: profile.gpa,
         ieltsScore: profile.ieltsScore,
+        toeflScore: profile.toeflScore,
         referralCode: profile.referralCode,
         referralBalance: profile.referralBalance,
       },
@@ -329,6 +388,7 @@ export const dashboardRouter = createTRPCRouter({
       applications,
       shortlisted,
       matches,
+      recommendedUniversities,
       upcomingSessions,
       documents,
       notifications,
@@ -720,7 +780,7 @@ export const dashboardRouter = createTRPCRouter({
       const profile = user?.studentProfile ?? null
       if (!profile) return []
       const matches = await computeStudentMatches(ctx, profile)
-      return matches.slice(0, 12)
+      return matches.matches.slice(0, 12)
     }),
   }),
 })
