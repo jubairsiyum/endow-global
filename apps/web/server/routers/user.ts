@@ -7,6 +7,19 @@ import { hash as bcryptHash } from 'bcryptjs'
 
 const BCRYPT_SALT_ROUNDS = 12
 
+// Unicode-aware name: Latin letters (incl. accents), spaces, hyphens,
+// apostrophes and periods only.
+const NAME_PATTERN = /^[A-Za-z\u00C0-\u024F\u1E00-\u1EFF][A-Za-z\u00C0-\u024F\u1E00-\u1EFF\s'’.-]{1,99}$/
+
+function normalizePhone(value: string): string {
+  return value.replace(/[\s.-]/g, '').replace(/^(?:\+|00)(\d)/, '$1')
+}
+
+function isValidPhone(value: string): boolean {
+  if (!value) return true
+  return /^(?!0+$)\d{7,15}$/.test(normalizePhone(value))
+}
+
 export const userRouter = createTRPCRouter({
   checkEmailExists: publicProcedure
     .input(z.object({ email: z.string().email() }))
@@ -58,20 +71,36 @@ export const userRouter = createTRPCRouter({
   updateProfile: protectedProcedure
     .input(
       z.object({
-        name: z.string().optional(),
-        nationality: z.string().optional(),
-        countryOfResidence: z.string().optional(),
-        phone: z.string().optional(),
+        name: z
+          .string()
+          .trim()
+          .min(2, 'Full name must be at least 2 characters')
+          .max(100, 'Full name is too long')
+          .regex(NAME_PATTERN, 'Full name contains invalid characters')
+          .optional(),
+        nationality: z.string().trim().max(100).optional(),
+        countryOfResidence: z.string().trim().max(100).optional(),
+        phone: z
+          .string()
+          .trim()
+          .max(30)
+          .superRefine((value, ctx) => {
+            if (!value) return
+            if (!isValidPhone(value)) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Enter a valid phone number' })
+            }
+          })
+          .optional(),
         targetCountries: z.array(z.string()).optional(),
         targetSubjects: z.array(z.string()).optional(),
-        budgetMin: z.number().nullable().optional(),
-        budgetMax: z.number().nullable().optional(),
-        gpa: z.number().nullable().optional(),
-        ieltsScore: z.number().nullable().optional(),
-        toeflScore: z.number().nullable().optional(),
+        budgetMin: z.number().nonnegative().nullable().optional(),
+        budgetMax: z.number().nonnegative().nullable().optional(),
+        gpa: z.number().min(0, 'GPA must be between 0 and 5').max(5, 'GPA must be between 0 and 5').nullable().optional(),
+        ieltsScore: z.number().min(0, 'IELTS band must be between 0 and 9').max(9, 'IELTS band must be between 0 and 9').nullable().optional(),
+        toeflScore: z.number().int('TOEFL score must be a whole number').min(0, 'TOEFL score must be between 0 and 120').max(120, 'TOEFL score must be between 0 and 120').nullable().optional(),
         highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).optional(),
-        preferredIntakeYear: z.number().optional(),
-        preferredIntakeMonth: z.string().optional(),
+        preferredIntakeYear: z.number().int().min(2020).max(2100).optional(),
+        preferredIntakeMonth: z.string().trim().max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

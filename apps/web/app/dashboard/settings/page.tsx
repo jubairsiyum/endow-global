@@ -23,12 +23,15 @@ import {
 } from 'lucide-react'
 
 import { trpc } from '@/lib/trpc-client'
-import { useSession } from '@/lib/auth-client'
+import { authClient, useSession } from '@/lib/auth-client'
 import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 import { btnPrimary, btnSecondary, input } from '@/components/dashboard/ui'
 import { cn, asStringArray } from '@/lib/utils'
 import { SUBJECT_OPTIONS } from '@/server/utils/courseMatch'
+import { COUNTRIES, EDUCATION_DESTINATIONS, type CountryOption } from '@/lib/countries'
+import { PHONE_PREFIXES } from '@/lib/phone-codes'
+import { SITE_CONFIG } from '@/lib/config/site'
 
 type Tab = 'personal' | 'study' | 'security'
 type SaveState = 'idle' | 'saving' | 'success'
@@ -40,54 +43,10 @@ interface Option {
   flag?: string
 }
 
-function flagUrl(code: string) {
-  return `https://flagcdn.com/w40/${code}.png`
-}
-
 function Flag({ url }: { url?: string }) {
   if (!url) return null
   return <img src={url} alt="" loading="lazy" className="h-4 w-6 shrink-0 rounded-[3px] object-cover ring-1 ring-black/5" />
 }
-
-const COUNTRIES: Option[] = [
-  { value: 'Bangladesh', label: 'Bangladesh', flag: flagUrl('bd') },
-  { value: 'India', label: 'India', flag: flagUrl('in') },
-  { value: 'Pakistan', label: 'Pakistan', flag: flagUrl('pk') },
-  { value: 'Nepal', label: 'Nepal', flag: flagUrl('np') },
-  { value: 'Sri Lanka', label: 'Sri Lanka', flag: flagUrl('lk') },
-  { value: 'Nigeria', label: 'Nigeria', flag: flagUrl('ng') },
-  { value: 'Kenya', label: 'Kenya', flag: flagUrl('ke') },
-  { value: 'Ghana', label: 'Ghana', flag: flagUrl('gh') },
-  { value: 'South Korea', label: 'South Korea', flag: flagUrl('kr') },
-  { value: 'Japan', label: 'Japan', flag: flagUrl('jp') },
-  { value: 'China', label: 'China', flag: flagUrl('cn') },
-  { value: 'Malaysia', label: 'Malaysia', flag: flagUrl('my') },
-  { value: 'Indonesia', label: 'Indonesia', flag: flagUrl('id') },
-  { value: 'Australia', label: 'Australia', flag: flagUrl('au') },
-  { value: 'United Kingdom', label: 'United Kingdom', flag: flagUrl('gb') },
-  { value: 'United States', label: 'United States', flag: flagUrl('us') },
-  { value: 'Canada', label: 'Canada', flag: flagUrl('ca') },
-  { value: 'Germany', label: 'Germany', flag: flagUrl('de') },
-  { value: 'France', label: 'France', flag: flagUrl('fr') },
-  { value: 'UAE', label: 'UAE', flag: flagUrl('ae') },
-  { value: 'Saudi Arabia', label: 'Saudi Arabia', flag: flagUrl('sa') },
-  { value: 'Ireland', label: 'Ireland', flag: flagUrl('ie') },
-  { value: 'New Zealand', label: 'New Zealand', flag: flagUrl('nz') },
-  { value: 'Netherlands', label: 'Netherlands', flag: flagUrl('nl') },
-]
-
-const PHONE_PREFIXES: Option[] = [
-  { value: '+880', label: '+880', search: 'Bangladesh', flag: flagUrl('bd') },
-  { value: '+91', label: '+91', search: 'India', flag: flagUrl('in') },
-  { value: '+92', label: '+92', search: 'Pakistan', flag: flagUrl('pk') },
-  { value: '+977', label: '+977', search: 'Nepal', flag: flagUrl('np') },
-  { value: '+61', label: '+61', search: 'Australia', flag: flagUrl('au') },
-  { value: '+44', label: '+44', search: 'United Kingdom', flag: flagUrl('gb') },
-  { value: '+1', label: '+1', search: 'United States Canada', flag: flagUrl('us') },
-  { value: '+82', label: '+82', search: 'South Korea', flag: flagUrl('kr') },
-  { value: '+81', label: '+81', search: 'Japan', flag: flagUrl('jp') },
-  { value: '+49', label: '+49', search: 'Germany', flag: flagUrl('de') },
-]
 
 const EDUCATION_OPTIONS: Option[] = [
   { value: 'HIGH_SCHOOL', label: 'High School', search: 'secondary education' },
@@ -112,6 +71,63 @@ const TABS: { id: Tab; label: string; icon: typeof UserRound }[] = [
   { id: 'study', label: 'Study preferences', icon: GraduationCap },
   { id: 'security', label: 'Security & privacy', icon: ShieldCheck },
 ]
+
+const NAME_PATTERN = /^[A-Za-z\u00C0-\u024F\u1E00-\u1EFF][A-Za-z\u00C0-\u024F\u1E00-\u1EFF\s'’.-]{1,99}$/
+
+function normalizePhone(value: string): string {
+  return value.replace(/[\s.-]/g, '').replace(/^(?:\+|00)(\d)/, '$1')
+}
+
+function isValidPhone(value: string): boolean {
+  if (!value) return true
+  return /^(?!0+$)\d{7,15}$/.test(normalizePhone(value))
+}
+
+type Errors = Partial<Record<'name' | 'phone' | 'nationality' | 'country' | 'gpa' | 'ieltsScore' | 'toeflScore', string>>
+
+function validateProfileFields(fields: {
+  name: string
+  phonePrefix: string
+  phone: string
+  nationality: string
+  gpa: string
+  ieltsScore: string
+  toeflScore: string
+}): Errors {
+  const errors: Errors = {}
+  const trimmedName = fields.name.trim()
+
+  if (!trimmedName) errors.name = 'Full name is required'
+  else if (trimmedName.length < 2) errors.name = 'Name must be at least 2 characters'
+  else if (trimmedName.length > 100) errors.name = 'Name is too long'
+  else if (!NAME_PATTERN.test(trimmedName)) errors.name = 'Use letters, spaces, hyphens or apostrophes only'
+
+  if (!fields.nationality) errors.nationality = 'Nationality is required'
+
+  if (fields.phone.trim()) {
+    const fullPhone = `${fields.phonePrefix} ${fields.phone}`.trim()
+    if (fullPhone.length > 30 || !isValidPhone(fullPhone)) {
+      errors.phone = 'Enter a valid phone number'
+    }
+  }
+
+  const gpaValue = fields.gpa.trim()
+  if (gpaValue && (!/^\d*(\.\d{1,2})?$/.test(gpaValue) || Number(gpaValue) < 0 || Number(gpaValue) > 5)) {
+    errors.gpa = 'GPA must be between 0 and 5 (e.g. 3.75)'
+  }
+
+  const ieltsValue = fields.ieltsScore.trim()
+  if (ieltsValue && (!/^\d(\.\d)?$/.test(ieltsValue) || Number(ieltsValue) < 0 || Number(ieltsValue) > 9)) {
+    errors.ieltsScore = 'IELTS band must be between 0 and 9 (e.g. 6.5)'
+  }
+
+  const toeflValue = fields.toeflScore.trim()
+  if (toeflValue && (!/^\d+$/.test(toeflValue) || Number(toeflValue) < 0 || Number(toeflValue) > 120)) {
+    errors.toeflScore = 'TOEFL must be a whole number between 0 and 120'
+  }
+
+  return errors
+}
 
 function ProfileRing({ progress }: { progress: number }) {
   const radius = 37
@@ -151,11 +167,15 @@ function SectionLabel({ children, required }: { children: React.ReactNode; requi
 function Field({
   label,
   hint,
+  error,
+  errorId,
   required,
   children,
 }: {
   label: string
   hint?: string
+  error?: string
+  errorId?: string
   required?: boolean
   children: React.ReactNode
 }) {
@@ -163,7 +183,13 @@ function Field({
     <div className="space-y-2">
       <SectionLabel required={required}>{label}</SectionLabel>
       {children}
-      {hint && <span className="block text-xs leading-5 text-gray-500 dark:text-gray-400">{hint}</span>}
+      {error ? (
+        <p id={errorId} className="text-xs font-semibold text-rose-600" role="alert">
+          {error}
+        </p>
+      ) : hint ? (
+        <span className="block text-xs leading-5 text-gray-500 dark:text-gray-400">{hint}</span>
+      ) : null}
     </div>
   )
 }
@@ -184,6 +210,7 @@ function SearchableCombobox({
   ariaLabel: string
 }) {
   const [open, setOpen] = useState(false)
+  const [openUp, setOpenUp] = useState(false)
   const [query, setQuery] = useState('')
   const ref = useRef<HTMLDivElement>(null)
   const selected = options.find((option) => option.value === value)
@@ -197,6 +224,15 @@ function SearchableCombobox({
     return () => document.removeEventListener('mousedown', close)
   }, [])
 
+  function toggleOpen() {
+    if (!open && ref.current) {
+      const rect = ref.current.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom
+      setOpenUp(spaceBelow < 260)
+    }
+    setOpen((current) => !current)
+  }
+
   return (
     <div ref={ref} className="relative">
       <button
@@ -205,7 +241,7 @@ function SearchableCombobox({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
-        onClick={() => setOpen((current) => !current)}
+        onClick={toggleOpen}
         className={cn(input, 'flex items-center justify-between text-left')}
       >
         <span className={cn('flex min-w-0 items-center gap-2', selected ? 'text-gray-900 dark:text-white' : 'text-gray-400')}>
@@ -215,8 +251,13 @@ function SearchableCombobox({
         <ChevronDown size={16} className={cn('shrink-0 text-gray-400 transition-transform', open && 'rotate-180')} aria-hidden />
       </button>
       {open && (
-        <div className="absolute inset-x-0 top-[calc(100%+8px)] z-30 overflow-hidden rounded-xl border border-gray-200 bg-white p-2 shadow-xl dark:border-gray-700 dark:bg-[#12141c]">
-          <div className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 dark:bg-[#1a1d25]">
+        <div
+          className={cn(
+            'absolute inset-x-0 z-30 flex max-h-64 flex-col rounded-xl border border-gray-200 bg-white shadow-xl dark:border-gray-700 dark:bg-[#12141c]',
+            openUp ? 'bottom-[calc(100%+8px)]' : 'top-[calc(100%+8px)]'
+          )}
+        >
+          <div className="flex shrink-0 items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 m-2 mb-0 dark:bg-[#1a1d25]">
             <Search size={14} className="text-gray-400" aria-hidden />
             <input
               autoFocus
@@ -227,7 +268,7 @@ function SearchableCombobox({
               className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none dark:text-white"
             />
           </div>
-          <ul role="listbox" aria-labelledby={id} className="mt-1 max-h-52 overflow-y-auto">
+          <ul role="listbox" aria-labelledby={id} data-lenis-prevent className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-1.5">
             {filtered.length === 0 ? (
               <li className="px-3 py-4 text-center text-xs text-gray-500">No matches</li>
             ) : filtered.map((option) => (
@@ -282,9 +323,10 @@ export default function SettingsPage() {
 
 function SettingsContent() {
   const searchParams = useSearchParams()
-  const { data: session } = useSession()
+  const { data: session, refetch: refetchSession } = useSession()
   const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery()
   const dashboard = trpc.dashboard.overview.useQuery()
+  const { data: universityCountries } = trpc.university.countries.useQuery(undefined, { staleTime: Infinity })
   const updateProfile = trpc.user.updateProfile.useMutation()
   const setPassword = trpc.user.setPassword.useMutation()
   const utils = trpc.useUtils()
@@ -320,6 +362,7 @@ function SettingsContent() {
   const [intakeYear, setIntakeYear] = useState('2026')
   const [countrySearch, setCountrySearch] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
+  const [errors, setErrors] = useState<Errors>({})
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -362,11 +405,37 @@ function SettingsContent() {
     const completed = [name.trim(), nationality, country, phone.trim(), education, intakeYear, targetCountries.length > 0].filter(Boolean).length
     return Math.round((completed / 7) * 100)
   }, [name, nationality, country, phone, education, intakeYear, targetCountries.length])
-  const filteredCountries = COUNTRIES.filter((option) => `${option.label} ${option.search || ''}`.toLowerCase().includes(countrySearch.toLowerCase()))
+  // Education-offering destinations only (South Korea pinned first), merging
+  // the static list with the served countries and any active university
+  // countries so newly added partners appear automatically.
+  const destinationCountries = useMemo(() => {
+    const names = new Set<string>(EDUCATION_DESTINATIONS)
+    for (const country of SITE_CONFIG.servedCountries) if (country) names.add(country)
+    for (const row of universityCountries ?? []) if (row.country) names.add(row.country)
+    names.delete('Bangladesh')
+
+    const byName = new Map(COUNTRIES.map((option) => [option.value, option]))
+    const build = (name: string): CountryOption =>
+      byName.get(name) ?? { value: name, label: name, code: '', flag: undefined }
+    const rest = Array.from(names)
+      .filter((name) => name !== 'South Korea')
+      .sort((a, b) => a.localeCompare(b))
+    return [build('South Korea'), ...rest.map(build)]
+  }, [universityCountries])
+
+  const filteredCountries = destinationCountries.filter((option) => `${option.label} ${option.code}`.toLowerCase().includes(countrySearch.toLowerCase()))
   const unreadMessages = dashboard.data?.stats?.unreadMessages || 0
 
   const saveProfile = useCallback(async (event?: React.FormEvent) => {
     event?.preventDefault()
+
+    const validationErrors = validateProfileFields({ name, phonePrefix, phone, nationality, gpa, ieltsScore, toeflScore })
+    setErrors(validationErrors)
+    if (Object.keys(validationErrors).length > 0) {
+      toast.error('Please fix the highlighted fields')
+      return
+    }
+
     setSaveState('saving')
     try {
       await updateProfile.mutateAsync({
@@ -383,6 +452,21 @@ function SettingsContent() {
         toeflScore: toeflScore.trim() ? Number(toeflScore) : null,
         preferredIntakeYear: intakeYear ? Number(intakeYear) : undefined,
       } as any)
+
+      // Keep the auth session in sync so every surface that reads the signed-in
+      // user (nav bar, dashboard header/sidebar, messages…) shows the new name
+      // immediately instead of the stale value cached in the session cookie.
+      const newName = name.trim()
+      if (newName && newName !== (session?.user?.name || '')) {
+        try {
+          await authClient.updateUser({ name: newName })
+          await refetchSession()
+        } catch {
+          // The profile is already saved; the session will refresh on its own
+          // (better-auth re-issues the cookie) even if this call fails.
+        }
+      }
+
       await utils.user.getProfile.invalidate()
       utils.dashboard.overview.invalidate()
       setSaveState('success')
@@ -392,7 +476,7 @@ function SettingsContent() {
       setSaveState('idle')
       toast.error(error.message || 'Could not save your profile')
     }
-  }, [country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, updateProfile, utils])
+  }, [country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
 
   async function changePassword(event: React.FormEvent) {
     event.preventDefault()
@@ -531,9 +615,22 @@ function SettingsContent() {
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This is the information your counselor uses to support you.</p>
                 </div>
               </div>
-              <form onSubmit={saveProfile} className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Field label="Full name" required>
-                  <input aria-label="Full name" aria-required="true" value={name} onChange={(event) => setName(event.target.value)} className={input} placeholder="Your full name" />
+              <form onSubmit={saveProfile} noValidate className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <Field label="Full name" required error={errors.name} errorId="name-error">
+                  <input
+                    aria-label="Full name"
+                    aria-required="true"
+                    aria-invalid={Boolean(errors.name)}
+                    aria-describedby="name-error"
+                    value={name}
+                    onChange={(event) => {
+                      setName(event.target.value)
+                      if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
+                    }}
+                    className={cn(input, errors.name && 'border-rose-500 focus:border-rose-500')}
+                    placeholder="Your full name"
+                    maxLength={100}
+                  />
                 </Field>
                 <Field label="Email address" hint="Your sign-in email cannot be changed here.">
                   <div className="relative">
@@ -542,14 +639,36 @@ function SettingsContent() {
                     <span className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 text-xs font-bold text-emerald-600"><CheckCircle2 size={14} /> Verified</span>
                   </div>
                 </Field>
-                <Field label="Phone number">
-                  <div className="flex h-11 overflow-hidden rounded-xl border border-gray-200 bg-white transition duration-150 focus-within:border-rose-500 dark:border-gray-700 dark:bg-[#12141c] dark:focus-within:border-rose-400">
+                <Field label="Phone number" error={errors.phone}>
+                  <div className={cn('flex h-11 rounded-xl border bg-white transition duration-150 focus-within:border-rose-500 dark:bg-[#12141c] dark:focus-within:border-rose-400', errors.phone ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700')}>
                     <div className="w-[108px] shrink-0 border-r border-gray-200 dark:border-gray-700"><SearchableCombobox id="phone-prefix" value={phonePrefix} options={PHONE_PREFIXES} onChange={setPhonePrefix} placeholder="Code" ariaLabel="Phone country code" /></div>
-                    <input aria-label="Phone number" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="1 234 567 890" className="min-w-0 flex-1 bg-transparent px-3 text-sm text-gray-900 outline-none dark:text-white" />
+                    <input
+                      aria-label="Phone number"
+                      aria-invalid={Boolean(errors.phone)}
+                      value={phone}
+                      onChange={(event) => {
+                        setPhone(event.target.value.replace(/[^0-9\s.-]/g, ''))
+                        if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
+                      }}
+                      placeholder="1 234 567 890"
+                      inputMode="tel"
+                      maxLength={20}
+                      className="min-w-0 flex-1 bg-transparent px-3 text-sm text-gray-900 outline-none dark:text-white"
+                    />
                   </div>
                 </Field>
-                <Field label="Nationality" required>
-                  <SearchableCombobox id="nationality" value={nationality} options={COUNTRIES} onChange={setNationality} placeholder="Select nationality" ariaLabel="Nationality" />
+                <Field label="Nationality" required error={errors.nationality}>
+                  <SearchableCombobox
+                    id="nationality"
+                    value={nationality}
+                    options={COUNTRIES}
+                    onChange={(value) => {
+                      setNationality(value)
+                      if (errors.nationality) setErrors((prev) => ({ ...prev, nationality: undefined }))
+                    }}
+                    placeholder="Select nationality"
+                    ariaLabel="Nationality"
+                  />
                 </Field>
                 <Field label="Country of residence">
                   <SearchableCombobox id="residence" value={country} options={COUNTRIES} onChange={setCountry} placeholder="Select country" ariaLabel="Country of residence" />
@@ -574,9 +693,9 @@ function SettingsContent() {
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><SectionLabel>Target countries</SectionLabel><p id="country-hint" className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose up to 5 destinations.</p></div><span className="text-xs font-bold text-gray-500">{targetCountries.length} / 5 selected</span></div>
                   <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"><div className="h-full rounded-full bg-rose-600 transition-all duration-300" style={{ width: `${(targetCountries.length / 5) * 100}%` }} /></div>
                   <div className="relative mt-4"><Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden /><input aria-label="Search target countries" aria-describedby="country-hint" value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Search countries" className={cn(input, 'pl-10')} /></div>
-                  <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Target countries">
+                  <div className="mt-4 max-h-56 overflow-y-auto overscroll-contain pr-1" data-lenis-prevent><div className="flex flex-wrap gap-2" role="group" aria-label="Target countries">
                     {filteredCountries.map((option) => { const selected = targetCountries.includes(option.value); const limitReached = targetCountries.length >= 5 && !selected; return <button key={option.value} type="button" aria-pressed={selected} disabled={limitReached} onClick={() => toggleCountry(option.value)} className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', selected ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300' : limitReached ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300')}><Flag url={option.flag} />{option.label}</button> })}
-                  </div>
+                  </div></div>
                 </div>
 
                 <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
@@ -592,14 +711,47 @@ function SettingsContent() {
                       {BUDGET_OPTIONS.map((option) => <option key={option.label} value={option.value === '' ? '' : String(option.value)}>{option.label}</option>)}
                     </select>
                   </Field>
-                  <Field label="GPA" hint="Your current grade point average (e.g. 3.75).">
-                    <input value={gpa} onChange={(event) => setGpa(event.target.value)} inputMode="decimal" placeholder="e.g. 3.75" className={input} />
+                  <Field label="GPA" hint="Your current grade point average (e.g. 3.75)." error={errors.gpa}>
+                    <input
+                      aria-invalid={Boolean(errors.gpa)}
+                      value={gpa}
+                      onChange={(event) => {
+                        setGpa(event.target.value.replace(/[^0-9.]/g, ''))
+                        if (errors.gpa) setErrors((prev) => ({ ...prev, gpa: undefined }))
+                      }}
+                      inputMode="decimal"
+                      placeholder="e.g. 3.75"
+                      maxLength={5}
+                      className={cn(input, errors.gpa && 'border-rose-500 focus:border-rose-500')}
+                    />
                   </Field>
-                  <Field label="IELTS band" hint="Overall band score (0–9), if taken.">
-                    <input value={ieltsScore} onChange={(event) => setIeltsScore(event.target.value)} inputMode="decimal" placeholder="e.g. 6.5" className={input} />
+                  <Field label="IELTS band" hint="Overall band score (0–9), if taken." error={errors.ieltsScore}>
+                    <input
+                      aria-invalid={Boolean(errors.ieltsScore)}
+                      value={ieltsScore}
+                      onChange={(event) => {
+                        setIeltsScore(event.target.value.replace(/[^0-9.]/g, ''))
+                        if (errors.ieltsScore) setErrors((prev) => ({ ...prev, ieltsScore: undefined }))
+                      }}
+                      inputMode="decimal"
+                      placeholder="e.g. 6.5"
+                      maxLength={4}
+                      className={cn(input, errors.ieltsScore && 'border-rose-500 focus:border-rose-500')}
+                    />
                   </Field>
-                  <Field label="TOEFL score" hint="Total score (0–120), if taken.">
-                    <input value={toeflScore} onChange={(event) => setToeflScore(event.target.value)} inputMode="numeric" placeholder="e.g. 90" className={input} />
+                  <Field label="TOEFL score" hint="Total score (0–120), if taken." error={errors.toeflScore}>
+                    <input
+                      aria-invalid={Boolean(errors.toeflScore)}
+                      value={toeflScore}
+                      onChange={(event) => {
+                        setToeflScore(event.target.value.replace(/\D/g, ''))
+                        if (errors.toeflScore) setErrors((prev) => ({ ...prev, toeflScore: undefined }))
+                      }}
+                      inputMode="numeric"
+                      placeholder="e.g. 90"
+                      maxLength={3}
+                      className={cn(input, errors.toeflScore && 'border-rose-500 focus:border-rose-500')}
+                    />
                   </Field>
                 </div>
 
