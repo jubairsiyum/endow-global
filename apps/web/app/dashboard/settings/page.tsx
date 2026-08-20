@@ -426,10 +426,11 @@ function SettingsContent() {
   const filteredCountries = destinationCountries.filter((option) => `${option.label} ${option.code}`.toLowerCase().includes(countrySearch.toLowerCase()))
   const unreadMessages = dashboard.data?.stats?.unreadMessages || 0
 
-  const saveProfile = useCallback(async (event?: React.FormEvent) => {
-    event?.preventDefault()
-
-    const validationErrors = validateProfileFields({ name, phonePrefix, phone, nationality, gpa, ieltsScore, toeflScore })
+  const saveProfile = useCallback(async (tab: Tab = activeTab) => {
+    const fieldsToValidate = tab === 'personal'
+      ? { name, phonePrefix, phone, nationality, gpa: '', ieltsScore: '', toeflScore: '' }
+      : { name: '', phonePrefix: '', phone: '', nationality: '', gpa, ieltsScore, toeflScore }
+    const validationErrors = validateProfileFields(fieldsToValidate)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) {
       toast.error('Please fix the highlighted fields')
@@ -476,7 +477,7 @@ function SettingsContent() {
       setSaveState('idle')
       toast.error(error.message || 'Could not save your profile')
     }
-  }, [country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
+  }, [activeTab, country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
 
   async function changePassword(event: React.FormEvent) {
     event.preventDefault()
@@ -615,7 +616,7 @@ function SettingsContent() {
                   <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This is the information your counselor uses to support you.</p>
                 </div>
               </div>
-              <form onSubmit={saveProfile} noValidate className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <form onSubmit={(e) => { e.preventDefault(); saveProfile() }} noValidate className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Field label="Full name" required error={errors.name} errorId="name-error">
                   <input
                     aria-label="Full name"
