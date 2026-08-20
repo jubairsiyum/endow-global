@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql } from 'drizzle-orm'
+import { applicantLevelFromEducation } from '@/lib/documents'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -1376,60 +1377,72 @@ return db.select().from(schema.countries)
       .input(
         z.object({
           search: z.string().optional(),
-          limit: z.number().min(1).max(100).default(50),
+          status: z.enum(['PENDING', 'UPLOADED', 'VERIFIED', 'REJECTED']).optional(),
+          limit: z.number().min(1).max(200).default(100),
         })
       )
       .query(async ({ input }) => {
-        const apps = await db.query.applications.findMany({
-          orderBy: [desc(schema.applications.updatedAt)],
-          limit: input.limit,
-          with: {
-            student: { with: { user: { columns: { name: true, email: true } } } },
-            course: { with: { university: { columns: { name: true } } } },
-          },
-        })
-
-        // Filter & expand: only apps with documents, and flatten for table view
-        let docs: Array<{
-          id: string
-          studentName: string
-          studentEmail: string
-          university: string
-          course: string
-          status: string
-          docLabel: string
-          docUrl: string
-          updatedAt: Date
-        }> = []
-
-        for (const app of apps) {
-          const urls = (app.documentsUrls || []) as string[]
-          if (urls.length === 0) continue
-          urls.forEach((url, i) => {
-            docs.push({
-              id: `${app.id}-${i}`,
-              studentName: app.student?.user?.name || 'Unknown',
-              studentEmail: app.student?.user?.email || '',
-              university: app.course?.university?.name || 'Unknown',
-              course: app.course?.name || 'Unknown',
-              status: app.status,
-              docLabel: url.split('/').pop() || `Document ${i + 1}`,
-              docUrl: url,
-              updatedAt: app.updatedAt,
-            })
-          })
-        }
-
+        const conditions: any[] = []
+        if (input.status) conditions.push(eq(schema.studentDocuments.status, input.status))
         if (input.search) {
-          const s = input.search.toLowerCase()
-          docs = docs.filter(d =>
-            d.studentName.toLowerCase().includes(s) ||
-            d.studentEmail.toLowerCase().includes(s) ||
-            d.university.toLowerCase().includes(s)
+          const s = `%${input.search}%`
+          conditions.push(
+            or(
+              like(schema.users.name, s),
+              like(schema.users.email, s),
+              like(schema.studentDocuments.label, s)
+            )
           )
         }
 
-        return docs.slice(0, input.limit)
+        const rows = await db
+          .select({
+            id: schema.studentDocuments.id,
+            studentId: schema.studentDocuments.studentId,
+            applicationId: schema.studentDocuments.applicationId,
+            category: schema.studentDocuments.category,
+            label: schema.studentDocuments.label,
+            fileUrl: schema.studentDocuments.fileUrl,
+            fileName: schema.studentDocuments.fileName,
+            fileSize: schema.studentDocuments.fileSize,
+            status: schema.studentDocuments.status,
+            rejectionReason: schema.studentDocuments.rejectionReason,
+            uploadedAt: schema.studentDocuments.uploadedAt,
+            updatedAt: schema.studentDocuments.updatedAt,
+            studentName: schema.users.name,
+            studentEmail: schema.users.email,
+            highestEducation: schema.studentProfiles.highestEducation,
+          })
+          .from(schema.studentDocuments)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.studentDocuments.studentId))
+          .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
+          .where(conditions.length ? and(...conditions) : undefined as any)
+          .orderBy(desc(schema.studentDocuments.updatedAt))
+          .limit(input.limit)
+
+        return rows.map((row: any) => ({
+          ...row,
+          level: applicantLevelFromEducation(row.highestEducation),
+        }))
+      }),
+
+    updateStatus: adminProcedure
+      .input(
+        z.object({
+          id: z.string().min(1),
+          status: z.enum(['PENDING', 'UPLOADED', 'VERIFIED', 'REJECTED']),
+          rejectionReason: z.string().max(1000).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        await db
+          .update(schema.studentDocuments)
+          .set({
+            status: input.status,
+            rejectionReason: input.status === 'REJECTED' ? input.rejectionReason?.trim() || null : null,
+          })
+          .where(eq(schema.studentDocuments.id, input.id))
+        return { success: true }
       }),
   }),
 

@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  FolderOpen,
   GraduationCap,
   MessageSquare,
   BarChart3,
@@ -17,7 +16,6 @@ import {
   BookOpen,
   UserCog,
   Globe,
-  Layers,
   Award,
   Mail,
   Shield,
@@ -25,6 +23,7 @@ import {
   DollarSign,
   Upload,
   Building2,
+  FileCheck2,
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
@@ -34,6 +33,7 @@ const adminMenuItems = [
   { name: 'Students', icon: Users, href: '/admin/students' },
   { name: 'Counselors', icon: UserCog, href: '/admin/counselors' },
   { name: 'Applications', icon: FileText, href: '/admin/applications' },
+  { name: 'Documents', icon: FileCheck2, href: '/admin/documents' },
   { name: 'Universities', icon: GraduationCap, href: '/admin/universities' },
   { name: 'Courses', icon: BookOpen, href: '/admin/courses' },
   { name: 'Scholarships', icon: Award, href: '/admin/scholarships' },

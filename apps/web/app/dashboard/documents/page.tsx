@@ -3,35 +3,49 @@
 import { useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
-import { FileText, Plus, Trash2, Upload } from 'lucide-react'
+import { FileText, Upload, Trash2, ExternalLink, ShieldCheck, ClipboardList, RefreshCw } from 'lucide-react'
 
 import { trpc } from '@/lib/trpc-client'
+import {
+  DOCUMENT_REQUIREMENTS,
+  requirementKey,
+  APPLICANT_LEVEL_LABEL,
+  type ApplicantLevel,
+  type DocumentRequirement,
+} from '@/lib/documents'
 import { DOCUMENT_STATUS, formatBytes } from '@/lib/dashboard'
 import type { DocumentStatus } from '@/lib/dashboard'
 import { StatusPill } from '@/components/dashboard/StatusPill'
 import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
-import { input, progressTrack, progressFill } from '@/components/dashboard/ui'
+import { progressTrack, progressFill, btnSecondary } from '@/components/dashboard/ui'
 
 async function uploadFile(file: File): Promise<{ url: string; name: string; size: number }> {
   const fd = new FormData()
   fd.append('file', file)
+  fd.append('scope', 'private')
   const res = await fetch('/api/upload-file', { method: 'POST', body: fd })
   if (!res.ok) throw new Error('Upload failed')
   return res.json()
 }
 
-type Filter = 'all' | 'attention' | 'verified'
+interface GroupedRequirement {
+  category: string
+  items: DocumentRequirement[]
+}
 
-const FILTERS: { value: Filter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'attention', label: 'Needs attention' },
-  { value: 'verified', label: 'Verified' },
-]
+function groupRequirements(level: ApplicantLevel): GroupedRequirement[] {
+  const groups: GroupedRequirement[] = []
+  for (const req of DOCUMENT_REQUIREMENTS[level] ?? []) {
+    const group = groups.find((g) => g.category === req.category)
+    if (group) group.items.push(req)
+    else groups.push({ category: req.category, items: [req] })
+  }
+  return groups
+}
 
 export default function DocumentsPage() {
   const { data, isLoading, isError, refetch } = trpc.dashboard.documents.list.useQuery()
-  const documents = data ?? []
   const utils = trpc.useUtils()
   const addDoc = trpc.dashboard.documents.add.useMutation()
   const uploadDoc = trpc.dashboard.documents.upload.useMutation()
@@ -40,16 +54,32 @@ export default function DocumentsPage() {
   const fileInput = useRef<HTMLInputElement>(null)
   const [targetDocId, setTargetDocId] = useState<string | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
-  const [newLabel, setNewLabel] = useState('')
-  const [filter, setFilter] = useState<Filter>('all')
 
-  const invalidate = () => utils.dashboard.documents.list.invalidate()
+  const level: ApplicantLevel = data?.level ?? 'UNDERGRADUATE'
+  const items: any[] = data?.items ?? []
 
-  const verified = documents.filter((d) => d.status === 'VERIFIED').length
-  const pct = documents.length ? Math.round((verified / documents.length) * 100) : 0
-  const visibleDocuments = documents.filter((document) =>
-    filter === 'all' ? true : filter === 'verified' ? document.status === 'VERIFIED' : ['PENDING', 'REJECTED'].includes(document.status)
-  )
+  const byKey = new Map<string, any>()
+  for (const doc of items) byKey.set(requirementKey(doc.category, doc.label), doc)
+
+  const required = DOCUMENT_REQUIREMENTS[level] ?? []
+  const requiredKeys = new Set(required.map((r) => requirementKey(r.category, r.label)))
+  const groups = groupRequirements(level)
+  const extras = items.filter((d) => !requiredKeys.has(requirementKey(d.category, d.label)))
+
+  const verifiedCount = required.filter((r) => {
+    const doc = byKey.get(requirementKey(r.category, r.label))
+    return doc?.status === 'VERIFIED'
+  }).length
+  const uploadedCount = required.filter((r) => {
+    const doc = byKey.get(requirementKey(r.category, r.label))
+    return doc?.status === 'VERIFIED' || doc?.status === 'UPLOADED'
+  }).length
+  const pct = required.length ? Math.round((verifiedCount / required.length) * 100) : 0
+
+  const invalidate = () => {
+    utils.dashboard.documents.list.invalidate()
+    utils.dashboard.overview.invalidate()
+  }
 
   async function handleFile(file: File, docId?: string) {
     setBusy(docId ?? '__new__')
@@ -68,7 +98,7 @@ export default function DocumentsPage() {
         fileName: file.name,
         fileSize: file.size,
       })
-      toast.success('Document uploaded')
+      toast.success('Document uploaded — waiting for our team to review')
       invalidate()
     } catch (e: any) {
       toast.error(e.message || 'Upload failed')
@@ -83,20 +113,6 @@ export default function DocumentsPage() {
     fileInput.current?.click()
   }
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault()
-    const label = newLabel.trim()
-    if (!label) return
-    try {
-      await addDoc.mutateAsync({ label, category: 'OTHER' })
-      toast.success('Requirement added')
-      setNewLabel('')
-      invalidate()
-    } catch (e: any) {
-      toast.error(e.message)
-    }
-  }
-
   async function handleRemove(id: string) {
     try {
       await removeDoc.mutateAsync({ id })
@@ -107,9 +123,94 @@ export default function DocumentsPage() {
     }
   }
 
+  function DocRow({ doc }: { doc: any }) {
+    const status = DOCUMENT_STATUS[doc.status as DocumentStatus] ?? DOCUMENT_STATUS.PENDING
+    const hasFile = Boolean(doc.fileUrl)
+    const isVerified = doc.status === 'VERIFIED'
+
+    return (
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -6 }}
+        className={`${studentPanel} flex items-center gap-4 p-4 transition-shadow hover:shadow-md`}
+      >
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+            isVerified
+              ? 'bg-green-50 dark:bg-green-500/10'
+              : doc.status === 'REJECTED'
+                ? 'bg-red-50 dark:bg-red-500/10'
+                : 'bg-gray-50 dark:bg-[#1a1d25]'
+          }`}
+        >
+          {isVerified ? (
+            <ShieldCheck size={20} className="text-green-600 dark:text-green-400" />
+          ) : (
+            <FileText size={19} className="text-gray-500 dark:text-gray-400" />
+          )}
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{doc.label}</p>
+          <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
+            {hasFile
+              ? `${doc.fileName ?? doc.fileUrl.split('/').pop()} · ${formatBytes(doc.fileSize)}`
+              : doc.status === 'REJECTED' && doc.rejectionReason
+                ? doc.rejectionReason
+                : 'Not uploaded yet'}
+          </p>
+          {doc.status === 'REJECTED' && doc.rejectionReason && (
+            <p className="mt-1 rounded-lg bg-red-50 px-2.5 py-1 text-xs text-red-600 dark:bg-red-500/10 dark:text-red-300">
+              {doc.rejectionReason}
+            </p>
+          )}
+        </div>
+
+        <StatusPill label={status.label} config={status} />
+
+        <div className="flex shrink-0 items-center gap-2">
+          {hasFile && (
+            <a
+              href={doc.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex h-8 items-center gap-1 rounded-lg border border-gray-200 px-2.5 text-xs font-semibold text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-white"
+            >
+              <ExternalLink size={13} /> View
+            </a>
+          )}
+          <button
+            type="button"
+            onClick={() => openPicker(doc.id)}
+            disabled={busy !== null}
+            title={hasFile ? 'Replace document' : 'Upload document'}
+            className={`inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 disabled:cursor-not-allowed disabled:opacity-50 ${
+              hasFile
+                ? 'border border-gray-200 text-gray-600 hover:border-gray-300 hover:text-gray-900 dark:border-gray-700 dark:text-gray-300 dark:hover:border-gray-600 dark:hover:text-white'
+                : 'bg-rose-600 text-white hover:bg-rose-700'
+            }`}
+          >
+            {busy === doc.id ? (
+              <span className="h-3 w-3 animate-spin rounded-full border-2 border-rose-600 border-t-transparent" />
+            ) : (
+              <Upload size={13} />
+            )}
+            {busy === doc.id ? 'Uploading…' : hasFile ? 'Replace' : 'Upload'}
+          </button>
+        </div>
+      </motion.div>
+    )
+  }
+
   return (
     <div className="mx-auto max-w-[1000px] space-y-6">
-      <StudentPageHeader eyebrow="Application checklist" title="Documents" description="Keep your application moving by uploading clear, current documents." />
+      <StudentPageHeader
+        eyebrow="Application checklist"
+        title="Documents"
+        description="Upload the documents our team needs. Each file is reviewed and approved — or sent back with feedback if something needs a fix."
+      />
 
       <input
         ref={fileInput}
@@ -122,157 +223,118 @@ export default function DocumentsPage() {
         }}
       />
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`${studentPanel} p-5`}>
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-semibold text-gray-900 dark:text-white">
-            {verified}/{documents.length} verified
+      {isLoading ? (
+        <DashboardLoading rows={3} />
+      ) : isError ? (
+        <DashboardError onRetry={() => refetch()} />
+      ) : items.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white py-16 text-center dark:border-gray-700 dark:bg-[#12141c]">
+          <ClipboardList size={34} className="mx-auto text-gray-300 dark:text-gray-600" />
+          <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No checklist yet</h3>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500 dark:text-gray-400">
+            Complete your profile so we can build the exact document checklist for your programme.
           </p>
-          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{pct}% complete</span>
+          <a href="/dashboard/settings" className={`${btnSecondary} mt-5`}>
+            Complete profile
+          </a>
         </div>
-        <div className={`${progressTrack} mt-2`}>
+      ) : (
+        <>
           <motion.div
-            className={progressFill}
-            animate={{ width: `${pct}%` }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          />
-        </div>
-      </motion.div>
-
-      <motion.button
-        type="button"
-        onClick={() => openPicker()}
-        disabled={busy !== null}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="group flex w-full flex-col items-center rounded-2xl border-2 border-dashed border-gray-200 bg-white p-8 text-center transition-colors hover:border-rose-400 hover:bg-rose-50/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 disabled:opacity-60 dark:border-gray-700 dark:bg-[#12141c] dark:hover:border-rose-500/50 dark:hover:bg-rose-500/5"
-      >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 transition-transform group-hover:scale-105 dark:bg-rose-500/10">
-          <Upload size={22} className="text-rose-600 dark:text-rose-300" />
-        </div>
-        <h3 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">
-          {busy === '__new__' ? 'Uploading…' : 'Upload a document'}
-        </h3>
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Click to browse — PDFs up to 8 MB, images up to 4 MB
-        </p>
-      </motion.button>
-
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className={`${studentPanel} flex gap-1 overflow-x-auto p-1.5`} role="tablist" aria-label="Document filters">
-          {FILTERS.map(({ value, label }) => (
-            <button
-              key={value}
-              type="button"
-              role="tab"
-              aria-selected={filter === value}
-              onClick={() => setFilter(value)}
-              className={`whitespace-nowrap rounded-lg px-3.5 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 ${
-                filter === value
-                  ? 'bg-rose-600 text-white'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleAdd} className="flex flex-1 items-center gap-2">
-          <input
-            value={newLabel}
-            onChange={(e) => setNewLabel(e.target.value)}
-            placeholder="Add a requirement (e.g. Reference letter #2)"
-            className={input}
-          />
-          <button
-            type="submit"
-            disabled={addDoc.isPending || !newLabel.trim()}
-            className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl bg-rose-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-50"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`${studentPanel} p-5`}
           >
-            <Plus size={15} /> Add
-          </button>
-        </form>
-      </div>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-500/10">
+                  <ClipboardList size={18} className="text-rose-600 dark:text-rose-300" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                    {APPLICANT_LEVEL_LABEL[level]} checklist
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {verifiedCount}/{required.length} approved · {uploadedCount} uploaded
+                  </p>
+                </div>
+              </div>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">{pct}% complete</span>
+            </div>
+            <div className={`${progressTrack} mt-3`}>
+              <motion.div
+                className={progressFill}
+                animate={{ width: `${pct}%` }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              />
+            </div>
+          </motion.div>
 
-      <div className="space-y-2">
-        {isLoading ? (
-          <DashboardLoading rows={3} />
-        ) : isError ? (
-          <DashboardError onRetry={() => refetch()} />
-        ) : documents.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-white py-14 text-center dark:border-gray-700 dark:bg-[#12141c]">
-            <FileText size={32} className="mx-auto text-gray-300 dark:text-gray-600" />
-            <h3 className="mt-4 text-lg font-semibold text-gray-900 dark:text-white">No documents yet</h3>
-            <p className="mx-auto mt-1 max-w-xs text-sm text-gray-500 dark:text-gray-400">
-              Upload your first document to kick things off.
-            </p>
-          </div>
-        ) : visibleDocuments.length === 0 ? (
-          <div className={`${studentPanel} py-12 text-center`}>
-            <FileText size={30} className="mx-auto text-gray-300 dark:text-gray-600" />
-            <p className="mt-3 text-sm font-bold text-gray-900 dark:text-white">No documents in this view</p>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Try another filter to see your checklist.</p>
-          </div>
-        ) : (
-          <AnimatePresence initial={false}>
-            {visibleDocuments.map((doc) => {
-              const status = DOCUMENT_STATUS[doc.status as DocumentStatus] ?? DOCUMENT_STATUS.PENDING
-              const pending = doc.status === 'PENDING' || doc.status === 'REJECTED'
-              return (
-                <motion.div
-                  key={doc.id}
-                  layout
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -6 }}
-                  className={`${studentPanel} flex items-center gap-4 p-4 transition-shadow hover:shadow-md`}
-                >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-[#1a1d25]">
-                    <FileText size={18} className="text-gray-500 dark:text-gray-400" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{doc.label}</p>
-                    <p className="truncate text-xs text-gray-500 dark:text-gray-400">
-                      {doc.fileName
-                        ? `${doc.fileName} · ${formatBytes(doc.fileSize)}`
-                        : doc.status === 'REJECTED' && doc.rejectionReason
-                          ? doc.rejectionReason
-                          : 'Not uploaded yet'}
-                    </p>
-                  </div>
-                  <StatusPill label={status.label} config={status} />
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    {pending && (
-                      <button
-                        type="button"
-                        onClick={() => openPicker(doc.id)}
-                        disabled={busy !== null}
-                        title="Upload"
-                        className="flex h-8 w-8 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors hover:border-rose-400 hover:text-rose-600 focus-visible:outline-2 focus-visible:outline-rose-600 disabled:opacity-50 dark:border-gray-700"
-                      >
-                        {busy === doc.id ? (
-                          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-rose-600 border-t-transparent" />
-                        ) : (
-                          <Upload size={14} />
-                        )}
-                      </button>
-                    )}
+          {groups.map((group) => (
+            <section key={group.category} className="space-y-3">
+              <div className="flex items-center gap-2 pt-1">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+                  {group.category}
+                </h2>
+                <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800" />
+              </div>
+              <AnimatePresence initial={false}>
+                {group.items.map((req) => {
+                  const doc = byKey.get(requirementKey(req.category, req.label))
+                  return <DocRow key={req.label} doc={doc ?? { id: `required-${req.label}`, category: req.category, label: req.label, status: 'PENDING', fileUrl: null, fileName: null, fileSize: null, rejectionReason: null }} />
+                })}
+              </AnimatePresence>
+            </section>
+          ))}
+
+          {extras.length > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2 pt-1">
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+                  Other documents
+                </h2>
+                <div className="h-px flex-1 bg-gray-100 dark:bg-gray-800" />
+              </div>
+              <AnimatePresence initial={false}>
+                {extras.map((doc) => (
+                  <motion.div
+                    key={doc.id}
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -6 }}
+                    className={`${studentPanel} flex items-center gap-4 p-4`}
+                  >
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-50 dark:bg-[#1a1d25]">
+                      <FileText size={18} className="text-gray-500 dark:text-gray-400" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{doc.label}</p>
+                      <p className="truncate text-xs text-gray-500 dark:text-gray-400">
+                        {doc.fileName ? `${doc.fileName} · ${formatBytes(doc.fileSize)}` : 'Not uploaded yet'}
+                      </p>
+                    </div>
+                    <StatusPill label={DOCUMENT_STATUS[doc.status as DocumentStatus]?.label ?? 'Pending'} config={DOCUMENT_STATUS[doc.status as DocumentStatus] ?? DOCUMENT_STATUS.PENDING} />
                     <button
                       type="button"
                       onClick={() => handleRemove(doc.id)}
                       disabled={removeDoc.isPending}
                       title="Remove"
-                      className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-rose-600 disabled:opacity-50 dark:hover:bg-red-500/10"
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 focus-visible:outline-2 focus-visible:outline-rose-600 disabled:opacity-50 dark:hover:bg-red-500/10"
                     >
                       <Trash2 size={15} />
                     </button>
-                  </div>
-                </motion.div>
-              )
-            })}
-          </AnimatePresence>
-        )}
-      </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </section>
+          )}
+
+          <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-gray-500">
+            <RefreshCw size={12} /> Approved documents are confirmed by our team — rejected ones can be uploaded again.
+          </p>
+        </>
+      )}
     </div>
   )
 }

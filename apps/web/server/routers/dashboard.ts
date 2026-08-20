@@ -12,6 +12,11 @@ import {
 } from 'drizzle-orm'
 import { z } from 'zod'
 import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
+import {
+  applicantLevelFromEducation,
+  DOCUMENT_REQUIREMENTS,
+  requirementKey,
+} from '@/lib/documents'
 
 const eq = _eq as any
 const and = _and as any
@@ -42,6 +47,43 @@ function groupByCourse<T extends { courseId: string | null }>(rows: T[]) {
     if (row.courseId) (groups[row.courseId] ??= []).push(row)
     return groups
   }, {})
+}
+
+// Make sure every document on the current programme's checklist exists as a
+// student document row (PENDING until uploaded), then return the full list.
+async function ensureDocumentChecklist(ctx: any, studentId: string) {
+  const [profile] = await ctx.db
+    .select({ highestEducation: schema.studentProfiles.highestEducation })
+    .from(schema.studentProfiles)
+    .where(eq(schema.studentProfiles.id, studentId))
+    .limit(1)
+
+  const level = applicantLevelFromEducation(profile?.highestEducation)
+  const required = DOCUMENT_REQUIREMENTS[level]
+
+  const fetchItems = () =>
+    ctx.db.query.studentDocuments.findMany({
+      where: (d: any, { eq }: any) => eq(d.studentId, studentId),
+      orderBy: (d: any, { asc }: any) => [asc(d.createdAt)],
+    })
+
+  const items = await fetchItems()
+  const existing = new Set(items.map((d: any) => requirementKey(d.category, d.label)))
+  const toCreate = required.filter((r) => !existing.has(requirementKey(r.category, r.label)))
+
+  if (toCreate.length) {
+    await ctx.db.insert(schema.studentDocuments).values(
+      toCreate.map((r) => ({
+        studentId,
+        category: r.category,
+        label: r.label,
+        status: 'PENDING',
+      })) as any
+    )
+    return { level, items: await fetchItems() }
+  }
+
+  return { level, items }
 }
 
 function daysUntil(date: Date | string | null | undefined): number | null {
@@ -256,7 +298,7 @@ export const dashboardRouter = createTRPCRouter({
         .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
         .where(and(eq(schema.bookingSessions.studentId, studentId), eq(schema.bookingSessions.status, 'SCHEDULED'), gte(schema.bookingSessions.scheduledAt, now)))
         .orderBy(asc(schema.bookingSessions.scheduledAt)),
-      ctx.db.query.studentDocuments.findMany({ where: (d: any, { eq }: any) => eq(d.studentId, studentId), orderBy: (d: any, { asc }: any) => [asc(d.createdAt)] }),
+      ensureDocumentChecklist(ctx, studentId).then((r) => r.items),
       ctx.db.query.notifications.findMany({ where: (n: any, { eq }: any) => eq(n.userId, userId), orderBy: (n: any, { desc }: any) => [desc(n.createdAt)], limit: 10 }),
       ctx.db.select({ id: schema.counselorProfiles.id, name: schema.users.name, rating: schema.counselorProfiles.rating }).from(schema.counselorProfiles).leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId)).where(eq(schema.counselorProfiles.id, profile.assignedCounselorId as string)),
       ctx.db
@@ -401,11 +443,8 @@ export const dashboardRouter = createTRPCRouter({
     list: protectedProcedure.query(async ({ ctx }) => {
       const user = await resolveStudent(ctx)
       const studentId = user?.studentProfile?.id
-      if (!studentId) return []
-      return ctx.db.query.studentDocuments.findMany({
-        where: (d: any, { eq }: any) => eq(d.studentId, studentId),
-        orderBy: (d: any, { asc }: any) => [asc(d.createdAt)],
-      })
+      if (!studentId) return { level: 'UNDERGRADUATE' as const, items: [] }
+      return ensureDocumentChecklist(ctx, studentId)
     }),
     add: protectedProcedure
       .input(
@@ -444,6 +483,11 @@ export const dashboardRouter = createTRPCRouter({
         const user = await resolveStudent(ctx)
         const studentId = user?.studentProfile?.id
         if (!studentId) throw new Error('No student profile found')
+        // Only accept files produced by our private upload endpoint — this
+        // stops a student from pointing their document at an arbitrary URL.
+        if (!input.fileUrl.startsWith('/api/files/') || input.fileUrl.includes('..')) {
+          throw new Error('Invalid file url')
+        }
         await ctx.db
           .update(schema.studentDocuments)
           .set({
