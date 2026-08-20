@@ -73,6 +73,7 @@ export function Navbar() {
   const portalHref = role === 'COUNSELOR' ? '/counselor' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'
   const portalLabel = role === 'COUNSELOR' ? 'Counselor portal' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? 'Admin portal' : 'Student portal'
   const userName = session?.user?.name || 'Account'
+  const userImage = (session?.user as { image?: string | null } | undefined)?.image ?? null
   const userInitials = userName
     .split(' ')
     .map((part) => part[0])
@@ -267,9 +268,9 @@ export function Navbar() {
               <Link
                 href={portalHref}
                 aria-label={portalLabel}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-[#263238] text-[11px] font-bold text-white"
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#263238] text-[11px] font-bold text-white"
               >
-                {userInitials}
+                {userImage ? <img src={userImage} alt="" className="h-full w-full object-cover" /> : userInitials}
               </Link>
             ) : (
               <Link

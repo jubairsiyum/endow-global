@@ -42,6 +42,7 @@ export function DashboardShell({ children }: Props) {
   const user = {
     name: session?.user?.name ?? 'Student',
     email: session?.user?.email ?? '',
+    image: (session?.user as { image?: string | null } | undefined)?.image ?? null,
     initials:
       session?.user?.name
         ?.split(' ')
@@ -58,6 +59,7 @@ export function DashboardShell({ children }: Props) {
         onMenuClick={() => setDrawerOpen(true)}
         userName={user.name}
         userInitials={user.initials}
+        userImage={user.image}
       />
 
       {/* Fixed desktop full sidebar */}

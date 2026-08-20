@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
 import {
   Bell,
+  Camera,
   Check,
   CheckCircle2,
   ChevronDown,
@@ -20,6 +21,7 @@ import {
   ShieldCheck,
   Trash2,
   UserRound,
+  X,
 } from 'lucide-react'
 
 import { trpc } from '@/lib/trpc-client'
@@ -28,6 +30,7 @@ import { DashboardError, DashboardLoading } from '@/components/dashboard/Dashboa
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 import { btnPrimary, btnSecondary, input } from '@/components/dashboard/ui'
 import { cn, asStringArray } from '@/lib/utils'
+import { useUploadThing } from '@/lib/uploadthing'
 import { SUBJECT_OPTIONS } from '@/server/utils/courseMatch'
 import { COUNTRIES, EDUCATION_DESTINATIONS, type CountryOption } from '@/lib/countries'
 import { PHONE_PREFIXES } from '@/lib/phone-codes'
@@ -86,42 +89,44 @@ function isValidPhone(value: string): boolean {
 type Errors = Partial<Record<'name' | 'phone' | 'nationality' | 'country' | 'gpa' | 'ieltsScore' | 'toeflScore', string>>
 
 function validateProfileFields(fields: {
-  name: string
-  phonePrefix: string
-  phone: string
-  nationality: string
-  gpa: string
-  ieltsScore: string
-  toeflScore: string
+  name?: string
+  phonePrefix?: string
+  phone?: string
+  nationality?: string
+  gpa?: string
+  ieltsScore?: string
+  toeflScore?: string
 }): Errors {
   const errors: Errors = {}
-  const trimmedName = fields.name.trim()
 
-  if (!trimmedName) errors.name = 'Full name is required'
-  else if (trimmedName.length < 2) errors.name = 'Name must be at least 2 characters'
-  else if (trimmedName.length > 100) errors.name = 'Name is too long'
-  else if (!NAME_PATTERN.test(trimmedName)) errors.name = 'Use letters, spaces, hyphens or apostrophes only'
+  if (fields.name !== undefined) {
+    const trimmedName = fields.name.trim()
+    if (!trimmedName) errors.name = 'Full name is required'
+    else if (trimmedName.length < 2) errors.name = 'Name must be at least 2 characters'
+    else if (trimmedName.length > 100) errors.name = 'Name is too long'
+    else if (!NAME_PATTERN.test(trimmedName)) errors.name = 'Use letters, spaces, hyphens or apostrophes only'
+  }
 
-  if (!fields.nationality) errors.nationality = 'Nationality is required'
+  if (fields.nationality !== undefined && !fields.nationality) errors.nationality = 'Nationality is required'
 
-  if (fields.phone.trim()) {
-    const fullPhone = `${fields.phonePrefix} ${fields.phone}`.trim()
+  if (fields.phone !== undefined && fields.phone.trim()) {
+    const fullPhone = `${fields.phonePrefix || ''} ${fields.phone}`.trim()
     if (fullPhone.length > 30 || !isValidPhone(fullPhone)) {
       errors.phone = 'Enter a valid phone number'
     }
   }
 
-  const gpaValue = fields.gpa.trim()
+  const gpaValue = fields.gpa?.trim()
   if (gpaValue && (!/^\d*(\.\d{1,2})?$/.test(gpaValue) || Number(gpaValue) < 0 || Number(gpaValue) > 5)) {
     errors.gpa = 'GPA must be between 0 and 5 (e.g. 3.75)'
   }
 
-  const ieltsValue = fields.ieltsScore.trim()
+  const ieltsValue = fields.ieltsScore?.trim()
   if (ieltsValue && (!/^\d(\.\d)?$/.test(ieltsValue) || Number(ieltsValue) < 0 || Number(ieltsValue) > 9)) {
     errors.ieltsScore = 'IELTS band must be between 0 and 9 (e.g. 6.5)'
   }
 
-  const toeflValue = fields.toeflScore.trim()
+  const toeflValue = fields.toeflScore?.trim()
   if (toeflValue && (!/^\d+$/.test(toeflValue) || Number(toeflValue) < 0 || Number(toeflValue) > 120)) {
     errors.toeflScore = 'TOEFL must be a whole number between 0 and 120'
   }
@@ -129,7 +134,7 @@ function validateProfileFields(fields: {
   return errors
 }
 
-function ProfileRing({ progress }: { progress: number }) {
+function ProfileRing({ progress, image, initials }: { progress: number; image?: string | null; initials?: string }) {
   const radius = 37
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (Math.min(progress, 100) / 100) * circumference
@@ -151,7 +156,15 @@ function ProfileRing({ progress }: { progress: number }) {
           className="transition-[stroke-dashoffset] duration-700 ease-out"
         />
       </svg>
-      <span className="absolute inset-0 flex items-center justify-center text-lg font-bold text-gray-900 dark:text-white">{progress}%</span>
+      <div className="absolute inset-[6px] overflow-hidden rounded-full">
+        {image ? (
+          <img src={image} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center bg-gray-50 text-lg font-bold text-gray-900 dark:bg-gray-800 dark:text-white">
+            {initials || `${progress}%`}
+          </span>
+        )}
+      </div>
     </div>
   )
 }
@@ -348,6 +361,8 @@ function SettingsContent() {
   }, [])
 
   const [name, setName] = useState('')
+  const [image, setImage] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
   const [nationality, setNationality] = useState('')
   const [country, setCountry] = useState('')
   const [phonePrefix, setPhonePrefix] = useState('+880')
@@ -369,12 +384,44 @@ function SettingsContent() {
   const [copied, setCopied] = useState(false)
   const [preferences, setPreferences] = useState({ updates: true, messages: true, recommendations: false })
 
+  const { startUpload, isUploading } = useUploadThing('profileImage', {
+    onClientUploadComplete: (res) => {
+      if (res?.[0]?.url) {
+        setImage(res[0].url)
+        setImagePreview(res[0].url)
+      }
+    },
+    onUploadError: () => {
+      toast.error('Failed to upload image. Please try again.')
+    },
+  })
+
+  function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    if (!file) return
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error('Image must be smaller than 4 MB')
+      return
+    }
+    const reader = new FileReader()
+    reader.onload = () => setImagePreview(reader.result as string)
+    reader.readAsDataURL(file)
+    startUpload([file])
+  }
+
+  function removeImage() {
+    setImage(null)
+    setImagePreview(null)
+  }
+
   useEffect(() => {
     if (profile) {
       const student = profile.studentProfile as any
       const storedPhone = student?.phone || ''
       const storedPrefix = PHONE_PREFIXES.find((option) => storedPhone.startsWith(`${option.value} `))
       setName(profile.name || '')
+      setImage(profile.image || null)
+      setImagePreview(profile.image || null)
       setNationality(student?.nationality || '')
       setCountry(student?.countryOfResidence || '')
       setPhone(storedPrefix ? storedPhone.slice(storedPrefix.value.length).trim() : storedPhone)
@@ -401,10 +448,11 @@ function SettingsContent() {
   const referralCode = student?.referralCode || ''
   const referralBalance = student?.referralBalance || 0
   const userName = profile?.name || session?.user?.name || 'Student'
+  const userInitials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
   const completion = useMemo(() => {
-    const completed = [name.trim(), nationality, country, phone.trim(), education, intakeYear, targetCountries.length > 0].filter(Boolean).length
-    return Math.round((completed / 7) * 100)
-  }, [name, nationality, country, phone, education, intakeYear, targetCountries.length])
+    const completed = [name.trim(), nationality, country, phone.trim(), education, intakeYear, targetCountries.length > 0, image].filter(Boolean).length
+    return Math.round((completed / 8) * 100)
+  }, [name, nationality, country, phone, education, intakeYear, targetCountries.length, image])
   // Education-offering destinations only (South Korea pinned first), merging
   // the static list with the served countries and any active university
   // countries so newly added partners appear automatically.
@@ -428,8 +476,8 @@ function SettingsContent() {
 
   const saveProfile = useCallback(async (tab: Tab = activeTab) => {
     const fieldsToValidate = tab === 'personal'
-      ? { name, phonePrefix, phone, nationality, gpa: '', ieltsScore: '', toeflScore: '' }
-      : { name: '', phonePrefix: '', phone: '', nationality: '', gpa, ieltsScore, toeflScore }
+      ? { name, phonePrefix, phone, nationality, gpa, ieltsScore, toeflScore }
+      : { gpa, ieltsScore, toeflScore }
     const validationErrors = validateProfileFields(fieldsToValidate)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) {
@@ -441,6 +489,7 @@ function SettingsContent() {
     try {
       await updateProfile.mutateAsync({
         name: name.trim(),
+        image: image || undefined,
         nationality: nationality || undefined,
         countryOfResidence: country || undefined,
         phone: phone ? `${phonePrefix} ${phone}` : undefined,
@@ -477,7 +526,7 @@ function SettingsContent() {
       setSaveState('idle')
       toast.error(error.message || 'Could not save your profile')
     }
-  }, [activeTab, country, education, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
+  }, [activeTab, country, education, image, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
 
   async function changePassword(event: React.FormEvent) {
     event.preventDefault()
@@ -556,7 +605,23 @@ function SettingsContent() {
         <aside className="space-y-4 lg:sticky lg:top-20">
           <div className={`${studentPanel} p-5`}>
             <div className="flex items-center gap-4">
-              <ProfileRing progress={completion} />
+              <div className="relative">
+                <ProfileRing progress={completion} image={imagePreview} initials={userInitials} />
+                <label className="absolute -bottom-0.5 -right-0.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-rose-600 text-white shadow-md transition-colors hover:bg-rose-700 dark:border-[#12141c]">
+                  <Camera size={14} />
+                  <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} disabled={isUploading} aria-label="Upload profile photo" />
+                </label>
+                {imagePreview && (
+                  <button type="button" onClick={removeImage} className="absolute -right-0.5 -top-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-600 text-white shadow-md transition-colors hover:bg-gray-700 dark:border-[#12141c]" aria-label="Remove profile photo">
+                    <X size={12} />
+                  </button>
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
+                    <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                  </div>
+                )}
+              </div>
               <div className="min-w-0">
                 <p className="truncate text-base font-bold text-gray-900 dark:text-white">{userName}</p>
                 <p className="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">{session?.user?.email || 'Student account'}</p>

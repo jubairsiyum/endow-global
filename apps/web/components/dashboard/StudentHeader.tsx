@@ -16,6 +16,7 @@ interface Props {
   onMenuClick: () => void
   userName: string
   userInitials: string
+  userImage?: string | null
 }
 
 const navLinks = [
@@ -24,7 +25,7 @@ const navLinks = [
   { label: 'About', href: '/about' },
 ]
 
-export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
+export function StudentHeader({ onMenuClick, userName, userInitials, userImage }: Props) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [notificationsOpen, setNotificationsOpen] = useState(false)
@@ -154,7 +155,9 @@ export function StudentHeader({ onMenuClick, userName, userInitials }: Props) {
           </div>
           <ThemeToggle />
           <div className="ml-1 flex items-center gap-2.5 rounded-full border border-gray-200 py-1 pl-1 pr-2.5 dark:border-gray-700">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-[11px] font-bold text-white">{userInitials}</span>
+            <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-[11px] font-bold text-white">
+              {userImage ? <img src={userImage} alt="" className="h-full w-full object-cover" /> : userInitials}
+            </span>
             <span className="hidden max-w-[130px] truncate text-sm font-semibold text-gray-800 xl:block dark:text-gray-200">{userName}</span>
           </div>
         </div>

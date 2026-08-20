@@ -47,6 +47,7 @@ interface Props {
     name: string
     email: string
     initials: string
+    image?: string | null
   }
 }
 
@@ -143,8 +144,8 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
       {isDrawer && user && (
         <div className="border-b border-gray-100 px-4 py-4 dark:border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-sm font-bold text-white">
-              {user.initials}
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-sm font-bold text-white">
+              {user.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : user.initials}
             </div>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>
@@ -184,8 +185,8 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
       <div className="shrink-0 border-t border-gray-100 p-3 dark:border-gray-800">
         {user && isFull && (
           <div className="mb-2 flex items-center gap-2.5 rounded-xl px-2 py-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-xs font-bold text-white">
-              {user.initials}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-rose-600 to-rose-700 text-xs font-bold text-white">
+              {user.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : user.initials}
             </div>
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-gray-900 dark:text-white">{user.name}</p>

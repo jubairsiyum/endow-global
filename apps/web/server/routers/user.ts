@@ -101,16 +101,20 @@ export const userRouter = createTRPCRouter({
         highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).optional(),
         preferredIntakeYear: z.number().int().min(2020).max(2100).optional(),
         preferredIntakeMonth: z.string().trim().max(50).optional(),
+        image: z.string().url().max(500).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id
 
-      // Update user name if provided
-      if (input.name) {
+      // Update user name/image if provided
+      const userUpdates: Record<string, unknown> = {}
+      if (input.name) userUpdates.name = input.name
+      if (input.image !== undefined) userUpdates.image = input.image
+      if (Object.keys(userUpdates).length > 0) {
         await ctx.db
           .update(schema.users)
-          .set({ name: input.name })
+          .set(userUpdates)
           .where(eq(schema.users.id, userId))
       }
 
