@@ -9,6 +9,7 @@ import {
   desc as _desc,
   asc as _asc,
   gte as _gte,
+  or as _or,
 } from 'drizzle-orm'
 import { z } from 'zod'
 import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
@@ -26,6 +27,7 @@ const ne = _ne as any
 const desc = _desc as any
 const asc = _asc as any
 const gte = _gte as any
+const or = _or as any
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -47,6 +49,94 @@ function groupByCourse<T extends { courseId: string | null }>(rows: T[]) {
     if (row.courseId) (groups[row.courseId] ??= []).push(row)
     return groups
   }, {})
+}
+
+// ─────────────────────────────────────────────────────────────
+// Appointment validation helpers
+// ─────────────────────────────────────────────────────────────
+
+const MIN_SESSION_DURATION = 15
+const MAX_SESSION_DURATION = 120
+const MIN_LEAD_MINUTES = 30
+
+function normalizeScheduledAt(value: string | Date): Date {
+  const date = typeof value === 'string' ? new Date(value) : value
+  if (Number.isNaN(date.getTime())) throw new Error('Invalid date and time')
+  return date
+}
+
+function assertFutureDate(date: Date) {
+  if (date.getTime() <= Date.now()) throw new Error('Please choose a time in the future')
+}
+
+function assertLeadTime(date: Date) {
+  if (date.getTime() < Date.now() + MIN_LEAD_MINUTES * 60 * 1000) {
+    throw new Error(`Bookings must be made at least ${MIN_LEAD_MINUTES} minutes in advance`)
+  }
+}
+
+async function getCounselor(ctx: any, counselorId: string) {
+  const [counselor] = await ctx.db
+    .select({
+      id: schema.counselorProfiles.id,
+      name: schema.users.name,
+      isAvailable: schema.counselorProfiles.isAvailable,
+    })
+    .from(schema.counselorProfiles)
+    .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+    .where(eq(schema.counselorProfiles.id, counselorId))
+    .limit(1)
+  return counselor ?? null
+}
+
+function assertCounselorAvailable(counselor: any) {
+  if (!counselor) throw new Error('Counselor not found')
+  if (!counselor.isAvailable) throw new Error('This counselor is not currently available')
+}
+
+// Reject any overlapping SCHEDULED session for the same student or the same
+// counselor within a minute of the requested window.
+async function assertNoConflict(ctx: any, { studentId, counselorId, scheduledAt, duration }: { studentId: string; counselorId: string; scheduledAt: Date; duration: number }) {
+  const requestedStart = scheduledAt.getTime()
+  const requestedEnd = requestedStart + duration * 60 * 1000
+
+  const candidates = await ctx.db
+    .select({
+      id: schema.bookingSessions.id,
+      studentId: schema.bookingSessions.studentId,
+      counselorId: schema.bookingSessions.counselorId,
+      scheduledAt: schema.bookingSessions.scheduledAt,
+      duration: schema.bookingSessions.duration,
+    })
+    .from(schema.bookingSessions)
+    .where(
+      and(
+        eq(schema.bookingSessions.status, 'SCHEDULED'),
+        or(
+          eq(schema.bookingSessions.studentId, studentId),
+          eq(schema.bookingSessions.counselorId, counselorId)
+        )
+      )
+    )
+
+  const conflict = candidates.find((c: any) => {
+    const existingStart = c.scheduledAt.getTime()
+    const existingEnd = existingStart + (c.duration ?? 60) * 60 * 1000
+    // 60s grace so consecutive-but-not-overlapping bookings are allowed
+    return existingStart < requestedEnd - 60 * 1000 && existingEnd > requestedStart + 60 * 1000
+  })
+
+  if (conflict) {
+    if (conflict.studentId === studentId) throw new Error('You already have an overlapping session at this time')
+    throw new Error('This counselor already has a session at that time')
+  }
+}
+
+function assertDuration(duration: number) {
+  if (!Number.isFinite(duration)) throw new Error('Invalid session duration')
+  if (duration < MIN_SESSION_DURATION || duration > MAX_SESSION_DURATION) {
+    throw new Error(`Session duration must be between ${MIN_SESSION_DURATION} and ${MAX_SESSION_DURATION} minutes`)
+  }
 }
 
 // Make sure every document on the current programme's checklist exists as a
@@ -529,38 +619,79 @@ export const dashboardRouter = createTRPCRouter({
         status: schema.bookingSessions.status,
         meetingUrl: schema.bookingSessions.meetingUrl,
         notes: schema.bookingSessions.notes,
+        createdAt: schema.bookingSessions.createdAt,
         counselorName: schema.users.name,
+        counselorImage: schema.users.image,
+        counselorRating: schema.counselorProfiles.rating,
       }).from(schema.bookingSessions)
         .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
         .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
         .where(eq(schema.bookingSessions.studentId, studentId))
         .orderBy(desc(schema.bookingSessions.scheduledAt))
-      return rows.map((row: any) => ({ ...row, counselor: { user: { name: row.counselorName } } }))
+      return rows.map((row: any) => ({
+        ...row,
+        counselor: {
+          id: row.counselorId,
+          rating: row.counselorRating,
+          user: { name: row.counselorName, image: row.counselorImage },
+        },
+      }))
     }),
     counselors: protectedProcedure.query(async ({ ctx }) => {
       const rows = await ctx.db.select({
         id: schema.counselorProfiles.id,
         name: schema.users.name,
+        image: schema.users.image,
+        bio: schema.counselorProfiles.bio,
         rating: schema.counselorProfiles.rating,
         expertiseCountries: schema.counselorProfiles.expertiseCountries,
+        expertiseSubjects: schema.counselorProfiles.expertiseSubjects,
+        languages: schema.counselorProfiles.languages,
         sessionRate: schema.counselorProfiles.sessionRate,
+        isAvailable: schema.counselorProfiles.isAvailable,
       }).from(schema.counselorProfiles)
         .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
         .where(eq(schema.counselorProfiles.isAvailable, true))
       return rows.map((c: any) => ({
         id: c.id,
         name: c.name ?? 'Counselor',
+        image: c.image,
+        bio: c.bio,
         rating: c.rating,
         expertiseCountries: c.expertiseCountries,
+        expertiseSubjects: c.expertiseSubjects,
+        languages: c.languages,
         sessionRate: c.sessionRate,
+        isAvailable: c.isAvailable,
       }))
+    }),
+    assigned: protectedProcedure.query(async ({ ctx }) => {
+      const user = await resolveStudent(ctx)
+      const assignedId = user?.studentProfile?.assignedCounselorId
+      if (!assignedId) return null
+      const [counselor] = await ctx.db
+        .select({
+          id: schema.counselorProfiles.id,
+          name: schema.users.name,
+          image: schema.users.image,
+          rating: schema.counselorProfiles.rating,
+          expertiseCountries: schema.counselorProfiles.expertiseCountries,
+          sessionRate: schema.counselorProfiles.sessionRate,
+        })
+        .from(schema.counselorProfiles)
+        .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+        .where(eq(schema.counselorProfiles.id, assignedId))
+        .limit(1)
+      return counselor
+        ? { id: counselor.id, name: counselor.name ?? 'Counselor', image: counselor.image, rating: counselor.rating, expertiseCountries: counselor.expertiseCountries, sessionRate: counselor.sessionRate }
+        : null
     }),
     book: protectedProcedure
       .input(
         z.object({
           counselorId: z.string().min(1),
           scheduledAt: z.string().min(1),
-          duration: z.number().min(15).max(120).default(60),
+          duration: z.number().int().min(15).max(120).default(60),
           notes: z.string().max(1000).optional(),
         })
       )
@@ -568,8 +699,16 @@ export const dashboardRouter = createTRPCRouter({
         const user = await resolveStudent(ctx)
         const studentId = user?.studentProfile?.id
         if (!studentId) throw new Error('No student profile found')
-        const scheduledAt = new Date(input.scheduledAt)
-        if (Number.isNaN(scheduledAt.getTime())) throw new Error('Invalid date')
+
+        assertDuration(input.duration)
+        const scheduledAt = normalizeScheduledAt(input.scheduledAt)
+        assertFutureDate(scheduledAt)
+        assertLeadTime(scheduledAt)
+
+        const counselor = await getCounselor(ctx, input.counselorId)
+        assertCounselorAvailable(counselor)
+        await assertNoConflict(ctx, { studentId, counselorId: input.counselorId, scheduledAt, duration: input.duration })
+
         await ctx.db.insert(schema.bookingSessions).values({
           studentId,
           counselorId: input.counselorId,
@@ -580,16 +719,57 @@ export const dashboardRouter = createTRPCRouter({
         })
         return { success: true }
       }),
+    reschedule: protectedProcedure
+      .input(
+        z.object({
+          id: z.string().min(1),
+          scheduledAt: z.string().min(1),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const user = await resolveStudent(ctx)
+        const studentId = user?.studentProfile?.id
+        if (!studentId) throw new Error('No student profile found')
+
+        const [session] = await ctx.db
+          .select({ id: schema.bookingSessions.id, counselorId: schema.bookingSessions.counselorId, status: schema.bookingSessions.status, duration: schema.bookingSessions.duration })
+          .from(schema.bookingSessions)
+          .where(and(eq(schema.bookingSessions.id, input.id), eq(schema.bookingSessions.studentId, studentId)))
+          .limit(1)
+        if (!session) throw new Error('Session not found')
+        if (session.status !== 'SCHEDULED') throw new Error('Only scheduled sessions can be rescheduled')
+
+        const scheduledAt = normalizeScheduledAt(input.scheduledAt)
+        assertFutureDate(scheduledAt)
+        assertLeadTime(scheduledAt)
+
+        await assertNoConflict(ctx, { studentId, counselorId: session.counselorId, scheduledAt, duration: session.duration ?? 60 })
+
+        await ctx.db
+          .update(schema.bookingSessions)
+          .set({ scheduledAt, updatedAt: new Date() })
+          .where(eq(schema.bookingSessions.id, session.id))
+        return { success: true }
+      }),
     cancel: protectedProcedure
       .input(z.object({ id: z.string() }))
       .mutation(async ({ ctx, input }) => {
         const user = await resolveStudent(ctx)
         const studentId = user?.studentProfile?.id
         if (!studentId) throw new Error('No student profile found')
+
+        const [session] = await ctx.db
+          .select({ id: schema.bookingSessions.id, status: schema.bookingSessions.status })
+          .from(schema.bookingSessions)
+          .where(and(eq(schema.bookingSessions.id, input.id), eq(schema.bookingSessions.studentId, studentId)))
+          .limit(1)
+        if (!session) throw new Error('Session not found')
+        if (session.status !== 'SCHEDULED') throw new Error('Only scheduled sessions can be cancelled')
+
         await ctx.db
           .update(schema.bookingSessions)
-          .set({ status: 'CANCELLED' })
-          .where(and(eq(schema.bookingSessions.id, input.id), eq(schema.bookingSessions.studentId, studentId)))
+          .set({ status: 'CANCELLED', updatedAt: new Date() })
+          .where(eq(schema.bookingSessions.id, session.id))
         return { success: true }
       }),
   }),
