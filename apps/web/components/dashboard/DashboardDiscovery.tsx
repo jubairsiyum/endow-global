@@ -66,7 +66,14 @@ function CourseCard({ course, shortlisted, onToggle }: { course: NormalizedCours
       <Link href={`/courses/${course.slug || ''}`} className="block focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600">
         <div className="flex items-center justify-between gap-2 pr-9">
           <span className="truncate text-[11px] font-bold uppercase tracking-wider text-gray-400">{course.universityCountry || 'International'}</span>
-          {course.score ? <span className="rounded-full bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{Math.round(course.score)}% fit</span> : null}
+          <span className="flex shrink-0 items-center gap-1.5">
+            {shortlisted && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                <Heart size={10} className="fill-current" /> Shortlisted
+              </span>
+            )}
+            {course.score ? <span className="rounded-full bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{Math.round(course.score)}% fit</span> : null}
+          </span>
         </div>
         <h3 className="mt-3 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-300">{course.name || 'Course'}</h3>
         <p className="mt-1 truncate text-xs text-gray-500 dark:text-gray-400">{course.universityName || 'University'}</p>
@@ -112,7 +119,10 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
     },
     { enabled: tab === 'explore' }
   )
-  const shortlistQuery = trpc.dashboard.shortlist.list.useQuery(undefined, { enabled: tab === 'shortlisted' })
+  const shortlistQuery = trpc.dashboard.shortlist.list.useQuery(undefined, {
+    enabled: true,
+    staleTime: 30 * 1000,
+  })
   const addShortlist = trpc.dashboard.shortlist.add.useMutation()
   const removeShortlist = trpc.dashboard.shortlist.remove.useMutation()
 
