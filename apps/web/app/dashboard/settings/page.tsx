@@ -30,7 +30,6 @@ import { DashboardError, DashboardLoading } from '@/components/dashboard/Dashboa
 import { StudentPageHeader, studentPanel } from '@/components/dashboard/StudentPageHeader'
 import { btnPrimary, btnSecondary, input } from '@/components/dashboard/ui'
 import { cn, asStringArray } from '@/lib/utils'
-import { useUploadThing } from '@/lib/uploadthing'
 import { SUBJECT_OPTIONS } from '@/server/utils/courseMatch'
 import { COUNTRIES, EDUCATION_DESTINATIONS, type CountryOption } from '@/lib/countries'
 import { PHONE_PREFIXES } from '@/lib/phone-codes'
@@ -384,34 +383,52 @@ function SettingsContent() {
   const [copied, setCopied] = useState(false)
   const [preferences, setPreferences] = useState({ updates: true, messages: true, recommendations: false })
 
-  const { startUpload, isUploading } = useUploadThing('profileImage', {
-    onClientUploadComplete: (res) => {
-      if (res?.[0]?.url) {
-        setImage(res[0].url)
-        setImagePreview(res[0].url)
-      }
-    },
-    onUploadError: () => {
-      toast.error('Failed to upload image. Please try again.')
-    },
-  })
+  const [uploading, setUploading] = useState(false)
 
-  function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
     if (file.size > 4 * 1024 * 1024) {
       toast.error('Image must be smaller than 4 MB')
       return
     }
+
     const reader = new FileReader()
     reader.onload = () => setImagePreview(reader.result as string)
     reader.readAsDataURL(file)
-    startUpload([file])
+
+    setUploading(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload-image', { method: 'POST', body: formData })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Upload failed')
+      setImage(data.url)
+      setImagePreview(data.url)
+      await updateProfile.mutateAsync({ image: data.url })
+      await refetchSession()
+      utils.user.getProfile.invalidate()
+      toast.success('Profile photo updated')
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to upload image')
+      setImagePreview(image)
+    } finally {
+      setUploading(false)
+    }
   }
 
-  function removeImage() {
+  async function removeImage() {
     setImage(null)
     setImagePreview(null)
+    try {
+      await updateProfile.mutateAsync({ image: '' })
+      await refetchSession()
+      utils.user.getProfile.invalidate()
+      toast.success('Profile photo removed')
+    } catch {
+      toast.error('Failed to remove photo')
+    }
   }
 
   useEffect(() => {
@@ -609,14 +626,14 @@ function SettingsContent() {
                 <ProfileRing progress={completion} image={imagePreview} initials={userInitials} />
                 <label className="absolute -bottom-0.5 -right-0.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-rose-600 text-white shadow-md transition-colors hover:bg-rose-700 dark:border-[#12141c]">
                   <Camera size={14} />
-                  <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} disabled={isUploading} aria-label="Upload profile photo" />
+                  <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} disabled={uploading} aria-label="Upload profile photo" />
                 </label>
                 {imagePreview && (
                   <button type="button" onClick={removeImage} className="absolute -right-0.5 -top-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-600 text-white shadow-md transition-colors hover:bg-gray-700 dark:border-[#12141c]" aria-label="Remove profile photo">
                     <X size={12} />
                   </button>
                 )}
-                {isUploading && (
+                {uploading && (
                   <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40">
                     <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                   </div>

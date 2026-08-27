@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
 import { authClient, useSession } from '@/lib/auth-client'
+import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
 
 const countries = [
   { label: 'South Korea', href: '/universities/country/south-korea', flag: 'https://flagcdn.com/w40/kr.png' },
@@ -25,6 +26,7 @@ export function Navbar() {
   const pathname = usePathname()
   const router = useRouter()
   const { data: session, isPending: sessionPending } = useSession()
+  const { image: avatarImage } = useUserAvatar()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCountriesOpen, setIsCountriesOpen] = useState(false)
@@ -73,7 +75,7 @@ export function Navbar() {
   const portalHref = role === 'COUNSELOR' ? '/counselor' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'
   const portalLabel = role === 'COUNSELOR' ? 'Counselor portal' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? 'Admin portal' : 'Student portal'
   const userName = session?.user?.name || 'Account'
-  const userImage = (session?.user as { image?: string | null } | undefined)?.image ?? null
+  const userImage = avatarImage ?? (session?.user as { image?: string | null } | undefined)?.image ?? null
   const userInitials = userName
     .split(' ')
     .map((part) => part[0])

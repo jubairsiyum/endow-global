@@ -101,7 +101,7 @@ export const userRouter = createTRPCRouter({
         highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).optional(),
         preferredIntakeYear: z.number().int().min(2020).max(2100).optional(),
         preferredIntakeMonth: z.string().trim().max(50).optional(),
-        image: z.string().url().max(500).optional(),
+        image: z.string().max(500).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

@@ -7,6 +7,7 @@ import { useSession } from '@/lib/auth-client'
 import { DashboardSidebar } from './Sidebar'
 import { StudentHeader } from './StudentHeader'
 import { Footer } from '@/components/layout/Footer'
+import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
 
 interface Props {
   children: React.ReactNode
@@ -15,6 +16,7 @@ interface Props {
 export function DashboardShell({ children }: Props) {
   const router = useRouter()
   const { data: session, isPending } = useSession()
+  const { image: avatarImage } = useUserAvatar()
   const [drawerOpen, setDrawerOpen] = useState(false)
 
   // Defense in depth: even though middleware protects /dashboard, redirect if no session
@@ -42,7 +44,7 @@ export function DashboardShell({ children }: Props) {
   const user = {
     name: session?.user?.name ?? 'Student',
     email: session?.user?.email ?? '',
-    image: (session?.user as { image?: string | null } | undefined)?.image ?? null,
+    image: avatarImage ?? (session?.user as { image?: string | null } | undefined)?.image ?? null,
     initials:
       session?.user?.name
         ?.split(' ')

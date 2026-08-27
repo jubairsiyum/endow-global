@@ -10,6 +10,7 @@ import ClickSpark from '@/components/effects/ClickSpark'
 import RouteProgress from '@/components/effects/RouteProgress'
 import SkipToContent from '@/components/ui/SkipToContent'
 import PageTransition from '@/components/providers/PageTransition'
+import { UserAvatarProvider } from '@/components/providers/UserAvatarProvider'
 
 import './globals.css'
 import 'react-quill-new/dist/quill.snow.css'
@@ -99,11 +100,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ThemeProvider>
           <SmoothScroll>
             <TRPCReactProvider>
-              <main id="main-content" tabIndex={-1} className="outline-none">
-                <PageTransition>{children}</PageTransition>
-              </main>
+              <UserAvatarProvider>
+                <main id="main-content" tabIndex={-1} className="outline-none">
+                  <PageTransition>{children}</PageTransition>
+                </main>
 
-              <ToasterProvider />
+                <ToasterProvider />
+              </UserAvatarProvider>
             </TRPCReactProvider>
           </SmoothScroll>
         </ThemeProvider>
