@@ -337,7 +337,6 @@ function SettingsContent() {
   const searchParams = useSearchParams()
   const { data: session, refetch: refetchSession } = useSession()
   const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery()
-  const dashboard = trpc.dashboard.overview.useQuery()
   const { data: universityCountries } = trpc.university.countries.useQuery(undefined, { staleTime: Infinity })
   const updateProfile = trpc.user.updateProfile.useMutation()
   const setPassword = trpc.user.setPassword.useMutation()
@@ -489,7 +488,6 @@ function SettingsContent() {
   }, [universityCountries])
 
   const filteredCountries = destinationCountries.filter((option) => `${option.label} ${option.code}`.toLowerCase().includes(countrySearch.toLowerCase()))
-  const unreadMessages = dashboard.data?.stats?.unreadMessages || 0
 
   const saveProfile = useCallback(async (tab: Tab = activeTab) => {
     const fieldsToValidate = tab === 'personal'
@@ -666,7 +664,6 @@ function SettingsContent() {
                   {active && <span className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-rose-600" aria-hidden />}
                   <Icon size={18} aria-hidden />
                   <span>{tab.label}</span>
-                  {tab.id === 'security' && unreadMessages > 0 && <span className="ml-auto rounded-full bg-rose-600 px-1.5 py-0.5 text-[10px] font-bold text-white">{unreadMessages}</span>}
                 </button>
               )
             })}

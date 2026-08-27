@@ -91,7 +91,7 @@ RBAC is enforced at three layers:
 | `/dashboard` | Overview | Stats cards, application timeline, deadlines, quick actions |
 | `/dashboard/application` | My Application | Application status cards with counselor notes |
 | `/dashboard/documents` | Documents | Upload zone, file list with verified/pending/required statuses |
-| `/dashboard/messages` | Messages | Conversation list with role badges and unread indicators |
+| `/dashboard/deadlines` | Deadlines | Application, document, scholarship & exam deadlines (admin-managed) |
 | `/dashboard/appointments` | Appointments | Session cards with date, counselor, meeting links |
 | `/dashboard/settings` | Profile Settings | Edit name, nationality, phone, education, target countries |
 

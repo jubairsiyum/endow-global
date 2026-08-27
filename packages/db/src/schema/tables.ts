@@ -395,6 +395,27 @@ export const bookingSessions = mysqlTable('booking_session', {
   updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
 })
 
+// ─── Deadlines (admin-managed, shown to students) ──────────
+
+export const deadlines = mysqlTable('deadline', {
+  id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+  // Null = applies to all students; set = a specific student's deadline.
+  studentId: varchar('student_id', { length: 25 }),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  category: mysqlEnum('category', ['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER'])
+    .default('OTHER')
+    .notNull(),
+  dueAt: datetime('due_at', { mode: 'date' }).notNull(),
+  relatedUniversity: varchar('related_university', { length: 255 }),
+  relatedCourse: varchar('related_course', { length: 255 }),
+  isActive: boolean('is_active').default(true).notNull(),
+  remindDaysBefore: int('remind_days_before').default(7).notNull(),
+  createdBy: varchar('created_by', { length: 255 }),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+})
+
 // ─── Messaging ─────────────────────────────────────────────
 
 export const conversations = mysqlTable(

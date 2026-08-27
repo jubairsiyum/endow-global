@@ -203,9 +203,9 @@ test.describe('Auth: Documents /dashboard/documents', () => {
   })
 })
 
-test.describe('Auth: Messages /dashboard/messages', () => {
+test.describe('Auth: Deadlines /dashboard/deadlines', () => {
   test('loads and audits', async ({ page }, testInfo) => {
-    const result = await loadAndScreenshot(page, '/dashboard/messages', testInfo)
+    const result = await loadAndScreenshot(page, '/dashboard/deadlines', testInfo)
     await expect(page.locator('body')).toBeVisible()
 
     if (page.url().includes('/login')) {

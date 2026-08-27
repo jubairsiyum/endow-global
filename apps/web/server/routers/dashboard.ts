@@ -10,6 +10,7 @@ import {
   asc as _asc,
   gte as _gte,
   or as _or,
+  isNull as _isNull,
 } from 'drizzle-orm'
 import { z } from 'zod'
 import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
@@ -28,6 +29,7 @@ const desc = _desc as any
 const asc = _asc as any
 const gte = _gte as any
 const or = _or as any
+const isNull = _isNull as any
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
@@ -306,7 +308,6 @@ export const dashboardRouter = createTRPCRouter({
           matches: 0,
           documentsUploaded: 0,
           documentsTotal: 0,
-          unreadMessages: 0,
           unreadNotifications: 0,
           upcomingSessions: 0,
           applicationProgress: 0,
@@ -325,7 +326,7 @@ export const dashboardRouter = createTRPCRouter({
 
     const now = new Date()
 
-    const [applicationRows, intakeRows, shortlistRows, matchData, sessionRows, documents, notifications, counselorRows, unreadMessages, unreadNotifications] = await Promise.all([
+    const [applicationRows, intakeRows, shortlistRows, matchData, sessionRows, documents, notifications, counselorRows, unreadNotifications] = await Promise.all([
       ctx.db.select({
         id: schema.applications.id,
         studentId: schema.applications.studentId,
@@ -391,18 +392,6 @@ export const dashboardRouter = createTRPCRouter({
       ensureDocumentChecklist(ctx, studentId).then((r) => r.items),
       ctx.db.query.notifications.findMany({ where: (n: any, { eq }: any) => eq(n.userId, userId), orderBy: (n: any, { desc }: any) => [desc(n.createdAt)], limit: 10 }),
       ctx.db.select({ id: schema.counselorProfiles.id, name: schema.users.name, rating: schema.counselorProfiles.rating }).from(schema.counselorProfiles).leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId)).where(eq(schema.counselorProfiles.id, profile.assignedCounselorId as string)),
-      ctx.db
-        .select({ c: sql<number>`count(*)` })
-        .from(schema.messages)
-        .innerJoin(schema.conversations, eq(schema.messages.conversationId, schema.conversations.id))
-        .where(
-          and(
-            eq(schema.conversations.studentId, studentId),
-            eq(schema.messages.isRead, false),
-            ne(schema.messages.senderId, userId)
-          )
-        )
-        .then((r: any) => Number(r[0]?.c ?? 0)),
       ctx.db
         .select({ c: sql<number>`count(*)` })
         .from(schema.notifications)
@@ -511,7 +500,6 @@ export const dashboardRouter = createTRPCRouter({
         matches: matches.length,
         documentsUploaded,
         documentsTotal,
-        unreadMessages,
         unreadNotifications,
         upcomingSessions: upcomingSessions.length,
         applicationProgress,
@@ -774,130 +762,57 @@ export const dashboardRouter = createTRPCRouter({
       }),
   }),
 
-  // ── Messaging ──────────────────────────────────────────────
-  messages: createTRPCRouter({
-    conversations: protectedProcedure.query(async ({ ctx }) => {
+  // ── Deadlines (admin-managed, read for students) ───────────
+  deadlines: createTRPCRouter({
+    list: protectedProcedure.query(async ({ ctx }) => {
       const user = await resolveStudent(ctx)
       const studentId = user?.studentProfile?.id
       if (!studentId) return []
-      const convos = await ctx.db.select({
-        id: schema.conversations.id,
-        studentId: schema.conversations.studentId,
-        counselorId: schema.conversations.counselorId,
-        lastMessageAt: schema.conversations.lastMessageAt,
-        lastMessage: schema.conversations.lastMessage,
-        counselorName: schema.users.name,
-      }).from(schema.conversations)
-        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.conversations.counselorId))
-        .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
-        .where(eq(schema.conversations.studentId, studentId))
-        .orderBy(desc(schema.conversations.lastMessageAt))
-      const conversationIds = convos.map((c: any) => c.id)
-      let unread: any[] = []
-      if (conversationIds.length) {
-        unread = await ctx.db
-          .select({ conversationId: schema.messages.conversationId, c: sql<number>`count(*)` })
-          .from(schema.messages)
-          .where(
-            and(
-              inArray(schema.messages.conversationId, conversationIds),
-              eq(schema.messages.isRead, false),
-              ne(schema.messages.senderId, ctx.session.user.id)
-            )
+      const now = Date.now()
+      const rows = await ctx.db
+        .select({
+          id: schema.deadlines.id,
+          title: schema.deadlines.title,
+          description: schema.deadlines.description,
+          category: schema.deadlines.category,
+          dueAt: schema.deadlines.dueAt,
+          relatedUniversity: schema.deadlines.relatedUniversity,
+          relatedCourse: schema.deadlines.relatedCourse,
+          remindDaysBefore: schema.deadlines.remindDaysBefore,
+        })
+        .from(schema.deadlines)
+        .where(
+          and(
+            eq(schema.deadlines.isActive, true),
+            or(eq(schema.deadlines.studentId, studentId), isNull(schema.deadlines.studentId))
           )
-          .groupBy(schema.messages.conversationId)
-      }
-      const unreadMap = new Map(unread.map((u: any) => [u.conversationId, Number(u.c)]))
-      return convos.map((c: any) => ({ ...c, counselor: { user: { name: c.counselorName } }, unread: unreadMap.get(c.id) ?? 0 }))
+        )
+        .orderBy(asc(schema.deadlines.dueAt))
+      return rows
+        .filter((row: any) => row.dueAt.getTime() >= now - 30 * 24 * 60 * 60 * 1000)
+        .map((row: any) => ({ ...row, dueAt: row.dueAt.toISOString() }))
     }),
-    thread: protectedProcedure
-      .input(z.object({ conversationId: z.string() }))
-      .query(async ({ ctx, input }) => {
-        const user = await resolveStudent(ctx)
-        const studentId = user?.studentProfile?.id
-        if (!studentId) throw new Error('No student profile found')
-        const convoRows = await ctx.db.select({
-          id: schema.conversations.id,
-          studentId: schema.conversations.studentId,
-          counselorId: schema.conversations.counselorId,
-          lastMessageAt: schema.conversations.lastMessageAt,
-          lastMessage: schema.conversations.lastMessage,
-          counselorName: schema.users.name,
-        }).from(schema.conversations)
-          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.conversations.counselorId))
-          .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
-          .where(and(eq(schema.conversations.id, input.conversationId), eq(schema.conversations.studentId, studentId)))
-          .limit(1)
-        const convo = convoRows[0]
-        if (!convo) return { conversation: null, messages: [] }
-        const messages = await ctx.db.query.messages.findMany({
-          where: (m: any, { eq }: any) => eq(m.conversationId, input.conversationId),
-          orderBy: (m: any, { asc }: any) => [asc(m.createdAt)],
-        })
-        return { conversation: { ...convo, counselor: { user: { name: convo.counselorName } } }, messages }
-      }),
-    send: protectedProcedure
-      .input(
-        z.object({
-          counselorId: z.string().min(1),
-          content: z.string().min(1).max(4000),
-        })
-      )
-      .mutation(async ({ ctx, input }) => {
-        const user = await resolveStudent(ctx)
-        const studentId = user?.studentProfile?.id
-        if (!studentId) throw new Error('No student profile found')
-        const userId = ctx.session.user.id
-
-        const convo = await ctx.db.query.conversations.findFirst({
-          where: (c: any, { eq, and }: any) =>
-            and(eq(c.studentId, studentId), eq(c.counselorId, input.counselorId)),
-        })
-
-        let conversationId: string
-        if (!convo) {
-          const inserted = await ctx.db
-            .insert(schema.conversations)
-            .values({
-              studentId,
-              counselorId: input.counselorId,
-              lastMessage: input.content,
-              lastMessageAt: new Date(),
-            })
-            .$returningId()
-          conversationId = (inserted as any)[0]?.id
-        } else {
-          conversationId = convo.id
-          await ctx.db
-            .update(schema.conversations)
-            .set({ lastMessage: input.content, lastMessageAt: new Date() })
-            .where(eq(schema.conversations.id, conversationId))
-        }
-
-        await ctx.db.insert(schema.messages).values({
-          conversationId,
-          senderId: userId,
-          content: input.content,
-          isRead: false,
-        })
-
-        return { success: true, conversationId }
-      }),
-    markRead: protectedProcedure
-      .input(z.object({ conversationId: z.string() }))
-      .mutation(async ({ ctx, input }) => {
-        const userId = ctx.session.user.id
-        await ctx.db
-          .update(schema.messages)
-          .set({ isRead: true })
-          .where(
-            and(
-              eq(schema.messages.conversationId, input.conversationId),
-              ne(schema.messages.senderId, userId)
-            )
+    summary: protectedProcedure.query(async ({ ctx }) => {
+      const user = await resolveStudent(ctx)
+      const studentId = user?.studentProfile?.id
+      if (!studentId) return { total: 0, dueSoon: 0 }
+      const now = Date.now()
+      const in7Days = now + 7 * 24 * 60 * 60 * 1000
+      const rows = await ctx.db
+        .select({ id: schema.deadlines.id, dueAt: schema.deadlines.dueAt })
+        .from(schema.deadlines)
+        .where(
+          and(
+            eq(schema.deadlines.isActive, true),
+            or(eq(schema.deadlines.studentId, studentId), isNull(schema.deadlines.studentId))
           )
-        return { success: true }
-      }),
+        )
+      const active = rows.filter((r: any) => r.dueAt.getTime() >= now)
+      return {
+        total: active.length,
+        dueSoon: active.filter((r: any) => r.dueAt.getTime() <= in7Days).length,
+      }
+    }),
   }),
 
   // ── Notifications ──────────────────────────────────────────

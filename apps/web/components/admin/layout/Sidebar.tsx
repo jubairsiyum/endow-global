@@ -24,6 +24,7 @@ import {
   Upload,
   Building2,
   FileCheck2,
+  CalendarClock,
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
@@ -34,6 +35,7 @@ const adminMenuItems = [
   { name: 'Counselors', icon: UserCog, href: '/admin/counselors' },
   { name: 'Applications', icon: FileText, href: '/admin/applications' },
   { name: 'Documents', icon: FileCheck2, href: '/admin/documents' },
+  { name: 'Deadlines', icon: CalendarClock, href: '/admin/deadlines' },
   { name: 'Universities', icon: GraduationCap, href: '/admin/universities' },
   { name: 'Courses', icon: BookOpen, href: '/admin/courses' },
   { name: 'Scholarships', icon: Award, href: '/admin/scholarships' },

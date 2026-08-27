@@ -38,7 +38,7 @@ const AUTH_ROUTES = [
   '/dashboard',
   '/dashboard/application',
   '/dashboard/appointments',
-  '/dashboard/messages',
+  '/dashboard/deadlines',
 ]
 
 const CDP_PORT = 9223

@@ -17,6 +17,7 @@ import {
   studentDocuments,
   matchResults,
   bookingSessions,
+  deadlines,
   conversations,
   messages,
   notifications,
@@ -64,6 +65,7 @@ export const studentProfilesRelations = relations(studentProfiles, ({ one, many 
   shortlistedCourses: many(shortlistedCourses),
   bookingSessions: many(bookingSessions),
   conversations: many(conversations, { relationName: 'studentConversations' }),
+  deadlines: many(deadlines, { relationName: 'studentDeadlines' }),
   matchResults: many(matchResults),
   documents: many(studentDocuments),
 }))
@@ -171,6 +173,18 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     fields: [messages.senderId],
     references: [users.id],
     relationName: 'sentMessages',
+  }),
+}))
+
+export const deadlinesRelations = relations(deadlines, ({ one }) => ({
+  student: one(studentProfiles, {
+    fields: [deadlines.studentId],
+    references: [studentProfiles.id],
+    relationName: 'studentDeadlines',
+  }),
+  createdByUser: one(users, {
+    fields: [deadlines.createdBy],
+    references: [users.id],
   }),
 }))
 

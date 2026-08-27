@@ -4,13 +4,13 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
+  CalendarClock,
   CalendarDays,
   FileText,
   FolderOpen,
   Heart,
   LayoutGrid,
   LogOut,
-  MessageSquare,
   Settings,
 } from 'lucide-react'
 
@@ -29,9 +29,9 @@ interface NavItem {
 const primaryNav: NavItem[] = [
   { name: 'Overview', href: '/dashboard', icon: LayoutGrid },
   { name: 'My Application', href: '/dashboard/application', icon: FileText },
+  { name: 'Deadlines', href: '/dashboard/deadlines', icon: CalendarClock },
   { name: 'Shortlisted', href: '/dashboard/shortlisted', icon: Heart },
   { name: 'Documents', href: '/dashboard/documents', icon: FolderOpen },
-  { name: 'Messages', href: '/dashboard/messages', icon: MessageSquare },
   { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarDays },
 ]
 
@@ -62,8 +62,8 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
 
   const [isSigningOut, setIsSigningOut] = useState(false)
 
-  const { data: conversations } = trpc.dashboard.messages.conversations.useQuery()
-  const unreadMessages = (conversations ?? []).reduce((sum: number, conversation: any) => sum + (conversation.unread ?? 0), 0)
+  const { data: deadlineSummary } = trpc.dashboard.deadlines.summary.useQuery()
+  const dueSoon = deadlineSummary?.dueSoon ?? 0
 
   const handleSignOut = async () => {
     if (isSigningOut) return
@@ -81,7 +81,7 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
   const renderItem = (item: NavItem) => {
     const Icon = item.icon
     const active = isActive(item.href)
-    const isMessages = item.href === '/dashboard/messages'
+    const isDeadlines = item.href === '/dashboard/deadlines'
 
     return (
       <Link
@@ -117,15 +117,15 @@ export function DashboardSidebar({ onNavigate, variant, user }: Props) {
             )}
             aria-hidden
           />
-          {isMessages && unreadMessages > 0 && (
+          {isDeadlines && dueSoon > 0 && (
             <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-rose-600 px-1 text-[9px] font-bold text-white">
-              {unreadMessages > 9 ? '9+' : unreadMessages}
+              {dueSoon > 9 ? '9+' : dueSoon}
             </span>
           )}
         </span>
         {showLabels && <span className="relative truncate">{item.name}</span>}
-        {showLabels && isMessages && unreadMessages > 0 && (
-          <span className="relative ml-auto text-[10px] font-bold text-rose-600">{unreadMessages} new</span>
+        {showLabels && isDeadlines && dueSoon > 0 && (
+          <span className="relative ml-auto text-[10px] font-bold text-rose-600">due soon</span>
         )}
       </Link>
     )

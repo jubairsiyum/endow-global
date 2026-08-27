@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
-import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql } from 'drizzle-orm'
+import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull } from 'drizzle-orm'
 import { applicantLevelFromEducation } from '@/lib/documents'
 const eq = _eq as any
 const desc = _desc as any
@@ -10,6 +10,8 @@ const like = _like as any
 const or = _or as any
 const count = _count as any
 const sql = _sql as any
+const asc = _asc as any
+const isNull = _isNull as any
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
@@ -1317,6 +1319,127 @@ return db.select().from(schema.countries)
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.newsletterSubscribers).where(eq(schema.newsletterSubscribers.id, input.id))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Deadlines ────────────────────────────────────────────
+
+  deadlines: createTRPCRouter({
+    list: adminProcedure
+      .input(z.object({ search: z.string().trim().max(255).optional(), category: z.string().max(50).optional() }))
+      .query(async ({ input }) => {
+        const conditions: any[] = []
+        if (input.search) {
+          conditions.push(or(like(schema.deadlines.title, `%${input.search}%`), isNull(schema.deadlines.studentId), eq(schema.users.name, input.search)))
+        }
+        if (input.category) {
+          conditions.push(eq(schema.deadlines.category, input.category))
+        }
+        const rows = await db
+          .select({
+            id: schema.deadlines.id,
+            studentId: schema.deadlines.studentId,
+            title: schema.deadlines.title,
+            description: schema.deadlines.description,
+            category: schema.deadlines.category,
+            dueAt: schema.deadlines.dueAt,
+            relatedUniversity: schema.deadlines.relatedUniversity,
+            relatedCourse: schema.deadlines.relatedCourse,
+            isActive: schema.deadlines.isActive,
+            remindDaysBefore: schema.deadlines.remindDaysBefore,
+            createdAt: schema.deadlines.createdAt,
+            studentName: schema.users.name,
+          })
+          .from(schema.deadlines)
+          .leftJoin(schema.studentProfiles, eq(schema.deadlines.studentId, schema.studentProfiles.id))
+          .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
+          .where(conditions.length ? and(...conditions) : undefined)
+          .orderBy(asc(schema.deadlines.dueAt))
+        return rows.map((r: any) => ({ ...r, dueAt: r.dueAt?.toISOString?.() ?? r.dueAt }))
+      }),
+
+    students: adminProcedure.query(async () => {
+      const rows = await db
+        .select({ id: schema.studentProfiles.id, name: schema.users.name, email: schema.users.email })
+        .from(schema.studentProfiles)
+        .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
+        .orderBy(asc(schema.users.name))
+      return rows.map((r: any) => ({ id: r.id, name: r.name ?? 'Student', email: r.email ?? '' }))
+    }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          title: z.string().trim().min(1, 'Title is required').max(255),
+          description: z.string().trim().max(5000).optional(),
+          category: z.enum(['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER']).default('OTHER'),
+          dueAt: z.string().min(1),
+          studentId: z.string().max(25).nullable().optional(),
+          relatedUniversity: z.string().trim().max(255).optional(),
+          relatedCourse: z.string().trim().max(255).optional(),
+          isActive: z.boolean().default(true),
+          remindDaysBefore: z.number().int().min(0).max(365).default(7),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const dueAt = new Date(input.dueAt)
+        if (Number.isNaN(dueAt.getTime())) throw new Error('Invalid due date')
+        await db.insert(schema.deadlines).values({
+          title: input.title,
+          description: input.description ?? null,
+          category: input.category,
+          dueAt,
+          studentId: input.studentId || null,
+          relatedUniversity: input.relatedUniversity ?? null,
+          relatedCourse: input.relatedCourse ?? null,
+          isActive: input.isActive,
+          remindDaysBefore: input.remindDaysBefore,
+          createdBy: ctx.session.user.id,
+        })
+        return { success: true }
+      }),
+
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.string().min(1),
+          title: z.string().trim().min(1).max(255).optional(),
+          description: z.string().trim().max(5000).nullable().optional(),
+          category: z.enum(['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER']).optional(),
+          dueAt: z.string().min(1).optional(),
+          studentId: z.string().max(25).nullable().optional(),
+          relatedUniversity: z.string().trim().max(255).nullable().optional(),
+          relatedCourse: z.string().trim().max(255).nullable().optional(),
+          isActive: z.boolean().optional(),
+          remindDaysBefore: z.number().int().min(0).max(365).optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const updates: any = {}
+        if (input.title !== undefined) updates.title = input.title
+        if (input.description !== undefined) updates.description = input.description
+        if (input.category !== undefined) updates.category = input.category
+        if (input.dueAt !== undefined) {
+          const dueAt = new Date(input.dueAt)
+          if (Number.isNaN(dueAt.getTime())) throw new Error('Invalid due date')
+          updates.dueAt = dueAt
+        }
+        if (input.studentId !== undefined) updates.studentId = input.studentId || null
+        if (input.relatedUniversity !== undefined) updates.relatedUniversity = input.relatedUniversity || null
+        if (input.relatedCourse !== undefined) updates.relatedCourse = input.relatedCourse || null
+        if (input.isActive !== undefined) updates.isActive = input.isActive
+        if (input.remindDaysBefore !== undefined) updates.remindDaysBefore = input.remindDaysBefore
+        updates.updatedAt = new Date()
+        if (!Object.keys(updates).length) throw new Error('Nothing to update')
+        await db.update(schema.deadlines).set(updates).where(eq(schema.deadlines.id, input.id))
+        return { success: true }
+      }),
+
+    remove: adminProcedure
+      .input(z.object({ id: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.deadlines).where(eq(schema.deadlines.id, input.id))
         return { success: true }
       }),
   }),
