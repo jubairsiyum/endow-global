@@ -6,7 +6,7 @@ import { format } from 'date-fns'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
-import { Pencil, Trash2, X, Search, CalendarClock } from 'lucide-react'
+import { Pencil, Trash2, X, Search, CalendarClock, TriangleAlert, RefreshCw } from 'lucide-react'
 
 type DeadlineCategory = 'APPLICATION' | 'DOCUMENT' | 'VISA' | 'SCHOLARSHIP' | 'EXAM' | 'OTHER'
 
@@ -73,10 +73,10 @@ export default function DeadlinesPage() {
 
   const utils = trpc.useUtils()
 
-  const { data: deadlines, isLoading } = trpc.admin.deadlines.list.useQuery({
+  const { data: deadlines, isLoading, isError, refetch } = trpc.admin.deadlines.list.useQuery({
     search: debouncedSearch || undefined,
   })
-  const { data: students } = trpc.admin.deadlines.students.useQuery()
+  const { data: students, isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = trpc.admin.deadlines.students.useQuery()
 
   const createMutation = trpc.admin.deadlines.create.useMutation({
     onSuccess: () => {
@@ -220,6 +220,21 @@ export default function DeadlinesPage() {
                 </div>
               ))}
             </div>
+          ) : isError ? (
+            <div className="flex flex-col items-center justify-center px-6 py-16 text-center" role="alert">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-500">
+                <TriangleAlert size={22} />
+              </div>
+              <p className="mt-4 text-lg font-semibold text-gray-600">Failed to load deadlines</p>
+              <p className="mt-1 text-sm text-gray-400">Something went wrong. Please try again.</p>
+              <button
+                onClick={() => refetch()}
+                className="mt-5 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90"
+                style={{ background: '#AD0819' }}
+              >
+                <RefreshCw size={15} /> Try again
+              </button>
+            </div>
           ) : (deadlines || []).length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-gray-400">
               <CalendarClock size={48} className="mb-3" />
@@ -324,10 +339,15 @@ export default function DeadlinesPage() {
                 </div>
                 <div>
                   <label className="mb-1.5 block text-sm font-medium text-gray-700">Audience</label>
-                  <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary">
+                  <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} disabled={studentsLoading || studentsError} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary disabled:bg-gray-50 disabled:text-gray-400">
                     <option value="">All students</option>
                     {(students || []).map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
+                  {studentsError && (
+                    <button type="button" onClick={() => refetchStudents()} className="mt-1 text-xs text-red-500 underline">
+                      Students unavailable — retry
+                    </button>
+                  )}
                 </div>
               </div>
 

@@ -789,8 +789,8 @@ export const dashboardRouter = createTRPCRouter({
         )
         .orderBy(asc(schema.deadlines.dueAt))
       return rows
-        .filter((row: any) => row.dueAt.getTime() >= now - 30 * 24 * 60 * 60 * 1000)
-        .map((row: any) => ({ ...row, dueAt: row.dueAt.toISOString() }))
+        .filter((row: any) => new Date(row.dueAt).getTime() >= now - 30 * 24 * 60 * 60 * 1000)
+        .map((row: any) => ({ ...row, dueAt: new Date(row.dueAt).toISOString() }))
     }),
     summary: protectedProcedure.query(async ({ ctx }) => {
       const user = await resolveStudent(ctx)
@@ -807,10 +807,11 @@ export const dashboardRouter = createTRPCRouter({
             or(eq(schema.deadlines.studentId, studentId), isNull(schema.deadlines.studentId))
           )
         )
-      const active = rows.filter((r: any) => r.dueAt.getTime() >= now)
+      const withDate = rows.map((r: any) => ({ ...r, dueMs: new Date(r.dueAt).getTime() }))
+      const active = withDate.filter((r: any) => r.dueMs >= now)
       return {
         total: active.length,
-        dueSoon: active.filter((r: any) => r.dueAt.getTime() <= in7Days).length,
+        dueSoon: active.filter((r: any) => r.dueMs <= in7Days).length,
       }
     }),
   }),

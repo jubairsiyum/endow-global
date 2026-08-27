@@ -128,7 +128,19 @@ export default function DeadlinesPage() {
       />
 
       {/* Summary strip */}
-      {!isLoading && !isError && (
+      {isError ? null : isLoading ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className={cn(studentPanel, 'flex items-center gap-3 p-4')}>
+              <div className="h-10 w-10 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+              <div className="flex-1 space-y-2">
+                <div className="h-6 w-12 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
+                <div className="h-3 w-28 animate-pulse rounded bg-gray-100 dark:bg-gray-800" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className={cn(studentPanel, 'flex items-center gap-3 p-4')}>
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300"><CalendarClock size={18} /></div>
@@ -212,7 +224,7 @@ export default function DeadlinesPage() {
       )}
 
       <AnimatePresence>
-        {!isLoading && !isError && upcoming.length === 0 && (
+        {!isLoading && !isError && filtered.length > 0 && upcoming.length === 0 && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500">
             <Clock size={13} /> You're all caught up — nothing due soon.
           </motion.div>
