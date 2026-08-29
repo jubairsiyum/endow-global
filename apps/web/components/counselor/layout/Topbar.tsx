@@ -93,15 +93,15 @@ export function CounselorTopbar({ onMenuClick }: Props) {
           style={{ color: '#111827' }}
         >
           <div
-            className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
+            className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md text-[10px] font-bold"
             style={{
               background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
               color: '#f8fafc',
             }}
           >
-            CN
+            {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
-          <span className="hidden text-[13px] font-medium lg:inline">Dr. Rahman</span>
+          <span className="hidden text-[13px] font-medium lg:inline">{user?.name || 'Counselor'}</span>
         </button>
       </div>
     </header>

@@ -1,9 +1,12 @@
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
-import { eq as _eq } from 'drizzle-orm'
+import { eq as _eq, and as _and, ne as _ne } from 'drizzle-orm'
 const eq = _eq as any
+const and = _and as any
+const ne = _ne as any
 import { z } from 'zod'
 import { hash as bcryptHash } from 'bcryptjs'
+import { autoAssignCounselor } from '@/lib/counselor-assignment'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -143,8 +146,13 @@ export const userRouter = createTRPCRouter({
           })
           .where(eq(schema.studentProfiles.userId, userId))
       } else {
+        // Profile doesn't exist yet (e.g. a user who registered before
+        // auto-assignment, or an edge case) — create it and auto-assign a
+        // counselor by equal distribution.
+        const assignedCounselorId = await autoAssignCounselor(ctx.db, schema)
         await ctx.db.insert(schema.studentProfiles).values({
           userId,
+          assignedCounselorId,
           nationality: input.nationality,
           countryOfResidence: input.countryOfResidence,
           phone: input.phone,
@@ -161,6 +169,39 @@ export const userRouter = createTRPCRouter({
         })
       }
 
+      return { success: true }
+    }),
+
+  // Role-agnostic profile update for the signed-in user. Updates the `users`
+  // record directly (name/email/avatar) so it works for students, counselors
+  // and admins alike, without touching role-specific profile tables.
+  updateOwnProfile: protectedProcedure
+    .input(
+      z.object({
+        name: z.string().trim().min(2).max(100).optional(),
+        email: z.string().email().max(255).optional(),
+        image: z.string().max(500).nullable().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id
+      const updates: Record<string, unknown> = {}
+
+      if (input.name !== undefined) updates.name = input.name.trim()
+      if (input.email !== undefined) {
+        const [existing] = await ctx.db
+          .select({ id: schema.users.id })
+          .from(schema.users)
+          .where(and(eq(schema.users.email, input.email.trim()), ne(schema.users.id, userId)))
+          .limit(1)
+        if (existing) throw new Error('That email is already in use')
+        updates.email = input.email.trim()
+      }
+      if (input.image !== undefined) updates.image = input.image
+
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.update(schema.users).set(updates).where(eq(schema.users.id, userId))
+      }
       return { success: true }
     }),
 })

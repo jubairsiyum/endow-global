@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion } from 'framer-motion'
+import { useSession } from '@/lib/auth-client'
+import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
 import {
   LayoutDashboard,
   Users,
@@ -63,7 +65,14 @@ interface SidebarProps {
 
 export function Sidebar({ userRole }: SidebarProps) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const { image: avatarImage } = useUserAvatar()
   const isSuperAdmin = userRole === UserRole.SUPER_ADMIN
+
+  const user = {
+    name: session?.user?.name || (isSuperAdmin ? 'Super Admin' : 'Admin'),
+    image: avatarImage ?? (session?.user as any)?.image ?? null,
+  }
 
   const menuItems = isSuperAdmin
     ? [...adminMenuItems, ...superAdminExtraItems]
@@ -158,19 +167,17 @@ export function Sidebar({ userRole }: SidebarProps) {
           style={{ background: 'rgba(232, 163, 61, 0.05)' }}
         >
           <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold"
+            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] font-bold"
             style={{
-              background: isSuperAdmin
-                ? 'linear-gradient(135deg, #E8A33D, #c48b2e)'
-                : 'linear-gradient(135deg, #E8A33D, #c48b2e)',
+              background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
               color: '#f8fafc',
             }}
           >
-            {roleInitials}
+            {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : roleInitials}
           </div>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[12px] font-semibold" style={{ color: '#111827' }}>
-              {roleLabel}
+              {user?.name || roleLabel}
             </p>
             <p className="truncate text-[10px]" style={{ color: '#6b7280' }}>
               endow.global

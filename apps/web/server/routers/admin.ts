@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/mysql-core'
 import { applicantLevelFromEducation } from '@/lib/documents'
 const eq = _eq as any
 const desc = _desc as any
@@ -19,20 +20,32 @@ const gte = _gte as any
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
     getMetrics: adminProcedure.query(async () => {
+      const studentUser = alias(schema.users as any, 'student_user')
+      const counselorUser = alias(schema.users as any, 'counselor_user')
+
       // All metrics are independent — run them in parallel to cut total
-      // latency (the dashboard previously awaited them one by one).
+      // latency. Relational `with` queries are replaced with explicit joins
+      // because MariaDB rejects the lateral SQL the relation builder emits.
       const [studentCountRes, counselorCountRes, appsByStatus, recentActivity, topCountries, upcomingConsultations, applicationTrend, totalStudentsWithNationality] = await Promise.all([
         db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
         db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
         db.select({ status: schema.applications.status, count: count() as any }).from(schema.applications).groupBy(schema.applications.status),
-        db.query.applications.findMany({
-          orderBy: [desc(schema.applications.updatedAt)],
-          limit: 10,
-          with: {
-            student: { with: { user: true } },
-            course: { with: { university: true } },
-          },
-        }),
+        db
+          .select({
+            id: schema.applications.id,
+            status: schema.applications.status,
+            updatedAt: schema.applications.updatedAt,
+            studentName: studentUser.name,
+            courseName: schema.courses.name,
+            universityName: schema.universities.name,
+          })
+          .from(schema.applications)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
+          .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+          .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+          .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+          .orderBy(desc(schema.applications.updatedAt))
+          .limit(10),
         db.select({
           country: schema.studentProfiles.nationality,
           count: count() as any,
@@ -42,18 +55,25 @@ export const adminRouter = createTRPCRouter({
           .groupBy(schema.studentProfiles.nationality)
           .orderBy(desc(count() as any))
           .limit(5),
-        db.query.bookingSessions.findMany({
-          where: and(
+        db
+          .select({
+            id: schema.bookingSessions.id,
+            scheduledAt: schema.bookingSessions.scheduledAt,
+            status: schema.bookingSessions.status,
+            studentName: studentUser.name,
+            counselorName: counselorUser.name,
+          })
+          .from(schema.bookingSessions)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.bookingSessions.studentId))
+          .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(and(
             eq(schema.bookingSessions.status, 'SCHEDULED'),
             sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
-          ),
-          orderBy: [schema.bookingSessions.scheduledAt],
-          limit: 5,
-          with: {
-            student: { with: { user: true } },
-            counselor: { with: { user: true } },
-          },
-        }),
+          ))
+          .orderBy(schema.bookingSessions.scheduledAt)
+          .limit(5),
         db.select({
           date: (sql`DATE(${schema.applications.createdAt})` as any).as('date'),
           count: count() as any,
@@ -67,13 +87,30 @@ export const adminRouter = createTRPCRouter({
           .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any),
       ])
 
+      const activity = (recentActivity as any[]).map((a) => ({
+        id: a.id,
+        status: a.status,
+        updatedAt: a.updatedAt,
+        student: { user: { name: a.studentName } },
+        course: a.courseName
+          ? { name: a.courseName, university: a.universityName ? { name: a.universityName } : null }
+          : null,
+      }))
+      const consultations = (upcomingConsultations as any[]).map((s) => ({
+        id: s.id,
+        scheduledAt: s.scheduledAt,
+        status: s.status,
+        student: { user: { name: s.studentName } },
+        counselor: { user: { name: s.counselorName } },
+      }))
+
       return {
         students: studentCountRes[0]?.value || 0,
         counselors: counselorCountRes[0]?.value || 0,
         applicationsByStatus: appsByStatus,
-        recentActivity,
+        recentActivity: activity,
         topCountries,
-        upcomingConsultations,
+        upcomingConsultations: consultations,
         applicationTrend,
         totalStudentsWithNationality: totalStudentsWithNationality[0]?.value || 0,
       }
@@ -184,46 +221,154 @@ export const adminRouter = createTRPCRouter({
           conditions.push(sql`${schema.users.id} < ${cursor}` as any)
         }
 
-        const items = await db.query.users.findMany({
-          where: and(...conditions),
-          limit: limit + 1,
-          orderBy: [desc(schema.users.id)],
-          with: {
-            studentProfile: {
-              with: { assignedCounselor: { with: { user: true } } },
-            },
-          },
-        })
+        // Explicit joins (no relational `with` — MariaDB rejects the lateral
+        // SQL the relation query builder generates, which returned no data).
+        const counselorUser = alias(schema.users as any, 'counselor_user')
+        const rows = await db
+          .select({
+            id: schema.users.id,
+            name: schema.users.name,
+            email: schema.users.email,
+            emailVerified: schema.users.emailVerified,
+            createdAt: schema.users.createdAt,
+            nationality: schema.studentProfiles.nationality,
+            counselorId: schema.counselorProfiles.id,
+            counselorName: counselorUser.name,
+          })
+          .from(schema.users)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
+          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(and(...conditions))
+          .orderBy(desc(schema.users.id))
+          .limit(limit + 1)
 
         let nextCursor: typeof cursor | undefined = undefined
+        let items: any[] = rows
         if (items.length > limit) {
           const nextItem = items.pop()
           nextCursor = nextItem!.id
         }
 
-        return { items, nextCursor }
+        const shaped = items.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          emailVerified: r.emailVerified,
+          createdAt: r.createdAt,
+          studentProfile: {
+            nationality: r.nationality,
+            assignedCounselor: r.counselorId
+              ? { id: r.counselorId, user: { name: r.counselorName } }
+              : null,
+          },
+        }))
+
+        return { items: shaped, nextCursor }
       }),
 
     getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const student = await db.query.users.findFirst({
-        where: and(eq(schema.users.id, input.id), eq(schema.users.role, 'STUDENT')),
-        with: {
-          studentProfile: {
-            with: {
-              assignedCounselor: true,
-              applications: {
-                with: {
-                  course: { with: { university: true } },
-                },
-              },
-              bookingSessions: {
-                with: { counselor: true },
-              },
-            },
-          },
+      const counselorUser = alias(schema.users as any, 'counselor_user')
+      const [row] = await db
+        .select({
+          id: schema.users.id,
+          name: schema.users.name,
+          email: schema.users.email,
+          emailVerified: schema.users.emailVerified,
+          image: schema.users.image,
+          createdAt: schema.users.createdAt,
+          studentProfileId: schema.studentProfiles.id,
+          nationality: schema.studentProfiles.nationality,
+          countryOfResidence: schema.studentProfiles.countryOfResidence,
+          phone: schema.studentProfiles.phone,
+          highestEducation: schema.studentProfiles.highestEducation,
+          gpa: schema.studentProfiles.gpa,
+          ieltsScore: schema.studentProfiles.ieltsScore,
+          toeflScore: schema.studentProfiles.toeflScore,
+          completionPercent: schema.studentProfiles.completionPercent,
+          targetCountries: schema.studentProfiles.targetCountries,
+          targetSubjects: schema.studentProfiles.targetSubjects,
+          preferredIntakeYear: schema.studentProfiles.preferredIntakeYear,
+          preferredIntakeMonth: schema.studentProfiles.preferredIntakeMonth,
+          assignedCounselorId: schema.studentProfiles.assignedCounselorId,
+          counselorName: counselorUser.name,
+        })
+        .from(schema.users)
+        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
+        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
+        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+        .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'STUDENT')))
+        .limit(1)
+
+      if (!row) return null
+      const studentProfileId = row.studentProfileId
+
+      // Applications for this student (explicit joins — no relational `with`).
+      const applications = await db
+        .select({
+          id: schema.applications.id,
+          status: schema.applications.status,
+          currentStep: schema.applications.currentStep,
+          totalSteps: schema.applications.totalSteps,
+          submittedAt: schema.applications.submittedAt,
+          updatedAt: schema.applications.updatedAt,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          universityName: schema.universities.name,
+        })
+        .from(schema.applications)
+        .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+        .where(eq(schema.applications.studentId, studentProfileId))
+        .orderBy(desc(schema.applications.updatedAt))
+
+      const sessions = await db
+        .select({
+          id: schema.bookingSessions.id,
+          scheduledAt: schema.bookingSessions.scheduledAt,
+          duration: schema.bookingSessions.duration,
+          status: schema.bookingSessions.status,
+          counselorName: counselorUser.name,
+        })
+        .from(schema.bookingSessions)
+        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+        .where(eq(schema.bookingSessions.studentId, studentProfileId))
+        .orderBy(desc(schema.bookingSessions.scheduledAt))
+
+      return {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        emailVerified: row.emailVerified,
+        image: row.image,
+        createdAt: row.createdAt,
+        studentProfile: {
+          id: studentProfileId,
+          nationality: row.nationality,
+          countryOfResidence: row.countryOfResidence,
+          phone: row.phone,
+          highestEducation: row.highestEducation,
+          gpa: row.gpa,
+          ieltsScore: row.ieltsScore,
+          toeflScore: row.toeflScore,
+          completionPercent: row.completionPercent,
+          targetCountries: row.targetCountries,
+          targetSubjects: row.targetSubjects,
+          preferredIntakeYear: row.preferredIntakeYear,
+          preferredIntakeMonth: row.preferredIntakeMonth,
+          assignedCounselor: row.assignedCounselorId
+            ? { id: row.assignedCounselorId, user: { name: row.counselorName || 'Counselor' } }
+            : null,
         },
-      })
-      return student
+        applications: applications.map((a) => ({
+          ...a,
+          course: a.courseName
+            ? { name: a.courseName, slug: a.courseSlug, university: { name: a.universityName } }
+            : null,
+        })),
+        bookingSessions: sessions,
+      }
     }),
 
     updateProfile: adminProcedure
@@ -1900,3 +2045,5 @@ return db.select().from(schema.countries)
     }),
   }),
 })
+
+

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Menu, Plus, Search, LogOut, User, KeyRound } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { authClient } from '@/lib/auth-client'
+import { authClient, useSession } from '@/lib/auth-client'
 
 interface Props {
   onMenuClick: () => void
@@ -30,9 +30,18 @@ function StatusDot() {
 
 export function Topbar({ onMenuClick }: Props) {
   const router = useRouter()
+  const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  const user = session?.user as any
+  const initials = (user?.name || 'AD')
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -146,15 +155,15 @@ export function Topbar({ onMenuClick }: Props) {
             aria-haspopup="true"
           >
             <div
-              className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
+              className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md text-[10px] font-bold"
               style={{
                 background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
                 color: '#f8fafc',
               }}
             >
-              AD
+              {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : initials}
             </div>
-            <span className="hidden text-[13px] font-medium lg:inline">Admin</span>
+            <span className="hidden text-[13px] font-medium lg:inline">{user?.name || 'Admin'}</span>
           </button>
 
           <AnimatePresence>

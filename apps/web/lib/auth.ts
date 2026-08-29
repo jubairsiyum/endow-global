@@ -9,6 +9,7 @@ import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
 import { sendEmail } from './email'
 import { absoluteUrl } from './utils'
+import { autoAssignCounselor } from './counselor-assignment'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
@@ -106,7 +107,15 @@ export const auth = betterAuth({
             where: (sp: any, { eq }: any) => eq(sp.userId, user.id),
           })
           if (!existing) {
-            await db.insert(schema.studentProfiles).values({ userId: user.id })
+            // Automatically assign a counselor by equal distribution when a
+            // new student registers (email/password, OTP, or Google sign-in).
+            const role = (user as any)?.role
+            const assignedCounselorId =
+              role === 'STUDENT' ? await autoAssignCounselor(db, schema) : null
+            await db.insert(schema.studentProfiles).values({
+              userId: user.id,
+              assignedCounselorId,
+            })
           }
         },
       },
