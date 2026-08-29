@@ -84,12 +84,16 @@ export const universityRouter = createTRPCRouter({
   byCountry: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
-      const countryName = input.slug.replace(/-/g, ' ')
+      // Normalize the incoming slug into a lowercase, word-spaced country
+      // name, e.g. "south-korea" -> "south korea". Match against the DB's
+      // country value case-insensitively so capitalization/spacing never
+      // causes an (incorrect) "country not found".
+      const target = input.slug.replace(/[_-]+/g, ' ').trim().toLowerCase()
       const unis = await ctx.db
         .select()
         .from(universities)
         .where(eq(universities.isActive, true))
-      const matched = unis.filter((u) => u.country.toLowerCase() === countryName)
+      const matched = unis.filter((u) => (u.country || '').trim().toLowerCase() === target)
       if (!matched.length) return null
       return { country: matched[0].country, universities: matched }
     }),

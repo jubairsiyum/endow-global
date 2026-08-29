@@ -113,10 +113,10 @@ export default function StudentsPage() {
  {(student as any).studentProfile?.assignedCounselor?.user?.name || 'Unassigned'}
  </div>
 
- {/* STATUS */}
- <div>
- <StatusBadge status="Active" /> {/* Replace when we have real status */}
- </div>
+  {/* STATUS */}
+  <div>
+  <StatusBadge status={student.emailVerified ? 'ACTIVE' : 'Pending'} />
+  </div>
 
  {/* ACTION */}
  <div>

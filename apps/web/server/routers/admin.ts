@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
-import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull } from 'drizzle-orm'
+import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
 import { applicantLevelFromEducation } from '@/lib/documents'
 const eq = _eq as any
 const desc = _desc as any
@@ -12,6 +12,9 @@ const count = _count as any
 const sql = _sql as any
 const asc = _asc as any
 const isNull = _isNull as any
+const inArray = _inArray as any
+const ne = _ne as any
+const gte = _gte as any
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
@@ -1652,6 +1655,113 @@ return db.select().from(schema.countries)
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.branches).where(eq(schema.branches.id, input.id))
+        return { success: true }
+      }),
+  }),
+
+  // ─── Revenue (super admin) ────────────────────────────────
+  revenue: createTRPCRouter({
+    getOverview: superAdminProcedure.query(async () => {
+      const [totalAgg] = await db
+        .select({
+          paid: sql<number>`COALESCE(SUM(${schema.bookingSessions.amountPaid}), 0)` as any,
+          cnt: count() as any,
+        })
+        .from(schema.bookingSessions)
+        .where(sql`${schema.bookingSessions.amountPaid} > 0` as any)
+
+      const firstOfMonth = new Date()
+      firstOfMonth.setDate(1)
+      firstOfMonth.setHours(0, 0, 0, 0)
+
+      const [monthAgg] = await db
+        .select({
+          paid: sql<number>`COALESCE(SUM(${schema.bookingSessions.amountPaid}), 0)` as any,
+          cnt: count() as any,
+        })
+        .from(schema.bookingSessions)
+        .where(
+          and(
+            sql`${schema.bookingSessions.amountPaid} > 0` as any,
+            gte(schema.bookingSessions.createdAt, firstOfMonth)
+          )
+        )
+
+      const recent = await db
+        .select({
+          id: schema.bookingSessions.id,
+          amountPaid: schema.bookingSessions.amountPaid,
+          createdAt: schema.bookingSessions.createdAt,
+          status: schema.bookingSessions.status,
+          counselorId: schema.bookingSessions.counselorId,
+          studentName: schema.users.name,
+        })
+        .from(schema.bookingSessions)
+        .leftJoin(schema.studentProfiles, eq(schema.bookingSessions.studentId, schema.studentProfiles.id))
+        .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
+        .where(sql`${schema.bookingSessions.amountPaid} > 0` as any)
+        .orderBy(desc(schema.bookingSessions.createdAt))
+        .limit(15)
+
+      const counselorIds = Array.from(new Set(recent.map((r: any) => r.counselorId).filter(Boolean)))
+      let counselorMap = new Map<string, string>()
+      if (counselorIds.length) {
+        const counselorRows = await db
+          .select({ id: schema.counselorProfiles.id, name: schema.users.name })
+          .from(schema.counselorProfiles)
+          .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+          .where(inArray(schema.counselorProfiles.id, counselorIds))
+        counselorMap = new Map(counselorRows.map((c: any) => [c.id, c.name || 'Counselor']))
+      }
+
+      return {
+        totalRevenue: Number(totalAgg?.paid ?? 0),
+        paidSessions: Number(totalAgg?.cnt ?? 0),
+        thisMonthRevenue: Number(monthAgg?.paid ?? 0),
+        thisMonthSessions: Number(monthAgg?.cnt ?? 0),
+        recentTransactions: recent.map((r: any) => ({
+          id: r.id,
+          amountPaid: r.amountPaid || 0,
+          createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : null,
+          status: r.status,
+          studentName: r.studentName || 'Student',
+          counselorName: counselorMap.get(r.counselorId) || 'Counselor',
+        })),
+      }
+    }),
+  }),
+
+  // ─── Settings (admin profile) ─────────────────────────────
+  settings: createTRPCRouter({
+    getProfile: adminProcedure.query(async ({ ctx }) => {
+      const [user] = await db
+        .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, image: schema.users.image })
+        .from(schema.users)
+        .where(eq(schema.users.id, ctx.session.user.id))
+        .limit(1)
+      return user ?? null
+    }),
+
+    updateProfile: adminProcedure
+      .input(
+        z.object({
+          name: z.string().trim().min(2).max(100),
+          email: z.string().email().max(255),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Check email uniqueness if it changed.
+        const [existing] = await db
+          .select({ id: schema.users.id })
+          .from(schema.users)
+          .where(and(eq(schema.users.email, input.email), ne(schema.users.id, ctx.session.user.id)))
+          .limit(1)
+        if (existing) throw new Error('That email is already in use')
+
+        await db
+          .update(schema.users)
+          .set({ name: input.name, email: input.email, updatedAt: new Date() })
+          .where(eq(schema.users.id, ctx.session.user.id))
         return { success: true }
       }),
   }),
