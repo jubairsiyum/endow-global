@@ -42,7 +42,23 @@ export default function CountryPage() {
     )
   }
 
-  if (!data) {
+  const countryName =
+    (data as any)?.country ||
+    metadata?.name ||
+    staticCountries.find(
+      (c) => c.name.toLowerCase().replace(/[^a-z0-9]/g, '-') === slug
+    )?.name ||
+    ''
+
+  // Prefer live universities from the DB; fall back to the curated static
+  // catalogue so destination pages render even if the DB has no rows for the
+  // country yet (e.g. staging/empty environments).
+  const dbUniversities: any[] = (data as any)?.universities || []
+  const universities: any[] = dbUniversities.length
+    ? dbUniversities
+    : staticUnis.filter((u) => u.country.toLowerCase() === countryName.toLowerCase())
+
+  if (!countryName || universities.length === 0) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center px-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900">Country not found</h1>
@@ -59,13 +75,12 @@ export default function CountryPage() {
     )
   }
 
-  const countryName = data.country
-
-  // Match scholarships and stories from static data
+  // Match scholarships and stories from static data (against whatever
+  // university set we resolved above).
   const countryScholarships = staticScholarships.filter(
     (s) =>
-      data.universities.some((u) => u.name === s.universityName) ||
-      data.universities.some((u) => (u as any).slug === s.universityId)
+      universities.some((u: any) => u.name === s.universityName) ||
+      universities.some((u: any) => u.slug === s.universityId)
   )
 
   const countryStories = staticStories.filter(
@@ -77,6 +92,25 @@ export default function CountryPage() {
     (c) => c.name.toLowerCase() === countryName.toLowerCase()
   )
 
+  const normalizeUni = (u: any): any => {
+    // Already shape-complete (curated static data).
+    if (u && typeof u.tuition === 'object' && u.tuition && 'min' in u.tuition) return u
+    // DB row → fill UI defaults.
+    let highlights: string[] = []
+    if (Array.isArray(u.highlights)) highlights = u.highlights
+    else if (typeof u.highlights === 'string') {
+      try { highlights = JSON.parse(u.highlights || '[]') } catch { highlights = [] }
+    }
+    return {
+      ...u,
+      logo: u.logo || '/placeholder.png',
+      highlights,
+      scholarship: 0,
+      visaSuccessRate: 95,
+      tuition: { min: 0, max: 0, currency: 'USD' },
+    }
+  }
+
   return (
     <CountryDetailContent
       country={{
@@ -85,30 +119,17 @@ export default function CountryPage() {
         description:
           metadata?.description ||
           `Explore top universities in ${countryName}. Find the best programs, scholarships, and student life information.`,
-        universities: data.universities.length,
+        universities: universities.length,
         avgTuition: staticCountry?.avgTuition || metadata?.quickStats?.find((s) => s.label === 'Avg Tuition/Year')?.value
           ? parseInt(metadata?.quickStats?.find((s) => s.label === 'Avg Tuition/Year')?.value?.replace(/[^0-9]/g, '') || '0')
           : 0,
         visaSuccessRate: staticCountry?.visaSuccessRate || 90,
         costOfLiving: staticCountry?.costOfLiving || 0,
         partTimeIncome: staticCountry?.partTimeIncome || 0,
-        topUniversities: data.universities.slice(0, 3).map((u) => u.name),
+        topUniversities: universities.slice(0, 3).map((u) => u.name),
         flag: metadata?.flag || '',
       }}
-      universities={(data.universities as any[]).map((u: any) => ({
-        ...u,
-        logo: u.logo || '/placeholder.png',
-        highlights: Array.isArray(u.highlights)
-          ? u.highlights
-          : typeof u.highlights === 'string'
-            ? (() => {
-                try { return JSON.parse(u.highlights || '[]') } catch { return [] }
-              })()
-            : [],
-        scholarship: 0,
-        visaSuccessRate: 95,
-        tuition: { min: 0, max: 0, currency: 'USD' },
-      }))}
+      universities={universities.map(normalizeUni)}
       scholarships={countryScholarships}
       studentStories={countryStories}
       metadata={metadata}
