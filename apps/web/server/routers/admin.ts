@@ -19,78 +19,53 @@ const gte = _gte as any
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
     getMetrics: adminProcedure.query(async () => {
-      const studentCountRes = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'STUDENT'))
-      const counselorCountRes = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'COUNSELOR'))
-
-      const appsByStatus = await db
-        .select({
-          status: schema.applications.status,
-          count: count() as any,
-        })
-        .from(schema.applications)
-        .groupBy(schema.applications.status)
-
-      const recentActivity = await db.query.applications.findMany({
-        orderBy: [desc(schema.applications.updatedAt)],
-        limit: 10,
-        with: {
-          student: {
-            with: { user: true },
+      // All metrics are independent — run them in parallel to cut total
+      // latency (the dashboard previously awaited them one by one).
+      const [studentCountRes, counselorCountRes, appsByStatus, recentActivity, topCountries, upcomingConsultations, applicationTrend, totalStudentsWithNationality] = await Promise.all([
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
+        db.select({ status: schema.applications.status, count: count() as any }).from(schema.applications).groupBy(schema.applications.status),
+        db.query.applications.findMany({
+          orderBy: [desc(schema.applications.updatedAt)],
+          limit: 10,
+          with: {
+            student: { with: { user: true } },
+            course: { with: { university: true } },
           },
-          course: {
-            with: { university: true },
-          },
-        },
-      })
-
-      // Top countries by student count
-      const topCountries = await db
-        .select({
+        }),
+        db.select({
           country: schema.studentProfiles.nationality,
           count: count() as any,
         })
-        .from(schema.studentProfiles)
-        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
-        .groupBy(schema.studentProfiles.nationality)
-        .orderBy(desc(count() as any))
-        .limit(5)
-
-      // Upcoming consultations
-      const upcomingConsultations = await db.query.bookingSessions.findMany({
-        where: and(
-          eq(schema.bookingSessions.status, 'SCHEDULED'),
-          sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
-        ),
-        orderBy: [schema.bookingSessions.scheduledAt],
-        limit: 5,
-        with: {
-          student: { with: { user: true } },
-          counselor: { with: { user: true } },
-        },
-      })
-
-      // Application trend (last 7 days)
-      const applicationTrend = await db
-        .select({
+          .from(schema.studentProfiles)
+          .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
+          .groupBy(schema.studentProfiles.nationality)
+          .orderBy(desc(count() as any))
+          .limit(5),
+        db.query.bookingSessions.findMany({
+          where: and(
+            eq(schema.bookingSessions.status, 'SCHEDULED'),
+            sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
+          ),
+          orderBy: [schema.bookingSessions.scheduledAt],
+          limit: 5,
+          with: {
+            student: { with: { user: true } },
+            counselor: { with: { user: true } },
+          },
+        }),
+        db.select({
           date: (sql`DATE(${schema.applications.createdAt})` as any).as('date'),
           count: count() as any,
         })
-        .from(schema.applications)
-        .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)` as any)
-        .groupBy(sql`DATE(${schema.applications.createdAt})` as any)
-        .orderBy(sql`DATE(${schema.applications.createdAt})` as any)
-
-      // Total students count for top countries
-      const totalStudentsWithNationality = await db
-        .select({ value: count() as any })
-        .from(schema.studentProfiles)
-        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
+          .from(schema.applications)
+          .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)` as any)
+          .groupBy(sql`DATE(${schema.applications.createdAt})` as any)
+          .orderBy(sql`DATE(${schema.applications.createdAt})` as any),
+        db.select({ value: count() as any })
+          .from(schema.studentProfiles)
+          .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any),
+      ])
 
       return {
         students: studentCountRes[0]?.value || 0,
@@ -1905,30 +1880,14 @@ return db.select().from(schema.countries)
       }),
 
     getPlatformStats: superAdminProcedure.query(async () => {
-      const totalUsers = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-      const studentCount = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'STUDENT'))
-      const counselorCount = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'COUNSELOR'))
-      const adminCount = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(
-          or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))
-        )
-      const universitiesCount = await db
-        .select({ value: count() as any })
-        .from(schema.universities)
-        .where(eq(schema.universities.isActive, true))
-      const upcomingSessionsCount = await db
-        .select({ value: count() as any })
-        .from(schema.bookingSessions)
+      const [totalUsers, studentCount, counselorCount, adminCount, universitiesCount, upcomingSessionsCount] = await Promise.all([
+        db.select({ value: count() as any }).from(schema.users),
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
+        db.select({ value: count() as any }).from(schema.users).where(or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))),
+        db.select({ value: count() as any }).from(schema.universities).where(eq(schema.universities.isActive, true)),
+        db.select({ value: count() as any }).from(schema.bookingSessions),
+      ])
 
       return {
         totalUsers: totalUsers[0]?.value || 0,

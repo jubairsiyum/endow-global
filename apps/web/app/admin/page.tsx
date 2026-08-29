@@ -11,13 +11,31 @@ const EASE = [0.16, 1, 0.3, 1] as const
 export default function AdminPage() {
   const { data: session } = useSession()
   const userRole = (session?.user as any)?.role as UserRole
-  const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery()
-  const { data: _stats } = trpc.admin.super.getPlatformStats.useQuery()
-  const { data: inquiries } = trpc.endow.listInquiries.useQuery()
+  // Cache metrics so revisits render instantly; only refetch on demand.
+  const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery(undefined, {
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+  const { data: _stats } = trpc.admin.super.getPlatformStats.useQuery(undefined, {
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
+  const { data: inquiries } = trpc.endow.listInquiries.useQuery(undefined, {
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: false,
+  })
   const metrics = _metrics as any; const stats = _stats as any
 
   if (isLoading) {
-    return <div className="flex h-full items-center justify-center"><div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" /></div>
+    return (
+      <div className="flex h-full min-h-[60vh] flex-col items-center justify-center gap-3">
+        <div
+          className="h-10 w-10 animate-spin rounded-full border-2 border-transparent"
+          style={{ borderTopColor: '#E8A33D', borderRightColor: '#E8A33D' }}
+        />
+        <p className="text-sm font-medium text-gray-500">Loading platform data…</p>
+      </div>
+    )
   }
 
   const totalStudents = metrics?.students || 0
@@ -30,12 +48,12 @@ export default function AdminPage() {
   const upcomingSessions = metrics?.upcomingConsultations?.length || 0
 
   const kpis = [
-    { label:'Total Users', value:totalUsers, sub:`${totalStudents} students · ${totalCounselors} counselors · ${totalAdmins} admins`, icon:Users, color:'#3b82f6', trend:'+12%' },
-    { label:'Applications', value:totalApplications, sub:'Platform-wide submissions', icon:FileText, color:'#8b5cf6', trend:'+8%' },
-    { label:'Inquiries', value:totalInquiries, sub:'Apply Now form leads', icon:Zap, color:'#f59e0b', trend:totalInquiries>0?'Active':'0' },
-    { label:'Universities', value:totalUniversities, sub:'Partner institutions', icon:Building2, color:'#10b981', trend:totalUniversities>0?'+'+totalUniversities:'0' },
-    { label:'Counselors', value:totalCounselors, sub:'Active advisors', icon:UserCheck, color:'#ec4899', trend:'0%' },
-    { label:'Sessions', value:upcomingSessions, sub:'Upcoming consultations', icon:CalendarDays, color:'#06b6d4', trend:'0' },
+    { label:'Total Users', value:totalUsers, sub:`${totalStudents} students · ${totalCounselors} counselors · ${totalAdmins} admins`, icon:Users, color:'#C41E3A', trend:'+12%' },
+    { label:'Applications', value:totalApplications, sub:'Platform-wide submissions', icon:FileText, color:'#8B0E1A', trend:'+8%' },
+    { label:'Inquiries', value:totalInquiries, sub:'Apply Now form leads', icon:Zap, color:'#E8A33D', trend:totalInquiries>0?'Active':'0' },
+    { label:'Universities', value:totalUniversities, sub:'Partner institutions', icon:Building2, color:'#B08C45', trend:totalUniversities>0?'+'+totalUniversities:'0' },
+    { label:'Counselors', value:totalCounselors, sub:'Active advisors', icon:UserCheck, color:'#E05266', trend:'0%' },
+    { label:'Sessions', value:upcomingSessions, sub:'Upcoming consultations', icon:CalendarDays, color:'#A0543B', trend:'0' },
   ]
 
   const recentActivity = metrics?.recentActivity?.slice(0,5) || []
@@ -45,6 +63,9 @@ export default function AdminPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <div>
+          <span className="mb-1 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.16em]" style={{ borderColor: '#E8A33D4D', color: '#E8A33D', background: '#E8A33D12' }}>
+            Endow Ops
+          </span>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900" style={{fontFamily:"'Space Grotesk',sans-serif"}}>
             {userRole === UserRole.SUPER_ADMIN ? 'Platform Control Center' : 'Admin Dashboard'}
           </h1>
