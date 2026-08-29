@@ -257,8 +257,8 @@ export default function UniversitiesPage() {
  {/* CREATE / EDIT MODAL */}
  {showModal && mounted && createPortal(
  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 ">
- <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
- <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+ <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+ <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5">
  <h2 className="text-xl font-bold text-gray-900">
  {editingId ? 'Edit University' : 'Add University'}
  </h2>
@@ -267,6 +267,7 @@ export default function UniversitiesPage() {
  </button>
  </div>
 
+ <div className="min-h-0 overflow-y-auto">
  <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
  <div className="sm:col-span-2">
  <label className="mb-1.5 block text-sm font-medium text-gray-700">University Name *</label>
@@ -327,11 +328,12 @@ export default function UniversitiesPage() {
  <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 hover:shadow-lg disabled:opacity-50">
  {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update University' : 'Create University'}
  </button>
- </div>
- </form>
- </div>
- </div>,
- document.body
+  </div>
+  </form>
+  </div>
+  </div>
+  </div>,
+  document.body
  )}
 
  {/* DELETE CONFIRMATION MODAL */}

@@ -498,14 +498,65 @@ export const adminRouter = createTRPCRouter({
       }),
 
     getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      return db.query.applications.findFirst({
-        where: eq(schema.applications.id, input.id),
-        with: {
-          student: { with: { user: true } },
-          course: { with: { university: true } },
-          counselor: { with: { user: true } },
-        },
-      })
+      const studentUser = alias(schema.users as any, 'student_user')
+      const counselorUser = alias(schema.users as any, 'counselor_user')
+
+      const row = await db
+        .select({
+          id: schema.applications.id,
+          studentId: schema.applications.studentId,
+          courseId: schema.applications.courseId,
+          counselorId: schema.applications.counselorId,
+          status: schema.applications.status,
+          currentStep: schema.applications.currentStep,
+          totalSteps: schema.applications.totalSteps,
+          submittedAt: schema.applications.submittedAt,
+          counselorNotes: schema.applications.counselorNotes,
+          documentsUrls: schema.applications.documentsUrls,
+          personalStatement: schema.applications.personalStatement,
+          createdAt: schema.applications.createdAt,
+          updatedAt: schema.applications.updatedAt,
+          studentName: studentUser.name,
+          studentEmail: studentUser.email,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          courseUniversityId: schema.courses.universityId,
+          universityName: schema.universities.name,
+          counselorName: counselorUser.name,
+        })
+        .from(schema.applications)
+        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
+        .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+        .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.applications.counselorId))
+        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+        .where(eq(schema.applications.id, input.id))
+        .limit(1)
+        .then((r) => r[0] || null)
+
+      if (!row) return null
+
+      return {
+        id: row.id,
+        studentId: row.studentId,
+        courseId: row.courseId,
+        counselorId: row.counselorId,
+        status: row.status,
+        currentStep: row.currentStep,
+        totalSteps: row.totalSteps,
+        submittedAt: row.submittedAt,
+        counselorNotes: row.counselorNotes,
+        documentsUrls: row.documentsUrls,
+        personalStatement: row.personalStatement,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        student: row.studentName ? { user: { name: row.studentName, email: row.studentEmail } } : null,
+        course: row.courseName
+          ? { name: row.courseName, slug: row.courseSlug, university: row.universityName ? { name: row.universityName } : null }
+          : null,
+        counselor: row.counselorId ? { user: { name: row.counselorName || 'Counselor' } } : null,
+      }
     }),
 
     updateStatus: adminProcedure
@@ -2045,5 +2096,6 @@ return db.select().from(schema.countries)
     }),
   }),
 })
+
 
 

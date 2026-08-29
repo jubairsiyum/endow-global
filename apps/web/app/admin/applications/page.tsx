@@ -5,9 +5,11 @@ import { motion } from 'framer-motion'
 import { Search, FileText, RefreshCw, AlertTriangle, Eye, Mail, Phone, MapPin, GraduationCap, Download, FileSpreadsheet, FileCode2, ChevronDown, Filter, X, Calendar } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
+import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
 import { SAButton } from '@/components/super-admin/shared/SAButton'
 import { SAInput } from '@/components/super-admin/shared/SAInput'
+import StatusBadge from '@/components/ui/StatusBadge'
 
 const STATUS_OPTIONS = ['DRAFT','IN_PROGRESS','SUBMITTED','UNDER_REVIEW','DOCUMENTS_REQUIRED','ACCEPTED','REJECTED','WAITLISTED','WITHDRAWN'] as const
 const LEVELS = ['Undergraduate','Masters','Doctorate','EAP','KLP']
@@ -70,11 +72,6 @@ export default function ApplicationsPage() {
   const activeFilters=tab==='applications'
     ?[uniFilter,dateFrom,dateTo].filter(Boolean).length
     :[inqCountry,inqUni,inqLevel,inqTest,inqSource,inqDateFrom,inqDateTo].filter(Boolean).length
-
-  const updateStatusMutation=trpc.admin.applications.updateStatus.useMutation({
-    onSuccess:()=>{toast.success('Status updated');utils.admin.applications.list.invalidate()},
-    onError:(e:any)=>toast.error(e?.message||'Failed'),
-  })
 
   const doExport=useCallback((format:'csv'|'json')=>{
     const ts=new Date().toISOString().slice(0,10)
@@ -177,10 +174,18 @@ export default function ApplicationsPage() {
                     <tr key={app.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-3 py-3"><div className="flex items-center gap-2.5"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-50"><FileText size={14} className="text-purple-500"/></div><div className="min-w-0"><p className="text-[13px] font-medium text-gray-900 truncate max-w-[180px]">{app.student?.user?.name||'Unknown'}</p><p className="text-[11px] text-gray-500">{app.student?.user?.email||''}</p></div></div></td>
                       <td className="px-3 py-3"><div className="min-w-0 max-w-[200px]"><p className="text-[13px] font-medium text-gray-900 truncate">{app.course?.name||'Unknown'}</p><p className="text-[11px] text-gray-500 truncate">{app.course?.university?.name||''}</p></div></td>
-                      <td className="px-3 py-3"><select value={app.status} onChange={e=>updateStatusMutation.mutate({id:app.id,status:e.target.value as any})} className="rounded-md border px-2 py-1 text-[11px] font-medium outline-none cursor-pointer" style={is}>{STATUS_OPTIONS.map(s=><option key={s} value={s}>{s.replace(/_/g,' ')}</option>)}</select></td>
+                      <td className="px-3 py-3"><StatusBadge status={app.status} /></td>
                       <td className="px-3 py-3 text-[13px] text-gray-500">{app.counselor?.user?.name||'Unassigned'}</td>
                       <td className="px-3 py-3 text-[12px] text-gray-500">{app.updatedAt?formatDistanceToNow(new Date(app.updatedAt),{addSuffix:true}):'—'}</td>
-                      <td className="px-3 py-3"><button className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-gray-100 text-gray-400"><Eye size={14}/></button></td>
+                      <td className="px-3 py-3">
+                        <Link
+                          href={`/admin/applications/${app.id}`}
+                          aria-label={`View application from ${app.student?.user?.name||'student'}`}
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700"
+                        >
+                          <Eye size={14}/>
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                   {filteredApps.length===0&&<tr><td colSpan={6} className="py-20 text-center"><FileText size={28} className="mx-auto text-gray-300"/><p className="mt-2 text-sm text-gray-500">{appList.length===0?(search||statusFilter?'No matches':'No applications yet.'):'No results match your filters.'}</p></td></tr>}

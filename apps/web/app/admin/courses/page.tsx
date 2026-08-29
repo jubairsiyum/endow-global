@@ -188,8 +188,9 @@ export default function CoursesPage() {
 
       {showModal && mounted && createPortal(
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
-          <div className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5"><h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Course' : 'Add Course'}</h2><button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"><X size={18} /></button></div>
+          <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5"><h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Course' : 'Add Course'}</h2><button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"><X size={18} /></button></div>
+            <div className="min-h-0 overflow-y-auto">
             <div className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
 
               {/* Basic Info */}
@@ -271,6 +272,7 @@ export default function CoursesPage() {
                 <button type="button" onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
                 <button type="button" onClick={onSave} disabled={createMutation.isPending || updateMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">{createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update Course' : 'Create Course'}</button>
               </div>
+            </div>
             </div>
           </div>
         </div>,

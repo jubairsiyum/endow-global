@@ -2,9 +2,11 @@
 
 import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import StatusBadge from '@/components/ui/StatusBadge'
+import { confirmToast } from '@/components/ui/confirmToast'
 
 export default function ApplicationDetailPage() {
  const params = useParams()
@@ -16,9 +18,13 @@ export default function ApplicationDetailPage() {
  const [notes, setNotes] = useState('')
  const [isEditingNotes, setIsEditingNotes] = useState(false)
 
- const statusMutation = trpc.admin.applications.updateStatus.useMutation({
- onSuccess: () => refetch(),
- })
+  const statusMutation = trpc.admin.applications.updateStatus.useMutation({
+    onSuccess: () => {
+      toast.success('Status updated')
+      refetch()
+    },
+    onError: (e: any) => toast.error(e?.message || 'Failed to update status'),
+  })
 
  const notesMutation = trpc.admin.applications.addNotes.useMutation({
  onSuccess: () => {
@@ -83,11 +89,14 @@ export default function ApplicationDetailPage() {
  return <div className="py-20 text-center">Application not found</div>
  }
 
- const handleStatusChange = (newStatus: any) => {
- if (confirm(`Are you sure you want to change the status to ${newStatus}?`)) {
- statusMutation.mutate({ id, status: newStatus })
- }
- }
+  const handleStatusChange = (newStatus: any) => {
+    confirmToast({
+      title: 'Change application status',
+      description: `Are you sure you want to change the status to ${newStatus.replace(/_/g, ' ')}?`,
+      confirmLabel: 'Change status',
+      onConfirm: () => statusMutation.mutate({ id, status: newStatus }),
+    })
+  }
 
  const handleSaveNotes = () => {
  notesMutation.mutate({ id, notes })

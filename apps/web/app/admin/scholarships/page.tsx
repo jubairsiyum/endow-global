@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
@@ -40,6 +41,8 @@ export default function ScholarshipsPage() {
  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
  const [search, setSearch] = useState('')
  const [universityFilter, setUniversityFilter] = useState<string>('')
+ const [mounted, setMounted] = useState(false)
+ useEffect(() => { setMounted(true) }, [])
 
  const utils = trpc.useUtils()
 
@@ -238,15 +241,16 @@ export default function ScholarshipsPage() {
  </div>
  </AdminTable>
 
- {showModal && (
- <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 ">
- <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
- <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+ {showModal && mounted && createPortal(
+ <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 ">
+ <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+ <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5">
  <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Scholarship' : 'Add Scholarship'}</h2>
  <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600">
  <X size={18} />
  </button>
  </div>
+ <div className="min-h-0 overflow-y-auto">
  <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
  <div className="sm:col-span-2">
  <label className="mb-1.5 block text-sm font-medium text-gray-700">Scholarship Name *</label>
@@ -300,12 +304,14 @@ export default function ScholarshipsPage() {
  <button type="button" onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
  <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 hover:shadow-lg disabled:opacity-50">
  {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update' : 'Create'}
- </button>
- </div>
- </form>
- </div>
- </div>
- )}
- </div>
- )
+  </button>
+  </div>
+  </form>
+  </div>
+  </div>
+  </div>,
+  document.body
+  )}
+  </div>
+  )
 }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
@@ -21,6 +22,9 @@ export default function CounselorsPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState({ name: '', email: '', bio: '', expertiseSubjects: '', expertiseCountries: '', languages: 'English', sessionRate: '0', calUsername: '', isAvailable: true, image: '' })
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
 
   const utils = trpc.useUtils()
   const { data: counselors, isLoading } = trpc.admin.counselors.list.useQuery()
@@ -91,32 +95,35 @@ export default function CounselorsPage() {
         </div>
       </AdminTable>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4">
-          <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5"><h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Counselor' : 'Add Counselor'}</h2><button onClick={closeModal} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"><X size={18} /></button></div>
-            <div className="px-6 pt-5"><ImageUploader value={form.image} onChange={(v) => setForm(p => ({ ...p, image: v }))} label="Profile Image" previewHeight={120} /></div>
-            <div className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
-              {[{ l: 'Full Name *', k: 'name', t: 'text' }, { l: 'Email *', k: 'email', t: 'email' }].map(f => (
-                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type={f.t} value={(form as any)[f.k]} onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
-              ))}
-              <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-gray-700">Bio</label><textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
-              {[{ l: 'Expertise Subjects (comma)', k: 'expertiseSubjects', p: 'e.g. MBA, Engineering' }, { l: 'Expertise Countries (comma)', k: 'expertiseCountries', p: 'e.g. USA, UK' }].map(f => (
-                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input value={(form as any)[f.k]} onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
-              ))}
-              {[{ l: 'Languages (comma)', k: 'languages', p: 'English, Bengali' }, { l: 'Session Rate ($)', k: 'sessionRate', t: 'number', m: 0 }, { l: 'Cal.com Username', k: 'calUsername' }].map(f => (
-                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type={f.t || 'text'} min={f.m} value={(form as any)[f.k]} onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
-              ))}
-              <div className="sm:col-span-2 flex items-center gap-2"><input type="checkbox" checked={form.isAvailable} onChange={e => setForm(p => ({ ...p, isAvailable: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 accent-primary" /><span className="text-sm font-medium text-gray-700">Available for consultations</span></div>
-              <div className="sm:col-span-2 flex justify-end gap-3 pt-2">
-                <button type="button" onClick={closeModal} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
-                <button type="button" onClick={onSave} disabled={createMutation.isPending || updateMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
-                  {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update Counselor' : 'Create Counselor'}
-                </button>
+      {showModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
+          <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5"><h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Counselor' : 'Add Counselor'}</h2><button onClick={closeModal} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"><X size={18} /></button></div>
+            <div className="min-h-0 overflow-y-auto px-6 py-6">
+              <ImageUploader value={form.image} onChange={(v) => setForm(p => ({ ...p, image: v }))} label="Profile Image" previewHeight={120} />
+              <div className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
+                {[{ l: 'Full Name *', k: 'name', t: 'text' }, { l: 'Email *', k: 'email', t: 'email' }].map(f => (
+                  <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type={f.t} value={(form as any)[f.k]} onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
+                ))}
+                <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-gray-700">Bio</label><textarea value={form.bio} onChange={e => setForm(p => ({ ...p, bio: e.target.value }))} rows={3} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
+                {[{ l: 'Expertise Subjects (comma)', k: 'expertiseSubjects', p: 'e.g. MBA, Engineering' }, { l: 'Expertise Countries (comma)', k: 'expertiseCountries', p: 'e.g. USA, UK' }].map(f => (
+                  <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input value={(form as any)[f.k]} onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
+                ))}
+                {[{ l: 'Languages (comma)', k: 'languages', p: 'English, Bengali' }, { l: 'Session Rate ($)', k: 'sessionRate', t: 'number', m: 0 }, { l: 'Cal.com Username', k: 'calUsername' }].map(f => (
+                  <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type={f.t || 'text'} min={f.m} value={(form as any)[f.k]} onChange={e => setForm(p => ({ ...p, [f.k]: e.target.value }))} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" /></div>
+                ))}
+                <div className="sm:col-span-2 flex items-center gap-2"><input type="checkbox" checked={form.isAvailable} onChange={e => setForm(p => ({ ...p, isAvailable: e.target.checked }))} className="h-4 w-4 rounded border-gray-300 accent-primary" /><span className="text-sm font-medium text-gray-700">Available for consultations</span></div>
+                <div className="sm:col-span-2 flex justify-end gap-3 pt-2">
+                  <button type="button" onClick={closeModal} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Cancel</button>
+                  <button type="button" onClick={onSave} disabled={createMutation.isPending || updateMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
+                    {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update Counselor' : 'Create Counselor'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
