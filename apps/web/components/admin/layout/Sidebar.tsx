@@ -163,14 +163,14 @@ export function Sidebar({ userRole }: SidebarProps) {
       {/* User */}
       <div className="shrink-0 border-t p-2" style={{ borderColor: '#e5e7eb' }}>
         <div
-          className="flex items-center gap-2.5 rounded-lg px-2 py-2"
-          style={{ background: 'rgba(232, 163, 61, 0.05)' }}
+          className="group flex items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-[#F1F1EF]"
+          style={{ background: '#F8F8F6' }}
         >
           <div
             className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] font-bold"
             style={{
-              background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-              color: '#f8fafc',
+              background: '#F7F7F5',
+              color: '#6b7280',
             }}
           >
             {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : roleInitials}
@@ -194,3 +194,4 @@ export function Sidebar({ userRole }: SidebarProps) {
     </aside>
   )
 }
+

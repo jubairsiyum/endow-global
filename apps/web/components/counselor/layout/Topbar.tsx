@@ -2,6 +2,9 @@
 
 import { Search, Bell, Menu, Calendar } from 'lucide-react'
 
+import { useSession } from '@/lib/auth-client'
+import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
+
 interface Props {
   onMenuClick: () => void
 }
@@ -25,6 +28,20 @@ function StatusDot() {
 }
 
 export function CounselorTopbar({ onMenuClick }: Props) {
+  const { data: session } = useSession()
+  const { image: avatarImage } = useUserAvatar()
+
+  const user = {
+    name: session?.user?.name || 'Counselor',
+    image: avatarImage ?? (session?.user as any)?.image ?? null,
+  }
+  const initials = (user.name || 'CN')
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+
   return (
     <header
       className="flex h-[52px] shrink-0 items-center justify-between border-b px-3"
@@ -89,14 +106,14 @@ export function CounselorTopbar({ onMenuClick }: Props) {
         </button>
 
         <button
-          className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-white/[0.04]"
-          style={{ color: '#111827' }}
+          className="flex items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-[#F1F1EF]"
+          style={{ color: '#111827', background: '#F8F8F6' }}
         >
           <div
             className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md text-[10px] font-bold"
             style={{
-              background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-              color: '#f8fafc',
+              background: '#F7F7F5',
+              color: '#6b7280',
             }}
           >
             {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : initials}
@@ -107,3 +124,4 @@ export function CounselorTopbar({ onMenuClick }: Props) {
     </header>
   )
 }
+
