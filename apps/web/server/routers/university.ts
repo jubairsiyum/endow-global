@@ -84,18 +84,59 @@ export const universityRouter = createTRPCRouter({
   byCountry: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
-      // Normalize the incoming slug into a lowercase, word-spaced country
-      // name, e.g. "south-korea" -> "south korea". Match against the DB's
-      // country value case-insensitively so capitalization/spacing never
-      // causes an (incorrect) "country not found".
-      const target = input.slug.replace(/[_-]+/g, ' ').trim().toLowerCase()
+      const countryName = input.slug.replace(/-/g, ' ')
+
+      // Try DB first with case-insensitive match
       const unis = await ctx.db
         .select()
         .from(universities)
-        .where(eq(universities.isActive, true))
-      const matched = unis.filter((u) => (u.country || '').trim().toLowerCase() === target)
-      if (!matched.length) return null
-      return { country: matched[0].country, universities: matched }
+        .where(
+          and(
+            eq(universities.isActive, true),
+            sql`LOWER(${universities.country}) = LOWER(${countryName})`
+          )
+        )
+        .orderBy(universities.ranking)
+
+      if (unis.length > 0) {
+        return { country: unis[0].country, universities: unis }
+      }
+
+      // Fallback: check static data
+      const { countries: staticCountries, universities: staticUnis } = await import('@/lib/universities/data')
+      const staticCountry = staticCountries.find(
+        (c) => c.name.toLowerCase() === countryName.toLowerCase()
+      )
+      if (!staticCountry) return null
+
+      const countryUnis = staticUnis.filter(
+        (u) => u.country.toLowerCase() === countryName.toLowerCase()
+      )
+      return {
+        country: staticCountry.name,
+        universities: countryUnis.map((u) => ({
+          id: u.id,
+          name: u.name,
+          slug: u.id,
+          country: u.country,
+          city: u.city,
+          logo: u.logo,
+          coverImage: u.banner,
+          description: u.description,
+          ranking: u.ranking,
+          website: null,
+          established: null,
+          totalStudents: null,
+          internationalPercent: null,
+          accreditation: null,
+          rankings: [],
+          featured: false,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          highlights: u.highlights,
+        })),
+      }
     }),
 
   getBySlug: publicProcedure

@@ -192,7 +192,11 @@ export function Navbar() {
                 )
               }
 
-              const isActive = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href)
+              const isActive = item.href === '/'
+                ? pathname === '/'
+                : item.href === '/universities'
+                  ? pathname.startsWith('/universities') && !pathname.startsWith('/universities/country/')
+                  : pathname.startsWith(item.href)
               return (
                 <Link
                   key={item.href}
