@@ -4,6 +4,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { motion, type Variants } from "framer-motion"
 import { ArrowRight, Building2, Landmark, Wallet } from "lucide-react"
+import { trpc } from "@/lib/trpc-client"
 import { ROUTES } from "@/lib/config/routes"
 
 type Destination = {
@@ -148,6 +149,18 @@ function DestinationCard({ destination }: { destination: Destination }) {
 }
 
 export default function CountryExplorer() {
+  const { data: countryData } = trpc.university.countries.useQuery()
+  const countByCountry = new Map<string, number>(
+    (countryData ?? []).map((c: any) => [c.country, Number(c.count) || 0])
+  )
+
+  const destinationsWithCounts = destinations.map((d) => ({
+    ...d,
+    universities: countByCountry.get(d.name)
+      ? `${countByCountry.get(d.name)}+`
+      : d.universities,
+  }))
+
   return (
     <section className="relative overflow-hidden bg-[#F8FAFC] px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0">
@@ -184,7 +197,7 @@ export default function CountryExplorer() {
           viewport={{ once: true, margin: "-80px" }}
           className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:gap-7"
         >
-          {destinations.map((destination) => (
+          {destinationsWithCounts.map((destination) => (
             <DestinationCard key={destination.name} destination={destination} />
           ))}
         </motion.div>

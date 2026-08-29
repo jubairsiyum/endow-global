@@ -1,11 +1,17 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { universities } from '@/lib/universities/data'
-import Image from 'next/image'
+import { trpc } from '@/lib/trpc-client'
 import { useEffect, useRef, useState } from 'react'
 
 export default function UniversityMarquee() {
+  const { data: universities } = trpc.university.featured.useQuery()
+  const present = (universities ?? []).filter((u: any) => u.logo)
+
+  // Duplicate the list enough times to create a seamless loop.
+  const loop = Array.from({ length: 3 }).flatMap((_, t) =>
+    present.map((uni: any) => ({ ...uni, _t: t }))
+  )
+
   const marqueeContentRef = useRef<HTMLDivElement>(null)
   const [trackWidth, setTrackWidth] = useState<number>(0)
   const [animationDuration, setAnimationDuration] = useState<number>(60)
@@ -17,30 +23,26 @@ export default function UniversityMarquee() {
         if (firstTrack) {
           const width = (firstTrack as HTMLElement).offsetWidth
           setTrackWidth(width)
-          // Calculate animation duration: 60px per second is a smooth speed
           setAnimationDuration(Math.max(30, width / 60))
         }
       }
     }
 
-    // Measure on mount
     measureWidth()
-
-    // Measure on window resize
     const resizeObserver = new ResizeObserver(measureWidth)
     const container = marqueeContentRef.current?.parentElement
-    if (container) {
-      resizeObserver.observe(container)
-    }
-
-    // Fallback resize listener
+    if (container) resizeObserver.observe(container)
     window.addEventListener('resize', measureWidth, { passive: true })
 
     return () => {
       resizeObserver.disconnect()
       window.removeEventListener('resize', measureWidth)
     }
-  }, [])
+  }, [universities])
+
+  // Hide the marquee when we don't have enough partner logos to scroll
+  // (e.g. in environments where universities have no logo set yet).
+  if (present.length < 3) return null
 
   return (
     <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-10 lg:py-12">
@@ -63,66 +65,20 @@ export default function UniversityMarquee() {
               }
             }
           >
-            {/* Track 1 - Original */}
             <div className="marquee-track">
-              {universities.map((uni) => (
-                <motion.div
-                  key={`track1-${uni.id}`}
+              {loop.map((uni) => (
+                <div
+                  key={`${uni._t}-${uni.id}`}
                   className="group flex cursor-pointer items-center justify-center rounded-2xl px-6 py-4 transition-all duration-300 ease-out hover:bg-white hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
                 >
                   <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 ease-out group-hover:border-brand/20">
-                    <Image
+                    <img
                       src={uni.logo}
                       alt={uni.name}
-                      width={80}
-                      height={80}
                       className="h-full w-full object-contain opacity-80 transition-opacity duration-300 ease-out group-hover:opacity-100"
-                      priority={false}
                     />
                   </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Track 2 - Duplicate for seamless loop */}
-            <div className="marquee-track">
-              {universities.map((uni) => (
-                <motion.div
-                  key={`track2-${uni.id}`}
-                  className="group flex cursor-pointer items-center justify-center rounded-2xl px-6 py-4 transition-all duration-300 ease-out hover:bg-white hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
-                >
-                  <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 ease-out group-hover:border-brand/20">
-                    <Image
-                      src={uni.logo}
-                      alt={uni.name}
-                      width={80}
-                      height={80}
-                      className="h-full w-full object-contain opacity-80 transition-opacity duration-300 ease-out group-hover:opacity-100"
-                      priority={false}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Track 3 - Duplicate for seamless loop edge case */}
-            <div className="marquee-track">
-              {universities.map((uni) => (
-                <motion.div
-                  key={`track3-${uni.id}`}
-                  className="group flex cursor-pointer items-center justify-center rounded-2xl px-6 py-4 transition-all duration-300 ease-out hover:bg-white hover:shadow-[0_8px_24px_rgba(0,0,0,0.04)]"
-                >
-                  <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm transition-all duration-300 ease-out group-hover:border-brand/20">
-                    <Image
-                      src={uni.logo}
-                      alt={uni.name}
-                      width={80}
-                      height={80}
-                      className="h-full w-full object-contain opacity-80 transition-opacity duration-300 ease-out group-hover:opacity-100"
-                      priority={false}
-                    />
-                  </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
