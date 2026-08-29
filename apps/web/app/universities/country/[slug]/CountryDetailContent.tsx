@@ -347,10 +347,21 @@ export default function CountryDetailContent({
                           </span>
                           <span className="text-xs text-gray-400"> / year</span>
                         </div>
-                        <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#C41E3A] transition-all group-hover:gap-2">
-                          View
-                          <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-                        </span>
+                        {(uni as any).slug ? (
+                          <Link
+                            href={`/universities/${country.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${(uni as any).slug}`}
+                            aria-label={`View ${uni.name}`}
+                            className="inline-flex items-center gap-1 text-sm font-semibold text-[#C41E3A] transition-all group-hover:gap-2"
+                          >
+                            View
+                            <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+                          </Link>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#C41E3A]">
+                            View
+                            <ArrowRight size={13} />
+                          </span>
+                        )}
                       </div>
                     </div>
                   </article>
