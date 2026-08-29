@@ -15,14 +15,27 @@ export default function CountryPage() {
   const { slug } = useParams<{ slug: string }>()
   const metadata = getCountryMetadata(slug)
 
-  const { data, isLoading } = trpc.university.byCountry.useQuery({ slug })
+  // Country/static destination data is low-churn: cache it so repeat visits
+  // render instantly and only revalidate after a few minutes.
+  const { data, isPending } = trpc.university.byCountry.useQuery(
+    { slug },
+    {
+      staleTime: 5 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 1,
+    }
+  )
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="min-h-screen bg-white">
         <div className="px-5 py-16 lg:px-8 lg:py-24">
           <div className="mx-auto max-w-7xl">
-            <div className="text-center">
+            <div className="flex items-center justify-center gap-2 text-sm font-medium text-gray-400">
+              <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#C41E3A] border-t-transparent" />
+              Loading destination...
+            </div>
+            <div className="mt-8 text-center">
               <div className="mx-auto h-6 w-32 animate-pulse rounded-full bg-gray-200" />
               <div className="mx-auto mt-4 h-12 w-80 animate-pulse rounded-lg bg-gray-200" />
               <div className="mx-auto mt-4 h-5 w-96 animate-pulse rounded bg-gray-100" />

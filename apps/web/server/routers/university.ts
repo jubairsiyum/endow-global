@@ -86,9 +86,20 @@ export const universityRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const countryName = input.slug.replace(/-/g, ' ')
 
-      // Try DB first with case-insensitive match
+      // Try DB first with case-insensitive match — select only the columns the
+      // destination pages actually render to keep the payload small and fast.
       const unis = await ctx.db
-        .select()
+        .select({
+          id: universities.id,
+          name: universities.name,
+          slug: universities.slug,
+          country: universities.country,
+          city: universities.city,
+          logo: universities.logo,
+          coverImage: universities.coverImage,
+          description: universities.description,
+          ranking: universities.ranking,
+        })
         .from(universities)
         .where(
           and(
@@ -97,6 +108,7 @@ export const universityRouter = createTRPCRouter({
           )
         )
         .orderBy(universities.ranking)
+        .limit(60)
 
       if (unis.length > 0) {
         return { country: unis[0].country, universities: unis }
@@ -115,26 +127,9 @@ export const universityRouter = createTRPCRouter({
       return {
         country: staticCountry.name,
         universities: countryUnis.map((u) => ({
-          id: u.id,
-          name: u.name,
+          ...u,
           slug: u.id,
-          country: u.country,
-          city: u.city,
-          logo: u.logo,
           coverImage: u.banner,
-          description: u.description,
-          ranking: u.ranking,
-          website: null,
-          established: null,
-          totalStudents: null,
-          internationalPercent: null,
-          accreditation: null,
-          rankings: [],
-          featured: false,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          highlights: u.highlights,
         })),
       }
     }),
