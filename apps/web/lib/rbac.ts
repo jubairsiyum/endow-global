@@ -121,14 +121,13 @@ export const ROUTER_MODULE_MAP: Record<string, ModuleId> = {
   super: 'admins',
 }
 
-// Counselor hub modules (staff with COUNSELOR role or ADMIN with counselor perms)
+// Counselor hub modules (reviews/analytics removed per requirements)
 export const COUNSELOR_MODULES = [
   { id: 'counselor:dashboard', label: 'Dashboard' },
   { id: 'counselor:students', label: 'My Students' },
   { id: 'counselor:applications', label: 'Applications' },
   { id: 'counselor:sessions', label: 'Sessions' },
   { id: 'counselor:messages', label: 'Messages' },
-  { id: 'counselor:analytics', label: 'Analytics' },
 ] as const
 
 export type CounselorModuleId = typeof COUNSELOR_MODULES[number]['id']

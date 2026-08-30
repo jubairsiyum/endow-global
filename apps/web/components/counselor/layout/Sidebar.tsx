@@ -9,10 +9,8 @@ import {
   FileText,
   Calendar,
   MessageSquare,
-  BarChart3,
   Settings,
   ChevronLeft,
-  Star,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useSession } from '@/lib/auth-client'
@@ -24,8 +22,6 @@ const navItems = [
   { name: 'Applications', href: '/counselor/applications', icon: FileText },
   { name: 'Sessions', href: '/counselor/sessions', icon: Calendar },
   { name: 'Messages', href: '/counselor/messages', icon: MessageSquare },
-  { name: 'Reviews', href: '/counselor/reviews', icon: Star },
-  { name: 'Analytics', href: '/counselor/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/counselor/settings', icon: Settings },
 ]
 

@@ -41,6 +41,11 @@ const nextConfig = {
       // Legacy Super Admin path — consolidated to /admin (RBAC decides extras)
       { source: '/sa', destination: '/admin', permanent: false },
       { source: '/sa/:path*', destination: '/admin/:path*', permanent: false },
+      // Removed counselor modules — redirect to counselor dashboard
+      { source: '/counselor/reviews', destination: '/counselor', permanent: false },
+      { source: '/counselor/reviews/:path*', destination: '/counselor', permanent: false },
+      { source: '/counselor/analytics', destination: '/counselor', permanent: false },
+      { source: '/counselor/analytics/:path*', destination: '/counselor', permanent: false },
     ]
   },
   headers: async () => [

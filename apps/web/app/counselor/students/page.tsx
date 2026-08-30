@@ -5,6 +5,23 @@ import { trpc } from '@/lib/trpc-client'
 import { Search, Users } from 'lucide-react'
 import { SAInput } from '@/components/super-admin/shared/SAInput'
 
+function formatCountries(value: unknown): string {
+  if (!value) return '—'
+  if (Array.isArray(value)) return (value as string[]).slice(0, 2).join(', ') || '—'
+  if (typeof value === 'string') {
+    const t = value.trim()
+    if (!t) return '—'
+    try {
+      const p = JSON.parse(t)
+      if (Array.isArray(p)) return (p as string[]).slice(0, 2).join(', ') || '—'
+      if (p != null) return String(p)
+    } catch {
+      return t
+    }
+  }
+  return String(value)
+}
+
 export default function CounselorStudentsPage() {
   const [search, setSearch] = useState('')
   const { data, isLoading } = trpc.counselor.getAssignedStudents.useQuery({ search: search || undefined, limit: 20 })
@@ -55,7 +72,7 @@ export default function CounselorStudentsPage() {
                     </td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{s.email}</td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{s.nationality || '—'}</td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{(() => { const v: any = s.targetCountries; const arr: string[] = Array.isArray(v) ? v : (() => { if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) ? p : p ? [String(p)] : [] } catch { return v ? [String(v)] : [] } } return [] })(); return arr.slice(0, 2).join(', ') || '—' })()}</td>
+                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{formatCountries(s.targetCountries)}</td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#111827' }}>{s.completionPercent ?? 0}%</td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}</td>
                   </tr>

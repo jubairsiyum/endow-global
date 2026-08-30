@@ -12,6 +12,24 @@ const or = _or as any
 const count = _count as any
 const sql = _sql as any
 
+function parseArrayField(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value as string[]
+  if (typeof value === 'string') {
+    const t = value.trim()
+    if (!t) return []
+    try {
+      const parsed = JSON.parse(t)
+      if (Array.isArray(parsed)) return parsed as string[]
+      if (parsed != null) return [String(parsed)]
+      return [t]
+    } catch {
+      return [t]
+    }
+  }
+  return []
+}
+
 async function resolveCounselorProfile(ctx: any) {
   const userId = ctx.session.user.id
   const [profile] = await ctx.db.select().from(schema.counselorProfiles).where(eq(schema.counselorProfiles.userId, userId)).limit(1)
@@ -86,21 +104,7 @@ export const counselorRouter = createTRPCRouter({
         name: s.name || 'Student',
         email: s.email || '',
         nationality: s.nationality,
-        targetCountries: (() => {
-          const v: any = s.targetCountries
-          if (Array.isArray(v)) return v
-          if (typeof v === 'string') {
-            try {
-              const p = JSON.parse(v)
-              if (Array.isArray(p)) return p
-              if (p) return [String(p)]
-              return []
-            } catch {
-              return v ? [String(v)] : []
-            }
-          }
-          return []
-        })(),
+        targetCountries: parseArrayField(s.targetCountries),
       })),
       upcomingSessions: upcomingSessions.map((s: any) => ({
         id: s.id,
@@ -151,31 +155,17 @@ export const counselorRouter = createTRPCRouter({
         nextCursor = (nxt?.id as string) ?? undefined
       }
       return {
-        items: items.map((r: any) => {
-          const v: any = r.targetCountries
-          let arr: string[] = []
-          if (Array.isArray(v)) arr = v
-          else if (typeof v === 'string') {
-            try {
-              const p = JSON.parse(v)
-              if (Array.isArray(p)) arr = p
-              else if (p) arr = [String(p)]
-            } catch {
-              arr = v ? [String(v)] : []
-            }
-          }
-          return {
-            id: r.id,
-            name: r.name,
-            email: r.email,
-            image: r.image,
-            createdAt: r.createdAt,
-            nationality: r.nationality,
-            targetCountries: arr,
-            completionPercent: r.completionPercent,
-            studentProfileId: r.studentProfileId,
-          }
-        }),
+        items: items.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          image: r.image,
+          createdAt: r.createdAt,
+          nationality: r.nationality,
+          targetCountries: parseArrayField(r.targetCountries),
+          completionPercent: r.completionPercent,
+          studentProfileId: r.studentProfileId,
+        })),
         nextCursor,
       }
     }),
@@ -258,6 +248,74 @@ export const counselorRouter = createTRPCRouter({
     const profile = await resolveCounselorProfile(ctx)
     if (!profile) return null
     const [user] = await ctx.db.select({ name: schema.users.name, email: schema.users.email, image: schema.users.image }).from(schema.users).where(eq(schema.users.id, ctx.session.user.id)).limit(1)
-    return { ...profile, user }
+    return { ...profile, user, _raw: profile }
   }),
+
+  updateProfile: counselorProcedure
+    .input(
+      z.object({
+        name: z.string().trim().min(2).max(100).optional(),
+        email: z.string().email().max(255).optional(),
+        image: z.string().max(500).nullable().optional(),
+        bio: z.string().max(2000).nullable().optional(),
+        expertiseCountries: z.array(z.string().max(100)).max(20).optional(),
+        expertiseSubjects: z.array(z.string().max(100)).max(20).optional(),
+        languages: z.array(z.string().max(50)).max(10).optional(),
+        calUsername: z.string().max(100).nullable().optional(),
+        sessionRate: z.number().int().min(0).max(100000).optional(),
+        isAvailable: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id
+      const profile = await resolveCounselorProfile(ctx)
+
+      // Update users table if needed
+      const userUpdates: Record<string, unknown> = {}
+      if (input.name !== undefined) userUpdates.name = input.name.trim()
+      if (input.email !== undefined) {
+        const email = input.email.trim().toLowerCase()
+        const [existing] = await ctx.db
+          .select({ id: schema.users.id })
+          .from(schema.users)
+          .where(and(eq(schema.users.email, email), sql`${schema.users.id} != ${userId}` as any))
+          .limit(1)
+        if (existing) throw new Error('That email is already in use')
+        userUpdates.email = email
+      }
+      if (input.image !== undefined) userUpdates.image = input.image
+
+      if (Object.keys(userUpdates).length > 0) {
+        await ctx.db.update(schema.users).set(userUpdates).where(eq(schema.users.id, userId))
+      }
+
+      // Update or create counselor profile
+      if (!profile) {
+        await ctx.db.insert(schema.counselorProfiles).values({
+          userId,
+          bio: input.bio ?? null,
+          expertiseCountries: JSON.stringify(input.expertiseCountries ?? []),
+          expertiseSubjects: JSON.stringify(input.expertiseSubjects ?? []),
+          languages: JSON.stringify(input.languages ?? ['English']),
+          calUsername: input.calUsername ?? null,
+          sessionRate: input.sessionRate ?? 0,
+          isAvailable: input.isAvailable ?? true,
+        } as any)
+      } else {
+        const updates: Record<string, unknown> = {}
+        if (input.bio !== undefined) updates.bio = input.bio
+        if (input.expertiseCountries !== undefined) updates.expertiseCountries = JSON.stringify(input.expertiseCountries)
+        if (input.expertiseSubjects !== undefined) updates.expertiseSubjects = JSON.stringify(input.expertiseSubjects)
+        if (input.languages !== undefined) updates.languages = JSON.stringify(input.languages)
+        if (input.calUsername !== undefined) updates.calUsername = input.calUsername
+        if (input.sessionRate !== undefined) updates.sessionRate = input.sessionRate
+        if (input.isAvailable !== undefined) updates.isAvailable = input.isAvailable
+
+        if (Object.keys(updates).length > 0) {
+          await ctx.db.update(schema.counselorProfiles).set(updates as any).where(eq(schema.counselorProfiles.id, profile.id))
+        }
+      }
+
+      return { success: true }
+    }),
 })

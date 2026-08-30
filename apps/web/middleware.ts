@@ -45,6 +45,15 @@ export async function middleware(req: NextRequest) {
     url.pathname = pathname.replace(/^\/sa/, '/admin') || '/admin'
     return NextResponse.redirect(url)
   }
+  // Removed counselor modules — redirect to dashboard to avoid 404
+  if (
+    pathname === '/counselor/reviews' ||
+    pathname.startsWith('/counselor/reviews/') ||
+    pathname === '/counselor/analytics' ||
+    pathname.startsWith('/counselor/analytics/')
+  ) {
+    return NextResponse.redirect(new URL('/counselor', req.url))
+  }
   const sessionCookie = getSessionCookie(req)
 
   let payload = null

@@ -6,6 +6,24 @@ import { SABadge } from '@/components/super-admin/shared/SABadge'
 import { trpc } from '@/lib/trpc-client'
 import Link from 'next/link'
 
+function formatCountries(value: unknown): string {
+  if (!value) return '—'
+  if (Array.isArray(value)) return (value as string[]).slice(0, 2).join(', ') || '—'
+  if (typeof value === 'string') {
+    const trimmed = value.trim()
+    if (!trimmed) return '—'
+    try {
+      const parsed = JSON.parse(trimmed)
+      if (Array.isArray(parsed)) return (parsed as string[]).slice(0, 2).join(', ') || '—'
+      if (parsed != null) return String(parsed)
+    } catch {
+      // Not JSON — treat as single country string (e.g. "Bangladesh")
+      return trimmed
+    }
+  }
+  return String(value)
+}
+
 function StatCard({
   label,
   value,
@@ -178,13 +196,7 @@ export default function CounselorDashboard() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>{s.nationality ?? '—'}</td>
-                      <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
-                        {(() => {
-                          const v: any = s.targetCountries
-                          const arr: string[] = Array.isArray(v) ? v : (() => { if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) ? p : p ? [String(p)] : [] } catch { return v ? [String(v)] : [] } } return [] })()
-                          return arr.slice(0, 2).join(', ') || '—'
-                        })()}
-                      </td>
+                      <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>{formatCountries(s.targetCountries)}</td>
                       <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>
                         {s.assignedAt ? new Date(s.assignedAt).toLocaleDateString() : '—'}
                       </td>
