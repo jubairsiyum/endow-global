@@ -86,7 +86,21 @@ export const counselorRouter = createTRPCRouter({
         name: s.name || 'Student',
         email: s.email || '',
         nationality: s.nationality,
-        targetCountries: (() => { try { return typeof s.targetCountries === 'string' ? JSON.parse(s.targetCountries) : s.targetCountries ?? [] } catch { return [] } })(),
+        targetCountries: (() => {
+          const v: any = s.targetCountries
+          if (Array.isArray(v)) return v
+          if (typeof v === 'string') {
+            try {
+              const p = JSON.parse(v)
+              if (Array.isArray(p)) return p
+              if (p) return [String(p)]
+              return []
+            } catch {
+              return v ? [String(v)] : []
+            }
+          }
+          return []
+        })(),
       })),
       upcomingSessions: upcomingSessions.map((s: any) => ({
         id: s.id,
@@ -137,17 +151,31 @@ export const counselorRouter = createTRPCRouter({
         nextCursor = (nxt?.id as string) ?? undefined
       }
       return {
-        items: items.map((r: any) => ({
-          id: r.id,
-          name: r.name,
-          email: r.email,
-          image: r.image,
-          createdAt: r.createdAt,
-          nationality: r.nationality,
-          targetCountries: (() => { try { return typeof r.targetCountries === 'string' ? JSON.parse(r.targetCountries) : r.targetCountries ?? [] } catch { return [] } })(),
-          completionPercent: r.completionPercent,
-          studentProfileId: r.studentProfileId,
-        })),
+        items: items.map((r: any) => {
+          const v: any = r.targetCountries
+          let arr: string[] = []
+          if (Array.isArray(v)) arr = v
+          else if (typeof v === 'string') {
+            try {
+              const p = JSON.parse(v)
+              if (Array.isArray(p)) arr = p
+              else if (p) arr = [String(p)]
+            } catch {
+              arr = v ? [String(v)] : []
+            }
+          }
+          return {
+            id: r.id,
+            name: r.name,
+            email: r.email,
+            image: r.image,
+            createdAt: r.createdAt,
+            nationality: r.nationality,
+            targetCountries: arr,
+            completionPercent: r.completionPercent,
+            studentProfileId: r.studentProfileId,
+          }
+        }),
         nextCursor,
       }
     }),

@@ -55,7 +55,7 @@ export default function CounselorStudentsPage() {
                     </td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{s.email}</td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{s.nationality || '—'}</td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{(s.targetCountries ?? []).slice(0, 2).join(', ') || '—'}</td>
+                    <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{(() => { const v: any = s.targetCountries; const arr: string[] = Array.isArray(v) ? v : (() => { if (typeof v === 'string') { try { const p = JSON.parse(v); return Array.isArray(p) ? p : p ? [String(p)] : [] } catch { return v ? [String(v)] : [] } } return [] })(); return arr.slice(0, 2).join(', ') || '—' })()}</td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#111827' }}>{s.completionPercent ?? 0}%</td>
                     <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{s.createdAt ? new Date(s.createdAt).toLocaleDateString() : '—'}</td>
                   </tr>
