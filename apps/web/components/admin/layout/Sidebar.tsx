@@ -30,40 +30,42 @@ import {
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
+import { hasPermission, type Permission } from '@/lib/rbac'
 
-const adminMenuItems = [
-  { name: 'Dashboard', icon: LayoutDashboard, href: '/admin' },
-  { name: 'Students', icon: Users, href: '/admin/students' },
-  { name: 'Counselors', icon: UserCog, href: '/admin/counselors' },
-  { name: 'Applications', icon: FileText, href: '/admin/applications' },
-  { name: 'Documents', icon: FileCheck2, href: '/admin/documents' },
-  { name: 'Deadlines', icon: CalendarClock, href: '/admin/deadlines' },
-  { name: 'Universities', icon: GraduationCap, href: '/admin/universities' },
-  { name: 'Courses', icon: BookOpen, href: '/admin/courses' },
-  { name: 'Scholarships', icon: Award, href: '/admin/scholarships' },
-  { name: 'Countries', icon: Globe, href: '/admin/countries' },
-  { name: 'Messages', icon: MessageSquare, href: '/admin/messages' },
-  { name: 'Resources', icon: Upload, href: '/admin/resources' },
-  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics' },
-  { name: 'Testimonials', icon: Star, href: '/admin/testimonials' },
-  { name: 'Notifications', icon: Bell, href: '/admin/notifications' },
-  { name: 'Newsletters', icon: Mail, href: '/admin/newsletters' },
-  { name: 'Settings', icon: Settings, href: '/admin/settings' },
+const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permission }> = [
+  { name: 'Dashboard', icon: LayoutDashboard, href: '/admin', perm: 'dashboard:view' },
+  { name: 'Students', icon: Users, href: '/admin/students', perm: 'students:view' },
+  { name: 'Counselors', icon: UserCog, href: '/admin/counselors', perm: 'counselors:view' },
+  { name: 'Applications', icon: FileText, href: '/admin/applications', perm: 'applications:view' },
+  { name: 'Documents', icon: FileCheck2, href: '/admin/documents', perm: 'documents:view' },
+  { name: 'Deadlines', icon: CalendarClock, href: '/admin/deadlines', perm: 'deadlines:view' },
+  { name: 'Universities', icon: GraduationCap, href: '/admin/universities', perm: 'universities:view' },
+  { name: 'Courses', icon: BookOpen, href: '/admin/courses', perm: 'courses:view' },
+  { name: 'Scholarships', icon: Award, href: '/admin/scholarships', perm: 'scholarships:view' },
+  { name: 'Countries', icon: Globe, href: '/admin/countries', perm: 'countries:view' },
+  { name: 'Messages', icon: MessageSquare, href: '/admin/messages', perm: 'messages:view' },
+  { name: 'Resources', icon: Upload, href: '/admin/resources', perm: 'resources:view' },
+  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics', perm: 'analytics:view' },
+  { name: 'Testimonials', icon: Star, href: '/admin/testimonials', perm: 'testimonials:view' },
+  { name: 'Notifications', icon: Bell, href: '/admin/notifications', perm: 'notifications:view' },
+  { name: 'Newsletters', icon: Mail, href: '/admin/newsletters', perm: 'newsletters:view' },
+  { name: 'Settings', icon: Settings, href: '/admin/settings', perm: 'settings:view' },
 ]
 
-const superAdminExtraItems = [
-  { name: 'Branches', icon: Building2, href: '/admin/branches' },
-  { name: 'Users', icon: Users, href: '/admin/users' },
-  { name: 'Admin Management', icon: Shield, href: '/admin/admins' },
-  { name: 'System Activity', icon: Activity, href: '/admin/activity' },
-  { name: 'Revenue', icon: DollarSign, href: '/admin/revenue' },
+const superAdminExtraItems: Array<{ name: string; icon: any; href: string; perm: Permission }> = [
+  { name: 'Branches', icon: Building2, href: '/admin/branches', perm: 'branches:view' },
+  { name: 'Users', icon: Users, href: '/admin/users', perm: 'users:view' },
+  { name: 'Admin Management', icon: Shield, href: '/admin/admins', perm: 'admins:view' },
+  { name: 'System Activity', icon: Activity, href: '/admin/activity', perm: 'activity:view' },
+  { name: 'Revenue', icon: DollarSign, href: '/admin/revenue', perm: 'revenue:view' },
 ]
 
 interface SidebarProps {
   userRole: UserRole
+  permissions?: string[]
 }
 
-export function Sidebar({ userRole }: SidebarProps) {
+export function Sidebar({ userRole, permissions }: SidebarProps) {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { image: avatarImage } = useUserAvatar()
@@ -74,9 +76,30 @@ export function Sidebar({ userRole }: SidebarProps) {
     image: avatarImage ?? (session?.user as any)?.image ?? null,
   }
 
+  // Resolve effective permissions: prop > session > fallback []
+  const effectivePerms: string[] = (() => {
+    if (permissions && permissions.length) return permissions
+    const sessPerms = (session?.user as any)?.permissions
+    if (Array.isArray(sessPerms)) return sessPerms
+    if (typeof sessPerms === 'string') {
+      try {
+        const p = JSON.parse(sessPerms)
+        if (Array.isArray(p)) return p
+      } catch {}
+    }
+    return []
+  })()
+
+  const can = (perm: Permission) => hasPermission(effectivePerms, perm, userRole)
+
+  const filteredAdminItems = isSuperAdmin ? adminMenuItems : adminMenuItems.filter((it) => can(it.perm))
+  const filteredSuperItems = isSuperAdmin
+    ? superAdminExtraItems
+    : superAdminExtraItems.filter((it) => can(it.perm))
+
   const menuItems = isSuperAdmin
-    ? [...adminMenuItems, ...superAdminExtraItems]
-    : adminMenuItems
+    ? [...filteredAdminItems, ...filteredSuperItems]
+    : filteredAdminItems
 
   const roleLabel = isSuperAdmin ? 'Super Admin' : 'Admin'
   const roleInitials = isSuperAdmin ? 'SA' : 'AD'

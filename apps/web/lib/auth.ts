@@ -10,6 +10,7 @@ import { UserRole } from '@endow/types'
 import { sendEmail } from './email'
 import { absoluteUrl } from './utils'
 import { autoAssignCounselor } from './counselor-assignment'
+import { notifyCounselorNewStudent } from './notify'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
@@ -72,6 +73,12 @@ export const auth = betterAuth({
         required: false,
         input: false,
       },
+      permissions: {
+        type: 'string',
+        required: false,
+        defaultValue: '[]',
+        input: false,
+      },
     },
   },
   session: {
@@ -116,6 +123,18 @@ export const auth = betterAuth({
               userId: user.id,
               assignedCounselorId,
             })
+            // Best-effort: notify the assigned counselor via email (SMTP).
+            if (assignedCounselorId) {
+              try {
+                await notifyCounselorNewStudent(db, schema, {
+                  counselorId: assignedCounselorId,
+                  studentName: (user as any)?.name || 'New student',
+                  studentEmail: (user as any)?.email || '',
+                })
+              } catch (err) {
+                console.error('[notify] Failed to notify counselor of new student:', err)
+              }
+            }
           }
         },
       },
@@ -187,10 +206,23 @@ export const auth = betterAuth({
       },
     }),
     customSession(async ({ user, session }) => {
+      // Parse permissions which may be stored as JSON string or array
+      let perms: string[] = []
+      const raw = (user as any).permissions
+      if (Array.isArray(raw)) perms = raw
+      else if (typeof raw === 'string') {
+        try {
+          const parsed = JSON.parse(raw)
+          if (Array.isArray(parsed)) perms = parsed
+        } catch {
+          perms = []
+        }
+      }
       return {
         user: {
           ...user,
           role: (user as any).role as UserRole,
+          permissions: perms,
         },
         session,
       }

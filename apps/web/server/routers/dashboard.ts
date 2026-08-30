@@ -19,6 +19,9 @@ import {
   DOCUMENT_REQUIREMENTS,
   requirementKey,
 } from '@/lib/documents'
+import { notifySessionBooked } from '@/lib/notify'
+import { generateMeetingUrl } from '@/lib/meeting'
+import { autoAssignCounselor } from '@/lib/counselor-assignment'
 
 const eq = _eq as any
 const and = _and as any
@@ -688,6 +691,33 @@ export const dashboardRouter = createTRPCRouter({
         const studentId = user?.studentProfile?.id
         if (!studentId) throw new Error('No student profile found')
 
+        // ── Counselor must be the student's assigned counselor ──
+        let assignedCounselorId = (user as any)?.studentProfile?.assignedCounselorId as string | null | undefined
+        // Lazy assign if the student slipped through registration without a counselor (e.g. no counselors at signup)
+        if (!assignedCounselorId) {
+          const fallbackId = await autoAssignCounselor(ctx.db, schema)
+          if (!fallbackId) {
+            throw new Error('No counselor assigned to you yet. Please contact support.')
+          }
+          await ctx.db
+            .update(schema.studentProfiles)
+            .set({ assignedCounselorId: fallbackId })
+            .where(eq(schema.studentProfiles.id, studentId))
+          // Best-effort notify the newly assigned counselor (fire-and-forget)
+          try {
+            const { notifyCounselorNewStudent } = await import('@/lib/notify')
+            await notifyCounselorNewStudent(ctx.db, schema, {
+              counselorId: fallbackId,
+              studentName: (ctx.session.user as any).name || user?.name || 'Student',
+              studentEmail: (ctx.session.user as any).email || '',
+            })
+          } catch {}
+          assignedCounselorId = fallbackId
+        }
+        if (input.counselorId !== assignedCounselorId) {
+          throw new Error('You can only book appointments with your assigned counselor.')
+        }
+
         assertDuration(input.duration)
         const scheduledAt = normalizeScheduledAt(input.scheduledAt)
         assertFutureDate(scheduledAt)
@@ -697,15 +727,36 @@ export const dashboardRouter = createTRPCRouter({
         assertCounselorAvailable(counselor)
         await assertNoConflict(ctx, { studentId, counselorId: input.counselorId, scheduledAt, duration: input.duration })
 
+        // Generate a unique meeting URL for this session (Jitsi fallback; Google Meet if configured)
+        const bookingId = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 25)
+        const meetingUrl = generateMeetingUrl(bookingId)
+
         await ctx.db.insert(schema.bookingSessions).values({
+          id: bookingId,
           studentId,
           counselorId: input.counselorId,
           scheduledAt,
           duration: input.duration,
           notes: input.notes ?? null,
           status: 'SCHEDULED',
+          meetingUrl,
         })
-        return { success: true }
+
+        // Best-effort: notify counselor + student via SMTP with meeting link
+        try {
+          await notifySessionBooked(ctx.db, schema, {
+            counselorId: input.counselorId,
+            studentEmail: (ctx.session.user as any).email,
+            studentName: (ctx.session.user as any).name || user?.name || 'Student',
+            scheduledAt,
+            duration: input.duration,
+            meetingUrl,
+          })
+        } catch (err) {
+          console.error('[booking] Failed to send session notification emails:', err)
+        }
+
+        return { success: true, id: bookingId, meetingUrl }
       }),
     reschedule: protectedProcedure
       .input(

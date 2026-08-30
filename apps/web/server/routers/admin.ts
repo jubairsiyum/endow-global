@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
+import { createTRPCRouter, adminProcedure, superAdminProcedure, adminWithPermission } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
@@ -19,7 +19,7 @@ const gte = _gte as any
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
-    getMetrics: adminProcedure.query(async () => {
+    getMetrics: adminWithPermission('dashboard:view').query(async () => {
       const studentUser = alias(schema.users as any, 'student_user')
       const counselorUser = alias(schema.users as any, 'counselor_user')
 
@@ -116,7 +116,7 @@ export const adminRouter = createTRPCRouter({
       }
     }),
 
-    getNetworkMap: adminProcedure.query(async () => {
+    getNetworkMap: adminWithPermission('dashboard:view').query(async () => {
       const branchRows = await db.select().from(schema.branches)
       const uniRows = await db.query.universities.findMany({
         with: { courses: { columns: { id: true } } },
@@ -202,7 +202,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   students: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('students:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -267,7 +267,7 @@ export const adminRouter = createTRPCRouter({
         return { items: shaped, nextCursor }
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('students:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       const counselorUser = alias(schema.users as any, 'counselor_user')
       const [row] = await db
         .select({
@@ -371,7 +371,7 @@ export const adminRouter = createTRPCRouter({
       }
     }),
 
-    updateProfile: adminProcedure
+    updateProfile: adminWithPermission('students:manage')
       .input(
         z.object({
           id: z.string(),
@@ -392,7 +392,7 @@ export const adminRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    assignCounselor: adminProcedure
+    assignCounselor: adminWithPermission('students:manage')
       .input(
         z.object({
           studentId: z.string(),
@@ -409,7 +409,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   applications: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('applications:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -497,7 +497,7 @@ export const adminRouter = createTRPCRouter({
         return { items: filteredItems.slice(0, limit), nextCursor }
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('applications:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       const studentUser = alias(schema.users as any, 'student_user')
       const counselorUser = alias(schema.users as any, 'counselor_user')
 
@@ -559,7 +559,7 @@ export const adminRouter = createTRPCRouter({
       }
     }),
 
-    updateStatus: adminProcedure
+    updateStatus: adminWithPermission('applications:manage')
       .input(
         z.object({
           id: z.string(),
@@ -584,7 +584,7 @@ export const adminRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    addNotes: adminProcedure
+    addNotes: adminWithPermission('applications:manage')
       .input(
         z.object({
           id: z.string(),
@@ -601,7 +601,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   counselors: createTRPCRouter({
-    list: adminProcedure.query(async () => {
+    list: adminWithPermission('counselors:view').query(async () => {
       const users = await db.select().from(schema.users)
         .where(eq(schema.users.role, 'COUNSELOR' as any))
 
@@ -614,7 +614,7 @@ export const adminRouter = createTRPCRouter({
       const profileMap = new Map(profiles.map((p) => [p.userId, p]))
       return users.map((u) => ({ ...u, counselorProfile: profileMap.get(u.id) || null }))
     }),
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('counselors:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       const user = await db.select().from(schema.users)
         .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'COUNSELOR' as any)))
         .limit(1).then((r) => r[0] || null)
@@ -624,7 +624,7 @@ export const adminRouter = createTRPCRouter({
         .limit(1).then((r) => r[0] || null)
       return { ...user, counselorProfile: profile }
     }),
-    create: adminProcedure
+    create: adminWithPermission('counselors:manage')
       .input(
         z.object({
           name: z.string().min(1),
@@ -668,7 +668,7 @@ export const adminRouter = createTRPCRouter({
           throw e
         }
       }),
-    update: adminProcedure
+    update: adminWithPermission('counselors:manage')
       .input(
         z.object({
           id: z.string(),
@@ -711,7 +711,7 @@ export const adminRouter = createTRPCRouter({
         }
         return { success: true }
       }),
-    delete: adminProcedure
+    delete: adminWithPermission('counselors:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         const profiles = await db.select().from(schema.counselorProfiles)
@@ -726,7 +726,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   notifications: createTRPCRouter({
-    sendSystem: adminProcedure
+    sendSystem: adminWithPermission('notifications:manage')
       .input(
         z.object({
           userId: z.string().optional(), // If not provided, it's a broadcast
@@ -759,7 +759,7 @@ export const adminRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    list: adminProcedure
+    list: adminWithPermission('notifications:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -786,7 +786,7 @@ export const adminRouter = createTRPCRouter({
   // ─── Universities CRUD ────────────────────────────────────
 
   universities: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('universities:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -812,14 +812,14 @@ export const adminRouter = createTRPCRouter({
           .orderBy(desc(schema.universities.createdAt))
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('universities:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
 return db.select().from(schema.universities)
           .where(eq(schema.universities.id, input.id))
           .limit(1)
           .then((rows) => rows[0] || null)
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('universities:manage')
       .input(
         z.object({
           name: z.string().min(1),
@@ -845,7 +845,7 @@ return db.select().from(schema.universities)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('universities:manage')
       .input(
         z.object({
           id: z.string(),
@@ -873,7 +873,7 @@ return db.select().from(schema.universities)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('universities:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.universities).where(eq(schema.universities.id, input.id))
@@ -884,7 +884,7 @@ return db.select().from(schema.universities)
   // ─── Courses CRUD ──────────────────────────────────────────
 
   courses: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -929,7 +929,7 @@ return db.select().from(schema.universities)
         }))
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('courses:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
 const course = await db.select().from(schema.courses)
           .where(eq(schema.courses.id, input.id))
           .limit(1)
@@ -942,7 +942,7 @@ const course = await db.select().from(schema.courses)
         return { ...course, university: uni }
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(
         z.object({
           universityId: z.string().min(1),
@@ -981,7 +981,7 @@ const course = await db.select().from(schema.courses)
         return { success: true, id }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('courses:manage')
       .input(
         z.object({
           id: z.string(),
@@ -1021,14 +1021,14 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('courses:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.courses).where(eq(schema.courses.id, input.id))
         return { success: true }
       }),
 
-    getSubjects: adminProcedure.query(async () => {
+    getSubjects: adminWithPermission('courses:view').query(async () => {
       const rows = await db
         .selectDistinct({ subject: schema.courses.subject })
         .from(schema.courses)
@@ -1039,7 +1039,7 @@ const course = await db.select().from(schema.courses)
   // ─── Requirements Pool CRUD ──────────────────────────────────
 
   requirements: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(z.object({ type: z.string().optional() }))
       .query(async ({ input }) => {
         const conds = input.type ? [eq(schema.requirements.type, input.type as any)] : []
@@ -1048,7 +1048,7 @@ const course = await db.select().from(schema.courses)
           .orderBy(schema.requirements.name)
       }),
 
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(z.object({
         type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']),
         name: z.string().min(1),
@@ -1061,7 +1061,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('courses:manage')
       .input(z.object({
         id: z.string(),
         type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']).optional(),
@@ -1076,7 +1076,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('courses:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.requirements).where(eq(schema.requirements.id, input.id))
@@ -1087,14 +1087,14 @@ const course = await db.select().from(schema.courses)
   // ─── Course Requirements (Junction) ──────────────────────────
 
   courseRequirements: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(z.object({ courseId: z.string() }))
       .query(async ({ input }) => {
         return db.select().from(schema.platformCourseRequirements)
           .where(eq(schema.platformCourseRequirements.courseId, input.courseId))
       }),
 
-    set: adminProcedure
+    set: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         requirementIds: z.array(z.string()),
@@ -1113,7 +1113,7 @@ const course = await db.select().from(schema.courses)
   // ─── Related Courses ─────────────────────────────────────────
 
   relatedCourses: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(z.object({ courseId: z.string() }))
       .query(async ({ input }) => {
         return db.select().from(schema.relatedCourses)
@@ -1121,7 +1121,7 @@ const course = await db.select().from(schema.courses)
           .orderBy(schema.relatedCourses.sortOrder)
       }),
 
-    set: adminProcedure
+    set: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         relatedCourseIds: z.array(z.string()),
@@ -1144,7 +1144,7 @@ const course = await db.select().from(schema.courses)
   // ─── Course Modules ──────────────────────────────────────────
 
   courseModules: createTRPCRouter({
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         term: z.string(),
@@ -1156,7 +1156,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    deleteByCourse: adminProcedure
+    deleteByCourse: adminWithPermission('courses:manage')
       .input(z.object({ courseId: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.courseModules)
@@ -1168,7 +1168,7 @@ const course = await db.select().from(schema.courses)
   // ─── Course Intakes ──────────────────────────────────────────
 
   courseIntakes: createTRPCRouter({
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         intakeDate: z.date(),
@@ -1179,7 +1179,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    deleteByCourse: adminProcedure
+    deleteByCourse: adminWithPermission('courses:manage')
       .input(z.object({ courseId: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.platformCourseIntakes)
@@ -1191,7 +1191,7 @@ const course = await db.select().from(schema.courses)
   // ─── Countries CRUD (Catalog) ──────────────────────────────
 
   countries: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('countries:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -1210,14 +1210,14 @@ const course = await db.select().from(schema.courses)
           .orderBy(schema.countries.name)
       }),
 
-    getById: adminProcedure.input(z.object({ code: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('countries:view').input(z.object({ code: z.string() })).query(async ({ input }) => {
 return db.select().from(schema.countries)
           .where(eq(schema.countries.code, input.code))
           .limit(1)
           .then((rows) => rows[0] || null)
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('countries:manage')
       .input(
         z.object({
           code: z.string().length(2),
@@ -1231,7 +1231,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('countries:manage')
       .input(
         z.object({
           code: z.string().length(2),
@@ -1246,7 +1246,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('countries:manage')
       .input(z.object({ code: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.countries).where(eq(schema.countries.code, input.code))
@@ -1257,7 +1257,7 @@ return db.select().from(schema.countries)
   // ─── Departments CRUD (Catalog) ───────────────────────────
 
   departments: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('universities:view')
       .input(
         z.object({
           universityId: z.number().optional(),
@@ -1276,14 +1276,14 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+    getById: adminWithPermission('universities:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
       return db.query.departments.findFirst({
         where: eq(schema.departments.id, input.id),
         with: { university: true },
       })
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('universities:manage')
       .input(
         z.object({
           universityId: z.number(),
@@ -1297,7 +1297,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('universities:manage')
       .input(
         z.object({
           id: z.number(),
@@ -1313,14 +1313,14 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('universities:manage')
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.departments).where(eq(schema.departments.id, input.id))
         return { success: true }
       }),
 
-    getCatalogUniversities: adminProcedure.query(async () => {
+    getCatalogUniversities: adminWithPermission('universities:view').query(async () => {
       return db.query.catalogUniversities.findMany({
         orderBy: [schema.catalogUniversities.name],
         columns: { id: true, name: true },
@@ -1331,7 +1331,7 @@ return db.select().from(schema.countries)
   // ─── Scholarships CRUD (Catalog) ──────────────────────────
 
   scholarships: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('scholarships:view')
       .input(
         z.object({
           universityId: z.number().optional(),
@@ -1352,14 +1352,14 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+    getById: adminWithPermission('scholarships:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
       return db.query.scholarships.findFirst({
         where: eq(schema.scholarships.id, input.id),
         with: { university: true, course: true },
       })
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('scholarships:manage')
       .input(
         z.object({
           universityId: z.number().optional(),
@@ -1380,7 +1380,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('scholarships:manage')
       .input(
         z.object({
           id: z.number(),
@@ -1403,21 +1403,21 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('scholarships:manage')
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.scholarships).where(eq(schema.scholarships.id, input.id))
         return { success: true }
       }),
 
-    getCatalogUniversities: adminProcedure.query(async () => {
+    getCatalogUniversities: adminWithPermission('scholarships:view').query(async () => {
       return db.query.catalogUniversities.findMany({
         orderBy: [schema.catalogUniversities.name],
         columns: { id: true, name: true },
       })
     }),
 
-    getCatalogCourses: adminProcedure.query(async () => {
+    getCatalogCourses: adminWithPermission('scholarships:view').query(async () => {
       return db.query.catalogCourses.findMany({
         orderBy: [schema.catalogCourses.title],
         columns: { id: true, title: true },
@@ -1428,7 +1428,7 @@ return db.select().from(schema.countries)
   // ─── Newsletter Subscribers CRUD ─────────────────────────
 
   newsletters: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('newsletters:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -1453,13 +1453,13 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('newsletters:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       return db.query.newsletterSubscribers.findFirst({
         where: eq(schema.newsletterSubscribers.id, input.id),
       })
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('newsletters:manage')
       .input(
         z.object({
           email: z.string().email(),
@@ -1473,7 +1473,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('newsletters:manage')
       .input(
         z.object({
           id: z.string(),
@@ -1489,7 +1489,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('newsletters:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.newsletterSubscribers).where(eq(schema.newsletterSubscribers.id, input.id))
@@ -1500,7 +1500,7 @@ return db.select().from(schema.countries)
   // ─── Deadlines ────────────────────────────────────────────
 
   deadlines: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('deadlines:view')
       .input(z.object({ search: z.string().trim().max(255).optional(), category: z.string().max(50).optional() }))
       .query(async ({ input }) => {
         const conditions: any[] = []
@@ -1533,7 +1533,7 @@ return db.select().from(schema.countries)
         return rows.map((r: any) => ({ ...r, dueAt: r.dueAt?.toISOString?.() ?? r.dueAt }))
       }),
 
-    students: adminProcedure.query(async () => {
+    students: adminWithPermission('deadlines:view').query(async () => {
       const rows = await db
         .select({ id: schema.studentProfiles.id, name: schema.users.name, email: schema.users.email })
         .from(schema.studentProfiles)
@@ -1542,7 +1542,7 @@ return db.select().from(schema.countries)
       return rows.map((r: any) => ({ id: r.id, name: r.name ?? 'Student', email: r.email ?? '' }))
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('deadlines:manage')
       .input(
         z.object({
           title: z.string().trim().min(1, 'Title is required').max(255),
@@ -1574,7 +1574,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('deadlines:manage')
       .input(
         z.object({
           id: z.string().min(1),
@@ -1610,7 +1610,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    remove: adminProcedure
+    remove: adminWithPermission('deadlines:manage')
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ input }) => {
         await db.delete(schema.deadlines).where(eq(schema.deadlines.id, input.id))
@@ -1621,7 +1621,7 @@ return db.select().from(schema.countries)
   // ─── Messages ─────────────────────────────────────────────
 
   messages: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('messages:view')
       .input(z.object({ limit: z.number().min(1).max(100).default(50) }))
       .query(async ({ input }) => {
         const rows = await db
@@ -1643,7 +1643,7 @@ return db.select().from(schema.countries)
         return rows
       }),
 
-    getMessages: adminProcedure
+    getMessages: adminWithPermission('messages:view')
       .input(z.object({ conversationId: z.string() }))
       .query(async ({ input }) => {
         const rows = await db
@@ -1670,7 +1670,7 @@ return db.select().from(schema.countries)
   // ─── Documents ────────────────────────────────────────────
 
   documents: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('documents:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -1723,7 +1723,7 @@ return db.select().from(schema.countries)
         }))
       }),
 
-    updateStatus: adminProcedure
+    updateStatus: adminWithPermission('documents:manage')
       .input(
         z.object({
           id: z.string().min(1),
@@ -1904,7 +1904,7 @@ return db.select().from(schema.countries)
 
   // ─── Settings (admin profile) ─────────────────────────────
   settings: createTRPCRouter({
-    getProfile: adminProcedure.query(async ({ ctx }) => {
+    getProfile: adminWithPermission('settings:view').query(async ({ ctx }) => {
       const [user] = await db
         .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, image: schema.users.image })
         .from(schema.users)
@@ -1913,7 +1913,7 @@ return db.select().from(schema.countries)
       return user ?? null
     }),
 
-    updateProfile: adminProcedure
+    updateProfile: adminWithPermission('settings:manage')
       .input(
         z.object({
           name: z.string().trim().min(2).max(100),
@@ -1988,7 +1988,8 @@ return db.select().from(schema.countries)
             emailVerified: true,
             createdAt: true,
             image: true,
-          },
+            permissions: true,
+          } as any,
         })
         const totalRes = await db
           .select({ value: count() as any })
@@ -2075,6 +2076,91 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
+    getUserPermissions: superAdminProcedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ input }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true, permissions: true } as any,
+        })
+        if (!user) throw new Error('User not found')
+        let perms: string[] = []
+        const raw: any = (user as any).permissions
+        if (Array.isArray(raw)) perms = raw
+        else if (typeof raw === 'string') {
+          try {
+            const parsed = JSON.parse(raw)
+            if (Array.isArray(parsed)) perms = parsed
+          } catch {}
+        }
+        return { userId: input.userId, role: (user as any).role, permissions: perms }
+      }),
+
+    updatePermissions: superAdminProcedure
+      .input(z.object({ userId: z.string(), permissions: z.array(z.string()) }))
+      .mutation(async ({ input }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true },
+        })
+        if (!user) throw new Error('User not found')
+        if ((user as any).role === 'SUPER_ADMIN') {
+          throw new Error('Super Admin has all permissions implicitly — no need to set')
+        }
+        // Validate permissions against known list
+        const { ALL_PERMISSIONS } = await import('@/lib/rbac')
+        const invalid = input.permissions.filter((p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*'))
+        if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
+        await db
+          .update(schema.users)
+          .set({ permissions: JSON.stringify(input.permissions) as any })
+          .where(eq(schema.users.id, input.userId))
+        return { success: true }
+      }),
+
+    createStaff: superAdminProcedure
+      .input(
+        z.object({
+          name: z.string().min(2).max(100),
+          email: z.string().email(),
+          password: z.string().min(8).max(100).optional(),
+          permissions: z.array(z.string()).default([]),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { ALL_PERMISSIONS } = await import('@/lib/rbac')
+        const invalid = input.permissions.filter((p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*'))
+        if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
+        const existing = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.email, input.email),
+        })
+        if (existing) throw new Error('A user with this email already exists')
+        const userId = globalThis.crypto.randomUUID()
+        // Use better-auth's password hashing via bcrypt
+        const { hash } = await import('bcryptjs')
+        let hashed: string | null = null
+        if (input.password) {
+          hashed = await hash(input.password, 12)
+        }
+        await db.insert(schema.users).values({
+          id: userId,
+          name: input.name,
+          email: input.email,
+          role: 'ADMIN' as any,
+          permissions: JSON.stringify(input.permissions) as any,
+          emailVerified: true,
+        } as any)
+        if (hashed) {
+          await db.insert(schema.accounts).values({
+            userId,
+            providerId: 'credential',
+            accountId: input.email,
+            password: hashed,
+          } as any)
+        }
+        return { success: true, userId }
+      }),
+
     getPlatformStats: superAdminProcedure.query(async () => {
       const [totalUsers, studentCount, counselorCount, adminCount, universitiesCount, upcomingSessionsCount] = await Promise.all([
         db.select({ value: count() as any }).from(schema.users),
@@ -2096,6 +2182,5 @@ return db.select().from(schema.countries)
     }),
   }),
 })
-
 
 

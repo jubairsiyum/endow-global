@@ -8,9 +8,11 @@ import { UserRole } from '@endow/types'
 export function AdminClientLayout({
   children,
   userRole,
+  permissions,
 }: {
   children: React.ReactNode
   userRole: UserRole
+  permissions?: string[]
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -26,7 +28,7 @@ export function AdminClientLayout({
       <div
         className={`fixed left-0 top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}
       >
-        <Sidebar userRole={userRole} />
+        <Sidebar userRole={userRole} permissions={permissions} />
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">

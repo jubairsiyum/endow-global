@@ -14,13 +14,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
  redirect('/login')
  }
 
- const dbUser = await db.query.users.findFirst({
- where: (u, { eq }) => eq(u.id, session.user.id),
- })
+  const dbUser = await db.query.users.findFirst({
+  where: (u, { eq }) => eq(u.id, session.user.id),
+  })
 
- if (!dbUser || (dbUser.role !== UserRole.ADMIN && dbUser.role !== UserRole.SUPER_ADMIN)) {
- redirect('/login/admin?error=unauthorized')
- }
+  if (!dbUser || (dbUser.role !== UserRole.ADMIN && dbUser.role !== UserRole.SUPER_ADMIN)) {
+  redirect('/login/admin?error=unauthorized')
+  }
 
- return <AdminClientLayout userRole={dbUser.role as UserRole}>{children}</AdminClientLayout>
+  // Parse permissions JSON (stored as json or string)
+  let perms: string[] = []
+  const raw: any = (dbUser as any).permissions
+  if (Array.isArray(raw)) perms = raw
+  else if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) perms = parsed
+    } catch {}
+  }
+
+  return <AdminClientLayout userRole={dbUser.role as UserRole} permissions={perms}>{children}</AdminClientLayout>
 }

@@ -30,6 +30,9 @@ export const users = mysqlTable(
     image: varchar('image', { length: 255 }),
     role: mysqlEnum('role', ['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN']).default('STUDENT').notNull(),
     fcmToken: varchar('fcm_token', { length: 255 }),
+    // RBAC — JSON array of Permission strings, e.g. ["students:view","resources:manage"]
+    // SUPER_ADMIN bypasses all checks; ADMIN without permissions has no module access.
+    permissions: json('permissions').default('[]').notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
   },

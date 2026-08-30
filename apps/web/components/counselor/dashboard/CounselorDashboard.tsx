@@ -3,6 +3,8 @@
 import { motion } from 'framer-motion'
 import { Users, FileText, Calendar, Star, ArrowUpRight, Clock, CheckCircle2, AlertCircle } from 'lucide-react'
 import { SABadge } from '@/components/super-admin/shared/SABadge'
+import { trpc } from '@/lib/trpc-client'
+import Link from 'next/link'
 
 function StatCard({
   label,
@@ -57,21 +59,12 @@ function StatCard({
   )
 }
 
-const recentStudents = [
-  { id: '1', name: 'Aisha Rahman', country: 'Bangladesh', target: 'South Korea', app: 'SNU — Business Admin', status: 'Documents', avatar: 'AR' },
-  { id: '2', name: 'Karim Hossain', country: 'Bangladesh', target: 'Australia', app: 'UNSW — Data Science', status: 'Under Review', avatar: 'KH' },
-  { id: '3', name: 'Nusrat Jahan', country: 'Bangladesh', target: 'South Korea', app: 'KAIST — Engineering', status: 'Submitted', avatar: 'NJ' },
-  { id: '4', name: 'Tanvir Ahmed', country: 'Bangladesh', target: 'UK', app: 'Oxford — Economics', status: 'Draft', avatar: 'TA' },
-  { id: '5', name: 'Fatima Begum', country: 'Bangladesh', target: 'Malaysia', app: 'UM — Medicine', status: 'Accepted', avatar: 'FB' },
-]
-
-const upcomingSessions = [
-  { name: 'Aisha Rahman', time: 'Today, 2:30 PM', type: 'Application Review' },
-  { name: 'Karim Hossain', time: 'Tomorrow, 10:00 AM', type: 'University Selection' },
-  { name: 'Nusrat Jahan', time: 'Thu, 3:00 PM', type: 'Document Check' },
-]
-
 export default function CounselorDashboard() {
+  const { data: stats, isLoading } = trpc.counselor.getDashboardStats.useQuery()
+
+  const recentStudents = stats?.recentStudents ?? []
+  const upcomingSessions = stats?.upcomingSessions ?? []
+
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
@@ -93,10 +86,34 @@ export default function CounselorDashboard() {
         transition={{ duration: 0.35, delay: 0.05 }}
         className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4"
       >
-        <StatCard label="My Students" value="24" sub="8 active · 3 new this month" icon={Users} color="#E8A33D" />
-        <StatCard label="Applications" value="18" sub="5 pending · 2 accepted" icon={FileText} color="#a78bfa" />
-        <StatCard label="Sessions" value="12" sub="This week · 85% attended" icon={Calendar} color="#4FD1A5" />
-        <StatCard label="Rating" value="4.8" sub="From 32 reviews" icon={Star} color="#fbbf24" />
+        <StatCard
+          label="My Students"
+          value={isLoading ? '—' : String(stats?.students ?? 0)}
+          sub={`${stats?.recentStudents?.length ?? 0} recent · ${stats?.applications ?? 0} apps`}
+          icon={Users}
+          color="#E8A33D"
+        />
+        <StatCard
+          label="Applications"
+          value={isLoading ? '—' : String(stats?.applications ?? 0)}
+          sub={`${stats?.applicationsByStatus?.length ?? 0} statuses`}
+          icon={FileText}
+          color="#a78bfa"
+        />
+        <StatCard
+          label="Sessions"
+          value={isLoading ? '—' : String(stats?.sessions ?? 0)}
+          sub={`${stats?.sessionsWeek ?? 0} this week`}
+          icon={Calendar}
+          color="#4FD1A5"
+        />
+        <StatCard
+          label="Rating"
+          value={isLoading ? '—' : stats?.avgRating != null ? String(stats.avgRating) : '—'}
+          sub="From reviews"
+          icon={Star}
+          color="#fbbf24"
+        />
       </motion.div>
 
       {/* Main grid */}
@@ -116,73 +133,63 @@ export default function CounselorDashboard() {
             <h2 className="text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
               Recent Students
             </h2>
-            <span className="text-[11px] font-medium cursor-pointer hover:underline" style={{ color: '#E8A33D' }}>
+            <Link href="/counselor/students" className="text-[11px] font-medium hover:underline" style={{ color: '#E8A33D' }}>
               View all
-            </span>
+            </Link>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr>
-                  {['Student', 'Country', 'Target', 'Application', 'Status'].map((h) => (
-                    <th
-                      key={h}
-                      className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider"
-                      style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
-                {recentStudents.map((s) => (
-                  <tr key={s.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
-                          style={{
-                            background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-                            color: '#f8fafc',
-                          }}
-                        >
-                          {s.avatar}
-                        </div>
-                        <span className="text-[13px] font-medium" style={{ color: '#111827' }}>
-                          {s.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
-                      {s.country}
-                    </td>
-                    <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
-                      {s.target}
-                    </td>
-                    <td className="px-4 py-3 text-[12px]" style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>
-                      {s.app}
-                    </td>
-                    <td className="px-4 py-3">
-                      <SABadge
-                        variant={
-                          s.status === 'Accepted'
-                            ? 'success'
-                            : s.status === 'Under Review'
-                              ? 'warning'
-                              : s.status === 'Draft'
-                                ? 'neutral'
-                                : 'route'
-                        }
+          {recentStudents.length === 0 ? (
+            <div className="py-10 text-center text-[13px]" style={{ color: '#6b7280' }}>
+              No students assigned yet. New registrations will appear here.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    {['Student', 'Nationality', 'Target', 'Joined'].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider"
+                        style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}
                       >
-                        {s.status}
-                      </SABadge>
-                    </td>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
+                  {recentStudents.map((s: any) => (
+                    <tr key={s.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold"
+                            style={{
+                              background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
+                              color: '#f8fafc',
+                            }}
+                          >
+                            {(s.name || 'ST').slice(0, 2).toUpperCase()}
+                          </div>
+                          <div>
+                            <span className="text-[13px] font-medium" style={{ color: '#111827' }}>{s.name}</span>
+                            <p className="text-[11px]" style={{ color: '#6b7280' }}>{s.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>{s.nationality ?? '—'}</td>
+                      <td className="px-4 py-3 text-[13px]" style={{ color: '#6b7280' }}>
+                        {(s.targetCountries ?? []).slice(0, 2).join(', ') || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>
+                        {s.assignedAt ? new Date(s.assignedAt).toLocaleDateString() : '—'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </motion.div>
 
         {/* Side column */}
@@ -200,26 +207,28 @@ export default function CounselorDashboard() {
             <h2 className="text-[15px] font-semibold" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
               Upcoming Sessions
             </h2>
-            <div className="mt-3 space-y-3">
-              {upcomingSessions.map((session, i) => (
-                <div key={i} className="flex items-start gap-3">
-                  <div
-                    className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-                    style={{ background: 'rgba(16, 185, 129, 0.1)' }}
-                  >
-                    <Calendar size={14} style={{ color: '#4FD1A5' }} />
+            {upcomingSessions.length === 0 ? (
+              <p className="mt-3 text-[12px]" style={{ color: '#6b7280' }}>No upcoming sessions. Sessions booked by your students will appear here.</p>
+            ) : (
+              <div className="mt-3 space-y-3">
+                {upcomingSessions.map((session: any, i: number) => (
+                  <div key={session.id ?? i} className="flex items-start gap-3">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ background: 'rgba(16, 185, 129, 0.1)' }}>
+                      <Calendar size={14} style={{ color: '#4FD1A5' }} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13px] font-medium truncate" style={{ color: '#111827' }}>{session.studentName}</p>
+                      <p className="text-[11px]" style={{ color: '#6b7280' }}>
+                        {session.scheduledAt ? new Date(session.scheduledAt).toLocaleString() : '—'} · {session.duration ?? 60} min
+                      </p>
+                      {session.meetingUrl && (
+                        <a href={session.meetingUrl} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex text-[11px] font-medium hover:underline" style={{ color: '#2563eb' }}>Join meeting</a>
+                      )}
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[13px] font-medium" style={{ color: '#111827' }}>
-                      {session.name}
-                    </p>
-                    <p className="text-[11px]" style={{ color: '#6b7280' }}>
-                      {session.type} — {session.time}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Performance */}

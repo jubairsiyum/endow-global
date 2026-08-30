@@ -28,7 +28,7 @@ export default function AppointmentsPage() {
   const utils = trpc.useUtils()
   const { data: real, isLoading, isError, refetch } = trpc.dashboard.sessions.list.useQuery()
   const { data: counselors, isError: counselorsError, refetch: refetchCounselors } = trpc.dashboard.sessions.counselors.useQuery()
-  const { data: assignedCounselor } = trpc.dashboard.sessions.assigned.useQuery()
+  const { data: assignedCounselor, isLoading: assignedLoading } = trpc.dashboard.sessions.assigned.useQuery()
   const book = trpc.dashboard.sessions.book.useMutation()
   const reschedule = trpc.dashboard.sessions.reschedule.useMutation()
   const cancel = trpc.dashboard.sessions.cancel.useMutation()
@@ -50,18 +50,30 @@ export default function AppointmentsPage() {
     utils.dashboard.sessions.assigned.invalidate()
   }
 
+  // Keep counselorId in sync with assigned counselor
+  const effectiveCounselorId = assignedCounselor?.id ?? counselorId
+  const hasAssignedCounselor = !!assignedCounselor?.id
+
   // Preselect the assigned counselor the first time the booking form opens.
   function openBooking() {
-    setBookingOpen((open) => !open)
-    if (!open && !counselorId && assignedCounselor?.id) {
-      setCounselorId(assignedCounselor.id)
-    }
+    setBookingOpen((open) => {
+      const next = !open
+      if (next && assignedCounselor?.id) {
+        setCounselorId(assignedCounselor.id)
+      }
+      return next
+    })
   }
 
   async function handleBook(e: React.FormEvent) {
     e.preventDefault()
-    if (!counselorId) {
-      toast.error('Pick a counselor')
+    const bookingCounselorId = assignedCounselor?.id ?? counselorId
+    if (!hasAssignedCounselor) {
+      toast.error('No counselor assigned to you yet. Please contact support.')
+      return
+    }
+    if (!bookingCounselorId) {
+      toast.error('No counselor assigned')
       return
     }
     if (!scheduledAt) {
@@ -78,7 +90,7 @@ export default function AppointmentsPage() {
       return
     }
     try {
-      await book.mutateAsync({ counselorId, scheduledAt: when.toISOString(), notes: notes || undefined })
+      await book.mutateAsync({ counselorId: bookingCounselorId, scheduledAt: when.toISOString(), notes: notes || undefined })
       toast.success('Session booked')
       setBookingOpen(false)
       setScheduledAt('')
@@ -262,23 +274,31 @@ export default function AppointmentsPage() {
             <div className="space-y-4">
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">Counselor</span>
-                {counselorsError && (
+                {assignedLoading ? (
+                  <span className="text-xs text-gray-400">Loading your counselor…</span>
+                ) : hasAssignedCounselor ? (
+                  <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 dark:border-emerald-800 dark:bg-emerald-950/30">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-sm font-bold text-emerald-700 dark:bg-emerald-900 dark:text-emerald-200">
+                      {(assignedCounselor.name || 'C')[0].toUpperCase()}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">{assignedCounselor.name}</p>
+                      <p className="text-xs text-emerald-700 dark:text-emerald-300">Your assigned counselor · only this counselor can be booked</p>
+                    </div>
+                    {assignedCounselor.rating != null && (
+                      <span className="ml-auto text-xs font-semibold text-amber-600">{assignedCounselor.rating} ★</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-xs text-amber-800 dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+                    No counselor is assigned to you yet. Please contact support — you will be able to book once a counselor is assigned.
+                  </div>
+                )}
+                {/* Fallback for error state when assigned counselor fetch fails but counselors list exists */}
+                {!hasAssignedCounselor && counselorsError && (
                   <button type="button" onClick={() => refetchCounselors()} className="text-left text-xs text-red-600 underline dark:text-red-300">
                     Counselors are temporarily unavailable. Try again.
                   </button>
-                )}
-                <select value={counselorId} onChange={(e) => setCounselorId(e.target.value)} disabled={counselorsError} className={input}>
-                  <option value="">Select a counselor…</option>
-                  {(counselors ?? []).map((c: any) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name} {c.rating ? `· ${c.rating} ★` : ''}
-                    </option>
-                  ))}
-                </select>
-                {assignedCounselor && counselorId === assignedCounselor.id && (
-                  <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-300">
-                    Your assigned counselor
-                  </span>
                 )}
               </label>
               <label className="flex flex-col gap-1.5">
@@ -304,8 +324,8 @@ export default function AppointmentsPage() {
                   className={cn(input, 'h-auto min-h-[64px] resize-none py-3')}
                 />
               </label>
-              <button type="submit" disabled={book.isPending} className={cn(btnPrimary, 'w-full')}>
-                {book.isPending ? 'Booking…' : 'Confirm booking'}
+              <button type="submit" disabled={book.isPending || !hasAssignedCounselor} className={cn(btnPrimary, 'w-full')}>
+                {book.isPending ? 'Booking…' : hasAssignedCounselor ? 'Confirm booking' : 'No counselor assigned'}
               </button>
             </div>
           </motion.form>
