@@ -1,29 +1,59 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, Shield, Trash2, RefreshCw, AlertTriangle, KeyRound, UserPlus, X, Check } from 'lucide-react'
+import {
+  Search, Shield, Trash2, RefreshCw, AlertTriangle, KeyRound, UserPlus, X, Check,
+  MoreHorizontal, UserCog, Lock, Eye, EyeOff, Crown,
+} from 'lucide-react'
+import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { trpc } from '@/lib/trpc-client'
+import { useSession } from '@/lib/auth-client'
 import { SABadge } from '@/components/super-admin/shared/SABadge'
 import { SAButton } from '@/components/super-admin/shared/SAButton'
 import { SAInput } from '@/components/super-admin/shared/SAInput'
-import { SATooltip } from '@/components/super-admin/shared/SATooltip'
 import { PermissionEditor } from '@/components/admin/PermissionEditor'
 import { toast } from 'sonner'
 
 const ROLES = ['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN'] as const
 
+const ROLE_META: Record<string, { label: string; dot: string; badge: 'route' | 'success' | 'alert' | 'neutral' | 'warning'; icon: typeof Shield }> = {
+  SUPER_ADMIN: { label: 'Super Admin', dot: 'alert', badge: 'alert', icon: Crown },
+  ADMIN: { label: 'Admin', dot: 'route', badge: 'route', icon: Shield },
+  COUNSELOR: { label: 'Counselor', dot: 'success', badge: 'success', icon: UserCog },
+  STUDENT: { label: 'Student', dot: 'neutral', badge: 'neutral', icon: Shield },
+}
+
+function RoleBadge({ role }: { role: string }) {
+  const meta = ROLE_META[role] ?? ROLE_META.STUDENT
+  const Icon = meta.icon
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${meta.badge === 'alert' ? 'bg-red-50 text-red-700 border border-red-200' : meta.badge === 'route' ? 'bg-amber-50 text-amber-800 border border-amber-200' : meta.badge === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-50 text-gray-600 border border-gray-200'}`}>
+      <Icon size={11} /> {meta.label}
+    </span>
+  )
+}
+
 export default function SAUsersPage() {
+  const { data: session } = useSession()
+  const currentUserId = (session?.user as any)?.id as string | undefined
+
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string | undefined>()
   const [page, setPage] = useState(0)
-  const limit = 50
+  const limit = 30
 
-  // Permission editing state
+  // Modals
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
   const [editingPerms, setEditingPerms] = useState<string[]>([])
   const [showCreate, setShowCreate] = useState(false)
   const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', perms: [] as string[] })
+
+  const [roleTarget, setRoleTarget] = useState<{ id: string; name: string; email: string; role: string } | null>(null)
+  const [newRole, setNewRole] = useState<string>('ADMIN')
+  const [resetTarget, setResetTarget] = useState<{ id: string; name: string; email: string } | null>(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [showPw, setShowPw] = useState(false)
 
   const utils = trpc.useUtils()
   const { data, isLoading, error } = trpc.admin.super.getAllUsers.useQuery({
@@ -37,216 +67,350 @@ export default function SAUsersPage() {
     { userId: editingUserId! },
     { enabled: !!editingUserId }
   )
-
-  useEffect(() => {
-    if (permData?.permissions) setEditingPerms(permData.permissions)
-  }, [permData])
+  useEffect(() => { if (permData?.permissions) setEditingPerms(permData.permissions) }, [permData])
+  useEffect(() => { if (roleTarget) setNewRole(roleTarget.role) }, [roleTarget])
+  useEffect(() => { if (resetTarget) { setNewPassword(''); setShowPw(false) } }, [resetTarget])
 
   const updateRole = trpc.admin.super.updateUserRole.useMutation({
-    onSuccess: () => {
-      utils.admin.super.getAllUsers.invalidate()
-      utils.admin.super.getPlatformStats.invalidate()
-      toast.success('Role updated')
-    },
+    onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); utils.admin.super.getPlatformStats.invalidate(); setRoleTarget(null); toast.success('Role updated') },
     onError: (e) => toast.error(e.message),
   })
-
   const deleteUser = trpc.admin.super.deleteUser.useMutation({
-    onSuccess: () => {
-      utils.admin.super.getAllUsers.invalidate()
-      utils.admin.super.getPlatformStats.invalidate()
-      toast.success('User deleted')
-    },
+    onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); utils.admin.super.getPlatformStats.invalidate(); toast.success('User deleted') },
     onError: (e) => toast.error(e.message),
   })
-
   const updatePerms = trpc.admin.super.updatePermissions.useMutation({
-    onSuccess: () => {
-      utils.admin.super.getAllUsers.invalidate()
-      setEditingUserId(null)
-      toast.success('Permissions updated')
-    },
+    onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); setEditingUserId(null); toast.success('Permissions updated') },
     onError: (e) => toast.error(e.message),
   })
-
   const createStaff = trpc.admin.super.createStaff.useMutation({
-    onSuccess: () => {
-      utils.admin.super.getAllUsers.invalidate()
-      setShowCreate(false)
-      setCreateForm({ name: '', email: '', password: '', perms: [] })
-      toast.success('Staff created')
-    },
+    onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); setShowCreate(false); setCreateForm({ name: '', email: '', password: '', perms: [] }); toast.success('Staff created') },
+    onError: (e) => toast.error(e.message),
+  })
+  const resetPassword = trpc.admin.super.resetPassword.useMutation({
+    onSuccess: () => { setResetTarget(null); setNewPassword(''); toast.success('Password reset — user must login with new password') },
     onError: (e) => toast.error(e.message),
   })
 
   const totalPages = data ? Math.ceil(data.total / limit) : 1
+  const filteredCount = data?.users?.length ?? 0
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }} className="flex items-center justify-between">
+      <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>
-            User Management
-          </h1>
-          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>
-            Manage roles and module-based permissions (RBAC) for all platform users
-          </p>
+          <h1 className="text-[20px] font-bold tracking-tight" style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}>User Management</h1>
+          <p className="mt-0.5 text-[13px]" style={{ color: '#6b7280' }}>Manage users, roles and module permissions. Role changes and password resets are audited.</p>
         </div>
         <div className="flex items-center gap-2">
-          <SABadge variant="route">
-            <Shield size={11} />
-            {data?.total ?? 0} users
-          </SABadge>
-          <SAButton variant="primary" size="sm" onClick={() => setShowCreate(true)}>
-            <UserPlus size={14} /> Create Staff
-          </SAButton>
+          <SABadge variant="route"><Shield size={11} />{data?.total ?? 0} users</SABadge>
+          <SAButton variant="primary" size="sm" onClick={() => setShowCreate(true)}><UserPlus size={14} /> New staff</SAButton>
         </div>
       </motion.div>
 
-      {/* Filters */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, delay: 0.05 }} className="flex flex-wrap items-center gap-3">
-        <div className="w-[300px]">
-          <SAInput placeholder="Search by name or email..." icon={<Search size={14} />} value={search} onChange={(e) => { setSearch(e.target.value); setPage(0) }} />
+      {/* Filters — concise */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="flex flex-col gap-3 rounded-xl border bg-white p-3 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: '#e5e7eb' }}>
+        <div className="flex flex-1 items-center gap-2">
+          <div className="w-full max-w-[320px]"><SAInput placeholder="Search name or email…" icon={<Search size={14} />} value={search} onChange={(e) => { setSearch(e.target.value); setPage(0) }} /></div>
+          <span className="hidden text-[11px] sm:inline" style={{ color: '#9ca3af' }}>{filteredCount} shown</span>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           {([undefined, ...ROLES] as (string | undefined)[]).map((r) => (
             <button
               key={r ?? 'all'}
               onClick={() => { setRoleFilter(r); setPage(0) }}
-              className="rounded-md px-2.5 py-1.5 text-[12px] font-medium transition-colors"
-              style={{
-                background: roleFilter === r ? 'rgba(232, 163, 61, 0.12)' : 'transparent',
-                color: roleFilter === r ? '#E8A33D' : '#6b7280',
-                border: `1px solid ${roleFilter === r ? 'rgba(232, 163, 61, 0.2)' : '#e5e7eb'}`,
-              }}
+              className={`rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${roleFilter === r ? 'bg-[#111827] text-white' : 'bg-gray-50 text-gray-600 hover:bg-gray-100 border'}`}
+              style={roleFilter !== r ? { borderColor: '#e5e7eb' } as any : undefined}
             >
-              {r ?? 'All'}
+              {r ? ROLE_META[r]?.label ?? r : 'All roles'}
             </button>
           ))}
+          <SAButton variant="ghost" size="sm" onClick={() => { setSearch(''); setRoleFilter(undefined); setPage(0); utils.admin.super.getAllUsers.invalidate() }}><RefreshCw size={12} /> Reset</SAButton>
         </div>
-        <SAButton variant="ghost" size="sm" onClick={() => { setSearch(''); setRoleFilter(undefined); setPage(0); utils.admin.super.getAllUsers.invalidate() }}>
-          <RefreshCw size={12} /> Reset
-        </SAButton>
       </motion.div>
 
-      {/* Table */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.1 }} className="overflow-hidden rounded-xl border" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
+      {/* Table — modern concise */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="overflow-hidden rounded-xl border shadow-sm" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
         {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }} />
-          </div>
+          <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }} /></div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <AlertTriangle size={28} style={{ color: '#F0625B' }} />
-            <p className="mt-3 text-[14px] font-medium" style={{ color: '#F0625B' }}>Failed to load users</p>
+            <AlertTriangle size={28} style={{ color: '#F0625B' }} /><p className="mt-3 text-[14px] font-medium" style={{ color: '#F0625B' }}>Failed to load users</p>
             <SAButton variant="secondary" size="sm" className="mt-3" onClick={() => utils.admin.super.getAllUsers.invalidate()}>Retry</SAButton>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr style={{ background: '#ffffff' }}>
-                  {['User', 'Email', 'Role', 'Modules', 'Verified', 'Joined', 'Actions'].map((h) => (
-                    <th key={h} className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="[&_tr]:border-t [&_tr]:border-[#e5e7eb]/50">
-                {(data?.users ?? []).map((user: any) => {
-                  const perms: string[] = (() => {
-                    const raw = user.permissions
-                    if (Array.isArray(raw)) return raw
-                    if (typeof raw === 'string') {
-                      try { const p = JSON.parse(raw); if (Array.isArray(p)) return p } catch {}
-                    }
-                    return []
-                  })()
-                  const isStaff = user.role === 'ADMIN'
-                  const isSuper = user.role === 'SUPER_ADMIN'
-                  return (
-                    <tr key={user.id} className="transition-colors hover:bg-[#E8A33D]/[0.04]">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-md text-[10px] font-bold" style={{ background: isSuper ? 'linear-gradient(135deg, #F0625B, #d94646)' : 'linear-gradient(135deg, #E8A33D, #c48b2e)', color: '#fff' }}>
-                            {user.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '??'}
+          <>
+            {/* Desktop table */}
+            <div className="hidden overflow-x-auto md:block">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-gray-50/60" style={{ borderColor: '#e5e7eb' }}>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>User</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>Role</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>Access</th>
+                    <th className="px-4 py-2.5 text-left text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>Status</th>
+                    <th className="px-4 py-2.5 text-right text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y" style={{ borderColor: '#f3f4f6' } as any}>
+                  {(data?.users ?? []).map((user: any) => {
+                    const perms: string[] = (() => { const raw = user.permissions; if (Array.isArray(raw)) return raw; if (typeof raw === 'string') { try { const p = JSON.parse(raw); if (Array.isArray(p)) return p } catch {} } return [] })()
+                    const isSelf = currentUserId === user.id
+                    const isSuper = user.role === 'SUPER_ADMIN'
+                    const isAdmin = user.role === 'ADMIN'
+                    return (
+                      <tr key={user.id} className="group transition-colors hover:bg-gray-50/60">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-[11px] font-bold text-white" style={{ background: isSuper ? 'linear-gradient(135deg,#F0625B,#dc2626)' : isAdmin ? 'linear-gradient(135deg,#E8A33D,#b45309)' : user.role === 'COUNSELOR' ? 'linear-gradient(135deg,#10b981,#047857)' : 'linear-gradient(135deg,#6b7280,#374151)' }}>
+                              {user.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : (user.name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '??')}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-1.5">
+                                <span className="truncate text-[13px] font-semibold" style={{ color: '#111827' }}>{user.name || 'Unnamed'}</span>
+                                {isSelf && <span className="rounded-full bg-gray-900 px-1.5 py-0.5 text-[10px] font-bold text-white">You</span>}
+                              </div>
+                              <div className="truncate text-[11px]" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{user.email}</div>
+                              <div className="text-[10px]" style={{ color: '#9ca3af' }}>Joined {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</div>
+                            </div>
                           </div>
-                          <span className="text-[13px] font-medium" style={{ color: '#111827' }}>{user.name || 'Unnamed'}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280', fontFamily: "'JetBrains Mono', monospace" }}>{user.email}</td>
-                      <td className="px-4 py-3">
-                        <select
-                          value={user.role}
-                          onChange={(e) => {
-                            if (e.target.value === user.role) return
-                            if (user.role === 'SUPER_ADMIN' && !confirm('Are you sure you want to demote the Super Admin?')) return
-                            updateRole.mutate({ userId: user.id, role: e.target.value as any })
-                          }}
-                          className="rounded-md border px-2 py-1 text-[12px] font-medium outline-none cursor-pointer"
-                          style={{ background: '#f8fafc', borderColor: '#e5e7eb', color: '#E8A33D' }}
-                        >
-                          {ROLES.map((r) => (
-                            <option key={r} value={r} style={{ background: '#ffffff', color: '#111827' }}>{r.replace(/_/g, ' ')}</option>
-                          ))}
-                        </select>
-                      </td>
-                      <td className="px-4 py-3">
-                        {isSuper ? (
-                          <SABadge variant="alert" dot>All access</SABadge>
-                        ) : isStaff ? (
-                          <div className="flex items-center gap-1.5">
-                            <SABadge variant={perms.length ? 'route' : 'warning'}>{perms.length ? `${perms.length} perms` : 'No access'}</SABadge>
-                            <button onClick={() => setEditingUserId(user.id)} className="rounded-md border px-1.5 py-0.5 text-[11px] hover:bg-gray-50" style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>
-                              <KeyRound size={11} className="inline mr-1" />Edit
-                            </button>
+                        </td>
+                        <td className="px-4 py-3"><RoleBadge role={user.role} /></td>
+                        <td className="px-4 py-3">
+                          {isSuper ? <SABadge variant="alert">All modules</SABadge> : isAdmin ? (
+                            perms.length ? (
+                              <span className="inline-flex items-center gap-1 rounded-full border bg-amber-50 px-2 py-0.5 text-[11px] font-medium" style={{ borderColor: '#fde68a', color: '#92400e' }}>
+                                <Shield size={11} /> {perms.length} perms
+                              </span>
+                            ) : (
+                              <span className="rounded-full border bg-red-50 px-2 py-0.5 text-[11px] font-medium" style={{ borderColor: '#fecaca', color: '#b91c1c' }}>No access</span>
+                            )
+                          ) : (
+                            <span className="text-[11px]" style={{ color: '#9ca3af' }}>—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3"><SABadge variant={user.emailVerified ? 'success' : 'warning'} dot>{user.emailVerified ? 'Verified' : 'Pending'}</SABadge></td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center justify-end">
+                            <DropdownMenu.Root>
+                              <DropdownMenu.Trigger asChild>
+                                <button className="inline-flex h-7 w-7 items-center justify-center rounded-full border bg-white hover:bg-gray-50" style={{ borderColor: '#e5e7eb', color: '#6b7280' }} aria-label="Actions">
+                                  <MoreHorizontal size={14} />
+                                </button>
+                              </DropdownMenu.Trigger>
+                              <DropdownMenu.Portal>
+                                <DropdownMenu.Content align="end" sideOffset={6} className="z-50 min-w-[200px] rounded-xl border bg-white p-1 shadow-xl" style={{ borderColor: '#e5e7eb' }}>
+                                  <DropdownMenu.Item onSelect={() => setRoleTarget({ id: user.id, name: user.name || 'User', email: user.email, role: user.role })} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50" style={{ color: '#111827' }}>
+                                    <UserCog size={14} style={{ color: '#6b7280' }} /> Change role
+                                  </DropdownMenu.Item>
+                                  {isAdmin && (
+                                    <DropdownMenu.Item onSelect={() => setEditingUserId(user.id)} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50" style={{ color: '#111827' }}>
+                                      <KeyRound size={14} style={{ color: '#E8A33D' }} /> Manage permissions
+                                    </DropdownMenu.Item>
+                                  )}
+                                  {!isSelf && (
+                                    <DropdownMenu.Item onSelect={() => setResetTarget({ id: user.id, name: user.name || 'User', email: user.email })} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50" style={{ color: '#111827' }}>
+                                      <Lock size={14} style={{ color: '#6b7280' }} /> Reset password
+                                    </DropdownMenu.Item>
+                                  )}
+                                  <DropdownMenu.Separator className="my-1 h-px bg-gray-100" />
+                                  <DropdownMenu.Item
+                                    disabled={isSuper}
+                                    onSelect={() => { if (isSuper) return; if (!confirm(`Delete ${user.email}? This cannot be undone.`)) return; deleteUser.mutate({ userId: user.id }) }}
+                                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-red-50 disabled:opacity-40"
+                                    style={{ color: '#b91c1c' }}
+                                  >
+                                    <Trash2 size={14} /> Delete user
+                                  </DropdownMenu.Item>
+                                </DropdownMenu.Content>
+                              </DropdownMenu.Portal>
+                            </DropdownMenu.Root>
                           </div>
-                        ) : (
-                          <span className="text-[11px]" style={{ color: '#9ca3af' }}>—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <SABadge variant={user.emailVerified ? 'success' : 'warning'} dot>{user.emailVerified ? 'Verified' : 'Pending'}</SABadge>
-                      </td>
-                      <td className="px-4 py-3 text-[12px]" style={{ color: '#6b7280' }}>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
-                      <td className="px-4 py-3">
-                        <SATooltip content="Delete user">
-                          <button
-                            onClick={() => { if (!confirm(`Delete user ${user.email}? This action cannot be undone.`)) return; deleteUser.mutate({ userId: user.id }) }}
-                            disabled={user.role === 'SUPER_ADMIN'}
-                            className="flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:bg-[#F0625B]/10 disabled:opacity-30"
-                            style={{ color: '#F0625B' }}
-                            aria-label="Delete user"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </SATooltip>
-                      </td>
-                    </tr>
-                  )
-                })}
-                {(!data?.users || data.users.length === 0) && (
-                  <tr><td colSpan={7} className="py-20 text-center"><p className="text-[13px]" style={{ color: '#6b7280' }}>{search || roleFilter ? 'No users match your filters' : 'No users found'}</p></td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                  {(!data?.users || data.users.length === 0) && (
+                    <tr><td colSpan={5} className="py-16 text-center text-[13px]" style={{ color: '#6b7280' }}>{search || roleFilter ? 'No users match your filters' : 'No users found'}</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="divide-y md:hidden" style={{ borderColor: '#f3f4f6' } as any}>
+              {(data?.users ?? []).map((user: any) => {
+                const perms: string[] = (() => { const raw = user.permissions; if (Array.isArray(raw)) return raw; if (typeof raw === 'string') { try { const p = JSON.parse(raw); if (Array.isArray(p)) return p } catch {} } return [] })()
+                const isSelf = currentUserId === user.id
+                return (
+                  <div key={user.id} className="flex items-center gap-3 p-4">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[12px] font-bold text-white" style={{ background: user.role === 'SUPER_ADMIN' ? '#dc2626' : user.role === 'ADMIN' ? '#d97706' : '#6b7280' }}>
+                      {(user.name || '??').slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[13px] font-semibold" style={{ color: '#111827' }}>{user.name || 'Unnamed'} {isSelf && <span className="ml-1 rounded-full bg-gray-900 px-1 py-0.5 text-[10px] text-white">You</span>}</div>
+                      <div className="truncate text-[11px]" style={{ color: '#6b7280' }}>{user.email}</div>
+                      <div className="mt-1 flex items-center gap-1.5"><RoleBadge role={user.role} />{user.role === 'ADMIN' && <span className="text-[10px]" style={{ color: '#9ca3af' }}>{perms.length} perms</span>}</div>
+                    </div>
+                    <DropdownMenu.Root>
+                      <DropdownMenu.Trigger asChild>
+                        <button className="h-8 w-8 rounded-full border bg-white" style={{ borderColor: '#e5e7eb' }}><MoreHorizontal size={14} className="mx-auto" style={{ color: '#6b7280' }} /></button>
+                      </DropdownMenu.Trigger>
+                      <DropdownMenu.Portal>
+                        <DropdownMenu.Content align="end" className="z-50 min-w-[180px] rounded-xl border bg-white p-1 shadow-xl" style={{ borderColor: '#e5e7eb' }}>
+                          <DropdownMenu.Item onSelect={() => setRoleTarget({ id: user.id, name: user.name || 'User', email: user.email, role: user.role })} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]"><UserCog size={14} /> Change role</DropdownMenu.Item>
+                          {user.role === 'ADMIN' && <DropdownMenu.Item onSelect={() => setEditingUserId(user.id)} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]"><KeyRound size={14} /> Permissions</DropdownMenu.Item>}
+                          {!isSelf && <DropdownMenu.Item onSelect={() => setResetTarget({ id: user.id, name: user.name || 'User', email: user.email })} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]"><Lock size={14} /> Reset password</DropdownMenu.Item>}
+                          {user.role !== 'SUPER_ADMIN' && <DropdownMenu.Item onSelect={() => { if (confirm(`Delete ${user.email}?`)) deleteUser.mutate({ userId: user.id }) }} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-red-600"><Trash2 size={14} /> Delete</DropdownMenu.Item>}
+                        </DropdownMenu.Content>
+                      </DropdownMenu.Portal>
+                    </DropdownMenu.Root>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
 
-        {/* Pagination */}
         {data && data.total > 0 && (
-          <div className="flex items-center justify-between border-t px-4 py-2.5" style={{ borderColor: '#e5e7eb' }}>
-            <span className="text-[12px]" style={{ color: '#6b7280' }}>
-              Showing <span style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>{page * limit + 1}–{Math.min((page + 1) * limit, data.total)}</span> of <span style={{ color: '#111827', fontFamily: "'JetBrains Mono', monospace" }}>{data.total}</span>
-            </span>
+          <div className="flex flex-col gap-2 border-t bg-gray-50/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between" style={{ borderColor: '#e5e7eb' }}>
+            <span className="text-[12px]" style={{ color: '#6b7280' }}>Showing <b style={{ color: '#111827' }}>{page * limit + 1}–{Math.min((page + 1) * limit, data.total)}</b> of <b style={{ color: '#111827' }}>{data.total}</b></span>
             <div className="flex items-center gap-1">
               <SAButton variant="secondary" size="sm" disabled={page === 0} onClick={() => setPage(page - 1)}>Previous</SAButton>
-              <span className="text-[12px] px-2" style={{ color: '#6b7280' }}>{page + 1} / {totalPages}</span>
+              <span className="rounded-full bg-white px-2.5 py-1 text-[12px] font-medium border" style={{ borderColor: '#e5e7eb', color: '#111827' }}>{page + 1} / {totalPages}</span>
               <SAButton variant="secondary" size="sm" disabled={page >= totalPages - 1} onClick={() => setPage(page + 1)}>Next</SAButton>
             </div>
           </div>
         )}
       </motion.div>
+
+      {/* Change Role Modal — industry standard: confirmation, no inline edit */}
+      <AnimatePresence>
+        {roleTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" style={{ height: '100dvh', minHeight: '100vh' }} onClick={() => setRoleTarget(null)} />
+            <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-4" onClick={() => setRoleTarget(null)}>
+              <motion.div initial={{ scale: 0.97, y: 8, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.97, y: 8, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="relative my-auto w-full max-w-[440px] rounded-2xl border bg-white p-6 shadow-2xl" style={{ borderColor: '#e5e7eb' }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#E8A33D15' }}><UserCog size={16} style={{ color: '#E8A33D' }} /></div>
+                  <div>
+                    <h3 className="text-[15px] font-bold" style={{ color: '#111827' }}>Change role</h3>
+                    <p className="text-[11px]" style={{ color: '#6b7280' }}>{roleTarget.name} · <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{roleTarget.email}</span></p>
+                  </div>
+                  <button onClick={() => setRoleTarget(null)} className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border hover:bg-gray-50" style={{ borderColor: '#e5e7eb' }}><X size={14} /></button>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-xl border bg-amber-50/40 px-3 py-2.5" style={{ borderColor: '#fde68a' }}>
+                    <p className="text-[11px] font-semibold" style={{ color: '#92400e' }}>Current: <RoleBadge role={roleTarget.role} /></p>
+                    <p className="mt-1 text-[11px]" style={{ color: '#92400e' }}>Role determines base access. Permissions are only used for <b>ADMIN</b>. Super Admin has all access implicitly.</p>
+                  </div>
+
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>New role</span>
+                    <select value={newRole} onChange={(e) => setNewRole(e.target.value)} className="rounded-xl border px-3 py-2.5 text-[13px] font-medium outline-none focus:border-[#E8A33D] focus:ring-2 focus:ring-[#E8A33D]/15" style={{ borderColor: '#e5e7eb', background: '#ffffff' }}>
+                      {ROLES.map((r) => <option key={r} value={r}>{ROLE_META[r].label} ({r})</option>)}
+                    </select>
+                  </label>
+
+                  {newRole === 'SUPER_ADMIN' && <p className="rounded-lg border bg-red-50 px-3 py-2 text-[11px] font-medium" style={{ borderColor: '#fecaca', color: '#991b1b' }}>⚠️ Granting <b>Super Admin</b> gives full access to all modules and user management. Only trusted staff should have this.</p>}
+                  {roleTarget.role === 'SUPER_ADMIN' && newRole !== 'SUPER_ADMIN' && <p className="rounded-lg border bg-red-50 px-3 py-2 text-[11px] font-medium" style={{ borderColor: '#fecaca', color: '#991b1b' }}>⚠️ Demoting a Super Admin is sensitive. Ensure at least one Super Admin remains.</p>}
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <SAButton variant="secondary" size="sm" onClick={() => setRoleTarget(null)}>Cancel</SAButton>
+                  <SAButton
+                    variant="primary"
+                    size="sm"
+                    disabled={updateRole.isPending || newRole === roleTarget.role}
+                    onClick={() => {
+                      if (newRole === roleTarget.role) return
+                      if (roleTarget.role === 'SUPER_ADMIN' && !confirm('Demote this Super Admin? This reduces their access significantly.')) return
+                      if (newRole === 'SUPER_ADMIN' && !confirm(`Promote ${roleTarget.email} to Super Admin?`)) return
+                      updateRole.mutate({ userId: roleTarget.id, role: newRole as any })
+                    }}
+                  >
+                    {updateRole.isPending ? 'Updating…' : 'Confirm change'}
+                  </SAButton>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reset Password Modal — Super Admin only, other users */}
+      <AnimatePresence>
+        {resetTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50" role="dialog" aria-modal="true">
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" style={{ height: '100dvh', minHeight: '100vh' }} onClick={() => setResetTarget(null)} />
+            <div className="fixed inset-0 flex items-center justify-center overflow-y-auto p-4" onClick={() => setResetTarget(null)}>
+              <motion.div initial={{ scale: 0.97, y: 8, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.97, y: 8, opacity: 0 }} onClick={(e) => e.stopPropagation()} className="relative my-auto w-full max-w-[440px] rounded-2xl border bg-white p-6 shadow-2xl" style={{ borderColor: '#e5e7eb' }}>
+                <div className="flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl" style={{ background: '#fee2e2' }}><Lock size={16} style={{ color: '#dc2626' }} /></div>
+                  <div>
+                    <h3 className="text-[15px] font-bold" style={{ color: '#111827' }}>Reset password</h3>
+                    <p className="text-[11px] truncate" style={{ color: '#6b7280' }}>{resetTarget.name} · <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>{resetTarget.email}</span></p>
+                  </div>
+                  <button onClick={() => setResetTarget(null)} className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border hover:bg-gray-50" style={{ borderColor: '#e5e7eb' }}><X size={14} /></button>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-xl border bg-red-50/40 px-3 py-2.5 text-[11px]" style={{ borderColor: '#fecaca', color: '#991b1b' }}>
+                    This will <b>invalidate all sessions</b> for this user and set a new password. They must log in with the new password. This action is audited.
+                  </div>
+
+                  <label className="flex flex-col gap-1.5">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#6b7280' }}>New password <span style={{ color: '#dc2626' }}>*</span></span>
+                    <div className="relative">
+                      <input
+                        type={showPw ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Min 8 characters"
+                        className="w-full rounded-xl border px-3 py-2.5 pr-9 text-[13px] outline-none placeholder:text-gray-400 focus:border-[#E8A33D] focus:ring-2 focus:ring-[#E8A33D]/15"
+                        style={{ borderColor: '#e5e7eb' }}
+                      />
+                      <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 hover:bg-gray-100" style={{ color: '#6b7280' }} aria-label="Toggle password visibility">
+                        {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
+                    </div>
+                    <span className="text-[10px]" style={{ color: newPassword.length >= 8 ? '#16a34a' : '#9ca3af' }}>{newPassword.length ? `${newPassword.length} chars — ${newPassword.length >= 8 ? 'valid' : 'min 8 required'}` : ' '}</span>
+                  </label>
+
+                  <div className="flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setNewPassword(Math.random().toString(36).slice(-10) + 'A1!')}
+                      className="rounded-full border bg-white px-2.5 py-1 text-[11px] font-medium hover:bg-gray-50"
+                      style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
+                    >
+                      Generate random
+                    </button>
+                    <button type="button" onClick={() => setNewPassword('')} className="rounded-full border bg-white px-2.5 py-1 text-[11px] font-medium hover:bg-gray-50" style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>Clear</button>
+                  </div>
+                </div>
+
+                <div className="mt-6 flex justify-end gap-2">
+                  <SAButton variant="secondary" size="sm" onClick={() => setResetTarget(null)}>Cancel</SAButton>
+                  <SAButton
+                    variant="primary"
+                    size="sm"
+                    disabled={resetPassword.isPending || newPassword.length < 8}
+                    onClick={() => {
+                      if (!confirm(`Reset password for ${resetTarget.email}?\nTheir current sessions will be terminated.`)) return
+                      resetPassword.mutate({ userId: resetTarget.id, newPassword })
+                    }}
+                  >
+                    {resetPassword.isPending ? 'Resetting…' : 'Reset password'}
+                  </SAButton>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Permission Edit Modal — separate backdrop + scroll wrapper (fixes blur viewport) */}
       <AnimatePresence>

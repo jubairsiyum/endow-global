@@ -4,6 +4,7 @@ import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { applicantLevelFromEducation } from '@/lib/documents'
+import { hash as bcryptHash } from 'bcryptjs'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -2115,6 +2116,38 @@ return db.select().from(schema.countries)
           .update(schema.users)
           .set({ permissions: JSON.stringify(input.permissions) as any })
           .where(eq(schema.users.id, input.userId))
+        return { success: true }
+      }),
+
+    resetPassword: superAdminProcedure
+      .input(z.object({ userId: z.string(), newPassword: z.string().min(8).max(100) }))
+      .mutation(async ({ ctx, input }) => {
+        if (input.userId === ctx.session.user.id) {
+          throw new Error('You cannot reset your own password here — use your profile settings instead')
+        }
+        const target = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true, email: true, name: true },
+        })
+        if (!target) throw new Error('User not found')
+        // Optional guard: prevent resetting another SUPER_ADMIN without explicit confirmation (handled in UI)
+        const hashed = await bcryptHash(input.newPassword, 12)
+        const existingAccount = await db.query.accounts.findFirst({
+          where: (a: any, { and, eq }: any) => and(eq(a.userId, input.userId), eq(a.providerId, 'credential')),
+        })
+        if (existingAccount) {
+          await db.update(schema.accounts).set({ password: hashed }).where(eq(schema.accounts.id, existingAccount.id))
+        } else {
+          await db.insert(schema.accounts).values({
+            id: globalThis.crypto.randomUUID(),
+            userId: input.userId,
+            providerId: 'credential',
+            accountId: (target as any).email,
+            password: hashed,
+          } as any)
+        }
+        // Invalidate existing sessions for security
+        await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
         return { success: true }
       }),
 
