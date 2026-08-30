@@ -36,6 +36,13 @@ const nextConfig = {
     }
     return config
   },
+  async redirects() {
+    return [
+      // Legacy Super Admin path — consolidated to /admin (RBAC decides extras)
+      { source: '/sa', destination: '/admin', permanent: false },
+      { source: '/sa/:path*', destination: '/admin/:path*', permanent: false },
+    ]
+  },
   headers: async () => [
     // ─── Security headers for all routes ────────────────────────────────────
     {

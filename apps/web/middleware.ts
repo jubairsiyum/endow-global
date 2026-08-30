@@ -17,7 +17,7 @@ const PROTECTED_PATHS: { paths: string[]; message: string }[] = [
   },
   { paths: ['/counselor'], message: 'counselor' },
   { paths: ['/admin'], message: 'admin' },
-  { paths: ['/sa'], message: 'super-admin' },
+  // '/sa' is legacy Super Admin path — now consolidated to '/admin' (see redirect below)
 ]
 
 function isProtected(pathname: string): boolean {
@@ -39,6 +39,12 @@ const jwtVerificationAvailable = typeof jwtSecret === 'string' && jwtSecret.leng
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
+  // Legacy /sa → /admin (Super Admin now uses /admin with RBAC)
+  if (pathname === '/sa' || pathname.startsWith('/sa/')) {
+    const url = new URL(req.url)
+    url.pathname = pathname.replace(/^\/sa/, '/admin') || '/admin'
+    return NextResponse.redirect(url)
+  }
   const sessionCookie = getSessionCookie(req)
 
   let payload = null
@@ -73,10 +79,19 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (pathname === '/login' || pathname === '/register') {
-    if (sessionCookie) {
-      return NextResponse.redirect(new URL('/dashboard', req.url))
+  if ((pathname === '/login' || pathname === '/register') && sessionCookie) {
+    // Role-aware redirect — don't send admins/counselors to student /dashboard
+    if (payload) {
+      const role = payload.user?.role
+      const map: Record<string, string> = {
+        STUDENT: '/dashboard',
+        COUNSELOR: '/counselor',
+        ADMIN: '/admin',
+        SUPER_ADMIN: '/admin',
+      }
+      return NextResponse.redirect(new URL(map[role ?? 'STUDENT'] || '/dashboard', req.url))
     }
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   if (isCareerLogin(pathname) && payload) {
@@ -85,7 +100,7 @@ export async function middleware(req: NextRequest) {
       const dashMap: Record<string, string> = {
         COUNSELOR: '/counselor',
         ADMIN: '/admin',
-        SUPER_ADMIN: '/sa',
+        SUPER_ADMIN: '/admin',
       }
       return NextResponse.redirect(new URL(dashMap[role] || '/dashboard', req.url))
     }

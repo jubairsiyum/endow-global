@@ -14,7 +14,7 @@ const MAX_ATTEMPTS = 5
 const LOCKOUT_DURATION = 300
 
 const ALLOWED_ROLES: UserRole[] = [UserRole.SUPER_ADMIN]
-const DASHBOARD_PATH = '/sa'
+const DASHBOARD_PATH = '/admin'
 const PORTAL_LABEL = 'Super Admin'
 
 function useLockoutTimer(lockoutUntil: number | null) {

@@ -100,10 +100,24 @@ export const auth = betterAuth({
       verify: async ({ password, hash }) => verifyStoredPassword(password, hash),
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Allow automatic linking when the same verified email is used across providers.
+      // Without this, signing in with Google after an email/password sign-up
+      // throws `account_not_linked`.
+      trustedProviders: ['google', 'credential', 'email-password'],
+      allowDifferentEmails: false,
+      // Keep emailVerified strict — Google emails are verified by Google
+      updateUserInfoOnLink: false,
+    },
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Explicitly allow implicit sign-up via Google; linking will handle existing emails
+      disableImplicitSignUp: false,
     },
   },
   databaseHooks: {
@@ -138,6 +152,13 @@ export const auth = betterAuth({
           }
         },
       },
+    },
+  },
+  onAPIError: {
+    errorURL: '/auth/error',
+    throw: false,
+    onError: (error, ctx: any) => {
+      console.error('[auth] API error:', error, ctx?.path ?? ctx?.request?.url)
     },
   },
   advanced: {
