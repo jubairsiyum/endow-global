@@ -46,15 +46,31 @@ export function OverviewHeader({
               {intakeLabel ? (
                 <>
                   You&apos;re prepping for the <span className="font-semibold text-gray-900 dark:text-white">{intakeLabel}</span> intake
-                  {targetCountries?.length ? (
-                    <>
-                      {' '}
-                      targeting{' '}
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {targetCountries.slice(0, 3).join(', ')}
-                      </span>
-                    </>
-                  ) : null}
+                  {(() => {
+                    const arr: string[] = Array.isArray(targetCountries)
+                      ? targetCountries
+                      : (() => {
+                          if (typeof targetCountries === 'string') {
+                            try {
+                              const p = JSON.parse(targetCountries as unknown as string)
+                              if (Array.isArray(p)) return p as string[]
+                              return (targetCountries as unknown as string) ? [String(targetCountries)] : []
+                            } catch {
+                              return (targetCountries as unknown as string) ? [String(targetCountries)] : []
+                            }
+                          }
+                          return []
+                        })()
+                    return arr.length ? (
+                      <>
+                        {' '}
+                        targeting{' '}
+                        <span className="font-semibold text-gray-900 dark:text-white">
+                          {arr.slice(0, 3).join(', ')}
+                        </span>
+                      </>
+                    ) : null
+                  })()}
                   . Let&apos;s get you to campus.
                 </>
               ) : (
