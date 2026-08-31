@@ -79,14 +79,14 @@ function DestinationCard({ destination }: { destination: Destination }) {
         y: -6,
         transition: { duration: 0.28, ease: "easeOut" },
       }}
-      className="group relative mx-auto h-[285px] max-w-[300px] overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
+      className="group relative flex w-full flex-col overflow-hidden rounded-[24px] border border-[#E7EAF0] bg-white shadow-[0_16px_42px_rgba(15,23,42,0.07)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_24px_60px_rgba(196,30,58,0.10)]"
     >
-      <div className="relative h-[95px] overflow-hidden">
+      <div className="relative h-[112px] shrink-0 overflow-hidden sm:h-[118px] lg:h-[124px]">
         <Image
           src={destination.image}
           alt={destination.imageAlt}
           fill
-          sizes="50vw"
+          sizes="(max-width: 640px) 100vw, 340px"
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-[#071225]/20 via-[#071225]/15 to-[#071225]/62" />
@@ -102,9 +102,9 @@ function DestinationCard({ destination }: { destination: Destination }) {
         </div>
       </div>
 
-      <div className="flex h-[180px] flex-col px-4 pb-4 pt-3">
-        <div className="min-h-[48px] flex items-start gap-3">
-          <h3 className="flex-1 text-[20px] font-semibold leading-[1.1] text-[#071225]">
+      <div className="flex flex-1 flex-col px-4 pb-4 pt-3.5 sm:px-5 sm:pb-5">
+        <div className="flex items-start gap-3">
+          <h3 className="flex-1 text-[19px] font-semibold leading-[1.15] tracking-tight text-[#071225] sm:text-[20px]">
             {destination.name}
           </h3>
 
@@ -120,16 +120,16 @@ function DestinationCard({ destination }: { destination: Destination }) {
           </Link>
         </div>
 
-        <p className="mt-1.5 line-clamp-2 min-h-9 text-[13px] leading-[1.3] text-slate-600">
+        <p className="mt-2 line-clamp-2 min-h-[2.6em] text-[13px] leading-[1.45] text-slate-600 sm:text-[13.5px]">
           {destination.description}
         </p>
 
-        <div className="mt-auto grid grid-cols-2 gap-3 border-t border-[#EDF0F4] pt-2.5">
+        <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[#EDF0F4] pt-3.5">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Building2 aria-hidden="true" className="h-3.5 w-3.5" />
             </span>
-            <p className="text-[13px] font-semibold leading-4 text-[#071225]">
+            <p className="truncate text-[12.5px] font-semibold leading-4 text-[#071225] sm:text-[13px]">
               {destination.universities} Universities
             </p>
           </div>
@@ -138,7 +138,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Wallet aria-hidden="true" className="h-3.5 w-3.5" />
             </span>
-            <p className="text-[13px] font-semibold leading-4 text-[#071225]">
+            <p className="truncate text-[12.5px] font-semibold leading-4 text-[#071225] sm:text-[13px]">
               {destination.avgTuition}
             </p>
           </div>
@@ -162,7 +162,7 @@ export default function CountryExplorer() {
   }))
 
   return (
-    <section className="relative overflow-hidden bg-[#F8FAFC] px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
+    <section className="relative overflow-hidden bg-[#F8FAFC] px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-28">
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#E8D7A8] to-transparent" />
         <div className="absolute -right-28 top-10 h-[420px] w-[420px] rounded-full bg-[#C41E3A]/[0.08] blur-3xl" />
@@ -176,15 +176,15 @@ export default function CountryExplorer() {
         viewport={{ once: true, margin: "-80px" }}
         className="relative mx-auto max-w-[1320px]"
       >
-        <div className="mx-auto mb-8 max-w-4xl text-center">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+        <div className="mx-auto mb-8 max-w-4xl text-center sm:mb-10">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm sm:text-xs">
             Study Destinations
           </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+          <h2 className="mt-4 text-[28px] font-bold tracking-tight text-gray-950 sm:text-4xl lg:text-[42px]">
             Find Your Ideal Study <span className="text-[#C41E3A]">Destination</span>
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-gray-500 sm:text-base">
             Discover the world&apos;s best education destinations and find the
             perfect fit for your future.
           </p>
@@ -195,7 +195,7 @@ export default function CountryExplorer() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: "-80px" }}
-          className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:gap-7"
+          className="mx-auto grid max-w-[360px] grid-cols-1 gap-5 sm:max-w-[720px] sm:grid-cols-2 sm:gap-6 lg:max-w-[760px] lg:gap-7"
         >
           {destinationsWithCounts.map((destination) => (
             <DestinationCard key={destination.name} destination={destination} />
@@ -207,7 +207,7 @@ export default function CountryExplorer() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 0.12, ease: "easeOut" }}
           viewport={{ once: true, margin: "-80px" }}
-          className="mt-8 overflow-hidden rounded-[22px] border border-[#E7EAF0] bg-white px-5 py-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)] sm:px-6"
+          className="mx-auto mt-6 max-w-[360px] overflow-hidden rounded-[22px] border border-[#E7EAF0] bg-white px-5 py-5 shadow-[0_16px_42px_rgba(15,23,42,0.06)] sm:mt-8 sm:max-w-[720px] sm:px-6 lg:max-w-[760px]"
         >
           <div className="flex min-h-[90px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
@@ -228,7 +228,7 @@ export default function CountryExplorer() {
             <Link
               href={ROUTES.home}
               aria-label="Get free consultation with our education experts"
-              className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B11226] via-[#8B0E1A] to-[#5F0710] px-6 text-sm font-bold text-white shadow-[0_14px_30px_rgba(139,14,26,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(139,14,26,0.32)]"
+              className="inline-flex h-12 w-full shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#B11226] via-[#8B0E1A] to-[#5F0710] px-6 text-sm font-bold text-white shadow-[0_14px_30px_rgba(139,14,26,0.24)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(139,14,26,0.32)] sm:w-auto"
             >
               Get Free Consultation
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
