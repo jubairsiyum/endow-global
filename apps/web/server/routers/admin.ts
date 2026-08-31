@@ -2009,12 +2009,15 @@ return db.select().from(schema.countries)
           role: z.enum(['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN']),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const user = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
-          columns: { id: true, role: true },
+          columns: { id: true, role: true, email: true },
         })
         if (!user) throw new Error('User not found')
+        if ((user as any).id === ctx.session.user.id && input.role !== (user as any).role) {
+          // Allow self-demotion only if not last super admin; warn otherwise handled below
+        }
 
         // Prevent demoting the last super admin
         if ((user as any).role === 'SUPER_ADMIN' && input.role !== 'SUPER_ADMIN') {
@@ -2023,14 +2026,25 @@ return db.select().from(schema.countries)
             .from(schema.users)
             .where(eq(schema.users.role, 'SUPER_ADMIN'))
           if (superAdminCount[0]?.value <= 1) {
-            throw new Error('Cannot demote the last Super Admin')
+            throw new Error('Cannot demote the last Super Admin — at least one must remain')
           }
+        }
+
+        // Normalize permissions on role change: non-ADMIN roles should not retain admin perms
+        const updates: any = { role: input.role }
+        if (input.role !== 'ADMIN') {
+          updates.permissions = JSON.stringify([])
+        } else if ((user as any).role !== 'ADMIN') {
+          // Promoting to ADMIN — ensure at least dashboard:view so sidebar renders
+          updates.permissions = JSON.stringify(['dashboard:view'])
         }
 
         await db
           .update(schema.users)
-          .set({ role: input.role })
+          .set(updates)
           .where(eq(schema.users.id, input.userId))
+        // Invalidate sessions of target user so permission/role takes effect immediately
+        await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
         return { success: true }
       }),
 

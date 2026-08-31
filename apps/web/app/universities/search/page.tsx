@@ -21,10 +21,11 @@ function SearchResultsContent() {
   const router = useRouter()
   const q = searchParams.get('q') || ''
   const country = searchParams.get('country') || ''
-  const level = searchParams.get('level') || ''
+  const levelRaw = searchParams.get('level') || searchParams.get('degree') || ''
+  const level = levelRaw || ''
 
   const { data: universities, isLoading } = trpc.university.search.useQuery(
-    { q: q || undefined, country: country || undefined, limit: 48 },
+    { q: q || undefined, country: country || undefined, level: level || undefined, limit: 48 },
     { enabled: true },
   )
 
@@ -71,6 +72,16 @@ function SearchResultsContent() {
                         <Search size={12} />
                         &ldquo;{q.trim()}&rdquo;
                       </span>
+                      {level && (
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-700">
+                          {level}
+                        </span>
+                      )}
+                      {country && (
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+                          {country}
+                        </span>
+                      )}
                       <span className="hidden text-gray-300 sm:inline">—</span>
                       <span className="text-gray-900">
                         <span className="font-bold text-[#C41E3A]">{resultCount}</span>{' '}
@@ -80,20 +91,23 @@ function SearchResultsContent() {
                       </span>
                     </h1>
                   ) : (
-                    <h1 className="text-[15px] font-semibold text-gray-900 sm:text-[15.5px]">
+                    <h1 className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-gray-900 sm:text-[15.5px]">
                       <span className="font-bold text-[#C41E3A]">{resultCount}</span>{' '}
                       <span className="font-medium text-gray-600">
                         {resultCount === 1 ? 'university' : 'universities'} found
                       </span>
                       {country && (
-                        <span className="font-normal text-gray-400">
-                          {' '}
-                          in <span className="font-semibold text-gray-700">{country}</span>
+                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
+                          {country}
+                        </span>
+                      )}
+                      {level && (
+                        <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-700">
+                          {level}
                         </span>
                       )}
                     </h1>
                   )}
-                  {!hasQuery && country && hasQuery === false && null}
                 </div>
 
                 {/* Right meta — subtle count / clear */}

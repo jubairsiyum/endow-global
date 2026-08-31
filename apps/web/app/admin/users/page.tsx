@@ -37,6 +37,8 @@ function RoleBadge({ role }: { role: string }) {
 export default function SAUsersPage() {
   const { data: session } = useSession()
   const currentUserId = (session?.user as any)?.id as string | undefined
+  const currentRole = (session?.user as any)?.role as string | undefined
+  const isSuperAdmin = currentRole === 'SUPER_ADMIN'
 
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string | undefined>()
@@ -73,23 +75,23 @@ export default function SAUsersPage() {
 
   const updateRole = trpc.admin.super.updateUserRole.useMutation({
     onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); utils.admin.super.getPlatformStats.invalidate(); setRoleTarget(null); toast.success('Role updated') },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || 'Failed to update role — requires Super Admin'),
   })
   const deleteUser = trpc.admin.super.deleteUser.useMutation({
     onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); utils.admin.super.getPlatformStats.invalidate(); toast.success('User deleted') },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || 'Failed to delete user'),
   })
   const updatePerms = trpc.admin.super.updatePermissions.useMutation({
     onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); setEditingUserId(null); toast.success('Permissions updated') },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || 'Failed to update permissions'),
   })
   const createStaff = trpc.admin.super.createStaff.useMutation({
     onSuccess: () => { utils.admin.super.getAllUsers.invalidate(); setShowCreate(false); setCreateForm({ name: '', email: '', password: '', perms: [] }); toast.success('Staff created') },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || 'Failed to create staff'),
   })
   const resetPassword = trpc.admin.super.resetPassword.useMutation({
     onSuccess: () => { setResetTarget(null); setNewPassword(''); toast.success('Password reset — user must login with new password') },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e?.message || 'Failed to reset password'),
   })
 
   const totalPages = data ? Math.ceil(data.total / limit) : 1
@@ -105,7 +107,11 @@ export default function SAUsersPage() {
         </div>
         <div className="flex items-center gap-2">
           <SABadge variant="route"><Shield size={11} />{data?.total ?? 0} users</SABadge>
-          <SAButton variant="primary" size="sm" onClick={() => setShowCreate(true)}><UserPlus size={14} /> New staff</SAButton>
+          {isSuperAdmin ? (
+            <SAButton variant="primary" size="sm" onClick={() => setShowCreate(true)}><UserPlus size={14} /> New staff</SAButton>
+          ) : (
+            <span className="rounded-full border bg-amber-50 px-2.5 py-1 text-[11px] font-medium" style={{ borderColor: '#fde68a', color: '#92400e' }}>Super Admin only</span>
+          )}
         </div>
       </motion.div>
 
@@ -134,9 +140,17 @@ export default function SAUsersPage() {
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="overflow-hidden rounded-xl border shadow-sm" style={{ background: '#ffffff', borderColor: '#e5e7eb' }}>
         {isLoading ? (
           <div className="flex items-center justify-center py-20"><div className="h-8 w-8 animate-spin rounded-full border-2" style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }} /></div>
+        ) : !isSuperAdmin ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+            <Shield size={28} style={{ color: '#E8A33D' }} />
+            <p className="mt-3 text-[14px] font-semibold" style={{ color: '#111827' }}>Super Admin access required</p>
+            <p className="mt-1 max-w-[420px] text-[12px]" style={{ color: '#6b7280' }}>User management (Change role, Permissions, Reset password, Delete) is restricted to Super Admins. You are signed in as <b style={{ color: '#111827' }}>{currentRole || 'ADMIN'}</b>. Ask a Super Admin to grant you <code>users:manage</code> or promote you.</p>
+            <SABadge variant="warning" className="mt-3">Current role: {currentRole}</SABadge>
+          </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
             <AlertTriangle size={28} style={{ color: '#F0625B' }} /><p className="mt-3 text-[14px] font-medium" style={{ color: '#F0625B' }}>Failed to load users</p>
+            <p className="mt-1 text-[12px]" style={{ color: '#6b7280' }}>{(error as any)?.message || 'Unexpected error'}</p>
             <SAButton variant="secondary" size="sm" className="mt-3" onClick={() => utils.admin.super.getAllUsers.invalidate()}>Retry</SAButton>
           </div>
         ) : (
@@ -155,7 +169,23 @@ export default function SAUsersPage() {
                 </thead>
                 <tbody className="divide-y" style={{ borderColor: '#f3f4f6' } as any}>
                   {(data?.users ?? []).map((user: any) => {
-                    const perms: string[] = (() => { const raw = user.permissions; if (Array.isArray(raw)) return raw; if (typeof raw === 'string') { try { const p = JSON.parse(raw); if (Array.isArray(p)) return p } catch {} } return [] })()
+                    const perms: string[] = (() => {
+                      const raw: any = user.permissions
+                      if (Array.isArray(raw)) return raw.map((p: any) => String(p).trim()).filter(Boolean)
+                      if (typeof raw === 'string' && raw.trim()) {
+                        try {
+                          const p = JSON.parse(raw)
+                          if (Array.isArray(p)) return p.map((x: any) => String(x).trim()).filter(Boolean)
+                          if (p && typeof p === 'object' && Array.isArray((p as any).value)) return (p as any).value.map((x: any) => String(x).trim()).filter(Boolean)
+                        } catch {}
+                        return []
+                      }
+                      if (raw && typeof raw === 'object') {
+                        const v = (raw as any).value ?? raw
+                        if (Array.isArray(v)) return v.map((x: any) => String(x).trim()).filter(Boolean)
+                      }
+                      return []
+                    })()
                     const isSelf = currentUserId === user.id
                     const isSuper = user.role === 'SUPER_ADMIN'
                     const isAdmin = user.role === 'ADMIN'
@@ -184,7 +214,9 @@ export default function SAUsersPage() {
                                 <Shield size={11} /> {perms.length} perms
                               </span>
                             ) : (
-                              <span className="rounded-full border bg-red-50 px-2 py-0.5 text-[11px] font-medium" style={{ borderColor: '#fecaca', color: '#b91c1c' }}>No access</span>
+                              <span className="inline-flex items-center gap-1 rounded-full border bg-white px-2 py-0.5 text-[11px] font-medium" style={{ borderColor: '#e5e7eb', color: '#6b7280' }} title="Defaults to Dashboard — grant explicit perms via Manage permissions">
+                                <Shield size={11} /> Dashboard only
+                              </span>
                             )
                           ) : (
                             <span className="text-[11px]" style={{ color: '#9ca3af' }}>—</span>
@@ -201,24 +233,28 @@ export default function SAUsersPage() {
                               </DropdownMenu.Trigger>
                               <DropdownMenu.Portal>
                                 <DropdownMenu.Content align="end" sideOffset={6} className="z-50 min-w-[200px] rounded-xl border bg-white p-1 shadow-xl" style={{ borderColor: '#e5e7eb' }}>
-                                  <DropdownMenu.Item onSelect={() => setRoleTarget({ id: user.id, name: user.name || 'User', email: user.email, role: user.role })} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50" style={{ color: '#111827' }}>
+                                  <DropdownMenu.Item
+                                    onSelect={(e) => { e.preventDefault(); setRoleTarget({ id: user.id, name: user.name || 'User', email: user.email, role: user.role }) }}
+                                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50 focus:bg-gray-50"
+                                    style={{ color: '#111827' }}
+                                  >
                                     <UserCog size={14} style={{ color: '#6b7280' }} /> Change role
                                   </DropdownMenu.Item>
                                   {isAdmin && (
-                                    <DropdownMenu.Item onSelect={() => setEditingUserId(user.id)} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50" style={{ color: '#111827' }}>
+                                    <DropdownMenu.Item onSelect={(e) => { e.preventDefault(); setEditingUserId(user.id) }} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50 focus:bg-gray-50" style={{ color: '#111827' }}>
                                       <KeyRound size={14} style={{ color: '#E8A33D' }} /> Manage permissions
                                     </DropdownMenu.Item>
                                   )}
                                   {!isSelf && (
-                                    <DropdownMenu.Item onSelect={() => setResetTarget({ id: user.id, name: user.name || 'User', email: user.email })} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50" style={{ color: '#111827' }}>
+                                    <DropdownMenu.Item onSelect={(e) => { e.preventDefault(); setResetTarget({ id: user.id, name: user.name || 'User', email: user.email }) }} className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50 focus:bg-gray-50" style={{ color: '#111827' }}>
                                       <Lock size={14} style={{ color: '#6b7280' }} /> Reset password
                                     </DropdownMenu.Item>
                                   )}
                                   <DropdownMenu.Separator className="my-1 h-px bg-gray-100" />
                                   <DropdownMenu.Item
                                     disabled={isSuper}
-                                    onSelect={() => { if (isSuper) return; if (!confirm(`Delete ${user.email}? This cannot be undone.`)) return; deleteUser.mutate({ userId: user.id }) }}
-                                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-red-50 disabled:opacity-40"
+                                    onSelect={(e) => { e.preventDefault(); if (isSuper) return; if (!confirm(`Delete ${user.email}? This cannot be undone.`)) return; deleteUser.mutate({ userId: user.id }) }}
+                                    className="flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-red-50 focus:bg-red-50 disabled:opacity-40"
                                     style={{ color: '#b91c1c' }}
                                   >
                                     <Trash2 size={14} /> Delete user
@@ -241,7 +277,23 @@ export default function SAUsersPage() {
             {/* Mobile cards */}
             <div className="divide-y md:hidden" style={{ borderColor: '#f3f4f6' } as any}>
               {(data?.users ?? []).map((user: any) => {
-                const perms: string[] = (() => { const raw = user.permissions; if (Array.isArray(raw)) return raw; if (typeof raw === 'string') { try { const p = JSON.parse(raw); if (Array.isArray(p)) return p } catch {} } return [] })()
+                const perms: string[] = (() => {
+                  const raw: any = user.permissions
+                  if (Array.isArray(raw)) return raw.map((p: any) => String(p).trim()).filter(Boolean)
+                  if (typeof raw === 'string' && raw.trim()) {
+                    try {
+                      const p = JSON.parse(raw)
+                      if (Array.isArray(p)) return p.map((x: any) => String(x).trim()).filter(Boolean)
+                      if (p && typeof p === 'object' && Array.isArray((p as any).value)) return (p as any).value.map((x: any) => String(x).trim()).filter(Boolean)
+                    } catch {}
+                    return []
+                  }
+                  if (raw && typeof raw === 'object') {
+                    const v = (raw as any).value ?? raw
+                    if (Array.isArray(v)) return v.map((x: any) => String(x).trim()).filter(Boolean)
+                  }
+                  return []
+                })()
                 const isSelf = currentUserId === user.id
                 return (
                   <div key={user.id} className="flex items-center gap-3 p-4">
@@ -251,7 +303,7 @@ export default function SAUsersPage() {
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-[13px] font-semibold" style={{ color: '#111827' }}>{user.name || 'Unnamed'} {isSelf && <span className="ml-1 rounded-full bg-gray-900 px-1 py-0.5 text-[10px] text-white">You</span>}</div>
                       <div className="truncate text-[11px]" style={{ color: '#6b7280' }}>{user.email}</div>
-                      <div className="mt-1 flex items-center gap-1.5"><RoleBadge role={user.role} />{user.role === 'ADMIN' && <span className="text-[10px]" style={{ color: '#9ca3af' }}>{perms.length} perms</span>}</div>
+                      <div className="mt-1 flex items-center gap-1.5"><RoleBadge role={user.role} />{user.role === 'ADMIN' && <span className="text-[10px]" style={{ color: perms.length ? '#92400e' : '#6b7280' }}>{perms.length ? `${perms.length} perms` : 'Dashboard only'}</span>}</div>
                     </div>
                     <DropdownMenu.Root>
                       <DropdownMenu.Trigger asChild>
@@ -259,10 +311,10 @@ export default function SAUsersPage() {
                       </DropdownMenu.Trigger>
                       <DropdownMenu.Portal>
                         <DropdownMenu.Content align="end" className="z-50 min-w-[180px] rounded-xl border bg-white p-1 shadow-xl" style={{ borderColor: '#e5e7eb' }}>
-                          <DropdownMenu.Item onSelect={() => setRoleTarget({ id: user.id, name: user.name || 'User', email: user.email, role: user.role })} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]"><UserCog size={14} /> Change role</DropdownMenu.Item>
-                          {user.role === 'ADMIN' && <DropdownMenu.Item onSelect={() => setEditingUserId(user.id)} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]"><KeyRound size={14} /> Permissions</DropdownMenu.Item>}
-                          {!isSelf && <DropdownMenu.Item onSelect={() => setResetTarget({ id: user.id, name: user.name || 'User', email: user.email })} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px]"><Lock size={14} /> Reset password</DropdownMenu.Item>}
-                          {user.role !== 'SUPER_ADMIN' && <DropdownMenu.Item onSelect={() => { if (confirm(`Delete ${user.email}?`)) deleteUser.mutate({ userId: user.id }) }} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-red-600"><Trash2 size={14} /> Delete</DropdownMenu.Item>}
+                          <DropdownMenu.Item onSelect={(e) => { e.preventDefault(); setRoleTarget({ id: user.id, name: user.name || 'User', email: user.email, role: user.role }) }} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50 focus:bg-gray-50"><UserCog size={14} /> Change role</DropdownMenu.Item>
+                          {user.role === 'ADMIN' && <DropdownMenu.Item onSelect={(e) => { e.preventDefault(); setEditingUserId(user.id) }} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50 focus:bg-gray-50"><KeyRound size={14} /> Permissions</DropdownMenu.Item>}
+                          {!isSelf && <DropdownMenu.Item onSelect={(e) => { e.preventDefault(); setResetTarget({ id: user.id, name: user.name || 'User', email: user.email }) }} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] outline-none hover:bg-gray-50 focus:bg-gray-50"><Lock size={14} /> Reset password</DropdownMenu.Item>}
+                          {user.role !== 'SUPER_ADMIN' && <DropdownMenu.Item onSelect={(e) => { e.preventDefault(); if (confirm(`Delete ${user.email}?`)) deleteUser.mutate({ userId: user.id }) }} className="flex items-center gap-2 rounded-lg px-2.5 py-2 text-[13px] text-red-600 outline-none hover:bg-red-50 focus:bg-red-50"><Trash2 size={14} /> Delete</DropdownMenu.Item>}
                         </DropdownMenu.Content>
                       </DropdownMenu.Portal>
                     </DropdownMenu.Root>

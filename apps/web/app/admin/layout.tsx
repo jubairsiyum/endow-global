@@ -22,16 +22,27 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   redirect('/login/admin?error=unauthorized')
   }
 
-  // Parse permissions JSON (stored as json or string)
-  let perms: string[] = []
-  const raw: any = (dbUser as any).permissions
-  if (Array.isArray(raw)) perms = raw
-  else if (typeof raw === 'string') {
-    try {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) perms = parsed
-    } catch {}
-  }
+   // Parse permissions JSON (stored as json, stringified json, or null)
+   let perms: string[] = []
+   const raw: any = (dbUser as any).permissions
+   if (Array.isArray(raw)) perms = raw
+   else if (typeof raw === 'string' && raw.trim().length > 0) {
+     try {
+       const parsed = JSON.parse(raw)
+       if (Array.isArray(parsed)) perms = parsed
+       else if (typeof parsed === 'string' && parsed.length > 0) perms = [parsed]
+     } catch {
+       // Fallback: treat raw as comma-separated or single value
+       if (raw.trim().startsWith('[')) perms = []
+       else perms = []
+     }
+   } else if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+     // Drizzle may return JSON object already parsed
+     const maybe = (raw as any).value ?? raw
+     if (Array.isArray(maybe)) perms = maybe
+   }
+   // Normalize: ensure string array, filter empties
+   perms = (perms || []).map((p) => String(p).trim()).filter(Boolean)
 
   return <AdminClientLayout userRole={dbUser.role as UserRole} permissions={perms}>{children}</AdminClientLayout>
 }

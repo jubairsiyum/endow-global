@@ -21,13 +21,13 @@ export default function SearchFilterBar() {
 
   const [q, setQ] = useState(searchParams.get('q') || '')
   const [country, setCountry] = useState(searchParams.get('country') || '')
-  const [level, setLevel] = useState(searchParams.get('level') || '')
+  const [level, setLevel] = useState(searchParams.get('level') || searchParams.get('degree') || '')
   const [isOpen, setIsOpen] = useState(false)
 
   useEffect(() => {
     setQ(searchParams.get('q') || '')
     setCountry(searchParams.get('country') || '')
-    setLevel(searchParams.get('level') || '')
+    setLevel(searchParams.get('level') || searchParams.get('degree') || '')
   }, [searchParams])
 
   const buildUrl = useCallback((overrides: Record<string, string>) => {
@@ -36,6 +36,11 @@ export default function SearchFilterBar() {
       if (v) p.set(k, v)
       else p.delete(k)
     })
+    if ('level' in overrides) p.delete('degree')
+    if ('q' in overrides || 'country' in overrides || 'level' in overrides) {
+      // keep URL clean — remove empty degree alias
+      if (!p.get('level')) p.delete('degree')
+    }
     return `/universities/search?${p.toString()}`
   }, [searchParams])
 
@@ -46,7 +51,11 @@ export default function SearchFilterBar() {
 
   const handleClear = () => {
     setQ(''); setCountry(''); setLevel('')
-    router.push('/universities/search')
+    // clear both level and legacy degree param
+    const p = new URLSearchParams(searchParams.toString())
+    p.delete('q'); p.delete('country'); p.delete('level'); p.delete('degree')
+    const qs = p.toString()
+    router.push(qs ? `/universities/search?${qs}` : '/universities/search')
   }
 
   const hasActiveChips = Boolean(country || level)

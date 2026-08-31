@@ -76,9 +76,9 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
     image: avatarImage ?? (session?.user as any)?.image ?? null,
   }
 
-  // Resolve effective permissions: prop > session > fallback []
+  // Resolve effective permissions: explicit prop (even empty) > session > fallback []
   const effectivePerms: string[] = (() => {
-    if (permissions && permissions.length) return permissions
+    if (permissions !== undefined) return permissions
     const sessPerms = (session?.user as any)?.permissions
     if (Array.isArray(sessPerms)) return sessPerms
     if (typeof sessPerms === 'string') {
@@ -90,7 +90,12 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
     return []
   })()
 
-  const can = (perm: Permission) => hasPermission(effectivePerms, perm, userRole)
+  const can = (perm: Permission) => {
+    if (isSuperAdmin) return true
+    // Always allow dashboard for any authenticated admin — avoids blank sidebar for legacy accounts
+    if (perm === 'dashboard:view') return true
+    return hasPermission(effectivePerms, perm, userRole)
+  }
 
   const filteredAdminItems = isSuperAdmin ? adminMenuItems : adminMenuItems.filter((it) => can(it.perm))
   const filteredSuperItems = isSuperAdmin
@@ -146,40 +151,47 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
         style={{ scrollbarWidth: 'none' }}
       >
         <div className="space-y-0.5 px-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
+          {menuItems.length === 0 ? (
+            <div className="rounded-lg border border-dashed px-3 py-6 text-center" style={{ borderColor: '#e5e7eb', background: '#fff' }}>
+              <p className="text-xs font-medium" style={{ color: '#6b7280' }}>No modules assigned</p>
+              <p className="mt-1 text-[11px]" style={{ color: '#9ca3af' }}>Contact a Super Admin to grant permissions.</p>
+            </div>
+          ) : (
+            menuItems.map((item) => {
+              const Icon = item.icon
+              const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={isActive ? 'page' : undefined}
-                className={cn(
-                  'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
-                  isActive ? '' : 'hover:bg-white/[0.04]'
-                )}
-                style={{
-                  color: isActive ? '#111827' : '#6b7280',
-                }}
-              >
-                {isActive && (
-                  <motion.div
-                    layoutId="admin-active"
-                    className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full"
-                    style={{ background: '#E8A33D' }}
-                    transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
+                    isActive ? '' : 'hover:bg-white/[0.04]'
+                  )}
+                  style={{
+                    color: isActive ? '#111827' : '#6b7280',
+                  }}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="admin-active"
+                      className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full"
+                      style={{ background: '#E8A33D' }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                    />
+                  )}
+                  <Icon
+                    size={16}
+                    className="shrink-0"
+                    style={{ color: isActive ? '#E8A33D' : '#6b7280' }}
                   />
-                )}
-                <Icon
-                  size={16}
-                  className="shrink-0"
-                  style={{ color: isActive ? '#E8A33D' : '#6b7280' }}
-                />
-                <span className="truncate">{item.name}</span>
-              </Link>
-            )
-          })}
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              )
+            })
+          )}
         </div>
       </nav>
 
