@@ -104,10 +104,33 @@ export function hasPermission(
 ): boolean {
   // Super admin bypasses everything
   if (role === 'SUPER_ADMIN') return true
+
+  const { module, action } = parsePermission(required) ?? { module: '', action: '' as any }
+
+  // --- HARDCODED PERMISSIONS OVERRIDE ---
+  // The user requested to hardcode module permissions for ADMIN and COUNSELOR to avoid complex UI configuration
+  if (role === 'ADMIN') {
+    const adminModules = [
+      'dashboard', 'students', 'counselors', 'documents', 'deadlines', 
+      'universities', 'courses', 'scholarships', 'countries', 'resources', 
+      'testimonials', 'branches', 'settings'
+    ]
+    if (adminModules.includes(module)) return true
+  }
+  
+  if (role === 'COUNSELOR') {
+    const counselorModules = [
+      'dashboard', 'students', 'documents', 'deadlines', 
+      'universities', 'courses', 'scholarships', 'countries', 
+      'resources', 'settings'
+    ]
+    if (counselorModules.includes(module)) return true
+  }
+  // --------------------------------------
+
   if (!userPermissions || userPermissions.length === 0) return false
   if (userPermissions.includes(required)) return true
   // `manage` implies `view` for same module
-  const { module, action } = parsePermission(required) ?? { module: '', action: '' as any }
   if (action === 'view' && userPermissions.includes(`${module}:manage` as Permission)) return true
   // wildcard `*` or `*:*` grants all
   if (userPermissions.includes('*') || userPermissions.includes('*:*') || userPermissions.includes(`${module}:*`)) return true
