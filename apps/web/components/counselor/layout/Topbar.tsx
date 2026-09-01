@@ -115,6 +115,7 @@ export function CounselorTopbar({ onMenuClick }: Props) {
               background: '#F7F7F5',
               color: '#6b7280',
             }}
+            suppressHydrationWarning
           >
             {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
