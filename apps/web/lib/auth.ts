@@ -11,6 +11,7 @@ import { sendEmail } from './email'
 import { absoluteUrl } from './utils'
 import { autoAssignCounselor } from './counselor-assignment'
 import { notifyCounselorNewStudent } from './notify'
+import { parsePermissionsJSON } from './rbac'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
@@ -86,7 +87,11 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 4, // re-issue session after 4 hours of inactivity
     cookieCache: {
       enabled: true,
-      maxAge: 60 * 60 * 24, // 1 day
+      // Short TTL so permission changes (via Manage Permissions) propagate within
+      // ~60s without requiring a full re-login. A 24h cache caused stale
+      // permissions to be served from the cookie, making tRPC RBAC checks fail
+      // even after an admin was granted a new module permission.
+      maxAge: 60, // 60 seconds
     },
     freshSession: {
       enabled: false,
@@ -228,26 +233,16 @@ export const auth = betterAuth({
     }),
     customSession(async ({ user, session }) => {
       // Parse permissions which may be stored as JSON string, array, or MySQL json object
-      let perms: string[] = []
-      const raw: any = (user as any).permissions
-      if (Array.isArray(raw)) perms = raw.map((p: any) => String(p).trim()).filter(Boolean)
-      else if (typeof raw === 'string' && raw.trim()) {
-        try {
-          const parsed = JSON.parse(raw)
-          if (Array.isArray(parsed)) perms = parsed.map((p: any) => String(p).trim()).filter(Boolean)
-          else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) perms = (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean)
-        } catch {
-          perms = []
-        }
-      } else if (raw && typeof raw === 'object') {
-        const maybe = (raw as any).value ?? raw
-        if (Array.isArray(maybe)) perms = maybe.map((p: any) => String(p).trim()).filter(Boolean)
-      }
+      const perms = parsePermissionsJSON((user as any).permissions)
       return {
         user: {
           ...user,
           role: (user as any).role as UserRole,
-          permissions: perms,
+          // Serialize as JSON string so better-auth's `type: 'string'` handling
+          // stores it correctly in the cookie. Returning a raw array causes
+          // Array.prototype.toString() coercion → "a,b,c" (no brackets),
+          // which breaks JSON.parse on the next read → empty permissions.
+          permissions: JSON.stringify(perms),
         },
         session,
       }

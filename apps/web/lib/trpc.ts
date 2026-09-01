@@ -5,7 +5,7 @@ import superjson from 'superjson'
 import { ZodError } from 'zod'
 import { UserRole } from '@endow/types'
 import { zodErrorToMessage } from './utils'
-import { hasPermission, type Permission } from './rbac'
+import { hasPermission, parsePermissionsJSON, type Permission } from './rbac'
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
@@ -68,31 +68,10 @@ export const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
 })
 
 // ─── RBAC helpers ────────────────────────────────────────────────
-function parsePermissions(raw: unknown): string[] {
-  if (!raw) return []
-  if (Array.isArray(raw)) return raw.map((p) => String(p).trim()).filter(Boolean) as string[]
-  if (typeof raw === 'string' && raw.trim()) {
-    try {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed.map((p) => String(p).trim()).filter(Boolean) as string[]
-      if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) {
-        return (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean) as string[]
-      }
-    } catch {
-      return []
-    }
-  }
-  if (raw && typeof raw === 'object') {
-    const maybe = (raw as any).value ?? raw
-    if (Array.isArray(maybe)) return maybe.map((p: any) => String(p).trim()).filter(Boolean) as string[]
-  }
-  return []
-}
-
 export function requirePermission(permission: Permission) {
   return protectedProcedure.use(({ ctx, next }) => {
     const role = (ctx.session as any).user?.role as UserRole
-    const perms = parsePermissions((ctx.session as any).user?.permissions)
+    const perms = parsePermissionsJSON((ctx.session as any).user?.permissions)
     if (role === UserRole.SUPER_ADMIN) return next({ ctx })
     // ADMIN and also COUNSELOR can have module permissions for staff delegation
     if (!hasPermission(perms, permission, role)) {
@@ -109,7 +88,7 @@ export function adminWithPermission(permission: Permission) {
     if (role !== UserRole.ADMIN && role !== UserRole.SUPER_ADMIN) {
       throw new TRPCError({ code: 'FORBIDDEN' })
     }
-    const perms = parsePermissions((ctx.session as any).user?.permissions)
+    const perms = parsePermissionsJSON((ctx.session as any).user?.permissions)
     if (role === UserRole.SUPER_ADMIN) return next({ ctx })
     // Dashboard is always allowed for any authenticated ADMIN — prevents blank sidebar / stuck loading for legacy accounts with []
     if (permission === 'dashboard:view' && role === UserRole.ADMIN) return next({ ctx })

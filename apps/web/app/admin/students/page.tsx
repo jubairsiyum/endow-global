@@ -23,11 +23,17 @@ export default function StudentsPage() {
  const debouncedSearch = useDebounce(search, 500)
  const [cursor, setCursor] = useState<string | null>(null)
 
- const { data, isLoading } = trpc.admin.students.list.useQuery({
+ const { data, isLoading, error } = trpc.admin.students.list.useQuery({
  search: debouncedSearch || undefined,
  cursor: cursor,
  limit: 20,
  })
+
+ // Detect FORBIDDEN (missing students:view permission)
+ const isForbidden =
+   (error as any)?.data?.httpStatus === 403 ||
+   (error as any)?.data?.code === 'FORBIDDEN' ||
+   (error as any)?.message?.includes('FORBIDDEN')
 
  return (
  <div className="space-y-6">
@@ -85,8 +91,26 @@ export default function StudentsPage() {
  </div>
  ))}
  </div>
+ ) : isForbidden ? (
+ <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+   <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-500">
+     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+       <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+     </svg>
+   </div>
+   <p className="text-sm font-semibold text-gray-800">Permission required</p>
+   <p className="mt-1 max-w-sm text-xs text-gray-500">
+     Your account does not have the <code className="rounded bg-gray-100 px-1 py-0.5 font-mono">students:view</code> permission.
+     Ask a Super Admin to grant it via <strong>User Management → Manage Permissions</strong>.
+   </p>
+ </div>
+ ) : error ? (
+ <div className="flex flex-col items-center justify-center py-16 text-center px-4">
+   <p className="text-sm font-semibold text-red-600">Failed to load students</p>
+   <p className="mt-1 text-xs text-gray-500">{(error as any)?.message || 'Unexpected error'}</p>
+ </div>
  ) : data?.items.length === 0 ? (
- <div className="py-10 text-center">No students found</div>
+ <div className="py-10 text-center text-sm text-gray-500">No students found</div>
  ) : (
  (data?.items || []).map((student: any) => (
  <div

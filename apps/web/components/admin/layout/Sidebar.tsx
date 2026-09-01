@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
-import { hasPermission, type Permission } from '@/lib/rbac'
+import { hasPermission, parsePermissionsJSON, type Permission } from '@/lib/rbac'
 
 const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permission }> = [
   { name: 'Dashboard', icon: LayoutDashboard, href: '/admin', perm: 'dashboard:view' },
@@ -79,15 +79,7 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
   // Resolve effective permissions: explicit prop (even empty) > session > fallback []
   const effectivePerms: string[] = (() => {
     if (permissions !== undefined) return permissions
-    const sessPerms = (session?.user as any)?.permissions
-    if (Array.isArray(sessPerms)) return sessPerms
-    if (typeof sessPerms === 'string') {
-      try {
-        const p = JSON.parse(sessPerms)
-        if (Array.isArray(p)) return p
-      } catch {}
-    }
-    return []
+    return parsePermissionsJSON((session?.user as any)?.permissions)
   })()
 
   const can = (perm: Permission) => {

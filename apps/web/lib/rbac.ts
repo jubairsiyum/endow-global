@@ -62,6 +62,40 @@ export function isValidPermission(p: string): boolean {
   return parsePermission(p) !== null
 }
 
+export function parsePermissionsJSON(raw: unknown): string[] {
+  try {
+    if (!raw) return []
+    if (Array.isArray(raw)) {
+      return raw.map((p) => String(p).trim()).filter(Boolean)
+    }
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim()
+      if (!trimmed) return []
+      // Attempt JSON parse
+      try {
+        const parsed = JSON.parse(trimmed)
+        if (Array.isArray(parsed)) return parsed.map((p) => String(p).trim()).filter(Boolean)
+        if (parsed && typeof parsed === 'object') {
+          const val = (parsed as any).value ?? parsed
+          if (Array.isArray(val)) return val.map((p: any) => String(p).trim()).filter(Boolean)
+        }
+      } catch (e) {
+        // Fallback to comma-separated
+        if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+          return trimmed.split(',').map((p) => p.trim()).filter(Boolean)
+        }
+      }
+    }
+    if (raw && typeof raw === 'object') {
+      const val = (raw as any).value ?? raw
+      if (Array.isArray(val)) return val.map((p: any) => String(p).trim()).filter(Boolean)
+    }
+    return []
+  } catch {
+    return []
+  }
+}
+
 // ─── Permission check ──────────────────────────────────────────────
 export function hasPermission(
   userPermissions: string[] | null | undefined,
