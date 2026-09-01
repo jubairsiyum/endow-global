@@ -187,38 +187,75 @@ export default function ResourcesPage() {
     }
   }
 
+  function isValidUrlOrPath(val: string) {
+    if (!val) return true
+    if (val.startsWith('/')) return true
+    try { new URL(val); return true } catch { return false }
+  }
+
   function onSave() {
-    if (!form.title.trim() || !form.slug.trim()) { toast.error('Title and slug are required'); return }
-    if (form.type === 'FILE' && !form.fileUrl.trim()) { toast.error('Please upload or provide a file URL'); return }
+    // 1. Basic required fields
+    if (!form.title.trim()) { toast.error('Title is required'); return }
+    if (!form.slug.trim()) { toast.error('Slug is required'); return }
+    
+    // 2. Slug format
+    if (!/^[a-z0-9-]+$/.test(form.slug.trim())) {
+      toast.error('Slug can only contain lowercase letters, numbers, and hyphens')
+      return
+    }
+
+    // 3. URL Format validation
+    if (form.coverImage && !isValidUrlOrPath(form.coverImage.trim())) {
+      toast.error('Feature Image must be a valid URL or relative path (e.g., /uploads/...)')
+      return
+    }
+    if (form.fileUrl && !isValidUrlOrPath(form.fileUrl.trim())) {
+      toast.error('File URL must be a valid URL or relative path')
+      return
+    }
+
+    // 4. Publish Requirements
+    if (form.isPublished) {
+      if (!form.coverImage?.trim()) { toast.error('Feature Image is required to publish this resource'); return }
+      if (form.type === 'BLOG' && !form.content?.trim()) { toast.error('Content is required to publish a blog'); return }
+      if (form.type === 'FILE' && !form.fileUrl?.trim()) { toast.error('File URL is required to publish a file'); return }
+    } else if (form.type === 'FILE' && !form.fileUrl?.trim()) {
+      // Even in draft, files should ideally have a fileUrl if they are files, but we enforce it on publish for flexibility.
+      // We will allow draft files without URLs to be saved for later completion.
+    }
 
     const payload: any = {
       type: form.type,
       title: form.title.trim(),
       slug: form.slug.trim(),
-      description: form.description || null,
-      content: form.content || null,
-      coverImage: form.coverImage || null,
-      category: form.category || null,
-      section: form.section || null,
+      description: form.description?.trim() || null,
+      content: form.content?.trim() || null,
+      coverImage: form.coverImage?.trim() || null,
+      category: form.category?.trim() || null,
+      section: form.section?.trim() || null,
       tags: splitComma(form.tags),
-      author: form.author || null,
-      fileUrl: form.fileUrl || null,
-      fileName: form.fileName || null,
-      mimeType: form.mimeType || null,
-      fileSize: form.fileSize ? parseInt(form.fileSize, 10) || null : null,
+      author: form.author?.trim() || null,
+      fileUrl: form.fileUrl?.trim() || null,
+      fileName: form.fileName?.trim() || null,
+      mimeType: form.mimeType?.trim() || null,
+      fileSize: form.fileSize ? parseInt(form.fileSize, 10) : null,
       isPublished: form.isPublished,
       deadline: form.deadline ? new Date(form.deadline) : null,
-      metaTitle: form.metaTitle || null,
-      metaDescription: form.metaDescription || null,
+      publishedAt: form.isPublished ? new Date() : null, // (Optionally set on backend, but included here for completeness)
+      metaTitle: form.metaTitle?.trim() || null,
+      metaDescription: form.metaDescription?.trim() || null,
       keywords: splitComma(form.keywords),
-      canonicalUrl: form.canonicalUrl || null,
-      ogImageUrl: form.ogImageUrl || null,
+      canonicalUrl: form.canonicalUrl?.trim() || null,
+      ogImageUrl: form.ogImageUrl?.trim() || null,
       noIndex: form.noIndex,
       featured: form.featured,
     }
 
-    if (editingId) updateMutation.mutate({ id: editingId, ...payload })
-    else createMutation.mutate(payload)
+    if (editingId) {
+      updateMutation.mutate({ id: editingId, ...payload })
+    } else {
+      createMutation.mutate(payload)
+    }
   }
 
   const labelCls = 'mb-1.5 block text-sm font-medium text-gray-700'

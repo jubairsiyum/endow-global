@@ -16,9 +16,14 @@ export default function AdminPage() {
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   })
+  // getPlatformStats is a SUPER_ADMIN-only procedure (superAdminProcedure in
+  // lib/trpc.ts). Gate the query so a normal ADMIN never fires the request —
+  // the server still enforces RBAC and returns 403 for unauthorized users.
+  const isSuperAdmin = userRole === UserRole.SUPER_ADMIN
   const { data: _stats } = trpc.admin.super.getPlatformStats.useQuery(undefined, {
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
+    enabled: isSuperAdmin,
   })
   const { data: inquiries } = trpc.endow.listInquiries.useQuery(undefined, {
     staleTime: 60 * 1000,

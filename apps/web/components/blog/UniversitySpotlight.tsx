@@ -45,13 +45,19 @@ export function UniversitySpotlight({ university }: { university: any | null }) 
           <div className="grid grid-cols-1 lg:grid-cols-2">
             {/* IMAGE */}
             <div className="relative h-96 overflow-hidden lg:h-full">
-              {university.coverImage ? (
-                <Image src={university.coverImage} alt={university.title} fill className="object-cover" />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center bg-[#F8FAFC] text-6xl font-bold text-gray-200">
-                  {university.title?.charAt(0)?.toUpperCase() || 'U'}
-                </div>
-              )}
+              {(() => {
+                const safeCoverImage = university.coverImage?.trim().startsWith('http') || university.coverImage?.trim().startsWith('/') 
+                  ? university.coverImage.trim() 
+                  : null;
+                  
+                return safeCoverImage ? (
+                  <Image src={safeCoverImage} alt={university.title || 'University'} fill className="object-cover" />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-[#F8FAFC] text-6xl font-bold text-gray-200">
+                    {university.title?.charAt(0)?.toUpperCase() || 'U'}
+                  </div>
+                )
+              })()}
               <div className="absolute inset-0 bg-[#111827]/25" />
             </div>
 

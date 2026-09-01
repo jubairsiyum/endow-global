@@ -9,31 +9,54 @@ const and = _and as any
 const or = _or as any
 const like = _like as any
 
+const safeUrlSchema = z.string().trim().refine((val) => {
+  if (!val) return true
+  if (val.startsWith('/')) return true
+  try {
+    new URL(val)
+    return true
+  } catch {
+    return false
+  }
+}, { message: "Must be a valid URL or relative path (e.g., /uploads/...)" }).optional().nullable()
+
 const resourceInput = z.object({
   type: z.enum(['BLOG', 'FILE']),
-  title: z.string().min(1),
-  slug: z.string().min(1),
-  description: z.string().optional().nullable(),
-  content: z.string().optional().nullable(),
-  coverImage: z.string().optional().nullable(),
-  category: z.string().optional().nullable(),
-  section: z.string().optional().nullable(),
-  tags: z.array(z.string()).default([]),
-  author: z.string().optional().nullable(),
-  fileUrl: z.string().optional().nullable(),
-  fileName: z.string().optional().nullable(),
-  mimeType: z.string().optional().nullable(),
+  title: z.string().trim().min(1, "Title is required"),
+  slug: z.string().trim().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
+  description: z.string().trim().optional().nullable(),
+  content: z.string().trim().optional().nullable(),
+  coverImage: safeUrlSchema,
+  category: z.string().trim().optional().nullable(),
+  section: z.string().trim().optional().nullable(),
+  tags: z.array(z.string().trim()).default([]),
+  author: z.string().trim().optional().nullable(),
+  fileUrl: safeUrlSchema,
+  fileName: z.string().trim().optional().nullable(),
+  mimeType: z.string().trim().optional().nullable(),
   fileSize: z.number().int().min(0).optional().nullable(),
   isPublished: z.boolean().default(false),
   publishedAt: z.date().optional().nullable(),
   deadline: z.date().optional().nullable(),
-  metaTitle: z.string().optional().nullable(),
-  metaDescription: z.string().optional().nullable(),
-  keywords: z.array(z.string()).default([]),
-  canonicalUrl: z.string().optional().nullable(),
-  ogImageUrl: z.string().optional().nullable(),
+  metaTitle: z.string().trim().optional().nullable(),
+  metaDescription: z.string().trim().optional().nullable(),
+  keywords: z.array(z.string().trim()).default([]),
+  canonicalUrl: safeUrlSchema,
+  ogImageUrl: safeUrlSchema,
   noIndex: z.boolean().default(false),
   featured: z.boolean().default(false),
+}).superRefine((data, ctx) => {
+  if (data.isPublished) {
+    if (!data.coverImage) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Cover image is required to publish", path: ['coverImage'] })
+    }
+    if (data.type === 'BLOG' && !data.content) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Content is required to publish a blog", path: ['content'] })
+    }
+    if (data.type === 'FILE' && !data.fileUrl) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "File URL is required to publish a file", path: ['fileUrl'] })
+    }
+  }
 })
 
 export const resourceRouter = createTRPCRouter({
