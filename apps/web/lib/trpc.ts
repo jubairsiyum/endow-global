@@ -70,14 +70,21 @@ export const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
 // ─── RBAC helpers ────────────────────────────────────────────────
 function parsePermissions(raw: unknown): string[] {
   if (!raw) return []
-  if (Array.isArray(raw)) return raw as string[]
-  if (typeof raw === 'string') {
+  if (Array.isArray(raw)) return raw.map((p) => String(p).trim()).filter(Boolean) as string[]
+  if (typeof raw === 'string' && raw.trim()) {
     try {
       const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed)) return parsed as string[]
+      if (Array.isArray(parsed)) return parsed.map((p) => String(p).trim()).filter(Boolean) as string[]
+      if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) {
+        return (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean) as string[]
+      }
     } catch {
       return []
     }
+  }
+  if (raw && typeof raw === 'object') {
+    const maybe = (raw as any).value ?? raw
+    if (Array.isArray(maybe)) return maybe.map((p: any) => String(p).trim()).filter(Boolean) as string[]
   }
   return []
 }
@@ -104,6 +111,8 @@ export function adminWithPermission(permission: Permission) {
     }
     const perms = parsePermissions((ctx.session as any).user?.permissions)
     if (role === UserRole.SUPER_ADMIN) return next({ ctx })
+    // Dashboard is always allowed for any authenticated ADMIN — prevents blank sidebar / stuck loading for legacy accounts with []
+    if (permission === 'dashboard:view' && role === UserRole.ADMIN) return next({ ctx })
     if (!hasPermission(perms, permission, role)) {
       throw new TRPCError({ code: 'FORBIDDEN', message: `Missing permission: ${permission}` })
     }

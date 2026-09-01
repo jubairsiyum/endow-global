@@ -2010,14 +2010,13 @@ return db.select().from(schema.countries)
         })
       )
       .mutation(async ({ input, ctx }) => {
+        // eslint-disable-next-line no-console
+        console.log('[admin.super.updateUserRole] requested', { by: (ctx.session as any)?.user?.email, target: input.userId, role: input.role })
         const user = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
           columns: { id: true, role: true, email: true },
         })
         if (!user) throw new Error('User not found')
-        if ((user as any).id === ctx.session.user.id && input.role !== (user as any).role) {
-          // Allow self-demotion only if not last super admin; warn otherwise handled below
-        }
 
         // Prevent demoting the last super admin
         if ((user as any).role === 'SUPER_ADMIN' && input.role !== 'SUPER_ADMIN') {
@@ -2025,26 +2024,35 @@ return db.select().from(schema.countries)
             .select({ value: count() as any })
             .from(schema.users)
             .where(eq(schema.users.role, 'SUPER_ADMIN'))
-          if (superAdminCount[0]?.value <= 1) {
+          if (Number(superAdminCount[0]?.value ?? 0) <= 1) {
             throw new Error('Cannot demote the last Super Admin — at least one must remain')
           }
         }
 
         // Normalize permissions on role change: non-ADMIN roles should not retain admin perms
-        const updates: any = { role: input.role }
+        const updates: any = { role: input.role, updatedAt: new Date() }
         if (input.role !== 'ADMIN') {
-          updates.permissions = JSON.stringify([])
+          // Clear permissions for non-admin roles (json() column — pass raw array, not JSON.stringify)
+          updates.permissions = []
         } else if ((user as any).role !== 'ADMIN') {
           // Promoting to ADMIN — ensure at least dashboard:view so sidebar renders
-          updates.permissions = JSON.stringify(['dashboard:view'])
+          updates.permissions = ['dashboard:view']
         }
 
         await db
           .update(schema.users)
           .set(updates)
           .where(eq(schema.users.id, input.userId))
-        // Invalidate sessions of target user so permission/role takes effect immediately
-        await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
+        // Invalidate sessions of target user so permission/role takes effect immediately (skip if self to avoid instant logout)
+        if (input.userId !== (ctx.session as any).user.id) {
+          await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
+        } else {
+          // For self-role change, keep session but log — user will see new role on next refresh
+          // eslint-disable-next-line no-console
+          console.log('[admin] self role change, session retained for', input.userId)
+        }
+        // eslint-disable-next-line no-console
+        console.log('[admin.super.updateUserRole] done', { userId: input.userId, role: input.role })
         return { success: true }
       }),
 
@@ -2101,19 +2109,26 @@ return db.select().from(schema.countries)
         if (!user) throw new Error('User not found')
         let perms: string[] = []
         const raw: any = (user as any).permissions
-        if (Array.isArray(raw)) perms = raw
-        else if (typeof raw === 'string') {
+        if (Array.isArray(raw)) {
+          perms = raw.map((p: any) => String(p).trim()).filter(Boolean)
+        } else if (typeof raw === 'string' && raw.trim()) {
           try {
             const parsed = JSON.parse(raw)
-            if (Array.isArray(parsed)) perms = parsed
+            if (Array.isArray(parsed)) perms = parsed.map((p: any) => String(p).trim()).filter(Boolean)
+            else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) {
+              perms = (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean)
+            }
           } catch {}
+        } else if (raw && typeof raw === 'object') {
+          const maybe = (raw as any).value ?? raw
+          if (Array.isArray(maybe)) perms = maybe.map((p: any) => String(p).trim()).filter(Boolean)
         }
         return { userId: input.userId, role: (user as any).role, permissions: perms }
       }),
 
     updatePermissions: superAdminProcedure
       .input(z.object({ userId: z.string(), permissions: z.array(z.string()) }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         const user = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
           columns: { id: true, role: true },
@@ -2128,8 +2143,13 @@ return db.select().from(schema.countries)
         if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
         await db
           .update(schema.users)
-          .set({ permissions: JSON.stringify(input.permissions) as any })
+          // json() column — Drizzle handles serialization; do NOT JSON.stringify()
+          .set({ permissions: input.permissions as any })
           .where(eq(schema.users.id, input.userId))
+        // Invalidate sessions of target user so permission changes take effect immediately
+        if (input.userId !== (ctx.session as any).user.id) {
+          await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
+        }
         return { success: true }
       }),
 
@@ -2194,7 +2214,8 @@ return db.select().from(schema.countries)
           name: input.name,
           email: input.email,
           role: 'ADMIN' as any,
-          permissions: JSON.stringify(input.permissions) as any,
+          // json() column — Drizzle handles serialization; do NOT JSON.stringify()
+          permissions: input.permissions as any,
           emailVerified: true,
         } as any)
         if (hashed) {

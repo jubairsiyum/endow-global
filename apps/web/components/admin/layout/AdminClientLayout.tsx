@@ -26,10 +26,14 @@ export function AdminClientLayout({
         />
       )}
 
-      {/* Sidebar — fixed drawer on mobile, static column on desktop */}
+      {/* Desktop sidebar — always visible */}
+      <div className="hidden lg:flex lg:shrink-0">
+        <Sidebar userRole={userRole} permissions={permissions} />
+      </div>
+
+      {/* Mobile drawer */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen shrink-0 transition-transform duration-300 lg:static lg:z-auto lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
-        aria-hidden={sidebarOpen ? undefined : false}
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen shrink-0 transition-transform duration-300 lg:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <Sidebar userRole={userRole} permissions={permissions} />
       </div>

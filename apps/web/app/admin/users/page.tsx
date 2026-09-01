@@ -69,7 +69,10 @@ export default function SAUsersPage() {
     { userId: editingUserId! },
     { enabled: !!editingUserId }
   )
-  useEffect(() => { if (permData?.permissions) setEditingPerms(permData.permissions) }, [permData])
+  useEffect(() => {
+    if (!editingUserId) { setEditingPerms([]); return }
+    if (permData?.permissions) setEditingPerms(permData.permissions)
+  }, [editingUserId, permData])
   useEffect(() => { if (roleTarget) setNewRole(roleTarget.role) }, [roleTarget])
   useEffect(() => { if (resetTarget) { setNewPassword(''); setShowPw(false) } }, [resetTarget])
 
@@ -371,15 +374,26 @@ export default function SAUsersPage() {
                 </div>
 
                 <div className="mt-6 flex justify-end gap-2">
-                  <SAButton variant="secondary" size="sm" onClick={() => setRoleTarget(null)}>Cancel</SAButton>
+                  <SAButton variant="secondary" size="sm" onClick={() => setRoleTarget(null)} disabled={updateRole.isPending}>Cancel</SAButton>
                   <SAButton
                     variant="primary"
                     size="sm"
-                    disabled={updateRole.isPending || newRole === roleTarget.role}
+                    type="button"
+                    disabled={updateRole.isPending || !roleTarget || newRole === roleTarget.role}
                     onClick={() => {
-                      if (newRole === roleTarget.role) return
-                      if (roleTarget.role === 'SUPER_ADMIN' && !confirm('Demote this Super Admin? This reduces their access significantly.')) return
-                      if (newRole === 'SUPER_ADMIN' && !confirm(`Promote ${roleTarget.email} to Super Admin?`)) return
+                      if (!roleTarget) return
+                      if (newRole === roleTarget.role) {
+                        toast.error('Select a different role')
+                        return
+                      }
+                      // Confirm sensitive transitions — use window.confirm safely
+                      try {
+                        if (roleTarget.role === 'SUPER_ADMIN' && typeof window !== 'undefined' && !window.confirm('Demote this Super Admin? This reduces their access significantly.')) return
+                        if (newRole === 'SUPER_ADMIN' && typeof window !== 'undefined' && !window.confirm(`Promote ${roleTarget.email} to Super Admin?`)) return
+                      } catch {}
+                      // Ensure payload is correct and visible in terminal
+                      // eslint-disable-next-line no-console
+                      console.log('[admin] updateUserRole', { userId: roleTarget.id, role: newRole })
                       updateRole.mutate({ userId: roleTarget.id, role: newRole as any })
                     }}
                   >

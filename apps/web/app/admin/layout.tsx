@@ -41,8 +41,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
      const maybe = (raw as any).value ?? raw
      if (Array.isArray(maybe)) perms = maybe
    }
-   // Normalize: ensure string array, filter empties
-   perms = (perms || []).map((p) => String(p).trim()).filter(Boolean)
+    // Normalize: ensure string array, filter empties
+    perms = (perms || []).map((p) => String(p).trim()).filter(Boolean)
+    // Ensure every ADMIN has at least dashboard:view so sidebar never appears blank
+    if (dbUser.role === UserRole.ADMIN && perms.length === 0) {
+      perms = ['dashboard:view']
+    }
 
-  return <AdminClientLayout userRole={dbUser.role as UserRole} permissions={perms}>{children}</AdminClientLayout>
+   return <AdminClientLayout userRole={dbUser.role as UserRole} permissions={perms}>{children}</AdminClientLayout>
 }

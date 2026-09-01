@@ -227,17 +227,21 @@ export const auth = betterAuth({
       },
     }),
     customSession(async ({ user, session }) => {
-      // Parse permissions which may be stored as JSON string or array
+      // Parse permissions which may be stored as JSON string, array, or MySQL json object
       let perms: string[] = []
-      const raw = (user as any).permissions
-      if (Array.isArray(raw)) perms = raw
-      else if (typeof raw === 'string') {
+      const raw: any = (user as any).permissions
+      if (Array.isArray(raw)) perms = raw.map((p: any) => String(p).trim()).filter(Boolean)
+      else if (typeof raw === 'string' && raw.trim()) {
         try {
           const parsed = JSON.parse(raw)
-          if (Array.isArray(parsed)) perms = parsed
+          if (Array.isArray(parsed)) perms = parsed.map((p: any) => String(p).trim()).filter(Boolean)
+          else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) perms = (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean)
         } catch {
           perms = []
         }
+      } else if (raw && typeof raw === 'object') {
+        const maybe = (raw as any).value ?? raw
+        if (Array.isArray(maybe)) perms = maybe.map((p: any) => String(p).trim()).filter(Boolean)
       }
       return {
         user: {
