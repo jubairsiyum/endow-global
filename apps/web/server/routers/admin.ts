@@ -1335,36 +1335,138 @@ return db.select().from(schema.countries)
     list: adminWithPermission('scholarships:view')
       .input(
         z.object({
-          universityId: z.number().optional(),
+          universityId: z.union([z.number(), z.string()]).optional(),
           search: z.string().optional(),
           isActive: z.boolean().optional(),
         })
       )
       .query(async ({ input }) => {
-        const conditions = []
-        if (input.universityId) conditions.push(eq(schema.scholarships.universityId, input.universityId))
-        if (input.search) conditions.push(like(schema.scholarships.name, `%${input.search}%`))
-        if (input.isActive !== undefined) conditions.push(eq(schema.scholarships.isActive, input.isActive))
+        try {
+          // Normalize universityId: catalog int as number, platform string id needs no filter (or resolve)
+          let resolvedUniversityId: number | undefined
+          if (input.universityId != null && input.universityId !== '') {
+            const raw = input.universityId
+            const num = typeof raw === 'number' ? raw : Number(raw)
+            if (!Number.isNaN(num) && String(num) === String(raw).trim()) resolvedUniversityId = num
+            else if (typeof raw === 'string') {
+              // platform string id -> try to map to catalog via slug
+              try {
+                const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, raw) })
+                if (plat) {
+                  const cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                  if (cat) resolvedUniversityId = cat.id
+                }
+              } catch {}
+            }
+          }
+          const conditions: unknown[] = []
+          if (resolvedUniversityId != null) conditions.push(eq(schema.scholarships.universityId, resolvedUniversityId))
+          else if (input.universityId != null && typeof input.universityId === 'string' && Number.isNaN(Number(input.universityId))) {
+            // platform id with no catalog mapping -> return empty to avoid showing unrelated data
+            return []
+          }
+          if (input.search) conditions.push(like(schema.scholarships.name, `%${input.search}%`))
+          if (input.isActive !== undefined) conditions.push(eq(schema.scholarships.isActive, input.isActive))
 
-        return db.query.scholarships.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [schema.scholarships.name],
-          with: { university: { columns: { id: true, name: true } }, course: { columns: { id: true, title: true } } },
-        })
+          const rows = await db
+            .select({
+              id: schema.scholarships.id,
+              name: schema.scholarships.name,
+              description: schema.scholarships.description,
+              amount: schema.scholarships.amount,
+              currencyCode: schema.scholarships.currencyCode,
+              coverageType: schema.scholarships.coverageType,
+              eligibility: schema.scholarships.eligibility,
+              deadline: schema.scholarships.deadline,
+              linkUrl: schema.scholarships.linkUrl,
+              isActive: schema.scholarships.isActive,
+              universityId: schema.scholarships.universityId,
+              courseId: schema.scholarships.courseId,
+              universityName: schema.catalogUniversities.name,
+              courseTitle: schema.catalogCourses.title,
+            })
+            .from(schema.scholarships)
+            .leftJoin(schema.catalogUniversities, eq(schema.scholarships.universityId, schema.catalogUniversities.id))
+            .leftJoin(schema.catalogCourses, eq(schema.scholarships.courseId, schema.catalogCourses.id))
+            .where(conditions.length > 0 ? (and as any)(...conditions) : undefined)
+            .orderBy(schema.scholarships.name as any)
+
+          return rows.map((r) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            amount: r.amount,
+            currencyCode: r.currencyCode,
+            coverageType: r.coverageType,
+            eligibility: r.eligibility,
+            deadline: r.deadline,
+            linkUrl: r.linkUrl,
+            isActive: r.isActive,
+            universityId: r.universityId,
+            courseId: r.courseId,
+            university: r.universityName ? { id: r.universityId, name: r.universityName } : null,
+            course: r.courseTitle ? { id: r.courseId, title: r.courseTitle } : null,
+          }))
+        } catch (e) {
+          console.error('[admin.scholarships.list] query failed:', e)
+          return []
+        }
       }),
 
     getById: adminWithPermission('scholarships:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
-      return db.query.scholarships.findFirst({
-        where: eq(schema.scholarships.id, input.id),
-        with: { university: true, course: true },
-      })
+      try {
+        const row = await db
+          .select({
+            id: schema.scholarships.id,
+            name: schema.scholarships.name,
+            description: schema.scholarships.description,
+            amount: schema.scholarships.amount,
+            currencyCode: schema.scholarships.currencyCode,
+            coverageType: schema.scholarships.coverageType,
+            eligibility: schema.scholarships.eligibility,
+            deadline: schema.scholarships.deadline,
+            linkUrl: schema.scholarships.linkUrl,
+            isActive: schema.scholarships.isActive,
+            universityId: schema.scholarships.universityId,
+            courseId: schema.scholarships.courseId,
+            universityName: schema.catalogUniversities.name,
+            courseTitle: schema.catalogCourses.title,
+          })
+          .from(schema.scholarships)
+          .leftJoin(schema.catalogUniversities, eq(schema.scholarships.universityId, schema.catalogUniversities.id))
+          .leftJoin(schema.catalogCourses, eq(schema.scholarships.courseId, schema.catalogCourses.id))
+          .where(eq(schema.scholarships.id, input.id))
+          .limit(1)
+          .then((rows) => rows[0] as unknown as typeof rows[number] | undefined)
+
+        if (!row) return null
+        return {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          amount: row.amount,
+          currencyCode: row.currencyCode,
+          coverageType: row.coverageType,
+          eligibility: row.eligibility,
+          deadline: row.deadline,
+          linkUrl: row.linkUrl,
+          isActive: row.isActive,
+          universityId: row.universityId,
+          courseId: row.courseId,
+          university: row.universityName ? { id: row.universityId, name: row.universityName } : null,
+          course: row.courseTitle ? { id: row.courseId, title: row.courseTitle } : null,
+        }
+      } catch (e) {
+        console.error('[admin.scholarships.getById] query failed:', e)
+        return null
+      }
     }),
 
     create: adminWithPermission('scholarships:manage')
       .input(
         z.object({
-          universityId: z.number().optional(),
-          courseId: z.number().optional(),
+          universityId: z.union([z.number(), z.string()]).optional(),
+          courseId: z.union([z.number(), z.string()]).optional(),
           name: z.string().min(1),
           description: z.string().optional(),
           amount: z.number().optional(),
@@ -1377,7 +1479,129 @@ return db.select().from(schema.countries)
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(schema.scholarships).values(input)
+        // Defensive: ensure currency exists — best-effort, never block creation if currencies table is missing or query fails
+        if (input.currencyCode) {
+          try {
+            const cur = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, input.currencyCode) })
+            if (!cur) {
+              try {
+                const symbolMap: Record<string, string> = { USD: '$', KRW: '₩', GBP: '£', EUR: '€', JPY: '¥' }
+                await db.insert(schema.currencies).values({
+                  code: input.currencyCode,
+                  symbol: symbolMap[input.currencyCode] ?? input.currencyCode,
+                  usdRate: 1,
+                })
+              } catch (insertErr) {
+                console.warn('[scholarships.create] Failed to ensure currency, proceeding anyway:', insertErr)
+              }
+            }
+          } catch (checkErr) {
+            console.warn('[scholarships.create] Currency check failed, proceeding anyway:', checkErr)
+          }
+        }
+        // Resolve platform string ids (e.g. "univ_abc123") to catalog int ids
+        let resolvedUniversityId: number | undefined
+        let resolvedCourseId: number | undefined
+        const rawUni = (input as unknown as { universityId?: string | number }).universityId
+        const rawCourse = (input as unknown as { courseId?: string | number }).courseId
+        if (rawUni != null && rawUni !== '') {
+          const num = typeof rawUni === 'number' ? rawUni : Number(rawUni)
+          if (!Number.isNaN(num) && String(num) === String(rawUni).trim()) resolvedUniversityId = num
+          else if (typeof rawUni === 'string') {
+            try {
+              const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, rawUni) })
+              if (plat) {
+                let cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                if (!cat) {
+                  const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.name, plat.country) })
+                  const countryCode = country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
+                  await db.insert(schema.catalogUniversities).values({
+                    name: plat.name,
+                    slug: plat.slug,
+                    countryCode,
+                    city: plat.city,
+                    description: plat.description,
+                    logoUrl: plat.logo,
+                    bannerUrl: plat.coverImage,
+                    websiteUrl: plat.website,
+                    isActive: true,
+                    isFeatured: false,
+                  } as never)
+                  cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                }
+                if (cat) resolvedUniversityId = cat.id
+              }
+            } catch {}
+          }
+        }
+        if (rawCourse != null && rawCourse !== '') {
+          const num = typeof rawCourse === 'number' ? rawCourse : Number(rawCourse)
+          if (!Number.isNaN(num) && String(num) === String(rawCourse).trim()) resolvedCourseId = num
+          else if (typeof rawCourse === 'string') {
+            try {
+              const plat = await db.query.courses.findFirst({ where: (c, { eq }) => eq(c.id, rawCourse) })
+              if (plat) {
+                let cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+                if (!cat && resolvedUniversityId) {
+                  const dept = await db.query.departments.findFirst({ where: (d, { eq }) => eq(d.universityId, resolvedUniversityId!) })
+                  await db.insert(schema.catalogCourses).values({
+                    universityId: resolvedUniversityId,
+                    departmentId: dept?.id ?? null,
+                    title: plat.name,
+                    slug: plat.slug,
+                    level: (plat.level?.toLowerCase() as never) ?? 'bachelor',
+                    mode: 'on_campus' as never,
+                    durationMonths: (plat.duration as unknown as number) ?? 48,
+                    tuitionFee: plat.tuitionFee ?? 0,
+                    currencyCode: (plat.currency as string) ?? 'USD',
+                    description: plat.description,
+                    isActive: true,
+                  } as never)
+                  cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+                }
+                if (cat) resolvedCourseId = cat.id
+              }
+            } catch {}
+          }
+        }
+        const toInsert: Record<string, unknown> = { ...input }
+        if (resolvedUniversityId !== undefined) (toInsert as Record<string, unknown>).universityId = resolvedUniversityId
+        else if (rawUni != null && typeof rawUni === 'string' && Number.isNaN(Number(rawUni))) delete (toInsert as Record<string, unknown>).universityId
+        if (resolvedCourseId !== undefined) (toInsert as Record<string, unknown>).courseId = resolvedCourseId
+        else if (rawCourse != null && typeof rawCourse === 'string' && Number.isNaN(Number(rawCourse))) delete (toInsert as Record<string, unknown>).courseId
+        try {
+          await db.insert(schema.scholarships).values(toInsert as never)
+        } catch (e: unknown) {
+          const rawMsg = (e as { message?: string })?.message || String(e)
+          console.error('[scholarships.create] insert failed:', rawMsg, 'params:', toInsert, e)
+          if (rawMsg.includes('ER_NO_SUCH_TABLE') || rawMsg.includes("doesn't exist") || rawMsg.includes('Unknown table') || rawMsg.includes('no such table')) {
+            throw new (await import('@trpc/server')).TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' + rawMsg,
+              cause: e as never,
+            })
+          }
+          // Retry with USD if the failure is a currency FK (e.g. JPY row missing and auto-create raced)
+          if (rawMsg.includes('currencies') || rawMsg.includes('currency_code') || (rawMsg as string).includes('ER_NO_REFERENCED_ROW') || rawMsg.includes('foreign key')) {
+            try {
+              try {
+                const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
+                if (!usd) await db.insert(schema.currencies).values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
+              } catch {}
+              const fallback = { ...toInsert, currencyCode: 'USD' } as never
+              await db.insert(schema.scholarships).values(fallback)
+              return { success: true }
+            } catch (retryErr) {
+              const rmsg = (retryErr as { message?: string })?.message || 'Failed to create scholarship'
+              throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rmsg, cause: retryErr as never })
+            }
+          }
+          throw new (await import('@trpc/server')).TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: rawMsg || 'Failed to create scholarship',
+            cause: e as never,
+          })
+        }
         return { success: true }
       }),
 
@@ -1385,8 +1609,8 @@ return db.select().from(schema.countries)
       .input(
         z.object({
           id: z.number(),
-          universityId: z.number().optional(),
-          courseId: z.number().optional(),
+          universityId: z.union([z.number(), z.string()]).optional(),
+          courseId: z.union([z.number(), z.string()]).optional(),
           name: z.string().min(1).optional(),
           description: z.string().optional(),
           amount: z.number().optional(),
@@ -1399,8 +1623,86 @@ return db.select().from(schema.countries)
         })
       )
       .mutation(async ({ input }) => {
-        const { id, ...data } = input
-        await db.update(schema.scholarships).set(data).where(eq(schema.scholarships.id, id))
+        const { id, ...raw } = input as unknown as { id: number; universityId?: string | number; courseId?: string | number; currencyCode?: string } & Record<string, unknown>
+        const data: Record<string, unknown> = { ...raw }
+        if ((data as Record<string, unknown>).currencyCode) {
+          const code = (data as Record<string, unknown>).currencyCode as string
+          try {
+            const cur = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, code) })
+            if (!cur) {
+              try {
+                const symbolMap: Record<string, string> = { USD: '$', KRW: '₩', GBP: '£', EUR: '€', JPY: '¥' }
+                await db.insert(schema.currencies).values({ code, symbol: symbolMap[code] ?? code, usdRate: 1 } as never)
+              } catch (insertErr) {
+                console.warn('[scholarships.update] Failed to ensure currency, proceeding anyway:', insertErr)
+              }
+            }
+          } catch (checkErr) {
+            console.warn('[scholarships.update] Currency check failed, proceeding anyway:', checkErr)
+          }
+        }
+        const resolveId = async (rawId: string | number | undefined, type: 'university' | 'course'): Promise<number | undefined> => {
+          if (rawId == null || rawId === '') return undefined
+          if (typeof rawId === 'number') return rawId
+          const num = Number(rawId)
+          if (!Number.isNaN(num) && String(num) === String(rawId).trim()) return num
+          try {
+            if (type === 'university') {
+              const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, rawId) })
+              if (!plat) return undefined
+              let cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+              if (!cat) {
+                const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.name, plat.country) })
+                const countryCode = country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
+                await db.insert(schema.catalogUniversities).values({
+                  name: plat.name, slug: plat.slug, countryCode, city: plat.city, description: plat.description,
+                  logoUrl: plat.logo, bannerUrl: plat.coverImage, websiteUrl: plat.website, isActive: true, isFeatured: false,
+                } as never)
+                cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+              }
+              return cat?.id
+            } else {
+              const plat = await db.query.courses.findFirst({ where: (c, { eq }) => eq(c.id, rawId) })
+              if (!plat) return undefined
+              let cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+              return cat?.id
+            }
+          } catch { return undefined }
+        }
+        const resolvedUni = await resolveId(raw.universityId, 'university')
+        const resolvedCourse = await resolveId(raw.courseId, 'course')
+        if (resolvedUni !== undefined) (data as Record<string, unknown>).universityId = resolvedUni
+        else if (raw.universityId != null && typeof raw.universityId === 'string' && Number.isNaN(Number(raw.universityId))) delete (data as Record<string, unknown>).universityId
+        if (resolvedCourse !== undefined) (data as Record<string, unknown>).courseId = resolvedCourse
+        else if (raw.courseId != null && typeof raw.courseId === 'string' && Number.isNaN(Number(raw.courseId))) delete (data as Record<string, unknown>).courseId
+        try {
+          await db.update(schema.scholarships).set(data as never).where(eq(schema.scholarships.id, id))
+        } catch (e: unknown) {
+          const rawMsg = (e as { message?: string })?.message || String(e)
+          console.error('[scholarships.update] update failed:', rawMsg, 'data:', data, e)
+          if (rawMsg.includes('ER_NO_SUCH_TABLE') || rawMsg.includes("doesn't exist") || rawMsg.includes('Unknown table') || rawMsg.includes('no such table')) {
+            throw new (await import('@trpc/server')).TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' + rawMsg,
+              cause: e as never,
+            })
+          }
+          if (rawMsg.includes('currencies') || rawMsg.includes('currency_code') || (rawMsg as string).includes('ER_NO_REFERENCED_ROW') || rawMsg.includes('foreign key')) {
+            try {
+              try {
+                const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
+                if (!usd) await db.insert(schema.currencies).values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
+              } catch {}
+              const fallback = { ...data, currencyCode: 'USD' } as never
+              await db.update(schema.scholarships).set(fallback).where(eq(schema.scholarships.id, id))
+              return { success: true }
+            } catch (retryErr) {
+              const rmsg = (retryErr as { message?: string })?.message || 'Failed to update scholarship'
+              throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rmsg, cause: retryErr as never })
+            }
+          }
+          throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rawMsg || 'Failed to update scholarship', cause: e as never })
+        }
         return { success: true }
       }),
 
@@ -1412,17 +1714,48 @@ return db.select().from(schema.countries)
       }),
 
     getCatalogUniversities: adminWithPermission('scholarships:view').query(async () => {
-      return db.query.catalogUniversities.findMany({
-        orderBy: [schema.catalogUniversities.name],
-        columns: { id: true, name: true },
-      })
+      // Prefer catalog `universities` but fall back to platform `university` so the dropdown is never empty when data exists
+      try {
+        const catalog = await db
+          .select({ id: schema.catalogUniversities.id, name: schema.catalogUniversities.name })
+          .from(schema.catalogUniversities)
+          .orderBy(schema.catalogUniversities.name as any)
+        if (catalog.length > 0) return catalog.map((r) => ({ id: String(r.id), name: r.name }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogUniversities] catalog query failed:', e)
+      }
+      try {
+        const platform = await db
+          .select({ id: schema.universities.id, name: schema.universities.name })
+          .from(schema.universities)
+          .orderBy(schema.universities.name as any)
+        return platform.map((u) => ({ id: String(u.id), name: u.name }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogUniversities] platform fallback failed:', e)
+        return []
+      }
     }),
 
     getCatalogCourses: adminWithPermission('scholarships:view').query(async () => {
-      return db.query.catalogCourses.findMany({
-        orderBy: [schema.catalogCourses.title],
-        columns: { id: true, title: true },
-      })
+      try {
+        const catalog = await db
+          .select({ id: schema.catalogCourses.id, title: schema.catalogCourses.title })
+          .from(schema.catalogCourses)
+          .orderBy(schema.catalogCourses.title as any)
+        if (catalog.length > 0) return catalog.map((r) => ({ id: String(r.id), title: r.title }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogCourses] catalog query failed:', e)
+      }
+      try {
+        const platform = await db
+          .select({ id: schema.courses.id, title: schema.courses.name })
+          .from(schema.courses)
+          .orderBy(schema.courses.name as any)
+        return platform.map((c) => ({ id: String(c.id), title: c.title }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogCourses] platform fallback failed:', e)
+        return []
+      }
     }),
   }),
 

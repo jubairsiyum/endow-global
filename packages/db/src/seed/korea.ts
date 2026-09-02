@@ -3,25 +3,20 @@ import { db, schema } from '../..'
 export async function seedSouthKoreaCatalog() {
   console.log('🇰🇷 Seeding South Korea Universities and Courses...')
 
-  // 1. Seed Currencies
-  const krw = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'KRW') })
-  if (!krw) {
-    await db.insert(schema.currencies).values({
-      code: 'KRW',
-      symbol: '₩',
-      usdRate: 0.00075,
-    })
-    console.log('✅ Added Currency: KRW')
-  }
-
-  const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
-  if (!usd) {
-    await db.insert(schema.currencies).values({
-      code: 'USD',
-      symbol: '$',
-      usdRate: 1.0,
-    })
-    console.log('✅ Added Currency: USD')
+  // 1. Seed Currencies — all codes used by the admin form
+  const currenciesToSeed: Array<{ code: string; symbol: string; usdRate: number }> = [
+    { code: 'KRW', symbol: '₩', usdRate: 0.00075 },
+    { code: 'USD', symbol: '$', usdRate: 1.0 },
+    { code: 'GBP', symbol: '£', usdRate: 1.27 },
+    { code: 'EUR', symbol: '€', usdRate: 1.08 },
+    { code: 'JPY', symbol: '¥', usdRate: 0.0067 },
+  ]
+  for (const cur of currenciesToSeed) {
+    const existing = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, cur.code) })
+    if (!existing) {
+      await db.insert(schema.currencies).values(cur)
+      console.log(`✅ Added Currency: ${cur.code}`)
+    }
   }
 
   // 2. Seed Countries
@@ -196,6 +191,71 @@ export async function seedSouthKoreaCatalog() {
           }
         }
       }
+    }
+  }
+
+  // 6. Seed Scholarships
+  const scholarshipSeeds = [
+    {
+      universitySlug: 'seoul-national-university',
+      name: 'SNU Global Excellence Scholarship',
+      description: 'Full tuition coverage for outstanding international students with strong academic records.',
+      coverageType: 'full' as const,
+      amount: null as number | null,
+      currencyCode: 'USD',
+      eligibility: 'GPA 3.5+, IELTS 6.5+ or TOPIK Level 4+',
+      deadline: new Date('2026-06-30'),
+      linkUrl: 'https://en.snu.ac.kr/admission/scholarship',
+      isActive: true,
+    },
+    {
+      universitySlug: 'kaist',
+      name: 'KAIST Global Leadership Scholarship',
+      description: 'Partial tuition support for talented international students in STEM fields.',
+      coverageType: 'partial' as const,
+      amount: 5000,
+      currencyCode: 'USD',
+      eligibility: 'GPA 3.2+, IELTS 6.0+',
+      deadline: new Date('2026-05-15'),
+      linkUrl: 'https://www.kaist.ac.kr/en/html/campus/04_03.html',
+      isActive: true,
+    },
+    {
+      universitySlug: 'yonsei-university',
+      name: 'Yonsei Merit Scholarship',
+      description: 'Tuition support for high-achieving international undergraduates.',
+      coverageType: 'tuition_only' as const,
+      amount: 3000,
+      currencyCode: 'USD',
+      eligibility: 'GPA 3.0+, IELTS 6.0+',
+      deadline: new Date('2026-07-01'),
+      linkUrl: 'https://www.yonsei.ac.kr/en_sc/admission/scholarship.jsp',
+      isActive: true,
+    },
+  ]
+
+  for (const s of scholarshipSeeds) {
+    const targetUni = await db.query.catalogUniversities.findFirst({
+      where: (u, { eq }) => eq(u.slug, s.universitySlug),
+    })
+    if (!targetUni) continue
+    const existing = await db.query.scholarships.findFirst({
+      where: (sh, { eq, and }) => and(eq(sh.universityId, targetUni.id), eq(sh.name, s.name)),
+    })
+    if (!existing) {
+      await db.insert(schema.scholarships).values({
+        universityId: targetUni.id,
+        name: s.name,
+        description: s.description,
+        amount: s.amount,
+        currencyCode: s.currencyCode,
+        coverageType: s.coverageType,
+        eligibility: s.eligibility,
+        deadline: s.deadline,
+        linkUrl: s.linkUrl,
+        isActive: s.isActive,
+      })
+      console.log(`  🎓 Added Scholarship: ${s.name} (${targetUni.name})`)
     }
   }
 
