@@ -103,7 +103,7 @@ function fromDb(s: DbScholarship): SpotlightItem {
 }
 
 export default function ScholarshipSpotlight() {
-  const { data, isLoading } = trpc.scholarship.featured.useQuery({ limit: 3 });
+  const { data, isLoading } = trpc.scholarship.featured.useQuery({ limit: 6 });
 
   const items: SpotlightItem[] = data ? data.map(fromDb) : [];
 
@@ -149,7 +149,7 @@ export default function ScholarshipSpotlight() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 3 }).map((_, i) => (
+            {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}
                 className="min-h-[240px] animate-pulse rounded-[24px] border border-slate-200/70 bg-white"
@@ -167,14 +167,15 @@ export default function ScholarshipSpotlight() {
             </p>
           </div>
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
-          >
-            {items.map((item) => (
+          <>
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+            >
+              {items.map((item) => (
               <motion.article
                 key={item.id}
                 variants={itemVariants}
@@ -186,7 +187,7 @@ export default function ScholarshipSpotlight() {
                   duration: 0.35,
                   ease: [0.22, 1, 0.36, 1],
                 }}
-                className="group relative min-h-[240px] overflow-hidden rounded-[24px] border border-slate-200/70 bg-gradient-to-b from-white via-white to-[#FCFCFD] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-500 ease-out hover:border-[#C41E3A]/20 hover:shadow-[0_30px_80px_rgba(196,30,58,0.12)]"
+                className="group relative flex min-h-[240px] flex-col overflow-hidden rounded-[24px] border border-slate-200/70 bg-gradient-to-b from-white via-white to-[#FCFCFD] p-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)] transition-all duration-500 ease-out hover:border-[#C41E3A]/20 hover:shadow-[0_30px_80px_rgba(196,30,58,0.12)]"
               >
                 {/* Stretched link — makes entire card clickable */}
                 {item.isExternal ? (
@@ -274,7 +275,19 @@ export default function ScholarshipSpotlight() {
                 </div>
               </motion.article>
             ))}
-          </motion.div>
+            </motion.div>
+            {items.length > 0 && (
+              <div className="mt-10 flex justify-center">
+                <Link
+                  href="/scholarships"
+                  className="group inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(196,30,58,0.18)] transition-all hover:bg-[#A01830] hover:shadow-[0_12px_32px_rgba(196,30,58,0.24)]"
+                >
+                  See all scholarships
+                  <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
