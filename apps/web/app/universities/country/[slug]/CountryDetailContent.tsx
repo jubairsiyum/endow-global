@@ -2,32 +2,16 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowRight,
-  ArrowLeft,
-  GraduationCap,
   MapPin,
-  DollarSign,
-  Clock,
-  Award,
+  Check,
+  Plus,
   Star,
-  Globe,
-  TrendingUp,
-  Users,
-  BookOpen,
-  CheckCircle2,
-  ChevronDown,
-  Shield,
+  Clock,
   Briefcase,
-  Heart,
-  Plane,
-  Home,
-  Utensils,
-  Bus,
-  Stethoscope,
-  ChevronRight,
-  Info,
 } from 'lucide-react'
 
 import { Navbar } from '@/components/layout/Navbar'
@@ -55,52 +39,110 @@ type CountryDetailContentProps = {
   metadata?: CountryMetadata | null
 }
 
-const costOfLivingIcons: Record<string, typeof Home> = {
-  Accommodation: Home,
-  Food: Utensils,
-  Transportation: Bus,
-  Health: Stethoscope,
-  Books: BookOpen,
-  Entertainment: Heart,
-}
+const RED = '#C41E3A'
+const RED_LIGHT = '#E05266'
 
-function FaqItem({ question, answer }: { question: string; answer: string }) {
-  const [isOpen, setIsOpen] = useState(false)
+type UniversityWithSlug = University & { slug?: string }
+
+function Eyebrow({ children, light = false }: { children: ReactNode; light?: boolean }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-5 py-4 text-left"
+    <div className="flex items-center gap-3">
+      <span className={`h-px w-8 ${light ? 'bg-[#E05266]' : 'bg-[#C41E3A]'}`} />
+      <span
+        className={`font-mono text-[11px] uppercase tracking-[0.22em] sm:text-xs ${
+          light ? 'text-white/70' : 'text-[#C41E3A]'
+        }`}
       >
-        <span className="text-sm font-semibold text-gray-900 pr-4">{question}</span>
-        <ChevronDown
-          size={16}
-          className={`shrink-0 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
-      {isOpen && (
-        <div className="border-t border-gray-50 px-5 pb-4 pt-3">
-          <p className="text-sm leading-relaxed text-gray-500">{answer}</p>
-        </div>
-      )}
+        {children}
+      </span>
     </div>
   )
+}
+
+function FaqItem({ question, answer, index }: { question: string; answer: string; index: number }) {
+  const [isOpen, setIsOpen] = useState(false)
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: index * 0.03 }}
+      className="border-b border-black/10"
+    >
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        aria-expanded={isOpen}
+        className="flex w-full items-start justify-between gap-6 py-6 text-left"
+      >
+        <span
+          className={`font-display text-lg font-medium leading-snug transition-colors sm:text-[22px] ${
+            isOpen ? 'text-[#C41E3A]' : 'text-[#0E1116]'
+          }`}
+        >
+          {question}
+        </span>
+        <span
+          className={`mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors ${
+            isOpen ? 'border-[#C41E3A] text-[#C41E3A]' : 'border-black/[0.15] text-black/50'
+          }`}
+        >
+          <Plus size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-45' : ''}`} />
+        </span>
+      </button>
+      <AnimatePresence initial={false}>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+            className="overflow-hidden"
+          >
+            <p className="max-w-2xl pb-7 text-base leading-relaxed text-[#4b5563]">{answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  )
+}
+
+function tuitionLabel(uni: University): string | null {
+  const t = uni?.tuition
+  if (!t || (t.min === 0 && t.max === 0)) return null
+  const c = t.currency === 'USD' || !t.currency ? '$' : `${t.currency} `
+  return `${c}${t.min.toLocaleString()} – ${c}${t.max.toLocaleString()}`
 }
 
 export default function CountryDetailContent({
   country,
   universities,
-  scholarships,
   studentStories,
   metadata,
 }: CountryDetailContentProps) {
   const meta = metadata
 
+  const stats: { label: string; value: string }[] = meta?.quickStats?.length
+    ? meta.quickStats
+    : [
+        { label: 'Universities', value: `${country.universities}+` },
+        { label: 'Avg Tuition/Year', value: `$${country.avgTuition.toLocaleString()}` },
+        { label: 'Visa Success Rate', value: `${country.visaSuccessRate}%` },
+        { label: 'Cost of Living', value: `$${country.costOfLiving.toLocaleString()}/mo` },
+      ]
+
+  const [featured, ...restUnis] = universities
+  const reasons = meta?.whyStudyHere ?? []
+  const highlights = meta?.highlights ?? []
+  const stories = studentStories
+  const visaInfo = meta?.visaInfo
+  const costItems = meta?.costOfLiving ?? []
+  const lifePoints = meta?.studentLife ?? []
+  const faqs = meta?.faqs ?? []
+
   return (
     <div className="w-full flex flex-col overflow-x-hidden">
-      {/* Hero */}
-      <section className="relative overflow-hidden">
-        {/* Background Image */}
+      {/* ───────────────────────── HERO ───────────────────────── */}
+      <section className="relative flex min-h-[92vh] flex-col overflow-hidden bg-[#0B0C0F]">
         <div className="absolute inset-0">
           {meta?.heroImage ? (
             <Image
@@ -109,533 +151,667 @@ export default function CountryDetailContent({
               fill
               className="object-cover"
               priority
+              sizes="100vw"
             />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900" />
+            <div className="h-full w-full bg-gradient-to-br from-[#0B0C0F] via-[#16181d] to-[#0B0C0F]" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-gray-900/70 via-gray-900/60 to-gray-900/80" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-black/20" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-black/40" />
         </div>
 
-        <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
-          <div className="pt-4 pb-6 lg:pb-8">
+        <div className="relative z-10 mx-auto w-full max-w-[1200px] flex-1 px-6 sm:px-8 lg:px-10">
+          <div className="pt-6">
             <Navbar />
           </div>
 
-          <div className="py-16 lg:py-28">
+          <div className="flex flex-col justify-center pb-10 pt-24 sm:pt-28 lg:pt-36 lg:pb-16">
             <FadeUp>
-              <div className="max-w-3xl">
-                <div className="flex items-center gap-3 mb-6">
-                  {meta?.flag && (
-                    <img
-                      src={meta.flag}
-                      alt={`${country.name} flag`}
-                      className="h-8 w-12 rounded-md object-cover shadow-lg"
-                    />
-                  )}
-                  <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/90 backdrop-blur-sm">
-                    <Globe size={13} />
-                    Study Destination
-                  </span>
-                </div>
-                <h1 className="text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-6xl">
-                  Study in{' '}
-                  <span className="text-[#E05266]">{country.name}</span>
-                </h1>
-                <p className="mt-4 max-w-xl text-lg leading-7 text-white/70">
-                  {meta?.description || country.description}
-                </p>
-                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href="/register"
-                    className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold text-gray-900 shadow-[0_4px_20px_rgba(0,0,0,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)]"
-                  >
-                    Start Your Application
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                  </Link>
-                  <Link
-                    href="/universities"
-                    className="group inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-7 py-3.5 text-sm font-semibold text-white transition-all hover:bg-white/10"
-                  >
-                    Explore Universities
-                  </Link>
-                </div>
+              <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
+                {meta?.flag && (
+                  <img
+                    src={meta.flag}
+                    alt={`${country.name} flag`}
+                    className="h-7 w-11 rounded-[3px] object-cover shadow-md ring-1 ring-white/20"
+                  />
+                )}
+                <span className="font-mono text-[11px] uppercase tracking-[0.28em] text-white/70 sm:text-xs">
+                  Study destination{meta?.tagline ? ` — ${meta.tagline}` : ''}
+                </span>
+              </div>
+
+              <h1
+                className="mt-8 max-w-[900px] font-display text-[42px] font-semibold leading-[0.98] tracking-[-0.02em] text-white sm:text-[64px] lg:text-[78px]"
+              >
+                Study in
+                <br />
+                <span style={{ color: RED_LIGHT }}>{country.name}</span>
+              </h1>
+
+              <p className="mt-7 max-w-xl text-base leading-relaxed text-white/75 sm:text-lg">
+                {meta?.description || country.description}
+              </p>
+
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+                <Link
+                  href="/register"
+                  className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-[15px] font-semibold text-[#0B0C0F] transition-all hover:-translate-y-0.5 hover:bg-gray-100"
+                >
+                  Start Your Application
+                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="/universities"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/30 px-8 py-4 text-[15px] font-semibold text-white transition-all hover:bg-white/10"
+                >
+                  Explore Universities
+                </Link>
               </div>
             </FadeUp>
 
-            {/* Quick Stats */}
             <FadeUp>
-              <div className="mx-auto mt-14 grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-4">
-                {meta?.quickStats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center backdrop-blur-sm"
-                  >
-                    <div className="text-2xl font-bold text-white">{stat.value}</div>
-                    <div className="mt-1 text-xs font-medium text-white/60">{stat.label}</div>
-                  </div>
-                )) || (
-                  <>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">{country.universities}+</div>
-                      <div className="mt-1 text-xs font-medium text-white/60">Universities</div>
+              <div className="mt-16 border-t border-white/[0.15] lg:mt-24">
+                <div className="grid grid-cols-2 md:grid-cols-4">
+                  {stats.map((stat, i) => (
+                    <div
+                      key={stat.label}
+                      className="relative py-7 pr-4 sm:py-8 sm:pr-6"
+                    >
+                      {i !== 0 && (
+                        <span className="absolute bottom-7 left-0 top-7 hidden w-px bg-white/[0.12] md:block sm:bottom-8 sm:top-8" />
+                      )}
+                      <div className="font-display text-3xl font-semibold text-white sm:text-4xl">
+                        {stat.value}
+                      </div>
+                      <div className="mt-2 font-mono text-[10px] uppercase tracking-[0.16em] text-white/[0.55] sm:text-[11px]">
+                        {stat.label}
+                      </div>
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">${country.avgTuition.toLocaleString()}/yr</div>
-                      <div className="mt-1 text-xs font-medium text-white/60">Avg Tuition</div>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">{country.visaSuccessRate}%</div>
-                      <div className="mt-1 text-xs font-medium text-white/60">Visa Success</div>
-                    </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-5 text-center backdrop-blur-sm">
-                      <div className="text-2xl font-bold text-white">${country.costOfLiving}/mo</div>
-                      <div className="mt-1 text-xs font-medium text-white/60">Cost of Living</div>
-                    </div>
-                  </>
-                )}
+                  ))}
+                </div>
               </div>
             </FadeUp>
           </div>
         </div>
       </section>
 
-      <main className="flex-grow bg-white">
-        {/* Why Study Here */}
-        {meta?.whyStudyHere && (
-          <section className="py-16 lg:py-24">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-              <FadeUp>
-                <div className="mx-auto max-w-3xl text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <Info size={13} />
-                    Why Choose {country.name}
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    Why study in <span className="text-[#C41E3A]">{country.name}</span>?
-                  </h2>
+      <main className="flex-grow">
+        {/* ───────────────────── WHY STUDY HERE ───────────────────── */}
+        {reasons.length > 0 && (
+          <section className="bg-white py-20 lg:py-28">
+            <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+              <div className="grid gap-12 lg:grid-cols-12 lg:gap-20">
+                <div className="lg:col-span-5">
+                  <FadeUp>
+                    <Eyebrow>Why study here</Eyebrow>
+                    <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                      Why study in <span style={{ color: RED }}>{country.name}</span>?
+                    </h2>
+                    <p className="mt-6 max-w-md text-base leading-relaxed text-[#4b5563]">
+                      A world-class education, a safe and modern society, and a cost of study that
+                      stays within reach — here is what makes {country.name} a serious, exciting
+                      opportunity for international students.
+                    </p>
+                  </FadeUp>
                 </div>
-              </FadeUp>
 
-              <FadeUpStagger className="mx-auto mt-12 grid max-w-4xl gap-4" amount={0.05}>
-                {meta.whyStudyHere.map((reason, i) => (
-                  <FadeUpItem key={i}>
-                    <div className="flex items-start gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-5 transition-all duration-300 hover:border-[#C41E3A]/20 hover:bg-white hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#C41E3A]/10 text-[#C41E3A]">
-                        <CheckCircle2 size={16} />
-                      </div>
-                      <p className="text-sm leading-relaxed text-gray-600">{reason}</p>
-                    </div>
-                  </FadeUpItem>
-                ))}
-              </FadeUpStagger>
-            </div>
-          </section>
-        )}
-
-        {/* Highlights */}
-        {meta?.highlights && (
-          <section className="border-y border-gray-100 bg-gray-50/50 py-16 lg:py-20">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-              <FadeUp>
-                <div className="text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-gray-500 shadow-sm">
-                    <Star size={13} />
-                    Key Highlights
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    What makes <span className="text-[#C41E3A]">{country.name}</span> special
-                  </h2>
+                <div className="lg:col-span-7">
+                  <FadeUpStagger className="border-t border-black/10">
+                    {reasons.map((reason, i) => (
+                      <FadeUpItem key={i}>
+                        <div className="grid grid-cols-[56px_1fr] gap-6 border-b border-black/10 py-6 sm:grid-cols-[72px_1fr] sm:py-7">
+                          <span className="font-mono text-xl font-medium leading-none pt-0.5 sm:text-2xl" style={{ color: RED }}>
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <p className="text-base leading-relaxed text-[#3f4752] sm:text-[17px]">{reason}</p>
+                        </div>
+                      </FadeUpItem>
+                    ))}
+                  </FadeUpStagger>
                 </div>
-              </FadeUp>
-
-              <FadeUpStagger className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
-                {meta.highlights.map((highlight) => (
-                  <FadeUpItem key={highlight}>
-                    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-green-100">
-                        <CheckCircle2 size={12} className="text-green-600" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{highlight}</span>
-                    </div>
-                  </FadeUpItem>
-                ))}
-              </FadeUpStagger>
-            </div>
-          </section>
-        )}
-
-        {/* Universities */}
-        <section className="py-16 lg:py-24">
-          <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-            <FadeUp>
-              <div className="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
-                <div>
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <GraduationCap size={13} />
-                    Partner Universities
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    Top universities in{' '}
-                    <span className="text-[#C41E3A]">{country.name}</span>
-                  </h2>
-                </div>
-                <Link
-                  href="/universities"
-                  className="group inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] hover:text-[#A01830]"
-                >
-                  View all
-                  <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
-                </Link>
               </div>
-            </FadeUp>
+            </div>
+          </section>
+        )}
 
-            <FadeUpStagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
-              {universities.map((uni) => (
-                <FadeUpItem key={uni.id}>
-                  <article className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-                    <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#C41E3A] to-transparent opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
-                    <div className="flex h-full flex-col p-6">
-                      <div className="mb-4 flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          {uni.logo && (
-                            <img
-                              src={uni.logo}
-                              alt={uni.name}
-                              className="h-12 w-12 rounded-xl object-contain"
-                            />
-                          )}
+        {/* ─────────────── WHAT MAKES IT SPECIAL ─────────────── */}
+        {highlights.length > 0 && (
+          <section className="bg-[#F7F5F1] py-20 lg:py-28">
+            <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+              <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
+                <div className="lg:col-span-5">
+                  <FadeUp>
+                    <Eyebrow>Why it stands out</Eyebrow>
+                    <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                      What makes <span style={{ color: RED }}>{country.name}</span> special
+                    </h2>
+                    <p className="mt-6 max-w-md text-base leading-relaxed text-[#4b5563]">
+                      From its top-ranked universities to its unmistakable culture, here is what
+                      sets {country.name} apart as a study destination.
+                    </p>
+                    <div className="relative mt-10">
+                      <div className="relative aspect-[4/5] overflow-hidden rounded-2xl">
+                        <Image
+                          src="/student-3.jpg"
+                          alt={`Student life in ${country.name}`}
+                          fill
+                          className="object-cover"
+                          sizes="(min-width: 1024px) 40vw, 100vw"
+                        />
+                      </div>
+                      {meta?.tagline && (
+                        <div className="absolute bottom-5 left-5 font-mono text-[11px] uppercase tracking-[0.2em] text-white/90">
+                          {meta.tagline}
+                        </div>
+                      )}
+                    </div>
+                  </FadeUp>
+                </div>
+
+                <div className="lg:col-span-7">
+                  <FadeUpStagger className="grid h-full content-center gap-x-10 gap-y-9 sm:grid-cols-2">
+                    {highlights.map((highlight, i) => (
+                      <FadeUpItem key={highlight}>
+                        <div className="border-t border-black/10 pt-5">
+                          <span className="font-mono text-sm" style={{ color: RED }}>
+                            /{String(i + 1).padStart(2, '0')}
+                          </span>
+                          <p className="mt-3 text-lg font-medium leading-snug text-[#0E1116]">
+                            {highlight}
+                          </p>
+                        </div>
+                      </FadeUpItem>
+                    ))}
+                  </FadeUpStagger>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ────────────────────── UNIVERSITIES ────────────────────── */}
+        {universities.length > 0 && (
+          <section className="bg-white py-20 lg:py-28">
+            <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+              <FadeUp>
+                <div className="flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
+                  <div>
+                    <Eyebrow>Partner universities</Eyebrow>
+                    <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                      Top universities in <span style={{ color: RED }}>{country.name}</span>
+                    </h2>
+                    <p className="mt-5 max-w-lg text-base leading-relaxed text-[#4b5563]">
+                      Explore universities that match your academic goals and budget.
+                    </p>
+                  </div>
+                  <Link
+                    href="/universities"
+                    className="group inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-[#0E1116] transition-colors hover:text-[#C41E3A]"
+                  >
+                    View all universities
+                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
+              </FadeUp>
+
+              {/* Featured university */}
+              {featured && (
+                <FadeUp className="mt-12">
+                  <article className="relative overflow-hidden rounded-2xl bg-[#0C1220] text-white">
+                    <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#C41E3A]/20 blur-[100px]" />
+                    <div className="relative grid gap-10 p-8 sm:p-10 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:p-12">
+                      <div>
+                        <span className="font-mono text-[11px] uppercase tracking-[0.24em] text-[#E05266]">
+                          Featured university
+                        </span>
+                        <div className="mt-5 flex items-center gap-5">
+                          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-white/10 p-3 backdrop-blur-sm">
+                            {featured.logo ? (
+                              <img
+                                src={featured.logo}
+                                alt={featured.name}
+                                className="max-h-full max-w-full object-contain"
+                              />
+                            ) : (
+                              <span className="font-display text-2xl font-semibold text-white/50">
+                                {featured.name.charAt(0)}
+                              </span>
+                            )}
+                          </div>
                           <div>
-                            <h3 className="text-lg font-bold text-gray-900 group-hover:text-[#C41E3A] transition-colors">
-                              {uni.name}
+                            <h3 className="font-display text-2xl font-semibold leading-tight sm:text-3xl">
+                              {featured.name}
                             </h3>
-                            <p className="flex items-center gap-1 text-sm text-gray-500">
-                              <MapPin size={12} />
-                              {uni.city}, {country.name}
+                            <p className="mt-1.5 flex items-center gap-1.5 text-sm text-white/60">
+                              <MapPin size={14} />
+                              {featured.city}, {country.name}
                             </p>
                           </div>
                         </div>
+                        <p className="mt-6 max-w-lg leading-relaxed text-white/70">{featured.description}</p>
+                        <div className="mt-7 flex flex-wrap items-center gap-4">
+                          {(featured as UniversityWithSlug).slug ? (
+                            <Link
+                              href={`/universities/${country.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${(featured as UniversityWithSlug).slug}`}
+                              className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0C1220] transition-all hover:-translate-y-0.5 hover:bg-gray-100"
+                            >
+                              View University
+                              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+                            </Link>
+                          ) : (
+                            <span className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0C1220]">
+                              View University
+                              <ArrowRight size={15} />
+                            </span>
+                          )}
+                          {tuitionLabel(featured) && (
+                            <span className="text-sm text-white/60">
+                              From <span className="font-semibold text-white">{tuitionLabel(featured)}</span> / year
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <p className="line-clamp-2 text-sm leading-relaxed text-gray-500">
-                        {uni.description}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {(Array.isArray(uni.highlights) ? uni.highlights.slice(0, 3) : []).map((h) => (
-                          <span key={h} className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">
-                            <CheckCircle2 size={10} className="text-green-500" />
-                            {h}
-                          </span>
+
+                      <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-white/10">
+                        {[
+                          { label: 'Scholarship', value: featured.scholarship > 0 ? `Up to ${featured.scholarship}%` : 'Merit-based' },
+                          { label: 'Ranking', value: `#${featured.ranking}` },
+                          { label: 'Visa success', value: `${featured.visaSuccessRate}%` },
+                        ].map((fact, i) => (
+                          <div key={fact.label} className={`px-6 py-5 ${i !== 0 ? 'border-t border-white/10' : ''}`}>
+                            <div className="font-display text-xl font-semibold text-white">{fact.value}</div>
+                            <div className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-white/[0.45]">
+                              {fact.label}
+                            </div>
+                          </div>
                         ))}
-                      </div>
-                      <div className="mt-4 grid grid-cols-3 gap-2 border-t border-gray-100 pt-4">
-                        <div className="text-center">
-                          <div className="text-sm font-bold text-gray-900">{uni.scholarship}%</div>
-                          <div className="text-[10px] text-gray-400">Scholarship</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm font-bold text-gray-900">{uni.visaSuccessRate}%</div>
-                          <div className="text-[10px] text-gray-400">Visa Rate</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-sm font-bold text-gray-900">#{uni.ranking}</div>
-                          <div className="text-[10px] text-gray-400">Ranking</div>
-                        </div>
-                      </div>
-                      <div className="mt-auto flex items-center justify-between border-t border-gray-100 pt-4">
-                        <div>
-                          <span className="text-base font-bold text-gray-900">
-                            ${uni.tuition.min.toLocaleString()} - ${uni.tuition.max.toLocaleString()}
-                          </span>
-                          <span className="text-xs text-gray-400"> / year</span>
-                        </div>
-                        {(uni as any).slug ? (
-                          <Link
-                            href={`/universities/${country.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${(uni as any).slug}`}
-                            aria-label={`View ${uni.name}`}
-                            className="inline-flex items-center gap-1 text-sm font-semibold text-[#C41E3A] transition-all group-hover:gap-2"
-                          >
-                            View
-                            <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-                          </Link>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-sm font-semibold text-[#C41E3A]">
-                            View
-                            <ArrowRight size={13} />
-                          </span>
-                        )}
                       </div>
                     </div>
                   </article>
-                </FadeUpItem>
-              ))}
-            </FadeUpStagger>
-          </div>
-        </section>
-
-        {/* Visa Information */}
-        {meta?.visaInfo && (
-          <section className="border-y border-gray-100 bg-gray-50/50 py-16 lg:py-24">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-              <FadeUp>
-                <div className="mx-auto max-w-3xl text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <Shield size={13} />
-                    Visa Information
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    <span className="text-[#C41E3A]">{meta.visaInfo.title}</span>
-                  </h2>
-                  <p className="mt-4 text-base text-gray-500">{meta.visaInfo.description}</p>
-                </div>
-              </FadeUp>
-
-              <div className="mx-auto mt-10 grid max-w-5xl gap-6 lg:grid-cols-2">
-                <FadeUp>
-                  <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-                    <h3 className="mb-4 text-lg font-bold text-gray-900">Requirements</h3>
-                    <ul className="space-y-3">
-                      {meta.visaInfo.requirements.map((req) => (
-                        <li key={req} className="flex items-start gap-3">
-                          <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-green-500" />
-                          <span className="text-sm text-gray-600">{req}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
                 </FadeUp>
+              )}
 
-                <FadeUp>
-                  <div className="space-y-4">
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C41E3A]/10">
-                          <Clock size={18} className="text-[#C41E3A]" />
+              {/* Remaining universities */}
+              {restUnis.length > 0 && (
+                <FadeUpStagger className="mt-6 grid gap-6 lg:grid-cols-2" amount={0.06}>
+                  {restUnis.map((uni) => (
+                    <FadeUpItem key={uni.id} className="h-full">
+                      <article className="group flex h-full flex-col rounded-xl border border-black/[0.08] bg-white p-7 transition-all duration-300 hover:border-black/[0.16] hover:shadow-[0_24px_48px_-28px_rgba(0,0,0,0.18)] sm:p-8">
+                        <div className="flex items-start justify-between">
+                          <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-2.5">
+                            {uni.logo ? (
+                              <img src={uni.logo} alt={uni.name} className="max-h-full max-w-full object-contain" />
+                            ) : (
+                              <span className="font-display text-xl font-semibold text-black/40">
+                                {uni.name.charAt(0)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-mono text-xs text-[#9aa0a8]">#{uni.ranking}</span>
                         </div>
-                        <div>
-                          <div className="text-xs text-gray-400">Processing Time</div>
-                          <div className="font-semibold text-gray-900">{meta.visaInfo.processingTime}</div>
+
+                        <h3 className="mt-5 font-display text-xl font-semibold text-[#0E1116] transition-colors group-hover:text-[#C41E3A]">
+                          {uni.name}
+                        </h3>
+                        <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#6b7280]">
+                          <MapPin size={13} />
+                          {uni.city}, {country.name}
+                        </p>
+                        <p className="mt-4 line-clamp-2 text-sm leading-relaxed text-[#4b5563]">
+                          {uni.description}
+                        </p>
+
+                        <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-black/[0.08] pt-5">
+                          <span className="text-sm text-[#6b7280]">
+                            Scholarship{' '}
+                            <span className="font-semibold text-[#0E1116]">
+                              {uni.scholarship > 0 ? `${uni.scholarship}%` : '—'}
+                            </span>
+                          </span>
+                          <span className="text-sm text-[#6b7280]">
+                            Visa <span className="font-semibold text-[#0E1116]">{uni.visaSuccessRate}%</span>
+                          </span>
+                        </div>
+
+                        <div className="mt-auto flex items-end justify-between pt-5">
+                          {tuitionLabel(uni) ? (
+                            <div>
+                              <span className="font-display text-lg font-semibold text-[#0E1116]">
+                                {tuitionLabel(uni)}
+                              </span>
+                              <span className="text-sm text-[#9aa0a8]"> / year</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm text-[#9aa0a8]">Fees on request</span>
+                          )}
+                          {(uni as UniversityWithSlug).slug ? (
+                            <Link
+                              href={`/universities/${country.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${(uni as UniversityWithSlug).slug}`}
+                              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] transition-all group-hover:gap-2.5"
+                            >
+                              View University
+                              <ArrowRight size={14} />
+                            </Link>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A]">
+                              View University
+                              <ArrowRight size={14} />
+                            </span>
+                          )}
+                        </div>
+                      </article>
+                    </FadeUpItem>
+                  ))}
+                </FadeUpStagger>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* ────────────────────── VISA INFO ────────────────────── */}
+        {visaInfo && (
+          <section className="relative overflow-hidden bg-[#0C1220] py-20 text-white lg:py-28">
+            <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
+            <div className="relative mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+              <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
+                <div>
+                  <FadeUp>
+                    <Eyebrow light>Visa information</Eyebrow>
+                    <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl">
+                      {visaInfo.title}
+                    </h2>
+                    <p className="mt-6 max-w-lg text-base leading-relaxed text-white/70">
+                      {visaInfo.description}
+                    </p>
+
+                    <div className="mt-10 grid gap-6 sm:grid-cols-2">
+                      <div className="border-l-2 pl-5" style={{ borderColor: RED_LIGHT }}>
+                        <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-white/[0.45]">
+                          <Clock size={13} /> Processing time
+                        </div>
+                        <div className="mt-2 font-display text-2xl font-semibold text-white">
+                          {visaInfo.processingTime}
+                        </div>
+                      </div>
+                      <div className="border-l-2 pl-5" style={{ borderColor: RED_LIGHT }}>
+                        <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.16em] text-white/[0.45]">
+                          <Briefcase size={13} /> Work rights
+                        </div>
+                        <div className="mt-2 text-[15px] font-medium leading-snug text-white">
+                          {visaInfo.workRights}
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C41E3A]/10">
-                          <Briefcase size={18} className="text-[#C41E3A]" />
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-400">Work Rights</div>
-                          <div className="font-semibold text-gray-900">{meta.visaInfo.workRights}</div>
-                        </div>
-                      </div>
-                    </div>
+
                     <Link
                       href="/register"
-                      className="flex items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:-translate-y-0.5"
+                      className="group mt-10 inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 text-[15px] font-semibold text-white transition-all hover:-translate-y-0.5"
+                      style={{ background: RED }}
                     >
                       Get Visa Guidance
-                      <ArrowRight size={16} />
+                      <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
                     </Link>
-                  </div>
-                </FadeUp>
+                  </FadeUp>
+                </div>
+
+                <div>
+                  <FadeUp>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-8 sm:p-10">
+                      <h3 className="font-mono text-[11px] uppercase tracking-[0.24em] text-white/50">
+                        Requirements
+                      </h3>
+                      <ul className="mt-6 space-y-4">
+                        {visaInfo.requirements.map((req) => (
+                          <li key={req} className="flex items-start gap-3.5">
+                            <span
+                              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full"
+                              style={{ background: 'rgba(224,82,102,0.18)' }}
+                            >
+                              <Check size={12} style={{ color: RED_LIGHT }} />
+                            </span>
+                            <span className="text-[15px] leading-relaxed text-white/80">{req}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </FadeUp>
+                </div>
               </div>
             </div>
           </section>
         )}
 
-        {/* Cost of Living */}
-        {meta?.costOfLiving && (
-          <section className="py-16 lg:py-24">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-              <FadeUp>
-                <div className="mx-auto max-w-3xl text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <DollarSign size={13} />
-                    Cost of Living
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    Living costs in <span className="text-[#C41E3A]">{country.name}</span>
-                  </h2>
-                  <p className="mt-4 text-base text-gray-500">
-                    Affordable living with excellent quality of life
-                  </p>
+        {/* ─────────────────── COST OF LIVING ─────────────────── */}
+        {costItems.length > 0 && (
+          <section className="bg-white py-20 lg:py-28">
+            <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+              <div className="grid gap-12 lg:grid-cols-12 lg:gap-20">
+                <div className="lg:col-span-5">
+                  <FadeUp>
+                    <Eyebrow>Cost of living</Eyebrow>
+                    <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                      Living costs in <span style={{ color: RED }}>{country.name}</span>
+                    </h2>
+                    <p className="mt-6 max-w-md text-base leading-relaxed text-[#4b5563]">
+                      Affordable living with excellent quality of life.
+                    </p>
+                    {country.costOfLiving > 0 && (
+                      <div className="mt-10 border-l-2 pl-5" style={{ borderColor: RED }}>
+                        <div className="font-display text-5xl font-semibold tracking-tight text-[#0E1116]">
+                          ${country.costOfLiving.toLocaleString()}
+                        </div>
+                        <div className="mt-2 text-sm text-[#6b7280]">average monthly living cost</div>
+                      </div>
+                    )}
+                  </FadeUp>
                 </div>
-              </FadeUp>
 
-              <FadeUpStagger className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
-                {meta.costOfLiving.map((item) => {
-                  const IconComponent = Object.entries(costOfLivingIcons).find(([key]) =>
-                    item.category.includes(key)
-                  )?.[1] || DollarSign
-                  return (
-                    <FadeUpItem key={item.category}>
-                      <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-[0_2px_12px_rgba(0,0,0,0.03)] transition-all duration-300 hover:border-[#C41E3A]/20 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C41E3A]/10">
-                            <IconComponent size={18} className="text-[#C41E3A]" />
+                <div className="lg:col-span-7">
+                  <FadeUp>
+                    <div className="border-y border-black/10">
+                      {costItems.map((item) => (
+                        <div
+                          key={item.category}
+                          className="flex items-baseline justify-between gap-6 border-b border-black/[0.07] py-5 last:border-b-0"
+                        >
+                          <div>
+                            <div className="font-semibold text-[#0E1116]">{item.category}</div>
+                            <div className="mt-1 text-sm text-[#6b7280]">{item.details}</div>
                           </div>
-                          <div className="flex-1">
-                            <div className="text-xs text-gray-400">{item.category}</div>
-                            <div className="font-bold text-gray-900">{item.amount}</div>
+                          <div className="whitespace-nowrap font-mono text-sm text-[#0E1116] sm:text-[15px]">
+                            {item.amount}
                           </div>
                         </div>
-                        <p className="mt-3 text-xs leading-relaxed text-gray-500">{item.details}</p>
-                      </div>
-                    </FadeUpItem>
-                  )
-                })}
-              </FadeUpStagger>
-            </div>
-          </section>
-        )}
-
-        {/* Student Life */}
-        {meta?.studentLife && (
-          <section className="border-y border-gray-100 bg-gray-50/50 py-16 lg:py-24">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-              <FadeUp>
-                <div className="mx-auto max-w-3xl text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <Heart size={13} />
-                    Student Life
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    Life as a student in <span className="text-[#C41E3A]">{country.name}</span>
-                  </h2>
-                </div>
-              </FadeUp>
-
-              <FadeUpStagger className="mx-auto mt-10 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2" amount={0.08}>
-                {meta.studentLife.map((item) => (
-                  <FadeUpItem key={item}>
-                    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white px-4 py-3.5 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
-                      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#C41E3A]/10">
-                        <Plane size={12} className="text-[#C41E3A]" />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">{item}</span>
+                      ))}
                     </div>
-                  </FadeUpItem>
-                ))}
-              </FadeUpStagger>
+                  </FadeUp>
+                </div>
+              </div>
             </div>
           </section>
         )}
 
-        {/* Student Stories */}
-        {studentStories.length > 0 && (
-          <section className="py-16 lg:py-24">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        {/* ─────────────────── STUDENT LIFE ─────────────────── */}
+        {lifePoints.length > 0 && (
+          <section className="bg-[#F7F5F1] py-20 lg:py-28">
+            <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+              <div className="grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
+                <div className="lg:col-span-7">
+                  <FadeUp>
+                    <div className="relative aspect-[4/3] overflow-hidden rounded-2xl">
+                      <Image
+                        src="/hero-1.jpg"
+                        alt={`Life as a student in ${country.name}`}
+                        fill
+                        className="object-cover"
+                        sizes="(min-width: 1024px) 58vw, 100vw"
+                      />
+                    </div>
+                  </FadeUp>
+                </div>
+
+                <div className="lg:col-span-5">
+                  <FadeUp>
+                    <Eyebrow>Student life</Eyebrow>
+                    <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                      Life as a student in <span style={{ color: RED }}>{country.name}</span>
+                    </h2>
+                  </FadeUp>
+                  <FadeUpStagger className="mt-9 grid gap-x-8 gap-y-4 sm:grid-cols-2">
+                    {lifePoints.map((point) => (
+                      <FadeUpItem key={point}>
+                        <div className="flex items-start gap-3">
+                          <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: RED }} />
+                          <span className="text-[15px] leading-relaxed text-[#3f4752]">{point}</span>
+                        </div>
+                      </FadeUpItem>
+                    ))}
+                  </FadeUpStagger>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* ─────────────────── STUDENT STORIES ─────────────────── */}
+        {stories.length > 0 && (
+          <section className="bg-white py-20 lg:py-28">
+            <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
               <FadeUp>
-                <div className="text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <Users size={13} />
-                    Success Stories
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    Hear from our <span className="text-[#C41E3A]">students</span>
+                <div className="max-w-2xl">
+                  <Eyebrow>Student stories</Eyebrow>
+                  <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                    Hear from our students
                   </h2>
                 </div>
               </FadeUp>
 
-              <FadeUpStagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3" amount={0.08}>
-                {studentStories.map((story) => (
-                  <FadeUpItem key={story.id}>
-                    <div className="group relative h-full overflow-hidden rounded-2xl border border-gray-100 bg-white p-6 transition-all duration-300 hover:border-gray-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)]">
-                      <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#C41E3A] to-transparent opacity-60" />
-                      <div className="mt-4 flex items-center gap-3">
+              <div className="mt-14 grid gap-12 lg:grid-cols-2 lg:gap-20">
+                {/* Featured story */}
+                {stories[0] && (
+                  <FadeUp>
+                    <figure className="flex h-full flex-col justify-center">
+                      <span className="font-display text-7xl leading-[0.6]" style={{ color: RED }}>
+                        &ldquo;
+                      </span>
+                      <blockquote className="mt-6 font-display text-2xl font-medium leading-snug text-[#0E1116] sm:text-[28px]">
+                        {stories[0].review}
+                      </blockquote>
+                      <figcaption className="mt-8 flex items-center gap-4">
                         <img
-                          src={story.image}
-                          alt={story.name}
-                          className="h-12 w-12 rounded-full object-cover"
+                          src={stories[0].image}
+                          alt={stories[0].name}
+                          className="h-14 w-14 rounded-full object-cover"
                         />
                         <div>
-                          <h4 className="font-bold text-gray-900">{story.name}</h4>
-                          <p className="text-sm text-gray-500">{story.university}</p>
+                          <div className="font-semibold text-[#0E1116]">{stories[0].name}</div>
+                          <div className="text-sm text-[#6b7280]">
+                            {stories[0].university}
+                            {stories[0].scholarship > 0 ? ` · ${stories[0].scholarship}% scholarship` : ''}
+                          </div>
                         </div>
-                      </div>
-                      <p className="mt-4 text-sm leading-relaxed text-gray-500">
-                        &ldquo;{story.review}&rdquo;
-                      </p>
-                      <div className="mt-4 flex items-center gap-2">
-                        <div className="flex items-center gap-0.5">
-                          {[...Array(story.rating)].map((_, i) => (
-                            <Star key={i} size={12} className="fill-amber-400 text-amber-400" />
-                          ))}
-                        </div>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700">
-                          <Award size={10} />
-                          {story.scholarship}% Scholarship
-                        </span>
-                      </div>
-                    </div>
-                  </FadeUpItem>
-                ))}
-              </FadeUpStagger>
+                      </figcaption>
+                    </figure>
+                  </FadeUp>
+                )}
+
+                {/* Smaller stories */}
+                <div className="flex flex-col gap-8 lg:gap-10">
+                  <FadeUpStagger className="flex flex-col gap-8 lg:gap-10">
+                    {stories.slice(1, 4).map((story) => (
+                      <FadeUpItem key={story.id}>
+                        <figure className="border-t border-black/10 pt-6">
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: story.rating }).map((_, i) => (
+                              <Star key={i} size={14} className="fill-amber-400 text-amber-400" />
+                            ))}
+                          </div>
+                          <blockquote className="mt-4 text-base leading-relaxed text-[#3f4752]">
+                            &ldquo;{story.review}&rdquo;
+                          </blockquote>
+                          <figcaption className="mt-5 flex items-center gap-3">
+                            <img
+                              src={story.image}
+                              alt={story.name}
+                              className="h-11 w-11 rounded-full object-cover"
+                            />
+                            <div>
+                              <div className="text-sm font-semibold text-[#0E1116]">{story.name}</div>
+                              <div className="text-sm text-[#6b7280]">{story.university}</div>
+                            </div>
+                          </figcaption>
+                        </figure>
+                      </FadeUpItem>
+                    ))}
+                  </FadeUpStagger>
+                </div>
+              </div>
             </div>
           </section>
         )}
 
-        {/* FAQs */}
-        {meta?.faqs && (
-          <section className="border-t border-gray-100 bg-gray-50/50 py-16 lg:py-24">
-            <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        {/* ─────────────────────── FAQ ─────────────────────── */}
+        {faqs.length > 0 && (
+          <section className="bg-[#F7F5F1] py-20 lg:py-28">
+            <div className="mx-auto max-w-[900px] px-6 sm:px-8 lg:px-10">
               <FadeUp>
-                <div className="mx-auto max-w-3xl text-center">
-                  <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                    <BookOpen size={13} />
-                    FAQ
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-                    Frequently asked questions
-                  </h2>
-                </div>
+                <Eyebrow>FAQ</Eyebrow>
+                <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
+                  Frequently asked questions
+                </h2>
               </FadeUp>
-
-              <FadeUpStagger className="mx-auto mt-10 max-w-3xl space-y-3" amount={0.05}>
-                {meta.faqs.map((faq) => (
-                  <FadeUpItem key={faq.question}>
-                    <FaqItem question={faq.question} answer={faq.answer} />
-                  </FadeUpItem>
+              <div className="mt-10 border-t border-black/10">
+                {faqs.map((faq, i) => (
+                  <FaqItem key={faq.question} question={faq.question} answer={faq.answer} index={i} />
                 ))}
-              </FadeUpStagger>
+              </div>
             </div>
           </section>
         )}
 
-        {/* CTA */}
-        <section className="bg-gray-950 py-16 lg:py-24">
-          <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        {/* ─────────────────────── CTA ─────────────────────── */}
+        <section className="relative overflow-hidden bg-[#08090C] py-24 text-center text-white lg:py-36">
+          <div className="absolute inset-0">
+            {meta?.heroImage && (
+              <Image
+                src={meta.heroImage}
+                alt=""
+                fill
+                className="object-cover opacity-20"
+                sizes="100vw"
+              />
+            )}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#08090C]/80 via-[#08090C]/60 to-[#08090C]" />
+          </div>
+
+          <div className="relative mx-auto max-w-[900px] px-6 sm:px-8">
             <FadeUp>
-              <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 to-gray-950 px-8 py-12 text-center sm:px-16 sm:py-16">
-                <div className="absolute -left-20 -top-20 h-60 w-60 rounded-full bg-[#C41E3A]/20 blur-[100px]" />
-                <div className="absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-[#C41E3A]/10 blur-[100px]" />
-                <div className="relative z-10">
-                  <span className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80">
-                    <BookOpen size={13} />
-                    Start Your Journey
-                  </span>
-                  <h2 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                    Ready to study in{' '}
-                    <span className="text-[#E05266]">{country.name}</span>?
-                  </h2>
-                  <p className="mx-auto mt-4 max-w-xl text-base text-gray-400">
-                    Get personalized guidance from our expert counselors. From university selection
-                    to visa approval, we&apos;re with you every step of the way.
-                  </p>
-                  <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                    <Link
-                      href="/register"
-                      className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-gray-900 shadow-[0_4px_16px_rgba(0,0,0,0.2)] transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)]"
-                    >
-                      Create Free Account
-                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                    <Link
-                      href="/courses"
-                      className="group inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-white/10"
-                    >
-                      Browse Courses
-                    </Link>
-                  </div>
-                </div>
+              <div className="flex justify-center">
+                <Eyebrow light>Start your journey</Eyebrow>
+              </div>
+              <h2 className="mt-8 font-display text-4xl font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
+                Ready to start your journey
+                <br />
+                in <span style={{ color: RED_LIGHT }}>{country.name}</span>?
+              </h2>
+              <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-white/60 sm:text-lg">
+                Get personalized guidance from our expert counselors. From university selection to
+                visa approval, we&apos;re with you every step of the way.
+              </p>
+              <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                <Link
+                  href="/register"
+                  className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-[15px] font-semibold text-[#08090C] transition-all hover:-translate-y-0.5 hover:bg-gray-100 sm:w-auto"
+                >
+                  Start Your Application
+                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                </Link>
+                <Link
+                  href="/about"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/25 px-8 py-4 text-[15px] font-semibold text-white transition-all hover:bg-white/10 sm:w-auto"
+                >
+                  Talk to an Advisor
+                </Link>
               </div>
             </FadeUp>
           </div>
