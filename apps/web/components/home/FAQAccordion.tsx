@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { FadeUp } from '@/components/home/FadeUp'
 import Image from 'next/image'
@@ -17,33 +17,46 @@ const faqs = [
   { q: 'What accommodation options are available for international students?', a: 'In South Korea, most universities offer affordable on-campus dormitories. Students can also rent apartments or share rooms outside campus. In Australia, options include university-managed residences, private student accommodations, homestays, and shared apartments. We help you find the best option based on your budget and preferences.' },
 ] as const
 
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="h-px w-8 bg-[#C41E3A]" />
+      <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#C41E3A] sm:text-xs">
+        {children}
+      </span>
+    </div>
+  )
+}
+
 function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
   const [isOpen, setIsOpen] = useState(false)
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.04 }}
+      transition={{ duration: 0.4, delay: index * 0.03 }}
       viewport={{ once: true }}
-      className="group border-b border-gray-100 last:border-b-0"
+      className="border-b border-black/10"
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left transition-colors"
+        className="flex w-full items-start justify-between gap-6 py-6 text-left"
         aria-expanded={isOpen}
       >
-        <span className={`text-sm font-semibold transition-colors ${isOpen ? 'text-[#C41E3A]' : 'text-gray-800 group-hover:text-gray-950'}`}>
-          {q}
-        </span>
-        <motion.span
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-          className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
-            isOpen ? 'bg-[#C41E3A] text-white shadow-md shadow-[#C41E3A]/20' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200 group-hover:text-gray-600'
+        <span
+          className={`font-display text-lg font-medium leading-snug transition-colors sm:text-[20px] ${
+            isOpen ? 'text-[#C41E3A]' : 'text-[#0E1116]'
           }`}
         >
-          <ChevronDown size={13} />
-        </motion.span>
+          {q}
+        </span>
+        <span
+          className={`mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition-colors ${
+            isOpen ? 'border-[#C41E3A] text-[#C41E3A]' : 'border-black/15 text-black/50'
+          }`}
+        >
+          <Plus size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-45' : ''}`} />
+        </span>
       </button>
       <AnimatePresence initial={false}>
         {isOpen && (
@@ -51,10 +64,10 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
             className="overflow-hidden"
           >
-            <p className="pb-4 text-[13px] leading-relaxed text-gray-500">{a}</p>
+            <p className="max-w-2xl pb-7 text-base leading-relaxed text-[#4b5563]">{a}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -64,92 +77,49 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
 
 export default function FAQAccordion() {
   return (
-    <section className="relative overflow-hidden bg-[#f6f7fb] py-20 lg:py-28">
-      {/* Subtle dot pattern */}
-      <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, #000 0.6px, transparent 0.6px)', backgroundSize: '20px 20px' }} />
-
-      {/* Floating accent blobs */}
-      <div className="pointer-events-none absolute -right-24 top-[10%] h-72 w-72 rounded-full bg-[#C41E3A]/[0.03] blur-3xl" />
-      <div className="pointer-events-none absolute -left-20 bottom-[15%] h-56 w-56 rounded-full bg-[#C41E3A]/[0.02] blur-3xl" />
-
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-          {/* Left column — image + decorative */}
+    <section id="faq" className="scroll-mt-24 bg-[#FAF9F6] py-24 lg:py-32">
+      <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
+        <div className="grid gap-12 lg:grid-cols-2 lg:gap-16">
+          {/* Left column — image */}
           <FadeUp>
-            <div className="relative">
-              {/* Main image */}
-              <div className="relative overflow-hidden rounded-2xl shadow-lg shadow-gray-200/60">
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-xl">
                 <Image
                   src="/hero-1.jpg"
                   alt="Students studying abroad"
-                  width={600}
-                  height={500}
-                  className="h-[360px] w-full object-cover sm:h-[420px] lg:h-[480px]"
+                  fill
+                  className="object-cover"
+                  sizes="(min-width: 1024px) 45vw, 100vw"
                 />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                <div className="absolute bottom-0 left-0 p-6">
+                  <div className="rounded-lg bg-white/95 px-5 py-4 shadow-sm">
+                    <div className="font-display text-2xl font-semibold text-[#0E1116]">2,000+</div>
+                    <div className="mt-0.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#6b7280]">
+                      Students placed
+                    </div>
+                  </div>
+                </div>
               </div>
-
-              {/* Floating stat card — bottom left */}
-              <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                viewport={{ once: true }}
-                className="absolute -bottom-5 left-4 rounded-xl border border-gray-100/80 bg-white/95 px-4 py-3 shadow-xl shadow-gray-200/50 backdrop-blur-sm sm:left-6"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#C41E3A]/10">
-                    <svg className="h-4.5 w-4.5 text-[#C41E3A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                  </div>
-                  <div>
-                    <p className="text-base font-bold text-gray-900">2,000+</p>
-                    <p className="text-[11px] font-medium text-gray-400">Students placed</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Floating badge — top right */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.5 }}
-                viewport={{ once: true }}
-                className="absolute right-4 top-6 rounded-xl border border-gray-100/80 bg-white/95 px-3.5 py-2.5 shadow-xl shadow-gray-200/50 backdrop-blur-sm sm:right-6"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#C41E3A]/10">
-                    <svg className="h-3.5 w-3.5 text-[#C41E3A]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
-                  </div>
-                  <div>
-                    <p className="text-[11px] font-bold text-gray-900">South Korea & Australia</p>
-                    <p className="text-[9px] font-medium text-gray-400">2 countries, endless possibilities</p>
-                  </div>
-                </div>
-              </motion.div>
-
-              {/* Decorative ring */}
-              <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full border border-[#C41E3A]/10" />
-              <div className="pointer-events-none absolute -bottom-8 right-8 h-16 w-16 rounded-full border border-[#C41E3A]/[0.06]" />
             </div>
           </FadeUp>
 
           {/* Right column — FAQ */}
           <FadeUp>
             <div>
-              <span className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/10 bg-[#C41E3A]/[0.04] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                FAQ
-              </span>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+              <Eyebrow>FAQ</Eyebrow>
+              <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
                 Frequently asked{' '}
-                <span className="text-gradient-brand">questions</span>
+                <span style={{ color: '#C41E3A' }}>questions</span>
               </h2>
-              <p className="mt-3 max-w-md text-sm text-gray-400">
-                Everything you need to know about studying in South Korea and Australia.
+              <p className="mt-5 text-base leading-relaxed text-[#4b5563] sm:text-lg">
+                Everything you need to know before starting your study-abroad journey.
               </p>
 
-              <div className="mt-8 overflow-hidden rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
-                {faqs.map((faq, i) => <FAQItem key={faq.q} {...faq} index={i} />)}
+              <div className="mt-8 border-t border-black/10">
+                {faqs.map((faq, i) => (
+                  <FAQItem key={faq.q} q={faq.q} a={faq.a} index={i} />
+                ))}
               </div>
             </div>
           </FadeUp>

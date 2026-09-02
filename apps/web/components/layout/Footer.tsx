@@ -2,18 +2,18 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Mail, Phone, MapPin } from 'lucide-react'
 
-const aboutLinks = [
-  { label: 'About Us', href: '/about' },
-  { label: 'Why Endow Global?', href: '/about' },
-  { label: 'Mission & Vision', href: '/about' },
-  { label: 'Free Guidance', href: '/register' },
+const exploreLinks = [
+  { label: 'Universities', href: '/universities' },
+  { label: 'Courses', href: '/courses' },
+  { label: 'Study Destinations', href: '/universities' },
+  { label: 'Application Roadmap', href: '/#roadmap' },
 ] as const
 
-const helpfulLinks = [
-  { label: 'Stories', href: '/blog' },
-  { label: 'Academics', href: '/courses' },
-  { label: 'Admissions + Aid', href: '/universities' },
-  { label: 'Campus Life', href: '/blog' },
+const resourceLinks = [
+  { label: 'Visa Guide', href: '/resources' },
+  { label: 'FAQ', href: '/#faq' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Student Stories', href: '/#stories' },
 ] as const
 
 const socials = [
@@ -23,13 +23,13 @@ const socials = [
   { label: 'LinkedIn', href: 'https://www.linkedin.com/company/endow-global-education/', path: 'M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z' },
 ] as const
 
-const footerLink = 'text-[13px] text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
+const footerLink = 'text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100'
 
 export function Footer() {
   return (
     <footer className="border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-[#12141c]">
-      <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mx-auto max-w-[1200px] px-6 py-14 sm:px-8 lg:px-10 lg:py-16">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.1fr] lg:gap-12">
           {/* Brand */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2.5">
@@ -39,17 +39,17 @@ export function Footer() {
                 <span className="block text-[11px] font-semibold uppercase tracking-[0.2em] text-gray-400">Education</span>
               </div>
             </Link>
-            <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
-              Guiding students toward international academic success with personalized, end-to-end support.
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-gray-500 dark:text-gray-400">
+              Helping students turn international education goals into real opportunities.
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-6 flex gap-2.5">
               {socials.map((social) => (
                 <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition-colors hover:bg-rose-600 hover:text-white dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-rose-600 dark:hover:text-white"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 transition-colors hover:border-[#C41E3A] hover:bg-[#C41E3A] hover:text-white dark:border-gray-700 dark:text-gray-400"
                   aria-label={social.label}
                 >
                   <svg className="h-4 w-4" viewBox="0 0 320 512" fill="currentColor">
@@ -60,11 +60,11 @@ export function Footer() {
             </div>
           </div>
 
-          {/* About */}
+          {/* Explore */}
           <div>
-            <h5 className="text-sm font-bold text-gray-900 dark:text-white">About Endow</h5>
-            <ul className="mt-3 space-y-2">
-              {aboutLinks.map((link) => (
+            <h5 className="text-sm font-semibold text-gray-900 dark:text-white">Explore</h5>
+            <ul className="mt-4 space-y-3">
+              {exploreLinks.map((link) => (
                 <li key={link.label}>
                   <Link href={link.href} className={footerLink}>{link.label}</Link>
                 </li>
@@ -72,11 +72,11 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Helpful links */}
+          {/* Resources */}
           <div>
-            <h5 className="text-sm font-bold text-gray-900 dark:text-white">Helpful Links</h5>
-            <ul className="mt-3 space-y-2">
-              {helpfulLinks.map((link) => (
+            <h5 className="text-sm font-semibold text-gray-900 dark:text-white">Resources</h5>
+            <ul className="mt-4 space-y-3">
+              {resourceLinks.map((link) => (
                 <li key={link.label}>
                   <Link href={link.href} className={footerLink}>{link.label}</Link>
                 </li>
@@ -84,27 +84,32 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Contact */}
+          {/* Get in touch */}
           <div>
-            <h5 className="text-sm font-bold text-gray-900 dark:text-white">Get in Touch</h5>
-            <ul className="mt-3 space-y-2.5">
-              <li className="flex items-start gap-2">
-                <MapPin size={14} className="mt-0.5 shrink-0 text-rose-600" />
-                <span className="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
+            <h5 className="text-sm font-semibold text-gray-900 dark:text-white">Get in touch</h5>
+            <ul className="mt-4 space-y-3">
+              <li className="flex items-start gap-2.5">
+                <MapPin size={15} className="mt-0.5 shrink-0 text-[#C41E3A]" />
+                <span className="text-sm leading-relaxed text-gray-500 dark:text-gray-400">
                   H# 24/1 &amp; 24/2, Level# 8, Shyamoli Square, Mirpur Rd, Dhaka
                 </span>
               </li>
               <li>
-                <a href="mailto:contact@endowglobaledu.com" className="flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-                  <Mail size={14} className="shrink-0 text-rose-600" />
+                <a href="mailto:contact@endowglobaledu.com" className="flex items-center gap-2.5 text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+                  <Mail size={15} className="shrink-0 text-[#C41E3A]" />
                   contact@endowglobaledu.com
                 </a>
               </li>
               <li>
-                <a href="tel:+8801901463204" className="flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
-                  <Phone size={14} className="shrink-0 text-rose-600" />
+                <a href="tel:+8801901463204" className="flex items-center gap-2.5 text-sm text-gray-500 transition-colors hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100">
+                  <Phone size={15} className="shrink-0 text-[#C41E3A]" />
                   +880 190146 3204
                 </a>
+              </li>
+              <li>
+                <Link href="/about" className="text-sm font-medium text-[#C41E3A] transition-colors hover:text-[#A01830]">
+                  Contact us
+                </Link>
               </li>
             </ul>
           </div>
@@ -113,11 +118,11 @@ export function Footer() {
 
       {/* Bottom bar */}
       <div className="border-t border-gray-100 dark:border-gray-800">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-2 px-5 py-4 sm:flex-row sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-2 px-6 py-5 sm:flex-row sm:px-8 lg:px-10">
           <p className="text-[13px] text-gray-400 dark:text-gray-500">
             &copy; {new Date().getFullYear()} Endow Global Education. All rights reserved.
           </p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <Link href="/terms" className="text-[13px] text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">Terms</Link>
             <Link href="/privacy" className="text-[13px] text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">Privacy</Link>
             <Link href="/cookies" className="text-[13px] text-gray-400 transition-colors hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300">Cookies</Link>
