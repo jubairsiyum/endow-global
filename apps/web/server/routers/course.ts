@@ -5,6 +5,7 @@ import {
   and as _and,
   sql as _sql,
   desc as _desc,
+  asc as _asc,
   inArray as _inArray,
   gte as _gte,
   lte as _lte,
@@ -13,6 +14,7 @@ import {
   or as _or,
 } from 'drizzle-orm'
 const eq = _eq as any
+const asc = _asc as any
 const and = _and as any
 const sql = _sql as any
 const desc = _desc as any
@@ -44,6 +46,7 @@ export const courseRouter = createTRPCRouter({
         hasScholarship: z.boolean().optional(),
         page: z.number().min(1).default(1),
         perPage: z.number().min(1).max(50).default(12),
+        sort: z.enum(['recommended', 'tuition_asc', 'tuition_desc', 'university_asc', 'course_asc', 'newest']).optional(),
       }).optional()
     )
     .query(async ({ ctx, input }) => {
@@ -136,6 +139,24 @@ export const courseRouter = createTRPCRouter({
 
         const offset = (page - 1) * perPage
 
+        const sort = input?.sort ?? 'recommended'
+        const orderByClause = (() => {
+          switch (sort) {
+            case 'tuition_asc':
+              return asc(courses.tuitionFee)
+            case 'tuition_desc':
+              return desc(courses.tuitionFee)
+            case 'university_asc':
+              return asc(universities.name)
+            case 'course_asc':
+              return asc(courses.name)
+            case 'newest':
+            case 'recommended':
+            default:
+              return desc(courses.createdAt)
+          }
+        })()
+
         const [results, countResult] = await Promise.all([
           ctx.db
             .select({
@@ -162,7 +183,7 @@ export const courseRouter = createTRPCRouter({
             .from(courses)
             .leftJoin(universities, eq(courses.universityId, universities.id))
             .where(where)
-            .orderBy(desc(courses.createdAt))
+            .orderBy(orderByClause)
             .limit(perPage)
             .offset(offset),
           ctx.db
