@@ -5,6 +5,7 @@ import { useInView, useReducedMotion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 
 const RED = '#C41E3A'
+const RED_DEEP = '#9C122C'
 const RED_SOFT = '#E05266'
 const INK = '#0E1116'
 const INK_SOFT = '#3F4752'
@@ -12,23 +13,24 @@ const MUTED = '#9AA0A8'
 const ROUTE = '#E5E1DA'
 
 const steps = [
-  { number: 1, title: 'Consultation', description: 'Discuss your academic goals with our experienced counselors.' },
-  { number: 2, title: 'University Matching', description: 'Get personalized university recommendations.' },
-  { number: 3, title: 'Document Prep', description: 'Prepare all required documents with expert guidance.' },
-  { number: 4, title: 'Application', description: 'Submit complete applications to your selected universities.' },
-  { number: 5, title: 'Interview Prep', description: 'Prepare and ace your university interviews with mock sessions.' },
-  { number: 6, title: 'Visa Processing', description: 'Navigate the visa application process with full support.' },
-  { number: 7, title: 'Departure', description: 'Final preparations and welcome to your new chapter abroad.' },
+  { number: 1, title: 'Consultation', description: 'Discuss your goals and preferences.' },
+  { number: 2, title: 'University Matching', description: 'Find universities that fit your profile.' },
+  { number: 3, title: 'Document Preparation', description: 'Prepare the required documents.' },
+  { number: 4, title: 'Application', description: 'Submit your application with guidance.' },
+  { number: 5, title: 'Interview Preparation', description: 'Prepare confidently for your interview.' },
+  { number: 6, title: 'Visa Processing', description: 'Complete your visa process with guidance.' },
+  { number: 7, title: 'Departure', description: 'Begin your journey abroad.' },
 ]
 
-const desktopWaypoints = [
-  { x: 85, y: 250 }, { x: 210, y: 130 }, { x: 360, y: 220 },
-  { x: 500, y: 95 }, { x: 640, y: 200 }, { x: 790, y: 125 }, { x: 915, y: 235 },
-]
-
-const mobileWaypoints = [
-  { x: 250, y: 50 }, { x: 110, y: 210 }, { x: 340, y: 370 },
-  { x: 130, y: 530 }, { x: 320, y: 690 }, { x: 120, y: 850 }, { x: 250, y: 1010 },
+// A controlled travel route (gentle, low-amplitude) rather than a decorative wave.
+const desktopWaypoints: { x: number; y: number; side: 'above' | 'below' }[] = [
+  { x: 60, y: 190, side: 'below' },
+  { x: 220, y: 240, side: 'above' },
+  { x: 380, y: 190, side: 'below' },
+  { x: 540, y: 240, side: 'above' },
+  { x: 700, y: 190, side: 'below' },
+  { x: 860, y: 240, side: 'above' },
+  { x: 1020, y: 190, side: 'below' },
 ]
 
 function buildPath(pts: { x: number; y: number }[]): string {
@@ -39,7 +41,7 @@ function buildPath(pts: { x: number; y: number }[]): string {
     const p1 = pts[i]
     const p2 = pts[i + 1]
     const p3 = pts[Math.min(i + 2, pts.length - 1)]
-    const t = 0.3
+    const t = 0.28
     d += ` C ${p1.x + (p2.x - p0.x) * t} ${p1.y + (p2.y - p0.y) * t}, ${p2.x - (p3.x - p1.x) * t} ${p2.y - (p3.y - p1.y) * t}, ${p2.x} ${p2.y}`
   }
   return d
@@ -76,7 +78,7 @@ function computeCumulativeLengths(pts: { x: number; y: number }[]): number[] {
     const p1 = pts[i]
     const p2 = pts[i + 1]
     const p3 = pts[Math.min(i + 2, pts.length - 1)]
-    const k = 0.3
+    const k = 0.28
     const cp1 = { x: p1.x + (p2.x - p0.x) * k, y: p1.y + (p2.y - p0.y) * k }
     const cp2 = { x: p2.x - (p3.x - p1.x) * k, y: p2.y - (p3.y - p1.y) * k }
     cum.push(cum[cum.length - 1] + segmentLen(p1, cp1, cp2, p2))
@@ -85,7 +87,6 @@ function computeCumulativeLengths(pts: { x: number; y: number }[]): number[] {
 }
 
 const DESKTOP_CUM_LENGTHS = computeCumulativeLengths(desktopWaypoints)
-const MOBILE_CUM_LENGTHS = computeCumulativeLengths(mobileWaypoints)
 
 function PlaneSvg({ className }: { className?: string }) {
   return (
@@ -96,63 +97,56 @@ function PlaneSvg({ className }: { className?: string }) {
 }
 
 interface FlightPathProps {
-  waypoints: { x: number; y: number }[]
   viewBox: string
   activeStep: number
   onStepClick: (n: number) => void
-  isMobile: boolean
+  reduceMotion: boolean
 }
 
-function usePathLen(isMobile: boolean) {
-  const cum = isMobile ? MOBILE_CUM_LENGTHS : DESKTOP_CUM_LENGTHS
-  return { total: cum[cum.length - 1], cum }
-}
+const FlightPathScene = memo(function FlightPathScene({ viewBox, activeStep, onStepClick, reduceMotion }: FlightPathProps) {
+  const pathD = buildPath(desktopWaypoints)
+  const total = DESKTOP_CUM_LENGTHS[DESKTOP_CUM_LENGTHS.length - 1]
+  const activeIdx = Math.min(Math.max(activeStep, 0), DESKTOP_CUM_LENGTHS.length - 1)
+  const drawnLen = DESKTOP_CUM_LENGTHS[activeIdx]
 
-const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, activeStep, onStepClick, isMobile }: FlightPathProps) {
-  const pathD = buildPath(waypoints)
-  const { total, cum } = usePathLen(isMobile)
-  const activeIdx = Math.min(activeStep, cum.length - 1)
-  const drawnLen = cum[activeIdx]
+  const cardW = 156
+  const cardH = 92
+  const descMaxH = 42
+  const nodeR = 14
 
-  const cardW = isMobile ? 142 : 150
-  const cardH = isMobile ? 146 : 150
-  const descMaxH = isMobile ? 50 : 56
-  const nodeR = isMobile ? 14 : 17
-  const prefix = isMobile ? 'm' : 'd'
-
-  const planeIdx = Math.min(Math.max(activeStep, 0), waypoints.length - 1)
-  const wp = waypoints[planeIdx]
-  const nextIdx = Math.min(planeIdx + 1, waypoints.length - 1)
-  const nextWp = waypoints[nextIdx]
+  const planeIdx = Math.min(Math.max(activeStep, 0), desktopWaypoints.length - 1)
+  const wp = desktopWaypoints[planeIdx]
+  const nextIdx = Math.min(planeIdx + 1, desktopWaypoints.length - 1)
+  const nextWp = desktopWaypoints[nextIdx]
   const prevIdx = Math.max(planeIdx - 1, 0)
-  const prevWp = waypoints[prevIdx]
+  const prevWp = desktopWaypoints[prevIdx]
   const angleDeg = activeStep <= 0
-    ? Math.atan2(waypoints[1].y - waypoints[0].y, waypoints[1].x - waypoints[0].x) * (180 / Math.PI)
-    : planeIdx >= waypoints.length - 1
+    ? Math.atan2(desktopWaypoints[1].y - desktopWaypoints[0].y, desktopWaypoints[1].x - desktopWaypoints[0].x) * (180 / Math.PI)
+    : planeIdx >= desktopWaypoints.length - 1
       ? Math.atan2(wp.y - prevWp.y, wp.x - prevWp.x) * (180 / Math.PI)
       : Math.atan2(nextWp.y - wp.y, nextWp.x - wp.x) * (180 / Math.PI)
 
   const dashStyle = {
     strokeDasharray: total,
-    strokeDashoffset: total - drawnLen,
-    transition: 'stroke-dashoffset 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+    strokeDashoffset: reduceMotion ? 0 : total - drawnLen,
+    transition: reduceMotion ? 'none' : 'stroke-dashoffset 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
   }
 
   return (
     <svg viewBox={viewBox} className="w-full" style={{ height: 'auto', overflow: 'visible' }}>
       <defs>
-        <linearGradient id={`grad-${prefix}`} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={RED} />
-          <stop offset="100%" stopColor={RED_SOFT} />
+        <linearGradient id="route-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={RED_DEEP} />
+          <stop offset="100%" stopColor={RED} />
         </linearGradient>
-        <linearGradient id={`traveling-grad-${prefix}`} x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor={RED} stopOpacity="0" />
-          <stop offset="15%" stopColor={RED} stopOpacity="0.5" />
-          <stop offset="85%" stopColor={RED} stopOpacity="0.7" />
-          <stop offset="100%" stopColor={RED_SOFT} stopOpacity="0.7" />
+        <linearGradient id="route-glow" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor={RED_DEEP} stopOpacity="0" />
+          <stop offset="25%" stopColor={RED} stopOpacity="0.4" />
+          <stop offset="85%" stopColor={RED} stopOpacity="0.5" />
+          <stop offset="100%" stopColor={RED_SOFT} stopOpacity="0.5" />
         </linearGradient>
-        <filter id={`glow-${prefix}`}>
-          <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+        <filter id="route-blur">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="2" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
@@ -161,55 +155,52 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
       </defs>
 
       {/* Dashed background route */}
-      <path d={pathD} fill="none" stroke={ROUTE} strokeWidth={isMobile ? 2.5 : 3} strokeDasharray="3 6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d={pathD} fill="none" stroke={ROUTE} strokeWidth={2.5} strokeDasharray="3 6" strokeLinecap="round" strokeLinejoin="round" />
 
       {/* Animated progress route */}
-      <path d={pathD} fill="none" stroke={`url(#grad-${prefix})`} strokeWidth={isMobile ? 3 : 3.5} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} />
+      <path d={pathD} fill="none" stroke="url(#route-grad)" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} />
 
-      {/* Soft glow overlay */}
-      <path d={pathD} fill="none" stroke={`url(#traveling-grad-${prefix})`} strokeWidth={isMobile ? 7 : 8} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} filter={`url(#glow-${prefix})`} />
+      {/* Soft glow */}
+      <path d={pathD} fill="none" stroke="url(#route-glow)" strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" style={dashStyle} filter="url(#route-blur)" />
 
-      {/* Connector lines + step labels */}
-      {waypoints.map((point, idx) => {
+      {/* Step labels + connectors */}
+      {desktopWaypoints.map((point, idx) => {
         const step = steps[idx]
         const isActive = activeStep === step.number
         const isPast = step.number < activeStep
+        const showDesc = reduceMotion || isActive
+        const labelTop = point.side === 'below' ? point.y + 26 : point.y - 26 - cardH
         const cardX = point.x - cardW / 2
-        const cardY = point.y + (isMobile ? 28 : 38)
+        const lineStartY = point.side === 'below' ? point.y + nodeR : point.y - nodeR
+        const lineEndY = point.side === 'below' ? labelTop : labelTop + cardH
         return (
           <g key={step.number}>
             <line
-              x1={point.x} y1={point.y + nodeR + 2}
-              x2={point.x} y2={cardY}
+              x1={point.x} y1={lineStartY}
+              x2={point.x} y2={lineEndY}
               stroke={isActive ? RED : '#D8D4CE'}
               strokeWidth={1}
-              strokeDasharray="3 4"
-              strokeOpacity={isActive ? 0.8 : 0.6}
+              strokeDasharray="2 4"
+              strokeOpacity={isActive ? 0.7 : 0.5}
               style={{ transition: 'stroke 0.4s ease' }}
             />
-            <circle cx={point.x} cy={cardY + 2} r={isActive ? 3 : 2} fill={isActive ? RED : '#D8D4CE'} style={{ transition: 'all 0.4s ease' }} />
-
-            <foreignObject
-              x={cardX} y={cardY + 8}
-              width={cardW} height={cardH}
-              style={{ pointerEvents: 'all', overflow: 'visible' }}
-            >
+            <foreignObject x={cardX} y={labelTop} width={cardW} height={cardH} style={{ pointerEvents: 'all', overflow: 'visible' }}>
               <div
                 onClick={() => onStepClick(step.number)}
                 style={{
                   cursor: 'pointer',
-                  padding: isMobile ? '0 4px' : '0 6px',
-                  opacity: isActive ? 1 : isPast ? 0.72 : 0.42,
-                  transform: isActive ? 'translateY(-3px)' : 'translateY(0)',
-                  transition: 'opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1)',
+                  padding: '0 4px',
+                  textAlign: 'center',
+                  opacity: isActive ? 1 : isPast ? 0.7 : 0.4,
+                  transition: 'opacity 0.4s ease',
                 }}
               >
                 <div
                   style={{
                     fontFamily: "'IBM Plex Mono', monospace",
-                    fontSize: isMobile ? 10 : 11,
+                    fontSize: 11,
                     fontWeight: 600,
-                    letterSpacing: '0.08em',
+                    letterSpacing: '0.12em',
                     color: isActive ? RED : isPast ? INK_SOFT : MUTED,
                     transition: 'color 0.4s ease',
                   }}
@@ -219,10 +210,10 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 <div
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: isMobile ? 13 : 14.5,
+                    fontSize: 14.5,
                     fontWeight: isActive ? 700 : 600,
                     lineHeight: 1.2,
-                    marginTop: 4,
+                    marginTop: 3,
                     color: isActive ? INK : isPast ? INK_SOFT : '#B4B9C2',
                     transition: 'color 0.4s ease',
                   }}
@@ -231,19 +222,19 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
                 </div>
                 <div
                   style={{
-                    maxHeight: isActive ? descMaxH : 0,
-                    opacity: isActive ? 1 : 0,
+                    maxHeight: showDesc ? descMaxH : 0,
+                    opacity: showDesc ? 1 : 0,
                     overflow: 'hidden',
-                    transition: 'max-height 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease',
+                    transition: reduceMotion ? 'none' : 'max-height 0.4s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease',
                   }}
                 >
                   <p
                     style={{
                       fontFamily: "'IBM Plex Sans', sans-serif",
-                      fontSize: isMobile ? 10.5 : 11.5,
-                      lineHeight: 1.5,
-                      color: INK_SOFT,
-                      marginTop: 5,
+                      fontSize: 11.5,
+                      lineHeight: 1.45,
+                      color: '#5b6370',
+                      marginTop: 3,
                       marginBottom: 0,
                     }}
                   >
@@ -256,32 +247,29 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
         )
       })}
 
-      {/* Waypoint nodes */}
-      {waypoints.map((point, idx) => {
+      {/* Waypoint markers */}
+      {desktopWaypoints.map((point, idx) => {
         const step = steps[idx]
         const isActive = activeStep === step.number
         const isPast = step.number < activeStep
         return (
           <g key={`node-${step.number}`}>
-            {isActive && (
-              <>
-                <circle cx={point.x} cy={point.y} r={nodeR + 5} fill="none" stroke={RED} strokeWidth={1.5} strokeOpacity={0.18} style={{ animation: 'pulse-ring 2s ease-in-out infinite' }} />
-                <circle cx={point.x} cy={point.y} r={nodeR + 10} fill="none" stroke={RED} strokeWidth={1} strokeOpacity={0.08} style={{ animation: 'pulse-ring 2s ease-in-out 0.4s infinite' }} />
-              </>
+            {isActive && !reduceMotion && (
+              <circle cx={point.x} cy={point.y} r={nodeR + 6} fill="none" stroke={RED} strokeWidth={1.5} strokeOpacity={0.16} style={{ animation: 'pulse-ring 2s ease-in-out infinite' }} />
             )}
             <circle
               cx={point.x} cy={point.y}
-              r={isActive ? nodeR : isPast ? nodeR - 2 : nodeR - 2.5}
+              r={isActive ? nodeR : isPast ? nodeR - 1.5 : nodeR - 2}
               fill={isActive || isPast ? RED : '#ffffff'}
-              fillOpacity={isPast ? 0.5 : 1}
+              fillOpacity={isPast && !isActive ? 0.5 : 1}
               stroke={isActive ? RED : isPast ? 'none' : '#D6D2CC'}
               strokeWidth={2}
-              style={{ cursor: 'pointer', transition: 'all 0.35s ease' }}
+              style={{ cursor: 'pointer', transition: reduceMotion ? 'none' : 'all 0.35s ease' }}
               onClick={() => onStepClick(step.number)}
             />
             <circle
               cx={point.x} cy={point.y}
-              r={nodeR + 3}
+              r={nodeR + 4}
               fill="transparent"
               style={{ cursor: 'pointer' }}
               onClick={() => onStepClick(step.number)}
@@ -290,17 +278,17 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
         )
       })}
 
-      {/* Airplane marker */}
+      {/* Airplane — the traveler, terminates at Departure */}
       <g
         style={{
           transform: `translate(${wp.x}px, ${wp.y}px) rotate(${angleDeg}deg)`,
-          transition: 'transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          transition: reduceMotion ? 'none' : 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
           transformOrigin: '0 0',
           willChange: 'transform',
         }}
       >
-        <circle cx={0} cy={0} r={isMobile ? 20 : 24} fill={RED} opacity={0.05} style={{ animation: 'airplane-glow 1.5s ease-in-out infinite' }} />
-        <circle cx={0} cy={0} r={isMobile ? 12 : 15} fill="white" stroke={RED} strokeWidth={2.5} style={{ transition: 'r 0.4s ease' }} />
+        <circle cx={0} cy={0} r={22} fill={RED} opacity={0.06} style={reduceMotion ? undefined : { animation: 'airplane-glow 1.5s ease-in-out infinite' }} />
+        <circle cx={0} cy={0} r={13} fill="white" stroke={RED} strokeWidth={2.5} />
         <foreignObject x={-9} y={-9} width={18} height={18}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             <PlaneSvg className="h-4 w-4 text-[#C41E3A]" />
@@ -311,6 +299,72 @@ const FlightPathScene = memo(function FlightPathScene({ waypoints, viewBox, acti
   )
 })
 
+function MobileJourney({ activeStep, onStepClick, reduceMotion }: { activeStep: number; onStepClick: (n: number) => void; reduceMotion: boolean }) {
+  const progress = reduceMotion ? 100 : (Math.max(0, activeStep) / steps.length) * 100
+
+  return (
+    <div className="relative mx-auto max-w-xl">
+      {/* Base rail */}
+      <div className="absolute left-[15px] top-2 bottom-2 w-px bg-[#E5E1DA]" />
+      {/* Active rail */}
+      <div
+        className="absolute left-[15px] top-2 w-px bg-[#C41E3A]"
+        style={{ height: `${progress}%`, transition: reduceMotion ? 'none' : 'height 0.7s cubic-bezier(0.4, 0, 0.2, 1)' }}
+      />
+
+      {steps.map((step, i) => {
+        const isActive = !reduceMotion && activeStep === step.number
+        const isPast = reduceMotion || step.number < activeStep
+        const isLast = i === steps.length - 1
+        const showDesc = reduceMotion || isActive
+        return (
+          <div key={step.number} className="relative pb-9 last:pb-0">
+            <button
+              type="button"
+              onClick={() => onStepClick(step.number)}
+              aria-label={`Step ${step.number}: ${step.title}`}
+              className="absolute left-[15px] top-1 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white"
+              style={{
+                borderColor: isActive || isPast ? RED : '#D6D2CC',
+                transform: `translateX(-50%) scale(${isActive ? 1.1 : 1})`,
+                boxShadow: isActive ? '0 0 0 5px rgba(196,30,58,0.10)' : 'none',
+                transition: reduceMotion ? 'none' : 'transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease',
+              }}
+            >
+              {isLast ? (
+                <PlaneSvg className="h-4 w-4 text-[#C41E3A]" />
+              ) : (
+                <span
+                  className="font-mono text-[11px] font-semibold"
+                  style={{ color: isActive || isPast ? RED : MUTED }}
+                >
+                  {step.number}
+                </span>
+              )}
+            </button>
+
+            <div className="pl-12 pt-0.5">
+              <h3
+                className="text-base font-semibold leading-snug sm:text-[17px]"
+                style={{ color: isActive ? INK : isPast ? INK_SOFT : '#B4B9C2', transition: reduceMotion ? 'none' : 'color 0.3s ease' }}
+              >
+                {step.title}
+              </h3>
+              <p
+                className={`mt-1 overflow-hidden text-sm leading-relaxed text-[#4b5563] transition-all duration-300 ${
+                  showDesc ? 'max-h-12 opacity-100' : 'max-h-0 opacity-0'
+                }`}
+              >
+                {step.description}
+              </p>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function ApplicationRoadmap() {
   const [activeStep, setActiveStep] = useState(1)
   const [autoPlaying, setAutoPlaying] = useState(true)
@@ -318,11 +372,12 @@ export default function ApplicationRoadmap() {
   const activeStepRef = useRef(activeStep)
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
   const prefersReducedMotion = useReducedMotion()
+  const reduceMotion = Boolean(prefersReducedMotion)
 
   useEffect(() => { activeStepRef.current = activeStep }, [activeStep])
 
   useEffect(() => {
-    if (prefersReducedMotion || !autoPlaying || !isInView) return
+    if (reduceMotion || !autoPlaying || !isInView) return
     const id = setInterval(() => {
       setActiveStep((prev) => {
         if (prev >= steps.length) { setAutoPlaying(false); return prev }
@@ -330,7 +385,7 @@ export default function ApplicationRoadmap() {
       })
     }, 2200)
     return () => clearInterval(id)
-  }, [autoPlaying, isInView, prefersReducedMotion])
+  }, [autoPlaying, isInView, reduceMotion])
 
   const handleStepClick = useCallback((num: number) => {
     setAutoPlaying(false)
@@ -350,16 +405,19 @@ export default function ApplicationRoadmap() {
     }
   }, [])
 
+  // Reduced motion → show the completed, static journey.
+  const displayStep = reduceMotion ? steps.length : activeStep
+
   return (
     <>
       <style>{`
         @keyframes pulse-ring {
-          0%, 100% { opacity: 0.22; transform: scale(1); }
+          0%, 100% { opacity: 0.2; transform: scale(1); }
           50% { opacity: 0.05; transform: scale(1.25); }
         }
         @keyframes airplane-glow {
           0%, 100% { opacity: 0.04; transform: scale(0.95); }
-          50% { opacity: 0.12; transform: scale(1.1); }
+          50% { opacity: 0.1; transform: scale(1.1); }
         }
       `}</style>
       <section
@@ -368,17 +426,17 @@ export default function ApplicationRoadmap() {
         className="relative scroll-mt-24 overflow-hidden py-24 lg:py-32"
         style={{ background: '#FAF9F6' }}
       >
-        {/* Subtle editorial texture */}
+        {/* Subtle dotted texture */}
         <div
           className="pointer-events-none absolute inset-0"
           style={{ backgroundImage: 'radial-gradient(circle, rgba(16,23,42,0.05) 1px, transparent 1px)', backgroundSize: '26px 26px' }}
         />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[720px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#0E1116]/[0.04]" />
-        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[980px] w-[980px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#0E1116]/[0.03]" />
+        {/* Single faint radial accent */}
+        <div className="pointer-events-none absolute left-1/2 top-1/2 h-[720px] w-[720px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#0E1116]/[0.03]" />
 
         <div className="relative mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
           {/* Header */}
-          <div className="mb-14 text-center lg:mb-20">
+          <div className="mb-10 text-center lg:mb-12">
             <div className="flex items-center justify-center gap-3">
               <span className="h-px w-8 bg-[#C41E3A]" />
               <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#C41E3A] sm:text-xs">
@@ -386,42 +444,37 @@ export default function ApplicationRoadmap() {
               </span>
               <span className="h-px w-8 bg-[#C41E3A]" />
             </div>
-            <h2 className="mt-5 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl lg:text-[56px]">
+            <h2 className="mt-5 font-display text-3xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-4xl lg:text-[56px]">
               Application <span style={{ color: RED }}>roadmap</span>
             </h2>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-[#4b5563] sm:text-lg">
+            <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-[#4b5563] sm:text-lg">
               Follow a clear path from choosing the right university to preparing for your departure.
             </p>
           </div>
 
-          {/* Desktop */}
+          {/* Desktop — animated horizontal travel route */}
           <div className="hidden lg:block">
-            <div className="relative mx-auto" style={{ maxWidth: 1100, overflow: 'visible' }}>
+            <div className="relative mx-auto" style={{ maxWidth: 1080, overflow: 'visible' }}>
               <FlightPathScene
-                waypoints={desktopWaypoints}
-                viewBox="0 0 1000 500"
-                activeStep={activeStep}
+                viewBox="0 0 1080 340"
+                activeStep={displayStep}
                 onStepClick={handleStepClick}
-                isMobile={false}
+                reduceMotion={reduceMotion}
               />
             </div>
           </div>
 
-          {/* Mobile */}
+          {/* Mobile / tablet — dedicated vertical journey */}
           <div className="lg:hidden">
-            <div className="relative mx-auto w-full overflow-visible px-2">
-              <FlightPathScene
-                waypoints={mobileWaypoints}
-                viewBox="0 0 500 1230"
-                activeStep={activeStep}
-                onStepClick={handleStepClick}
-                isMobile={true}
-              />
-            </div>
+            <MobileJourney
+              activeStep={displayStep}
+              onStepClick={handleStepClick}
+              reduceMotion={reduceMotion}
+            />
           </div>
 
           {/* CTA — anchored to the end of the journey */}
-          <div className="mt-16 text-center lg:mt-20">
+          <div className="mt-14 text-center lg:mt-16">
             <p className="font-display text-2xl font-semibold tracking-tight text-[#0E1116] sm:text-3xl">
               Ready to start your journey?
             </p>
