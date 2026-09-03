@@ -6,6 +6,7 @@ const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? (isDev ? 'http://localhost:300
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.google.com' },
