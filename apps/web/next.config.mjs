@@ -1,4 +1,3 @@
-import '../../env-loader.cjs'
 import path from 'path'
 
 const isDev = process.env.NODE_ENV === 'development'
