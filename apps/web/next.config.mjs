@@ -1,11 +1,17 @@
 import path from 'path'
 
 const isDev = process.env.NODE_ENV === 'development'
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? (isDev ? 'http://localhost:3000' : '')
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
+  (isDev ? 'http://localhost:3000' : '')
+
+const isVercel = !!process.env.VERCEL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  // `standalone` is for Docker/self-hosted. Vercel manages its own output, so disable there.
+  ...(isVercel ? {} : { output: 'standalone' }),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.google.com' },

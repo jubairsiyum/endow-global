@@ -48,8 +48,10 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3000',
     'https://egev2.vercel.app',
-    process.env.BETTER_AUTH_URL!,
-  ].filter(Boolean),
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  ].filter((origin): origin is string => Boolean(origin)),
   database: drizzleAdapter(db, {
     provider: 'mysql',
     schema: {
