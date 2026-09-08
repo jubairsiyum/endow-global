@@ -11,7 +11,9 @@ const isVercel = !!process.env.VERCEL
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // `standalone` is for Docker/self-hosted. Vercel manages its own output, so disable there.
-  ...(isVercel ? {} : { output: 'standalone' }),
+  // Windows cannot create the symlinks Next.js builds inside `.next/standalone` without
+  // Developer Mode / admin rights (EPERM), so also skip the standalone output there.
+  ...(isVercel || process.platform === 'win32' ? {} : { output: 'standalone' }),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.google.com' },
