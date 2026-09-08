@@ -9,6 +9,13 @@ interface SessionTokenPayload {
   iat: number
 }
 
+// Minimal shape the role helpers need. Both the decoded session JWT and the
+// better-auth `session_data` cookie cache satisfy it (the cookie cache carries
+// the enriched `user.role`, which is what middleware uses for role checks).
+interface RoleCheckPayload {
+  user?: { role?: UserRole } | Record<string, any>
+}
+
 function base64UrlDecode(str: string): string {
   const base64 = str.replace(/-/g, '+').replace(/_/g, '/')
   const padding = '==='.slice(0, (4 - (base64.length % 4)) % 4)
@@ -71,21 +78,21 @@ export async function getSessionFromCookie(cookie: string): Promise<SessionToken
   return verifyJwt(cookie)
 }
 
-export function hasSuperAdminRole(payload: SessionTokenPayload): boolean {
+export function hasSuperAdminRole(payload: RoleCheckPayload): boolean {
   return payload.user?.role === UserRole.SUPER_ADMIN
 }
 
-export function hasAdminRole(payload: SessionTokenPayload): boolean {
+export function hasAdminRole(payload: RoleCheckPayload): boolean {
   return ADMIN_ROLES.includes(payload.user?.role as UserRole)
 }
 
-export function hasCounselorRole(payload: SessionTokenPayload): boolean {
+export function hasCounselorRole(payload: RoleCheckPayload): boolean {
   const role = payload.user?.role as UserRole
   return role === UserRole.COUNSELOR || ADMIN_ROLES.includes(role)
 }
 
-export function isRoleAllowed(payload: SessionTokenPayload, allowedRoles: UserRole[]): boolean {
+export function isRoleAllowed(payload: RoleCheckPayload, allowedRoles: UserRole[]): boolean {
   return allowedRoles.includes(payload.user?.role as UserRole)
 }
 
-export type { SessionTokenPayload }
+export type { RoleCheckPayload, SessionTokenPayload }

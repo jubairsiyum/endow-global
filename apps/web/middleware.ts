@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCookieCache, getSessionCookie } from 'better-auth/cookies'
 import {
-  getSessionFromCookie,
   hasSuperAdminRole,
   hasAdminRole,
   hasCounselorRole,
+  type RoleCheckPayload,
 } from '@/lib/admin-auth'
-
-function getSessionCookie(request: NextRequest) {
-  return request.cookies.get('better-auth.session_token')?.value
-}
 
 const PROTECTED_PATHS: { paths: string[]; message: string }[] = [
   {
@@ -56,9 +53,16 @@ export async function middleware(req: NextRequest) {
   }
   const sessionCookie = getSessionCookie(req)
 
-  let payload = null
+  let payload: RoleCheckPayload | null = null
   if (sessionCookie && jwtVerificationAvailable) {
-    payload = await getSessionFromCookie(sessionCookie)
+    try {
+      // Decode the better-auth `session_data` cookie cache (which carries the
+      // enriched `user.role`). Unlike the raw `session_token` cookie this is a
+      // signed payload we can read on the edge runtime without a DB round-trip.
+      payload = await getCookieCache(req, { secret: jwtSecret })
+    } catch {
+      payload = null
+    }
   }
 
   const isProtectedPath = isProtected(pathname)
