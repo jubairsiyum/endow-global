@@ -9,12 +9,12 @@ import {
   FileText,
   Calendar,
   MessageSquare,
-  BarChart3,
   Settings,
   ChevronLeft,
-  Star,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useSession } from '@/lib/auth-client'
+import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
 
 const navItems = [
   { name: 'Dashboard', href: '/counselor', icon: LayoutDashboard },
@@ -22,8 +22,6 @@ const navItems = [
   { name: 'Applications', href: '/counselor/applications', icon: FileText },
   { name: 'Sessions', href: '/counselor/sessions', icon: Calendar },
   { name: 'Messages', href: '/counselor/messages', icon: MessageSquare },
-  { name: 'Reviews', href: '/counselor/reviews', icon: Star },
-  { name: 'Analytics', href: '/counselor/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/counselor/settings', icon: Settings },
 ]
 
@@ -34,6 +32,19 @@ interface Props {
 
 export function CounselorSidebar({ collapsed, onToggle }: Props) {
   const pathname = usePathname()
+  const { data: session } = useSession()
+  const { image: avatarImage } = useUserAvatar()
+
+  const user = {
+    name: session?.user?.name || 'Counselor',
+    image: avatarImage ?? (session?.user as any)?.image ?? null,
+  }
+  const initials = (user.name || 'CN')
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
 
   return (
     <aside
@@ -128,24 +139,25 @@ export function CounselorSidebar({ collapsed, onToggle }: Props) {
       <div className="shrink-0 border-t p-2" style={{ borderColor: '#e5e7eb' }}>
         <div
           className={cn(
-            'flex items-center rounded-lg px-2 py-2',
+            'flex items-center rounded-lg px-2 py-2 transition-colors hover:bg-[#F1F1EF]',
             collapsed ? 'justify-center' : 'gap-2.5'
           )}
-          style={{ background: 'rgba(232, 163, 61, 0.05)' }}
+          style={{ background: '#F8F8F6' }}
         >
           <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[11px] font-bold"
+            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] font-bold"
             style={{
-              background: 'linear-gradient(135deg, #E8A33D, #c48b2e)',
-              color: '#f8fafc',
+              background: '#F7F7F5',
+              color: '#6b7280',
             }}
+            suppressHydrationWarning
           >
-            CN
+            {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : initials}
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1">
               <p className="truncate text-[12px] font-semibold" style={{ color: '#111827' }}>
-                Counselor
+                {user?.name || 'Counselor'}
               </p>
               <p className="truncate text-[10px]" style={{ color: '#6b7280' }}>
                 24 students
@@ -157,3 +169,4 @@ export function CounselorSidebar({ collapsed, onToggle }: Props) {
     </aside>
   )
 }
+

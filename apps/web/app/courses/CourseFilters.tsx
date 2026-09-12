@@ -367,7 +367,7 @@ export function FilterPanel({
   const startYears = options.startYears ?? []
 
   return (
-    <div>
+    <div className="space-y-0">
       <Section icon={<Globe size={15} />} title="Destination" count={filters.countries.length}>
         <SearchableMultiSelect
           label="Destination"
@@ -375,26 +375,6 @@ export function FilterPanel({
           selected={filters.countries}
           onChange={(countries) => set({ countries })}
           placeholder="Search country..."
-        />
-      </Section>
-
-      <Section icon={<MapPin size={15} />} title="City" count={filters.cities.length}>
-        <SearchableMultiSelect
-          label="City"
-          options={cityOptions}
-          selected={filters.cities}
-          onChange={(cities) => set({ cities })}
-          limit={5}
-        />
-      </Section>
-
-      <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
-        <SearchableMultiSelect
-          label="Institution"
-          options={institutionOptions}
-          selected={filters.institutionIds}
-          onChange={(institutionIds) => set({ institutionIds })}
-          limit={5}
         />
       </Section>
 
@@ -416,6 +396,16 @@ export function FilterPanel({
         {levelOptions.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No levels available</p>}
       </Section>
 
+      <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
+        <SearchableMultiSelect
+          label="Institution"
+          options={institutionOptions}
+          selected={filters.institutionIds}
+          onChange={(institutionIds) => set({ institutionIds })}
+          limit={5}
+        />
+      </Section>
+
       <Section icon={<BookOpen size={15} />} title="Subject" count={filters.subjects.length}>
         <SearchableMultiSelect
           label="Subject"
@@ -424,6 +414,48 @@ export function FilterPanel({
           onChange={(subjects) => set({ subjects })}
           limit={5}
         />
+      </Section>
+
+      <Section icon={<MapPin size={15} />} title="City" count={filters.cities.length}>
+        <SearchableMultiSelect
+          label="City"
+          options={cityOptions}
+          selected={filters.cities}
+          onChange={(cities) => set({ cities })}
+          limit={5}
+        />
+      </Section>
+
+      <Section icon={<DollarSign size={15} />} title="Tuition Fee" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min ($)</label>
+            <input
+              type="number"
+              min={0}
+              max={feeMax}
+              value={filters.feeMin ?? ''}
+              onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
+              placeholder="0"
+              className="w-full rounded-lg border border-gray-200 bg-white py-2 px-2.5 text-sm text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max ($)</label>
+            <input
+              type="number"
+              min={0}
+              max={feeMax}
+              value={filters.feeMax ?? ''}
+              onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
+              placeholder={feeMax.toLocaleString()}
+              className="w-full rounded-lg border border-gray-200 bg-white py-2 px-2.5 text-sm text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
+            />
+          </div>
+        </div>
+        {feeMax > 0 && (
+          <p className="mt-2 text-xs text-gray-400">Up to {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeMax).replace(/\.00$/, '')} max</p>
+        )}
       </Section>
 
       <Section icon={<Clock size={15} />} title="Duration" count={filters.durations.length}>
@@ -458,10 +490,10 @@ export function FilterPanel({
                         : [...filters.startYears, year],
                     })
                   }
-                  className={`rounded-lg border px-3 py-1 text-[13px] font-semibold transition-colors ${
+                  className={`rounded-lg border px-3 py-1.5 text-[13px] font-semibold transition-colors ${
                     active
-                      ? 'border-[#C41E3A] bg-[#C41E3A]/5 text-[#C41E3A]'
-                      : 'border-gray-200 text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
+                      ? 'border-[#C41E3A] bg-[#C41E3A] text-white shadow-sm'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
                   }`}
                 >
                   {year}
@@ -474,36 +506,8 @@ export function FilterPanel({
         )}
       </Section>
 
-      <Section icon={<DollarSign size={15} />} title="Fee Range" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min ($)</label>
-            <input
-              type="number"
-              min={0}
-              max={feeMax}
-              value={filters.feeMin ?? ''}
-              onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
-              placeholder="0"
-              className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max ($)</label>
-            <input
-              type="number"
-              min={0}
-              max={feeMax}
-              value={filters.feeMax ?? ''}
-              onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
-              placeholder={feeMax.toLocaleString()}
-              className="w-full rounded-lg border border-gray-200 py-1.5 px-2 text-sm text-gray-700 outline-none focus:border-[#C41E3A]"
-            />
-          </div>
-        </div>
-      </Section>
-
-      <div className="border-b border-gray-100">
+      <div className="space-y-0 border-t border-gray-100 pt-1">
+        <p className="px-1 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400">Additional Options</p>
         <ToggleRow
           icon={<Zap size={15} />}
           label="Express Offer"
@@ -511,9 +515,6 @@ export function FilterPanel({
           checked={filters.expressOffer}
           onChange={(expressOffer) => set({ expressOffer })}
         />
-      </div>
-
-      <div className="border-b border-gray-100">
         <ToggleRow
           icon={<FileCheck2 size={15} />}
           label="English Test Waiver"

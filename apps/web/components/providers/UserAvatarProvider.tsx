@@ -35,8 +35,14 @@ export function UserAvatarProvider({ children }: { children: React.ReactNode }) 
   })
 
   const value = useMemo<UserAvatarContextValue>(
-    () => ({ image: profile?.image ?? null, isPending: sessionPending || profilePending }),
-    [profile?.image, sessionPending, profilePending]
+    () => ({
+      // Prefer the authenticated session image (refreshed by Better Auth on
+      // profile updates), falling back to the DB-backed profile image so the
+      // avatar is always available even if one source is momentarily stale.
+      image: (session?.user as { image?: string | null } | undefined)?.image ?? profile?.image ?? null,
+      isPending: sessionPending || profilePending,
+    }),
+    [session?.user, profile?.image, sessionPending, profilePending]
   )
 
   return <UserAvatarContext.Provider value={value}>{children}</UserAvatarContext.Provider>

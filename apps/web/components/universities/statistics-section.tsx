@@ -65,13 +65,13 @@ export default function StatisticsSection() {
       icon: <Users className="h-6 w-6" />,
     },
     {
-      value: dbStats?.universities ?? 13,
+      value: dbStats?.universities ?? 0,
       suffix: '+',
       label: 'Partner Universities',
       icon: <Award className="h-6 w-6" />,
     },
     {
-      value: dbStats?.countries ?? 2,
+      value: dbStats?.countries ?? 0,
       suffix: '',
       label: 'Study Destinations',
       icon: <Globe className="h-6 w-6" />,

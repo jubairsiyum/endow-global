@@ -1,11 +1,19 @@
-import '../../env-loader.cjs'
 import path from 'path'
 
 const isDev = process.env.NODE_ENV === 'development'
-const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? (isDev ? 'http://localhost:3000' : '')
+const appUrl =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '') ||
+  (isDev ? 'http://localhost:3000' : '')
+
+const isVercel = !!process.env.VERCEL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // `standalone` is for Docker/self-hosted. Vercel manages its own output, so disable there.
+  // Windows cannot create the symlinks Next.js builds inside `.next/standalone` without
+  // Developer Mode / admin rights (EPERM), so also skip the standalone output there.
+  ...(isVercel || process.platform === 'win32' ? {} : { output: 'standalone' }),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.google.com' },
@@ -35,6 +43,18 @@ const nextConfig = {
       '@better-auth/kysely-adapter': path.resolve(process.cwd(), 'lib/kysely-mock.js'),
     }
     return config
+  },
+  async redirects() {
+    return [
+      // Legacy Super Admin path — consolidated to /admin (RBAC decides extras)
+      { source: '/sa', destination: '/admin', permanent: false },
+      { source: '/sa/:path*', destination: '/admin/:path*', permanent: false },
+      // Removed counselor modules — redirect to counselor dashboard
+      { source: '/counselor/reviews', destination: '/counselor', permanent: false },
+      { source: '/counselor/reviews/:path*', destination: '/counselor', permanent: false },
+      { source: '/counselor/analytics', destination: '/counselor', permanent: false },
+      { source: '/counselor/analytics/:path*', destination: '/counselor', permanent: false },
+    ]
   },
   headers: async () => [
     // ─── Security headers for all routes ────────────────────────────────────

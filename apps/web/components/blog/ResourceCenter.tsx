@@ -84,10 +84,15 @@ export function ResourceCenter({ resources }: { resources: any[] }) {
                 </div>
 
                 <div className="relative z-10 mt-4 border-t border-gray-100 pt-3">
-                  <a
-                    href={resource.fileUrl || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  {(() => {
+                    const safeFileUrl = resource.fileUrl?.trim().startsWith('http') || resource.fileUrl?.trim().startsWith('/') 
+                      ? resource.fileUrl.trim() 
+                      : '#';
+                    return (
+                      <a
+                        href={safeFileUrl}
+                        target={safeFileUrl !== '#' ? "_blank" : undefined}
+                        rel="noopener noreferrer"
                     className="flex w-full items-center justify-between text-sm font-semibold text-[#111827] transition-colors duration-300 group-hover:text-[#C41E3A]"
                   >
                     Download Now
@@ -95,6 +100,8 @@ export function ResourceCenter({ resources }: { resources: any[] }) {
                       <ArrowRight className="h-4 w-4 text-[#C41E3A] transition-all duration-300 group-hover:text-white" />
                     </div>
                   </a>
+                  )
+                })()}
                 </div>
               </motion.div>
             )

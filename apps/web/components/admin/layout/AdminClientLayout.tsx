@@ -8,9 +8,11 @@ import { UserRole } from '@endow/types'
 export function AdminClientLayout({
   children,
   userRole,
+  permissions,
 }: {
   children: React.ReactNode
   userRole: UserRole
+  permissions?: string[]
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -20,16 +22,23 @@ export function AdminClientLayout({
         <div
           className="fixed inset-0 z-40 bg-black/60 lg:hidden"
           onClick={() => setSidebarOpen(false)}
+          aria-hidden
         />
       )}
 
-      <div
-        className={`fixed left-0 top-0 z-50 h-screen transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:relative lg:translate-x-0`}
-      >
-        <Sidebar userRole={userRole} />
+      {/* Desktop sidebar — always visible */}
+      <div className="hidden lg:flex lg:shrink-0">
+        <Sidebar userRole={userRole} permissions={permissions} />
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Mobile drawer */}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen shrink-0 transition-transform duration-300 lg:hidden ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <Sidebar userRole={userRole} permissions={permissions} />
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="shrink-0">
           <Topbar onMenuClick={() => setSidebarOpen(true)} />
         </div>

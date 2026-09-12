@@ -5,6 +5,7 @@ import superjson from 'superjson'
 import { ZodError } from 'zod'
 import { UserRole } from '@endow/types'
 import { zodErrorToMessage } from './utils'
+import { hasPermission, parsePermissionsJSON, type Permission } from './rbac'
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
   const session = await auth.api.getSession({
@@ -65,3 +66,35 @@ export const superAdminProcedure = protectedProcedure.use(({ ctx, next }) => {
   }
   return next({ ctx })
 })
+
+// ─── RBAC helpers ────────────────────────────────────────────────
+export function requirePermission(permission: Permission) {
+  return protectedProcedure.use(({ ctx, next }) => {
+    const role = (ctx.session as any).user?.role as UserRole
+    const perms = parsePermissionsJSON((ctx.session as any).user?.permissions)
+    if (role === UserRole.SUPER_ADMIN) return next({ ctx })
+    // ADMIN and also COUNSELOR can have module permissions for staff delegation
+    if (!hasPermission(perms, permission, role)) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: `Missing permission: ${permission}` })
+    }
+    return next({ ctx })
+  })
+}
+
+// Shorthand: admin must also have specific module permission (super admin bypasses)
+export function adminWithPermission(permission: Permission) {
+  return protectedProcedure.use(({ ctx, next }) => {
+    const role = (ctx.session as any).user?.role as UserRole
+    if (role !== UserRole.ADMIN && role !== UserRole.SUPER_ADMIN) {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
+    const perms = parsePermissionsJSON((ctx.session as any).user?.permissions)
+    if (role === UserRole.SUPER_ADMIN) return next({ ctx })
+    // Dashboard is always allowed for any authenticated ADMIN — prevents blank sidebar / stuck loading for legacy accounts with []
+    if (permission === 'dashboard:view' && role === UserRole.ADMIN) return next({ ctx })
+    if (!hasPermission(perms, permission, role)) {
+      throw new TRPCError({ code: 'FORBIDDEN', message: `Missing permission: ${permission}` })
+    }
+    return next({ ctx })
+  })
+}

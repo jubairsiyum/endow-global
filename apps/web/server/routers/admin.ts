@@ -1,8 +1,10 @@
 import { z } from 'zod'
-import { createTRPCRouter, adminProcedure, superAdminProcedure } from '@/lib/trpc'
+import { createTRPCRouter, adminProcedure, superAdminProcedure, adminWithPermission } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
-import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull } from 'drizzle-orm'
+import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
+import { alias } from 'drizzle-orm/mysql-core'
 import { applicantLevelFromEducation } from '@/lib/documents'
+import { hash as bcryptHash } from 'bcryptjs'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -12,96 +14,110 @@ const count = _count as any
 const sql = _sql as any
 const asc = _asc as any
 const isNull = _isNull as any
+const inArray = _inArray as any
+const ne = _ne as any
+const gte = _gte as any
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
-    getMetrics: adminProcedure.query(async () => {
-      const studentCountRes = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'STUDENT'))
-      const counselorCountRes = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'COUNSELOR'))
+    getMetrics: adminWithPermission('dashboard:view').query(async () => {
+      const studentUser = alias(schema.users as any, 'student_user')
+      const counselorUser = alias(schema.users as any, 'counselor_user')
 
-      const appsByStatus = await db
-        .select({
-          status: schema.applications.status,
-          count: count() as any,
-        })
-        .from(schema.applications)
-        .groupBy(schema.applications.status)
-
-      const recentActivity = await db.query.applications.findMany({
-        orderBy: [desc(schema.applications.updatedAt)],
-        limit: 10,
-        with: {
-          student: {
-            with: { user: true },
-          },
-          course: {
-            with: { university: true },
-          },
-        },
-      })
-
-      // Top countries by student count
-      const topCountries = await db
-        .select({
+      // All metrics are independent — run them in parallel to cut total
+      // latency. Relational `with` queries are replaced with explicit joins
+      // because MariaDB rejects the lateral SQL the relation builder emits.
+      const [studentCountRes, counselorCountRes, appsByStatus, recentActivity, topCountries, upcomingConsultations, applicationTrend, totalStudentsWithNationality] = await Promise.all([
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
+        db.select({ status: schema.applications.status, count: count() as any }).from(schema.applications).groupBy(schema.applications.status),
+        db
+          .select({
+            id: schema.applications.id,
+            status: schema.applications.status,
+            updatedAt: schema.applications.updatedAt,
+            studentName: studentUser.name,
+            courseName: schema.courses.name,
+            universityName: schema.universities.name,
+          })
+          .from(schema.applications)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
+          .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+          .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+          .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+          .orderBy(desc(schema.applications.updatedAt))
+          .limit(10),
+        db.select({
           country: schema.studentProfiles.nationality,
           count: count() as any,
         })
-        .from(schema.studentProfiles)
-        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
-        .groupBy(schema.studentProfiles.nationality)
-        .orderBy(desc(count() as any))
-        .limit(5)
-
-      // Upcoming consultations
-      const upcomingConsultations = await db.query.bookingSessions.findMany({
-        where: and(
-          eq(schema.bookingSessions.status, 'SCHEDULED'),
-          sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
-        ),
-        orderBy: [schema.bookingSessions.scheduledAt],
-        limit: 5,
-        with: {
-          student: { with: { user: true } },
-          counselor: { with: { user: true } },
-        },
-      })
-
-      // Application trend (last 7 days)
-      const applicationTrend = await db
-        .select({
+          .from(schema.studentProfiles)
+          .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
+          .groupBy(schema.studentProfiles.nationality)
+          .orderBy(desc(count() as any))
+          .limit(5),
+        db
+          .select({
+            id: schema.bookingSessions.id,
+            scheduledAt: schema.bookingSessions.scheduledAt,
+            status: schema.bookingSessions.status,
+            studentName: studentUser.name,
+            counselorName: counselorUser.name,
+          })
+          .from(schema.bookingSessions)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.bookingSessions.studentId))
+          .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(and(
+            eq(schema.bookingSessions.status, 'SCHEDULED'),
+            sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
+          ))
+          .orderBy(schema.bookingSessions.scheduledAt)
+          .limit(5),
+        db.select({
           date: (sql`DATE(${schema.applications.createdAt})` as any).as('date'),
           count: count() as any,
         })
-        .from(schema.applications)
-        .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)` as any)
-        .groupBy(sql`DATE(${schema.applications.createdAt})` as any)
-        .orderBy(sql`DATE(${schema.applications.createdAt})` as any)
+          .from(schema.applications)
+          .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)` as any)
+          .groupBy(sql`DATE(${schema.applications.createdAt})` as any)
+          .orderBy(sql`DATE(${schema.applications.createdAt})` as any),
+        db.select({ value: count() as any })
+          .from(schema.studentProfiles)
+          .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any),
+      ])
 
-      // Total students count for top countries
-      const totalStudentsWithNationality = await db
-        .select({ value: count() as any })
-        .from(schema.studentProfiles)
-        .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
+      const activity = (recentActivity as any[]).map((a) => ({
+        id: a.id,
+        status: a.status,
+        updatedAt: a.updatedAt,
+        student: { user: { name: a.studentName } },
+        course: a.courseName
+          ? { name: a.courseName, university: a.universityName ? { name: a.universityName } : null }
+          : null,
+      }))
+      const consultations = (upcomingConsultations as any[]).map((s) => ({
+        id: s.id,
+        scheduledAt: s.scheduledAt,
+        status: s.status,
+        student: { user: { name: s.studentName } },
+        counselor: { user: { name: s.counselorName } },
+      }))
 
       return {
         students: studentCountRes[0]?.value || 0,
         counselors: counselorCountRes[0]?.value || 0,
         applicationsByStatus: appsByStatus,
-        recentActivity,
+        recentActivity: activity,
         topCountries,
-        upcomingConsultations,
+        upcomingConsultations: consultations,
         applicationTrend,
         totalStudentsWithNationality: totalStudentsWithNationality[0]?.value || 0,
       }
     }),
 
-    getNetworkMap: adminProcedure.query(async () => {
+    getNetworkMap: adminWithPermission('dashboard:view').query(async () => {
       const branchRows = await db.select().from(schema.branches)
       const uniRows = await db.query.universities.findMany({
         with: { courses: { columns: { id: true } } },
@@ -187,7 +203,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   students: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('students:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -206,49 +222,157 @@ export const adminRouter = createTRPCRouter({
           conditions.push(sql`${schema.users.id} < ${cursor}` as any)
         }
 
-        const items = await db.query.users.findMany({
-          where: and(...conditions),
-          limit: limit + 1,
-          orderBy: [desc(schema.users.id)],
-          with: {
-            studentProfile: {
-              with: { assignedCounselor: { with: { user: true } } },
-            },
-          },
-        })
+        // Explicit joins (no relational `with` — MariaDB rejects the lateral
+        // SQL the relation query builder generates, which returned no data).
+        const counselorUser = alias(schema.users as any, 'counselor_user')
+        const rows = await db
+          .select({
+            id: schema.users.id,
+            name: schema.users.name,
+            email: schema.users.email,
+            emailVerified: schema.users.emailVerified,
+            createdAt: schema.users.createdAt,
+            nationality: schema.studentProfiles.nationality,
+            counselorId: schema.counselorProfiles.id,
+            counselorName: counselorUser.name,
+          })
+          .from(schema.users)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
+          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(and(...conditions))
+          .orderBy(desc(schema.users.id))
+          .limit(limit + 1)
 
         let nextCursor: typeof cursor | undefined = undefined
+        let items: any[] = rows
         if (items.length > limit) {
           const nextItem = items.pop()
           nextCursor = nextItem!.id
         }
 
-        return { items, nextCursor }
+        const shaped = items.map((r: any) => ({
+          id: r.id,
+          name: r.name,
+          email: r.email,
+          emailVerified: r.emailVerified,
+          createdAt: r.createdAt,
+          studentProfile: {
+            nationality: r.nationality,
+            assignedCounselor: r.counselorId
+              ? { id: r.counselorId, user: { name: r.counselorName } }
+              : null,
+          },
+        }))
+
+        return { items: shaped, nextCursor }
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const student = await db.query.users.findFirst({
-        where: and(eq(schema.users.id, input.id), eq(schema.users.role, 'STUDENT')),
-        with: {
-          studentProfile: {
-            with: {
-              assignedCounselor: true,
-              applications: {
-                with: {
-                  course: { with: { university: true } },
-                },
-              },
-              bookingSessions: {
-                with: { counselor: true },
-              },
-            },
-          },
+    getById: adminWithPermission('students:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
+      const counselorUser = alias(schema.users as any, 'counselor_user')
+      const [row] = await db
+        .select({
+          id: schema.users.id,
+          name: schema.users.name,
+          email: schema.users.email,
+          emailVerified: schema.users.emailVerified,
+          image: schema.users.image,
+          createdAt: schema.users.createdAt,
+          studentProfileId: schema.studentProfiles.id,
+          nationality: schema.studentProfiles.nationality,
+          countryOfResidence: schema.studentProfiles.countryOfResidence,
+          phone: schema.studentProfiles.phone,
+          highestEducation: schema.studentProfiles.highestEducation,
+          gpa: schema.studentProfiles.gpa,
+          ieltsScore: schema.studentProfiles.ieltsScore,
+          toeflScore: schema.studentProfiles.toeflScore,
+          completionPercent: schema.studentProfiles.completionPercent,
+          targetCountries: schema.studentProfiles.targetCountries,
+          targetSubjects: schema.studentProfiles.targetSubjects,
+          preferredIntakeYear: schema.studentProfiles.preferredIntakeYear,
+          preferredIntakeMonth: schema.studentProfiles.preferredIntakeMonth,
+          assignedCounselorId: schema.studentProfiles.assignedCounselorId,
+          counselorName: counselorUser.name,
+        })
+        .from(schema.users)
+        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
+        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
+        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+        .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'STUDENT')))
+        .limit(1)
+
+      if (!row) return null
+      const studentProfileId = row.studentProfileId
+
+      // Applications for this student (explicit joins — no relational `with`).
+      const applications = await db
+        .select({
+          id: schema.applications.id,
+          status: schema.applications.status,
+          currentStep: schema.applications.currentStep,
+          totalSteps: schema.applications.totalSteps,
+          submittedAt: schema.applications.submittedAt,
+          updatedAt: schema.applications.updatedAt,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          universityName: schema.universities.name,
+        })
+        .from(schema.applications)
+        .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+        .where(eq(schema.applications.studentId, studentProfileId))
+        .orderBy(desc(schema.applications.updatedAt))
+
+      const sessions = await db
+        .select({
+          id: schema.bookingSessions.id,
+          scheduledAt: schema.bookingSessions.scheduledAt,
+          duration: schema.bookingSessions.duration,
+          status: schema.bookingSessions.status,
+          counselorName: counselorUser.name,
+        })
+        .from(schema.bookingSessions)
+        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+        .where(eq(schema.bookingSessions.studentId, studentProfileId))
+        .orderBy(desc(schema.bookingSessions.scheduledAt))
+
+      return {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        emailVerified: row.emailVerified,
+        image: row.image,
+        createdAt: row.createdAt,
+        studentProfile: {
+          id: studentProfileId,
+          nationality: row.nationality,
+          countryOfResidence: row.countryOfResidence,
+          phone: row.phone,
+          highestEducation: row.highestEducation,
+          gpa: row.gpa,
+          ieltsScore: row.ieltsScore,
+          toeflScore: row.toeflScore,
+          completionPercent: row.completionPercent,
+          targetCountries: row.targetCountries,
+          targetSubjects: row.targetSubjects,
+          preferredIntakeYear: row.preferredIntakeYear,
+          preferredIntakeMonth: row.preferredIntakeMonth,
+          assignedCounselor: row.assignedCounselorId
+            ? { id: row.assignedCounselorId, user: { name: row.counselorName || 'Counselor' } }
+            : null,
         },
-      })
-      return student
+        applications: applications.map((a) => ({
+          ...a,
+          course: a.courseName
+            ? { name: a.courseName, slug: a.courseSlug, university: { name: a.universityName } }
+            : null,
+        })),
+        bookingSessions: sessions,
+      }
     }),
 
-    updateProfile: adminProcedure
+    updateProfile: adminWithPermission('students:manage')
       .input(
         z.object({
           id: z.string(),
@@ -269,7 +393,7 @@ export const adminRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    assignCounselor: adminProcedure
+    assignCounselor: adminWithPermission('students:manage')
       .input(
         z.object({
           studentId: z.string(),
@@ -286,7 +410,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   applications: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('applications:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -374,18 +498,69 @@ export const adminRouter = createTRPCRouter({
         return { items: filteredItems.slice(0, limit), nextCursor }
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
-      return db.query.applications.findFirst({
-        where: eq(schema.applications.id, input.id),
-        with: {
-          student: { with: { user: true } },
-          course: { with: { university: true } },
-          counselor: { with: { user: true } },
-        },
-      })
+    getById: adminWithPermission('applications:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
+      const studentUser = alias(schema.users as any, 'student_user')
+      const counselorUser = alias(schema.users as any, 'counselor_user')
+
+      const row = await db
+        .select({
+          id: schema.applications.id,
+          studentId: schema.applications.studentId,
+          courseId: schema.applications.courseId,
+          counselorId: schema.applications.counselorId,
+          status: schema.applications.status,
+          currentStep: schema.applications.currentStep,
+          totalSteps: schema.applications.totalSteps,
+          submittedAt: schema.applications.submittedAt,
+          counselorNotes: schema.applications.counselorNotes,
+          documentsUrls: schema.applications.documentsUrls,
+          personalStatement: schema.applications.personalStatement,
+          createdAt: schema.applications.createdAt,
+          updatedAt: schema.applications.updatedAt,
+          studentName: studentUser.name,
+          studentEmail: studentUser.email,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          courseUniversityId: schema.courses.universityId,
+          universityName: schema.universities.name,
+          counselorName: counselorUser.name,
+        })
+        .from(schema.applications)
+        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
+        .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+        .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.applications.counselorId))
+        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+        .where(eq(schema.applications.id, input.id))
+        .limit(1)
+        .then((r) => r[0] || null)
+
+      if (!row) return null
+
+      return {
+        id: row.id,
+        studentId: row.studentId,
+        courseId: row.courseId,
+        counselorId: row.counselorId,
+        status: row.status,
+        currentStep: row.currentStep,
+        totalSteps: row.totalSteps,
+        submittedAt: row.submittedAt,
+        counselorNotes: row.counselorNotes,
+        documentsUrls: row.documentsUrls,
+        personalStatement: row.personalStatement,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        student: row.studentName ? { user: { name: row.studentName, email: row.studentEmail } } : null,
+        course: row.courseName
+          ? { name: row.courseName, slug: row.courseSlug, university: row.universityName ? { name: row.universityName } : null }
+          : null,
+        counselor: row.counselorId ? { user: { name: row.counselorName || 'Counselor' } } : null,
+      }
     }),
 
-    updateStatus: adminProcedure
+    updateStatus: adminWithPermission('applications:manage')
       .input(
         z.object({
           id: z.string(),
@@ -410,7 +585,7 @@ export const adminRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    addNotes: adminProcedure
+    addNotes: adminWithPermission('applications:manage')
       .input(
         z.object({
           id: z.string(),
@@ -427,7 +602,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   counselors: createTRPCRouter({
-    list: adminProcedure.query(async () => {
+    list: adminWithPermission('counselors:view').query(async () => {
       const users = await db.select().from(schema.users)
         .where(eq(schema.users.role, 'COUNSELOR' as any))
 
@@ -440,7 +615,7 @@ export const adminRouter = createTRPCRouter({
       const profileMap = new Map(profiles.map((p) => [p.userId, p]))
       return users.map((u) => ({ ...u, counselorProfile: profileMap.get(u.id) || null }))
     }),
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('counselors:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       const user = await db.select().from(schema.users)
         .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'COUNSELOR' as any)))
         .limit(1).then((r) => r[0] || null)
@@ -450,7 +625,7 @@ export const adminRouter = createTRPCRouter({
         .limit(1).then((r) => r[0] || null)
       return { ...user, counselorProfile: profile }
     }),
-    create: adminProcedure
+    create: adminWithPermission('counselors:manage')
       .input(
         z.object({
           name: z.string().min(1),
@@ -494,7 +669,7 @@ export const adminRouter = createTRPCRouter({
           throw e
         }
       }),
-    update: adminProcedure
+    update: adminWithPermission('counselors:manage')
       .input(
         z.object({
           id: z.string(),
@@ -537,7 +712,7 @@ export const adminRouter = createTRPCRouter({
         }
         return { success: true }
       }),
-    delete: adminProcedure
+    delete: adminWithPermission('counselors:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         const profiles = await db.select().from(schema.counselorProfiles)
@@ -552,7 +727,7 @@ export const adminRouter = createTRPCRouter({
   }),
 
   notifications: createTRPCRouter({
-    sendSystem: adminProcedure
+    sendSystem: adminWithPermission('notifications:manage')
       .input(
         z.object({
           userId: z.string().optional(), // If not provided, it's a broadcast
@@ -585,7 +760,7 @@ export const adminRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    list: adminProcedure
+    list: adminWithPermission('notifications:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -612,7 +787,7 @@ export const adminRouter = createTRPCRouter({
   // ─── Universities CRUD ────────────────────────────────────
 
   universities: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('universities:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -638,14 +813,14 @@ export const adminRouter = createTRPCRouter({
           .orderBy(desc(schema.universities.createdAt))
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('universities:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
 return db.select().from(schema.universities)
           .where(eq(schema.universities.id, input.id))
           .limit(1)
           .then((rows) => rows[0] || null)
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('universities:manage')
       .input(
         z.object({
           name: z.string().min(1),
@@ -671,7 +846,7 @@ return db.select().from(schema.universities)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('universities:manage')
       .input(
         z.object({
           id: z.string(),
@@ -699,7 +874,7 @@ return db.select().from(schema.universities)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('universities:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.universities).where(eq(schema.universities.id, input.id))
@@ -710,7 +885,7 @@ return db.select().from(schema.universities)
   // ─── Courses CRUD ──────────────────────────────────────────
 
   courses: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -755,7 +930,7 @@ return db.select().from(schema.universities)
         }))
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('courses:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
 const course = await db.select().from(schema.courses)
           .where(eq(schema.courses.id, input.id))
           .limit(1)
@@ -768,7 +943,7 @@ const course = await db.select().from(schema.courses)
         return { ...course, university: uni }
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(
         z.object({
           universityId: z.string().min(1),
@@ -807,7 +982,7 @@ const course = await db.select().from(schema.courses)
         return { success: true, id }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('courses:manage')
       .input(
         z.object({
           id: z.string(),
@@ -847,14 +1022,14 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('courses:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.courses).where(eq(schema.courses.id, input.id))
         return { success: true }
       }),
 
-    getSubjects: adminProcedure.query(async () => {
+    getSubjects: adminWithPermission('courses:view').query(async () => {
       const rows = await db
         .selectDistinct({ subject: schema.courses.subject })
         .from(schema.courses)
@@ -865,7 +1040,7 @@ const course = await db.select().from(schema.courses)
   // ─── Requirements Pool CRUD ──────────────────────────────────
 
   requirements: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(z.object({ type: z.string().optional() }))
       .query(async ({ input }) => {
         const conds = input.type ? [eq(schema.requirements.type, input.type as any)] : []
@@ -874,7 +1049,7 @@ const course = await db.select().from(schema.courses)
           .orderBy(schema.requirements.name)
       }),
 
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(z.object({
         type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']),
         name: z.string().min(1),
@@ -887,7 +1062,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('courses:manage')
       .input(z.object({
         id: z.string(),
         type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']).optional(),
@@ -902,7 +1077,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('courses:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.requirements).where(eq(schema.requirements.id, input.id))
@@ -913,14 +1088,14 @@ const course = await db.select().from(schema.courses)
   // ─── Course Requirements (Junction) ──────────────────────────
 
   courseRequirements: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(z.object({ courseId: z.string() }))
       .query(async ({ input }) => {
         return db.select().from(schema.platformCourseRequirements)
           .where(eq(schema.platformCourseRequirements.courseId, input.courseId))
       }),
 
-    set: adminProcedure
+    set: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         requirementIds: z.array(z.string()),
@@ -939,7 +1114,7 @@ const course = await db.select().from(schema.courses)
   // ─── Related Courses ─────────────────────────────────────────
 
   relatedCourses: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('courses:view')
       .input(z.object({ courseId: z.string() }))
       .query(async ({ input }) => {
         return db.select().from(schema.relatedCourses)
@@ -947,7 +1122,7 @@ const course = await db.select().from(schema.courses)
           .orderBy(schema.relatedCourses.sortOrder)
       }),
 
-    set: adminProcedure
+    set: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         relatedCourseIds: z.array(z.string()),
@@ -970,7 +1145,7 @@ const course = await db.select().from(schema.courses)
   // ─── Course Modules ──────────────────────────────────────────
 
   courseModules: createTRPCRouter({
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         term: z.string(),
@@ -982,7 +1157,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    deleteByCourse: adminProcedure
+    deleteByCourse: adminWithPermission('courses:manage')
       .input(z.object({ courseId: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.courseModules)
@@ -994,7 +1169,7 @@ const course = await db.select().from(schema.courses)
   // ─── Course Intakes ──────────────────────────────────────────
 
   courseIntakes: createTRPCRouter({
-    create: adminProcedure
+    create: adminWithPermission('courses:manage')
       .input(z.object({
         courseId: z.string(),
         intakeDate: z.date(),
@@ -1005,7 +1180,7 @@ const course = await db.select().from(schema.courses)
         return { success: true }
       }),
 
-    deleteByCourse: adminProcedure
+    deleteByCourse: adminWithPermission('courses:manage')
       .input(z.object({ courseId: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.platformCourseIntakes)
@@ -1017,7 +1192,7 @@ const course = await db.select().from(schema.courses)
   // ─── Countries CRUD (Catalog) ──────────────────────────────
 
   countries: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('countries:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -1036,14 +1211,14 @@ const course = await db.select().from(schema.courses)
           .orderBy(schema.countries.name)
       }),
 
-    getById: adminProcedure.input(z.object({ code: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('countries:view').input(z.object({ code: z.string() })).query(async ({ input }) => {
 return db.select().from(schema.countries)
           .where(eq(schema.countries.code, input.code))
           .limit(1)
           .then((rows) => rows[0] || null)
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('countries:manage')
       .input(
         z.object({
           code: z.string().length(2),
@@ -1057,7 +1232,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('countries:manage')
       .input(
         z.object({
           code: z.string().length(2),
@@ -1072,7 +1247,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('countries:manage')
       .input(z.object({ code: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.countries).where(eq(schema.countries.code, input.code))
@@ -1083,7 +1258,7 @@ return db.select().from(schema.countries)
   // ─── Departments CRUD (Catalog) ───────────────────────────
 
   departments: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('universities:view')
       .input(
         z.object({
           universityId: z.number().optional(),
@@ -1102,14 +1277,14 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
+    getById: adminWithPermission('universities:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
       return db.query.departments.findFirst({
         where: eq(schema.departments.id, input.id),
         with: { university: true },
       })
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('universities:manage')
       .input(
         z.object({
           universityId: z.number(),
@@ -1123,7 +1298,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('universities:manage')
       .input(
         z.object({
           id: z.number(),
@@ -1139,14 +1314,14 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('universities:manage')
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.departments).where(eq(schema.departments.id, input.id))
         return { success: true }
       }),
 
-    getCatalogUniversities: adminProcedure.query(async () => {
+    getCatalogUniversities: adminWithPermission('universities:view').query(async () => {
       return db.query.catalogUniversities.findMany({
         orderBy: [schema.catalogUniversities.name],
         columns: { id: true, name: true },
@@ -1157,39 +1332,141 @@ return db.select().from(schema.countries)
   // ─── Scholarships CRUD (Catalog) ──────────────────────────
 
   scholarships: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('scholarships:view')
       .input(
         z.object({
-          universityId: z.number().optional(),
+          universityId: z.union([z.number(), z.string()]).optional(),
           search: z.string().optional(),
           isActive: z.boolean().optional(),
         })
       )
       .query(async ({ input }) => {
-        const conditions = []
-        if (input.universityId) conditions.push(eq(schema.scholarships.universityId, input.universityId))
-        if (input.search) conditions.push(like(schema.scholarships.name, `%${input.search}%`))
-        if (input.isActive !== undefined) conditions.push(eq(schema.scholarships.isActive, input.isActive))
+        try {
+          // Normalize universityId: catalog int as number, platform string id needs no filter (or resolve)
+          let resolvedUniversityId: number | undefined
+          if (input.universityId != null && input.universityId !== '') {
+            const raw = input.universityId
+            const num = typeof raw === 'number' ? raw : Number(raw)
+            if (!Number.isNaN(num) && String(num) === String(raw).trim()) resolvedUniversityId = num
+            else if (typeof raw === 'string') {
+              // platform string id -> try to map to catalog via slug
+              try {
+                const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, raw) })
+                if (plat) {
+                  const cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                  if (cat) resolvedUniversityId = cat.id
+                }
+              } catch {}
+            }
+          }
+          const conditions: unknown[] = []
+          if (resolvedUniversityId != null) conditions.push(eq(schema.scholarships.universityId, resolvedUniversityId))
+          else if (input.universityId != null && typeof input.universityId === 'string' && Number.isNaN(Number(input.universityId))) {
+            // platform id with no catalog mapping -> return empty to avoid showing unrelated data
+            return []
+          }
+          if (input.search) conditions.push(like(schema.scholarships.name, `%${input.search}%`))
+          if (input.isActive !== undefined) conditions.push(eq(schema.scholarships.isActive, input.isActive))
 
-        return db.query.scholarships.findMany({
-          where: conditions.length > 0 ? and(...conditions) : undefined,
-          orderBy: [schema.scholarships.name],
-          with: { university: { columns: { id: true, name: true } }, course: { columns: { id: true, title: true } } },
-        })
+          const rows = await db
+            .select({
+              id: schema.scholarships.id,
+              name: schema.scholarships.name,
+              description: schema.scholarships.description,
+              amount: schema.scholarships.amount,
+              currencyCode: schema.scholarships.currencyCode,
+              coverageType: schema.scholarships.coverageType,
+              eligibility: schema.scholarships.eligibility,
+              deadline: schema.scholarships.deadline,
+              linkUrl: schema.scholarships.linkUrl,
+              isActive: schema.scholarships.isActive,
+              universityId: schema.scholarships.universityId,
+              courseId: schema.scholarships.courseId,
+              universityName: schema.catalogUniversities.name,
+              courseTitle: schema.catalogCourses.title,
+            })
+            .from(schema.scholarships)
+            .leftJoin(schema.catalogUniversities, eq(schema.scholarships.universityId, schema.catalogUniversities.id))
+            .leftJoin(schema.catalogCourses, eq(schema.scholarships.courseId, schema.catalogCourses.id))
+            .where(conditions.length > 0 ? (and as any)(...conditions) : undefined)
+            .orderBy(schema.scholarships.name as any)
+
+          return rows.map((r) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            amount: r.amount,
+            currencyCode: r.currencyCode,
+            coverageType: r.coverageType,
+            eligibility: r.eligibility,
+            deadline: r.deadline,
+            linkUrl: r.linkUrl,
+            isActive: r.isActive,
+            universityId: r.universityId,
+            courseId: r.courseId,
+            university: r.universityName ? { id: r.universityId, name: r.universityName } : null,
+            course: r.courseTitle ? { id: r.courseId, title: r.courseTitle } : null,
+          }))
+        } catch (e) {
+          console.error('[admin.scholarships.list] query failed:', e)
+          return []
+        }
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.number() })).query(async ({ input }) => {
-      return db.query.scholarships.findFirst({
-        where: eq(schema.scholarships.id, input.id),
-        with: { university: true, course: true },
-      })
+    getById: adminWithPermission('scholarships:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
+      try {
+        const row = await db
+          .select({
+            id: schema.scholarships.id,
+            name: schema.scholarships.name,
+            description: schema.scholarships.description,
+            amount: schema.scholarships.amount,
+            currencyCode: schema.scholarships.currencyCode,
+            coverageType: schema.scholarships.coverageType,
+            eligibility: schema.scholarships.eligibility,
+            deadline: schema.scholarships.deadline,
+            linkUrl: schema.scholarships.linkUrl,
+            isActive: schema.scholarships.isActive,
+            universityId: schema.scholarships.universityId,
+            courseId: schema.scholarships.courseId,
+            universityName: schema.catalogUniversities.name,
+            courseTitle: schema.catalogCourses.title,
+          })
+          .from(schema.scholarships)
+          .leftJoin(schema.catalogUniversities, eq(schema.scholarships.universityId, schema.catalogUniversities.id))
+          .leftJoin(schema.catalogCourses, eq(schema.scholarships.courseId, schema.catalogCourses.id))
+          .where(eq(schema.scholarships.id, input.id))
+          .limit(1)
+          .then((rows) => rows[0] as unknown as typeof rows[number] | undefined)
+
+        if (!row) return null
+        return {
+          id: row.id,
+          name: row.name,
+          description: row.description,
+          amount: row.amount,
+          currencyCode: row.currencyCode,
+          coverageType: row.coverageType,
+          eligibility: row.eligibility,
+          deadline: row.deadline,
+          linkUrl: row.linkUrl,
+          isActive: row.isActive,
+          universityId: row.universityId,
+          courseId: row.courseId,
+          university: row.universityName ? { id: row.universityId, name: row.universityName } : null,
+          course: row.courseTitle ? { id: row.courseId, title: row.courseTitle } : null,
+        }
+      } catch (e) {
+        console.error('[admin.scholarships.getById] query failed:', e)
+        return null
+      }
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('scholarships:manage')
       .input(
         z.object({
-          universityId: z.number().optional(),
-          courseId: z.number().optional(),
+          universityId: z.union([z.number(), z.string()]).optional(),
+          courseId: z.union([z.number(), z.string()]).optional(),
           name: z.string().min(1),
           description: z.string().optional(),
           amount: z.number().optional(),
@@ -1202,16 +1479,138 @@ return db.select().from(schema.countries)
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(schema.scholarships).values(input)
+        // Defensive: ensure currency exists — best-effort, never block creation if currencies table is missing or query fails
+        if (input.currencyCode) {
+          try {
+            const cur = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, input.currencyCode) })
+            if (!cur) {
+              try {
+                const symbolMap: Record<string, string> = { USD: '$', KRW: '₩', GBP: '£', EUR: '€', JPY: '¥' }
+                await db.insert(schema.currencies).values({
+                  code: input.currencyCode,
+                  symbol: symbolMap[input.currencyCode] ?? input.currencyCode,
+                  usdRate: 1,
+                })
+              } catch (insertErr) {
+                console.warn('[scholarships.create] Failed to ensure currency, proceeding anyway:', insertErr)
+              }
+            }
+          } catch (checkErr) {
+            console.warn('[scholarships.create] Currency check failed, proceeding anyway:', checkErr)
+          }
+        }
+        // Resolve platform string ids (e.g. "univ_abc123") to catalog int ids
+        let resolvedUniversityId: number | undefined
+        let resolvedCourseId: number | undefined
+        const rawUni = (input as unknown as { universityId?: string | number }).universityId
+        const rawCourse = (input as unknown as { courseId?: string | number }).courseId
+        if (rawUni != null && rawUni !== '') {
+          const num = typeof rawUni === 'number' ? rawUni : Number(rawUni)
+          if (!Number.isNaN(num) && String(num) === String(rawUni).trim()) resolvedUniversityId = num
+          else if (typeof rawUni === 'string') {
+            try {
+              const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, rawUni) })
+              if (plat) {
+                let cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                if (!cat) {
+                  const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.name, plat.country) })
+                  const countryCode = country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
+                  await db.insert(schema.catalogUniversities).values({
+                    name: plat.name,
+                    slug: plat.slug,
+                    countryCode,
+                    city: plat.city,
+                    description: plat.description,
+                    logoUrl: plat.logo,
+                    bannerUrl: plat.coverImage,
+                    websiteUrl: plat.website,
+                    isActive: true,
+                    isFeatured: false,
+                  } as never)
+                  cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                }
+                if (cat) resolvedUniversityId = cat.id
+              }
+            } catch {}
+          }
+        }
+        if (rawCourse != null && rawCourse !== '') {
+          const num = typeof rawCourse === 'number' ? rawCourse : Number(rawCourse)
+          if (!Number.isNaN(num) && String(num) === String(rawCourse).trim()) resolvedCourseId = num
+          else if (typeof rawCourse === 'string') {
+            try {
+              const plat = await db.query.courses.findFirst({ where: (c, { eq }) => eq(c.id, rawCourse) })
+              if (plat) {
+                let cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+                if (!cat && resolvedUniversityId) {
+                  const dept = await db.query.departments.findFirst({ where: (d, { eq }) => eq(d.universityId, resolvedUniversityId!) })
+                  await db.insert(schema.catalogCourses).values({
+                    universityId: resolvedUniversityId,
+                    departmentId: dept?.id ?? null,
+                    title: plat.name,
+                    slug: plat.slug,
+                    level: (plat.level?.toLowerCase() as never) ?? 'bachelor',
+                    mode: 'on_campus' as never,
+                    durationMonths: (plat.duration as unknown as number) ?? 48,
+                    tuitionFee: plat.tuitionFee ?? 0,
+                    currencyCode: (plat.currency as string) ?? 'USD',
+                    description: plat.description,
+                    isActive: true,
+                  } as never)
+                  cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+                }
+                if (cat) resolvedCourseId = cat.id
+              }
+            } catch {}
+          }
+        }
+        const toInsert: Record<string, unknown> = { ...input }
+        if (resolvedUniversityId !== undefined) (toInsert as Record<string, unknown>).universityId = resolvedUniversityId
+        else if (rawUni != null && typeof rawUni === 'string' && Number.isNaN(Number(rawUni))) delete (toInsert as Record<string, unknown>).universityId
+        if (resolvedCourseId !== undefined) (toInsert as Record<string, unknown>).courseId = resolvedCourseId
+        else if (rawCourse != null && typeof rawCourse === 'string' && Number.isNaN(Number(rawCourse))) delete (toInsert as Record<string, unknown>).courseId
+        try {
+          await db.insert(schema.scholarships).values(toInsert as never)
+        } catch (e: unknown) {
+          const rawMsg = (e as { message?: string })?.message || String(e)
+          console.error('[scholarships.create] insert failed:', rawMsg, 'params:', toInsert, e)
+          if (rawMsg.includes('ER_NO_SUCH_TABLE') || rawMsg.includes("doesn't exist") || rawMsg.includes('Unknown table') || rawMsg.includes('no such table')) {
+            throw new (await import('@trpc/server')).TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' + rawMsg,
+              cause: e as never,
+            })
+          }
+          // Retry with USD if the failure is a currency FK (e.g. JPY row missing and auto-create raced)
+          if (rawMsg.includes('currencies') || rawMsg.includes('currency_code') || (rawMsg as string).includes('ER_NO_REFERENCED_ROW') || rawMsg.includes('foreign key')) {
+            try {
+              try {
+                const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
+                if (!usd) await db.insert(schema.currencies).values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
+              } catch {}
+              const fallback = { ...toInsert, currencyCode: 'USD' } as never
+              await db.insert(schema.scholarships).values(fallback)
+              return { success: true }
+            } catch (retryErr) {
+              const rmsg = (retryErr as { message?: string })?.message || 'Failed to create scholarship'
+              throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rmsg, cause: retryErr as never })
+            }
+          }
+          throw new (await import('@trpc/server')).TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: rawMsg || 'Failed to create scholarship',
+            cause: e as never,
+          })
+        }
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('scholarships:manage')
       .input(
         z.object({
           id: z.number(),
-          universityId: z.number().optional(),
-          courseId: z.number().optional(),
+          universityId: z.union([z.number(), z.string()]).optional(),
+          courseId: z.union([z.number(), z.string()]).optional(),
           name: z.string().min(1).optional(),
           description: z.string().optional(),
           amount: z.number().optional(),
@@ -1224,37 +1623,146 @@ return db.select().from(schema.countries)
         })
       )
       .mutation(async ({ input }) => {
-        const { id, ...data } = input
-        await db.update(schema.scholarships).set(data).where(eq(schema.scholarships.id, id))
+        const { id, ...raw } = input as unknown as { id: number; universityId?: string | number; courseId?: string | number; currencyCode?: string } & Record<string, unknown>
+        const data: Record<string, unknown> = { ...raw }
+        if ((data as Record<string, unknown>).currencyCode) {
+          const code = (data as Record<string, unknown>).currencyCode as string
+          try {
+            const cur = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, code) })
+            if (!cur) {
+              try {
+                const symbolMap: Record<string, string> = { USD: '$', KRW: '₩', GBP: '£', EUR: '€', JPY: '¥' }
+                await db.insert(schema.currencies).values({ code, symbol: symbolMap[code] ?? code, usdRate: 1 } as never)
+              } catch (insertErr) {
+                console.warn('[scholarships.update] Failed to ensure currency, proceeding anyway:', insertErr)
+              }
+            }
+          } catch (checkErr) {
+            console.warn('[scholarships.update] Currency check failed, proceeding anyway:', checkErr)
+          }
+        }
+        const resolveId = async (rawId: string | number | undefined, type: 'university' | 'course'): Promise<number | undefined> => {
+          if (rawId == null || rawId === '') return undefined
+          if (typeof rawId === 'number') return rawId
+          const num = Number(rawId)
+          if (!Number.isNaN(num) && String(num) === String(rawId).trim()) return num
+          try {
+            if (type === 'university') {
+              const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, rawId) })
+              if (!plat) return undefined
+              let cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+              if (!cat) {
+                const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.name, plat.country) })
+                const countryCode = country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
+                await db.insert(schema.catalogUniversities).values({
+                  name: plat.name, slug: plat.slug, countryCode, city: plat.city, description: plat.description,
+                  logoUrl: plat.logo, bannerUrl: plat.coverImage, websiteUrl: plat.website, isActive: true, isFeatured: false,
+                } as never)
+                cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+              }
+              return cat?.id
+            } else {
+              const plat = await db.query.courses.findFirst({ where: (c, { eq }) => eq(c.id, rawId) })
+              if (!plat) return undefined
+              let cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+              return cat?.id
+            }
+          } catch { return undefined }
+        }
+        const resolvedUni = await resolveId(raw.universityId, 'university')
+        const resolvedCourse = await resolveId(raw.courseId, 'course')
+        if (resolvedUni !== undefined) (data as Record<string, unknown>).universityId = resolvedUni
+        else if (raw.universityId != null && typeof raw.universityId === 'string' && Number.isNaN(Number(raw.universityId))) delete (data as Record<string, unknown>).universityId
+        if (resolvedCourse !== undefined) (data as Record<string, unknown>).courseId = resolvedCourse
+        else if (raw.courseId != null && typeof raw.courseId === 'string' && Number.isNaN(Number(raw.courseId))) delete (data as Record<string, unknown>).courseId
+        try {
+          await db.update(schema.scholarships).set(data as never).where(eq(schema.scholarships.id, id))
+        } catch (e: unknown) {
+          const rawMsg = (e as { message?: string })?.message || String(e)
+          console.error('[scholarships.update] update failed:', rawMsg, 'data:', data, e)
+          if (rawMsg.includes('ER_NO_SUCH_TABLE') || rawMsg.includes("doesn't exist") || rawMsg.includes('Unknown table') || rawMsg.includes('no such table')) {
+            throw new (await import('@trpc/server')).TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' + rawMsg,
+              cause: e as never,
+            })
+          }
+          if (rawMsg.includes('currencies') || rawMsg.includes('currency_code') || (rawMsg as string).includes('ER_NO_REFERENCED_ROW') || rawMsg.includes('foreign key')) {
+            try {
+              try {
+                const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
+                if (!usd) await db.insert(schema.currencies).values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
+              } catch {}
+              const fallback = { ...data, currencyCode: 'USD' } as never
+              await db.update(schema.scholarships).set(fallback).where(eq(schema.scholarships.id, id))
+              return { success: true }
+            } catch (retryErr) {
+              const rmsg = (retryErr as { message?: string })?.message || 'Failed to update scholarship'
+              throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rmsg, cause: retryErr as never })
+            }
+          }
+          throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rawMsg || 'Failed to update scholarship', cause: e as never })
+        }
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('scholarships:manage')
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.scholarships).where(eq(schema.scholarships.id, input.id))
         return { success: true }
       }),
 
-    getCatalogUniversities: adminProcedure.query(async () => {
-      return db.query.catalogUniversities.findMany({
-        orderBy: [schema.catalogUniversities.name],
-        columns: { id: true, name: true },
-      })
+    getCatalogUniversities: adminWithPermission('scholarships:view').query(async () => {
+      // Prefer catalog `universities` but fall back to platform `university` so the dropdown is never empty when data exists
+      try {
+        const catalog = await db
+          .select({ id: schema.catalogUniversities.id, name: schema.catalogUniversities.name })
+          .from(schema.catalogUniversities)
+          .orderBy(schema.catalogUniversities.name as any)
+        if (catalog.length > 0) return catalog.map((r) => ({ id: String(r.id), name: r.name }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogUniversities] catalog query failed:', e)
+      }
+      try {
+        const platform = await db
+          .select({ id: schema.universities.id, name: schema.universities.name })
+          .from(schema.universities)
+          .orderBy(schema.universities.name as any)
+        return platform.map((u) => ({ id: String(u.id), name: u.name }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogUniversities] platform fallback failed:', e)
+        return []
+      }
     }),
 
-    getCatalogCourses: adminProcedure.query(async () => {
-      return db.query.catalogCourses.findMany({
-        orderBy: [schema.catalogCourses.title],
-        columns: { id: true, title: true },
-      })
+    getCatalogCourses: adminWithPermission('scholarships:view').query(async () => {
+      try {
+        const catalog = await db
+          .select({ id: schema.catalogCourses.id, title: schema.catalogCourses.title })
+          .from(schema.catalogCourses)
+          .orderBy(schema.catalogCourses.title as any)
+        if (catalog.length > 0) return catalog.map((r) => ({ id: String(r.id), title: r.title }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogCourses] catalog query failed:', e)
+      }
+      try {
+        const platform = await db
+          .select({ id: schema.courses.id, title: schema.courses.name })
+          .from(schema.courses)
+          .orderBy(schema.courses.name as any)
+        return platform.map((c) => ({ id: String(c.id), title: c.title }))
+      } catch (e) {
+        console.error('[admin.scholarships.getCatalogCourses] platform fallback failed:', e)
+        return []
+      }
     }),
   }),
 
   // ─── Newsletter Subscribers CRUD ─────────────────────────
 
   newsletters: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('newsletters:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -1279,13 +1787,13 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('newsletters:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       return db.query.newsletterSubscribers.findFirst({
         where: eq(schema.newsletterSubscribers.id, input.id),
       })
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('newsletters:manage')
       .input(
         z.object({
           email: z.string().email(),
@@ -1299,7 +1807,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('newsletters:manage')
       .input(
         z.object({
           id: z.string(),
@@ -1315,7 +1823,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('newsletters:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         await db.delete(schema.newsletterSubscribers).where(eq(schema.newsletterSubscribers.id, input.id))
@@ -1326,7 +1834,7 @@ return db.select().from(schema.countries)
   // ─── Deadlines ────────────────────────────────────────────
 
   deadlines: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('deadlines:view')
       .input(z.object({ search: z.string().trim().max(255).optional(), category: z.string().max(50).optional() }))
       .query(async ({ input }) => {
         const conditions: any[] = []
@@ -1359,7 +1867,7 @@ return db.select().from(schema.countries)
         return rows.map((r: any) => ({ ...r, dueAt: r.dueAt?.toISOString?.() ?? r.dueAt }))
       }),
 
-    students: adminProcedure.query(async () => {
+    students: adminWithPermission('deadlines:view').query(async () => {
       const rows = await db
         .select({ id: schema.studentProfiles.id, name: schema.users.name, email: schema.users.email })
         .from(schema.studentProfiles)
@@ -1368,7 +1876,7 @@ return db.select().from(schema.countries)
       return rows.map((r: any) => ({ id: r.id, name: r.name ?? 'Student', email: r.email ?? '' }))
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('deadlines:manage')
       .input(
         z.object({
           title: z.string().trim().min(1, 'Title is required').max(255),
@@ -1400,7 +1908,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('deadlines:manage')
       .input(
         z.object({
           id: z.string().min(1),
@@ -1436,7 +1944,7 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
-    remove: adminProcedure
+    remove: adminWithPermission('deadlines:manage')
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ input }) => {
         await db.delete(schema.deadlines).where(eq(schema.deadlines.id, input.id))
@@ -1447,7 +1955,7 @@ return db.select().from(schema.countries)
   // ─── Messages ─────────────────────────────────────────────
 
   messages: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('messages:view')
       .input(z.object({ limit: z.number().min(1).max(100).default(50) }))
       .query(async ({ input }) => {
         const rows = await db
@@ -1469,7 +1977,7 @@ return db.select().from(schema.countries)
         return rows
       }),
 
-    getMessages: adminProcedure
+    getMessages: adminWithPermission('messages:view')
       .input(z.object({ conversationId: z.string() }))
       .query(async ({ input }) => {
         const rows = await db
@@ -1496,7 +2004,7 @@ return db.select().from(schema.countries)
   // ─── Documents ────────────────────────────────────────────
 
   documents: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('documents:view')
       .input(
         z.object({
           search: z.string().optional(),
@@ -1549,7 +2057,7 @@ return db.select().from(schema.countries)
         }))
       }),
 
-    updateStatus: adminProcedure
+    updateStatus: adminWithPermission('documents:manage')
       .input(
         z.object({
           id: z.string().min(1),
@@ -1656,6 +2164,113 @@ return db.select().from(schema.countries)
       }),
   }),
 
+  // ─── Revenue (super admin) ────────────────────────────────
+  revenue: createTRPCRouter({
+    getOverview: superAdminProcedure.query(async () => {
+      const [totalAgg] = await db
+        .select({
+          paid: sql<number>`COALESCE(SUM(${schema.bookingSessions.amountPaid}), 0)` as any,
+          cnt: count() as any,
+        })
+        .from(schema.bookingSessions)
+        .where(sql`${schema.bookingSessions.amountPaid} > 0` as any)
+
+      const firstOfMonth = new Date()
+      firstOfMonth.setDate(1)
+      firstOfMonth.setHours(0, 0, 0, 0)
+
+      const [monthAgg] = await db
+        .select({
+          paid: sql<number>`COALESCE(SUM(${schema.bookingSessions.amountPaid}), 0)` as any,
+          cnt: count() as any,
+        })
+        .from(schema.bookingSessions)
+        .where(
+          and(
+            sql`${schema.bookingSessions.amountPaid} > 0` as any,
+            gte(schema.bookingSessions.createdAt, firstOfMonth)
+          )
+        )
+
+      const recent = await db
+        .select({
+          id: schema.bookingSessions.id,
+          amountPaid: schema.bookingSessions.amountPaid,
+          createdAt: schema.bookingSessions.createdAt,
+          status: schema.bookingSessions.status,
+          counselorId: schema.bookingSessions.counselorId,
+          studentName: schema.users.name,
+        })
+        .from(schema.bookingSessions)
+        .leftJoin(schema.studentProfiles, eq(schema.bookingSessions.studentId, schema.studentProfiles.id))
+        .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
+        .where(sql`${schema.bookingSessions.amountPaid} > 0` as any)
+        .orderBy(desc(schema.bookingSessions.createdAt))
+        .limit(15)
+
+      const counselorIds = Array.from(new Set(recent.map((r: any) => r.counselorId).filter(Boolean)))
+      let counselorMap = new Map<string, string>()
+      if (counselorIds.length) {
+        const counselorRows = await db
+          .select({ id: schema.counselorProfiles.id, name: schema.users.name })
+          .from(schema.counselorProfiles)
+          .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+          .where(inArray(schema.counselorProfiles.id, counselorIds))
+        counselorMap = new Map(counselorRows.map((c: any) => [c.id, c.name || 'Counselor']))
+      }
+
+      return {
+        totalRevenue: Number(totalAgg?.paid ?? 0),
+        paidSessions: Number(totalAgg?.cnt ?? 0),
+        thisMonthRevenue: Number(monthAgg?.paid ?? 0),
+        thisMonthSessions: Number(monthAgg?.cnt ?? 0),
+        recentTransactions: recent.map((r: any) => ({
+          id: r.id,
+          amountPaid: r.amountPaid || 0,
+          createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : null,
+          status: r.status,
+          studentName: r.studentName || 'Student',
+          counselorName: counselorMap.get(r.counselorId) || 'Counselor',
+        })),
+      }
+    }),
+  }),
+
+  // ─── Settings (admin profile) ─────────────────────────────
+  settings: createTRPCRouter({
+    getProfile: adminWithPermission('settings:view').query(async ({ ctx }) => {
+      const [user] = await db
+        .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, image: schema.users.image })
+        .from(schema.users)
+        .where(eq(schema.users.id, ctx.session.user.id))
+        .limit(1)
+      return user ?? null
+    }),
+
+    updateProfile: adminWithPermission('settings:manage')
+      .input(
+        z.object({
+          name: z.string().trim().min(2).max(100),
+          email: z.string().email().max(255),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        // Check email uniqueness if it changed.
+        const [existing] = await db
+          .select({ id: schema.users.id })
+          .from(schema.users)
+          .where(and(eq(schema.users.email, input.email), ne(schema.users.id, ctx.session.user.id)))
+          .limit(1)
+        if (existing) throw new Error('That email is already in use')
+
+        await db
+          .update(schema.users)
+          .set({ name: input.name, email: input.email, updatedAt: new Date() })
+          .where(eq(schema.users.id, ctx.session.user.id))
+        return { success: true }
+      }),
+  }),
+
   // ─── Super Admin Only ────────────────────────────────────
   super: createTRPCRouter({
     getAdmins: superAdminProcedure.query(async () => {
@@ -1707,7 +2322,8 @@ return db.select().from(schema.countries)
             emailVerified: true,
             createdAt: true,
             image: true,
-          },
+            permissions: true,
+          } as any,
         })
         const totalRes = await db
           .select({ value: count() as any })
@@ -1726,10 +2342,12 @@ return db.select().from(schema.countries)
           role: z.enum(['STUDENT', 'COUNSELOR', 'ADMIN', 'SUPER_ADMIN']),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        // eslint-disable-next-line no-console
+        console.log('[admin.super.updateUserRole] requested', { by: (ctx.session as any)?.user?.email, target: input.userId, role: input.role })
         const user = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
-          columns: { id: true, role: true },
+          columns: { id: true, role: true, email: true },
         })
         if (!user) throw new Error('User not found')
 
@@ -1739,15 +2357,35 @@ return db.select().from(schema.countries)
             .select({ value: count() as any })
             .from(schema.users)
             .where(eq(schema.users.role, 'SUPER_ADMIN'))
-          if (superAdminCount[0]?.value <= 1) {
-            throw new Error('Cannot demote the last Super Admin')
+          if (Number(superAdminCount[0]?.value ?? 0) <= 1) {
+            throw new Error('Cannot demote the last Super Admin — at least one must remain')
           }
+        }
+
+        // Normalize permissions on role change: non-ADMIN roles should not retain admin perms
+        const updates: any = { role: input.role, updatedAt: new Date() }
+        if (input.role !== 'ADMIN') {
+          // Clear permissions for non-admin roles (json() column — pass raw array, not JSON.stringify)
+          updates.permissions = []
+        } else if ((user as any).role !== 'ADMIN') {
+          // Promoting to ADMIN — ensure at least dashboard:view so sidebar renders
+          updates.permissions = ['dashboard:view']
         }
 
         await db
           .update(schema.users)
-          .set({ role: input.role })
+          .set(updates)
           .where(eq(schema.users.id, input.userId))
+        // Invalidate sessions of target user so permission/role takes effect immediately (skip if self to avoid instant logout)
+        if (input.userId !== (ctx.session as any).user.id) {
+          await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
+        } else {
+          // For self-role change, keep session but log — user will see new role on next refresh
+          // eslint-disable-next-line no-console
+          console.log('[admin] self role change, session retained for', input.userId)
+        }
+        // eslint-disable-next-line no-console
+        console.log('[admin.super.updateUserRole] done', { userId: input.userId, role: input.role })
         return { success: true }
       }),
 
@@ -1794,31 +2432,145 @@ return db.select().from(schema.countries)
         return { success: true }
       }),
 
+    getUserPermissions: superAdminProcedure
+      .input(z.object({ userId: z.string() }))
+      .query(async ({ input }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true, permissions: true } as any,
+        })
+        if (!user) throw new Error('User not found')
+        let perms: string[] = []
+        const raw: any = (user as any).permissions
+        if (Array.isArray(raw)) {
+          perms = raw.map((p: any) => String(p).trim()).filter(Boolean)
+        } else if (typeof raw === 'string' && raw.trim()) {
+          try {
+            const parsed = JSON.parse(raw)
+            if (Array.isArray(parsed)) perms = parsed.map((p: any) => String(p).trim()).filter(Boolean)
+            else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) {
+              perms = (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean)
+            }
+          } catch {}
+        } else if (raw && typeof raw === 'object') {
+          const maybe = (raw as any).value ?? raw
+          if (Array.isArray(maybe)) perms = maybe.map((p: any) => String(p).trim()).filter(Boolean)
+        }
+        return { userId: input.userId, role: (user as any).role, permissions: perms }
+      }),
+
+    updatePermissions: superAdminProcedure
+      .input(z.object({ userId: z.string(), permissions: z.array(z.string()) }))
+      .mutation(async ({ input, ctx }) => {
+        const user = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true },
+        })
+        if (!user) throw new Error('User not found')
+        if ((user as any).role === 'SUPER_ADMIN') {
+          throw new Error('Super Admin has all permissions implicitly — no need to set')
+        }
+        // Validate permissions against known list
+        const { ALL_PERMISSIONS } = await import('@/lib/rbac')
+        const invalid = input.permissions.filter((p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*'))
+        if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
+        await db
+          .update(schema.users)
+          // json() column — Drizzle handles serialization; do NOT JSON.stringify()
+          .set({ permissions: input.permissions as any })
+          .where(eq(schema.users.id, input.userId))
+        // Invalidate sessions of target user so permission changes take effect immediately
+        if (input.userId !== (ctx.session as any).user.id) {
+          await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
+        }
+        return { success: true }
+      }),
+
+    resetPassword: superAdminProcedure
+      .input(z.object({ userId: z.string(), newPassword: z.string().min(8).max(100) }))
+      .mutation(async ({ ctx, input }) => {
+        if (input.userId === ctx.session.user.id) {
+          throw new Error('You cannot reset your own password here — use your profile settings instead')
+        }
+        const target = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
+          columns: { id: true, role: true, email: true, name: true },
+        })
+        if (!target) throw new Error('User not found')
+        // Optional guard: prevent resetting another SUPER_ADMIN without explicit confirmation (handled in UI)
+        const hashed = await bcryptHash(input.newPassword, 12)
+        const existingAccount = await db.query.accounts.findFirst({
+          where: (a: any, { and, eq }: any) => and(eq(a.userId, input.userId), eq(a.providerId, 'credential')),
+        })
+        if (existingAccount) {
+          await db.update(schema.accounts).set({ password: hashed }).where(eq(schema.accounts.id, existingAccount.id))
+        } else {
+          await db.insert(schema.accounts).values({
+            id: globalThis.crypto.randomUUID(),
+            userId: input.userId,
+            providerId: 'credential',
+            accountId: (target as any).email,
+            password: hashed,
+          } as any)
+        }
+        // Invalidate existing sessions for security
+        await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
+        return { success: true }
+      }),
+
+    createStaff: superAdminProcedure
+      .input(
+        z.object({
+          name: z.string().min(2).max(100),
+          email: z.string().email(),
+          password: z.string().min(8).max(100).optional(),
+          permissions: z.array(z.string()).default([]),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { ALL_PERMISSIONS } = await import('@/lib/rbac')
+        const invalid = input.permissions.filter((p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*'))
+        if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
+        const existing = await db.query.users.findFirst({
+          where: (u: any, { eq: _eq }: any) => _eq(u.email, input.email),
+        })
+        if (existing) throw new Error('A user with this email already exists')
+        const userId = globalThis.crypto.randomUUID()
+        // Use better-auth's password hashing via bcrypt
+        const { hash } = await import('bcryptjs')
+        let hashed: string | null = null
+        if (input.password) {
+          hashed = await hash(input.password, 12)
+        }
+        await db.insert(schema.users).values({
+          id: userId,
+          name: input.name,
+          email: input.email,
+          role: 'ADMIN' as any,
+          // json() column — Drizzle handles serialization; do NOT JSON.stringify()
+          permissions: input.permissions as any,
+          emailVerified: true,
+        } as any)
+        if (hashed) {
+          await db.insert(schema.accounts).values({
+            userId,
+            providerId: 'credential',
+            accountId: input.email,
+            password: hashed,
+          } as any)
+        }
+        return { success: true, userId }
+      }),
+
     getPlatformStats: superAdminProcedure.query(async () => {
-      const totalUsers = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-      const studentCount = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'STUDENT'))
-      const counselorCount = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(eq(schema.users.role, 'COUNSELOR'))
-      const adminCount = await db
-        .select({ value: count() as any })
-        .from(schema.users)
-        .where(
-          or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))
-        )
-      const universitiesCount = await db
-        .select({ value: count() as any })
-        .from(schema.universities)
-        .where(eq(schema.universities.isActive, true))
-      const upcomingSessionsCount = await db
-        .select({ value: count() as any })
-        .from(schema.bookingSessions)
+      const [totalUsers, studentCount, counselorCount, adminCount, universitiesCount, upcomingSessionsCount] = await Promise.all([
+        db.select({ value: count() as any }).from(schema.users),
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
+        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
+        db.select({ value: count() as any }).from(schema.users).where(or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))),
+        db.select({ value: count() as any }).from(schema.universities).where(eq(schema.universities.isActive, true)),
+        db.select({ value: count() as any }).from(schema.bookingSessions),
+      ])
 
       return {
         totalUsers: totalUsers[0]?.value || 0,
@@ -1831,3 +2583,5 @@ return db.select().from(schema.countries)
     }),
   }),
 })
+
+

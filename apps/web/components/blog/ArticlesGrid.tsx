@@ -63,18 +63,24 @@ export function ArticlesGrid({ articles }: ArticlesGridProps) {
           <div className="grid h-full grid-cols-1 md:grid-cols-3">
             {/* IMAGE */}
             <div className="relative h-64 overflow-hidden bg-[#F8FAFC] md:col-span-1 md:h-full">
-              {article.coverImage ? (
-                <Image
-                  src={article.coverImage}
-                  alt={article.title}
-                  fill
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-              ) : (
-                <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-gray-200">
-                  {article.title?.charAt(0)?.toUpperCase() || 'E'}
-                </div>
-              )}
+              {(() => {
+                const safeCoverImage = article.coverImage?.trim().startsWith('http') || article.coverImage?.trim().startsWith('/') 
+                  ? article.coverImage.trim() 
+                  : null;
+                  
+                return safeCoverImage ? (
+                  <Image
+                    src={safeCoverImage}
+                    alt={article.title || 'Article'}
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-4xl font-bold text-gray-200">
+                    {article.title?.charAt(0)?.toUpperCase() || 'E'}
+                  </div>
+                )
+              })()}
             </div>
 
             {/* CONTENT */}

@@ -95,19 +95,32 @@ export default function ProfileCompletion() {
   }, [nationality, countryOfResidence, phone, studyDestination, studyLevel, startDate, saveProfile])
 
   return (
-    <div className="w-full">
-      {/* Step indicator */}
-      <div className="mb-6 flex items-center justify-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold bg-gradient-to-r from-slate-950 to-red-900 text-white shadow-lg">
-          {step === 'study' ? <Check size={14} /> : 1}
-        </div>
-        <div className={`h-0.5 w-8 ${step === 'study' ? 'bg-green-500' : 'bg-slate-200'}`} />
-        <div className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${step === 'study' ? 'bg-gradient-to-r from-slate-950 to-red-900 text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}>
-          2
-        </div>
-      </div>
+    <div className="mx-auto w-full max-w-lg">
+      <div className="rounded-3xl border border-white/60 bg-white/80 shadow-[0_8px_40px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+        {/* Header */}
+        <div className="border-b border-slate-100 px-6 pb-5 pt-6 sm:px-8">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-red-600">
+              Student Onboarding
+            </p>
+            <span className="text-xs font-semibold text-slate-400">
+              Step {step === 'profile' ? 1 : 2} / 2
+            </span>
+          </div>
 
-      <AnimatePresence mode="wait">
+          {/* Progress bar */}
+          <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100">
+            <div
+              className={`h-full rounded-full bg-gradient-to-r from-slate-950 to-red-700 transition-all duration-300 ${
+                step === 'study' ? 'w-full' : 'w-1/2'
+              }`}
+            />
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-6 sm:px-8 sm:py-7">
+          <AnimatePresence mode="wait">
         {step === 'profile' && (
           <motion.div
             key="profile"
@@ -118,11 +131,11 @@ export default function ProfileCompletion() {
             transition={{ duration: 0.2 }}
           >
             <div className="text-left">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-700">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-600">
                 Complete your profile
               </p>
-              <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-950">
-                Tell us about <span className="text-red-700">yourself</span>
+              <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-950 sm:text-3xl">
+                Tell us about <span className="text-red-600">yourself</span>
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Help us personalize your experience.
@@ -233,11 +246,11 @@ export default function ProfileCompletion() {
             transition={{ duration: 0.2 }}
           >
             <div className="text-left">
-              <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-700">
+              <p className="mb-2 text-xs font-bold uppercase tracking-[0.22em] text-red-600">
                 Almost done
               </p>
-              <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-950">
-                Study <span className="text-red-700">preferences</span>
+              <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-950 sm:text-3xl">
+                Study <span className="text-red-600">preferences</span>
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Tell us about your academic goals.
@@ -311,7 +324,9 @@ export default function ProfileCompletion() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   )
 }

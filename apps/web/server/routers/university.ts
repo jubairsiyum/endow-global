@@ -17,6 +17,8 @@ export const universityRouter = createTRPCRouter({
       z.object({
         q: z.string().optional(),
         country: z.string().optional(),
+        level: z.string().optional(),
+        degree: z.string().optional(),
         limit: z.number().min(1).max(50).default(24),
       }),
     )
@@ -24,17 +26,41 @@ export const universityRouter = createTRPCRouter({
       const conditions: any[] = [eq(universities.isActive, true)]
 
       if (input.country) {
-        conditions.push(eq(universities.country, input.country))
+        const c = input.country.trim()
+        if (c) conditions.push(sql`LOWER(${universities.country}) = LOWER(${c})`)
       }
 
-      if (input.q && input.q.trim()) {
-        const term = `%${input.q.trim()}%`
+      const rawLevel = (input.level || (input as any).degree)?.trim().toUpperCase()
+      // Map sticky-filter degree aliases (bachelor/master/phd) to course levels
+      const degreeAlias: Record<string, string> = { BACHELOR: 'UNDERGRADUATE', MASTER: 'POSTGRADUATE', PHD: 'PHD' }
+      const normalizedRaw = rawLevel && (degreeAlias[rawLevel] || rawLevel)
+      const validLevels = ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION'] as const
+      const level = normalizedRaw && (validLevels as readonly string[]).includes(normalizedRaw) ? normalizedRaw : undefined
+
+      const q = input.q?.trim()
+      if (level && q) {
+        const term = `%${q}%`
+        // Must have at least one course at this level
+        conditions.push(sql`EXISTS (SELECT 1 FROM ${courses} WHERE ${courses.universityId} = ${universities.id} AND ${courses.isActive} = 1 AND ${courses.level} = ${level})` as any)
+        // q can match university fields OR a level-specific course
         conditions.push(
           or(
             like(universities.name, term),
             like(universities.city, term),
             like(universities.country, term),
-            sql`EXISTS (SELECT 1 FROM ${courses} WHERE ${courses.universityId} = ${universities.id} AND ${courses.isActive} = 1 AND (${courses.name} LIKE ${term} OR ${courses.subject} LIKE ${term}))` as any,
+            sql`EXISTS (SELECT 1 FROM ${courses} WHERE ${courses.universityId} = ${universities.id} AND ${courses.isActive} = 1 AND ${courses.level} = ${level} AND (${courses.name} LIKE ${term} OR ${courses.subject} LIKE ${term} OR ${courses.description} LIKE ${term}))` as any,
+          ) as any,
+        )
+      } else if (level) {
+        conditions.push(sql`EXISTS (SELECT 1 FROM ${courses} WHERE ${courses.universityId} = ${universities.id} AND ${courses.isActive} = 1 AND ${courses.level} = ${level})` as any)
+      } else if (q) {
+        const term = `%${q}%`
+        conditions.push(
+          or(
+            like(universities.name, term),
+            like(universities.city, term),
+            like(universities.country, term),
+            sql`EXISTS (SELECT 1 FROM ${courses} WHERE ${courses.universityId} = ${universities.id} AND ${courses.isActive} = 1 AND (${courses.name} LIKE ${term} OR ${courses.subject} LIKE ${term} OR ${courses.description} LIKE ${term}))` as any,
           ) as any,
         )
       }
@@ -86,9 +112,20 @@ export const universityRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const countryName = input.slug.replace(/-/g, ' ')
 
-      // Try DB first with case-insensitive match
+      // Try DB first with case-insensitive match — select only the columns the
+      // destination pages actually render to keep the payload small and fast.
       const unis = await ctx.db
-        .select()
+        .select({
+          id: universities.id,
+          name: universities.name,
+          slug: universities.slug,
+          country: universities.country,
+          city: universities.city,
+          logo: universities.logo,
+          coverImage: universities.coverImage,
+          description: universities.description,
+          ranking: universities.ranking,
+        })
         .from(universities)
         .where(
           and(
@@ -97,6 +134,7 @@ export const universityRouter = createTRPCRouter({
           )
         )
         .orderBy(universities.ranking)
+        .limit(60)
 
       if (unis.length > 0) {
         return { country: unis[0].country, universities: unis }
@@ -115,26 +153,9 @@ export const universityRouter = createTRPCRouter({
       return {
         country: staticCountry.name,
         universities: countryUnis.map((u) => ({
-          id: u.id,
-          name: u.name,
+          ...u,
           slug: u.id,
-          country: u.country,
-          city: u.city,
-          logo: u.logo,
           coverImage: u.banner,
-          description: u.description,
-          ranking: u.ranking,
-          website: null,
-          established: null,
-          totalStudents: null,
-          internationalPercent: null,
-          accreditation: null,
-          rankings: [],
-          featured: false,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          highlights: u.highlights,
         })),
       }
     }),

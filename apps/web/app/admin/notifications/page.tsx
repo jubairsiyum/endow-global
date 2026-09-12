@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
 import { Bell, Send, Search } from 'lucide-react'
@@ -9,7 +10,10 @@ import { formatDistanceToNow } from 'date-fns'
 export default function NotificationsPage() {
  const [search, setSearch] = useState('')
  const [showSend, setShowSend] = useState(false)
+ const [mounted, setMounted] = useState(false)
  const [sendForm, setSendForm] = useState({ title: '', body: '', userId: '' })
+
+ useEffect(() => { setMounted(true) }, [])
 
  const utils = trpc.useUtils()
  const { data: notifications, isLoading } = trpc.admin.notifications.list.useQuery({
@@ -95,8 +99,8 @@ export default function NotificationsPage() {
  )}
 
  {/* SEND MODAL */}
- {showSend && (
- <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 px-4 ">
+ {showSend && mounted && createPortal(
+ <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 ">
  <div className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
  <div className="flex items-center justify-between mb-5">
  <h2 className="text-xl font-bold text-gray-900">Send Notification</h2>
@@ -122,11 +126,13 @@ export default function NotificationsPage() {
  <button type="submit" disabled={sendMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 hover:shadow-lg disabled:opacity-50">
  {sendMutation.isPending ? 'Sending...' : 'Send Notification'}
  </button>
- </div>
- </form>
- </div>
- </div>
- )}
+  </div>
+  </form>
+  </div>
+  </div>,
+  document.body
+  )}
+
  </div>
  )
 }

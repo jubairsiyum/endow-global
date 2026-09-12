@@ -83,14 +83,19 @@ export function BlogHero({ featured }: { featured: any | null }) {
           </div>
 
           {/* RIGHT - FEATURED ARTICLE CARD */}
-          {featured && (
+          {featured && (() => {
+            const safeCoverImage = featured.coverImage?.trim().startsWith('http') || featured.coverImage?.trim().startsWith('/') 
+              ? featured.coverImage.trim() 
+              : null;
+              
+            return (
             <motion.div variants={itemVariants} whileHover={{ y: -8 }} className="relative ml-auto w-full">
               <Link href={`/blog/${featured.slug}`} className="group block overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,23,42,0.15)]">
                 <div className="relative h-[220px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
-                  {featured.coverImage ? (
+                  {safeCoverImage ? (
                     <Image
-                      src={featured.coverImage}
-                      alt={featured.title}
+                      src={safeCoverImage}
+                      alt={featured.title || 'Featured Article'}
                       fill
                       priority
                       className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
@@ -132,7 +137,8 @@ export function BlogHero({ featured }: { featured: any | null }) {
                 </div>
               </Link>
             </motion.div>
-          )}
+            )
+          })()}
         </motion.div>
       </div>
     </section>

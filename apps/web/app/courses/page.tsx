@@ -24,6 +24,9 @@ export default async function CoursesPage({
 
   const filters = parseFilters(params)
   const query = params.get('query') ?? ''
+  const sortParam = params.get('sort')
+  const validSorts = ['recommended', 'tuition_asc', 'tuition_desc', 'university_asc', 'course_asc', 'newest'] as const
+  const sort = (validSorts as readonly string[]).includes(sortParam ?? '') ? (sortParam as typeof validSorts[number]) : 'recommended'
 
   const initialData = await caller.course.list({
     page,
@@ -40,7 +43,8 @@ export default async function CoursesPage({
     startYears: filters.startYears.length ? filters.startYears : undefined,
     feeMin: filters.feeMin ?? undefined,
     feeMax: filters.feeMax ?? undefined,
+    sort: sort !== 'recommended' ? sort : undefined,
   })
 
-  return <CoursesListContent initialData={initialData} initialFilters={filters} initialQuery={query} />
+  return <CoursesListContent initialData={initialData} initialFilters={filters} initialQuery={query} initialSort={sort} />
 }

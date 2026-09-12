@@ -9,6 +9,9 @@ import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
 import { sendEmail } from './email'
 import { absoluteUrl } from './utils'
+import { autoAssignCounselor } from './counselor-assignment'
+import { notifyCounselorNewStudent } from './notify'
+import { parsePermissionsJSON } from './rbac'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
@@ -45,8 +48,10 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3000',
     'https://egev2.vercel.app',
-    process.env.BETTER_AUTH_URL!,
-  ].filter(Boolean),
+    process.env.BETTER_AUTH_URL,
+    process.env.NEXT_PUBLIC_APP_URL,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+  ].filter((origin): origin is string => Boolean(origin)),
   database: drizzleAdapter(db, {
     provider: 'mysql',
     schema: {
@@ -71,6 +76,12 @@ export const auth = betterAuth({
         required: false,
         input: false,
       },
+      permissions: {
+        type: 'string',
+        required: false,
+        defaultValue: '[]',
+        input: false,
+      },
     },
   },
   session: {
@@ -78,7 +89,11 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 4, // re-issue session after 4 hours of inactivity
     cookieCache: {
       enabled: true,
-      maxAge: 60 * 60 * 24, // 1 day
+      // Short TTL so permission changes (via Manage Permissions) propagate within
+      // ~60s without requiring a full re-login. A 24h cache caused stale
+      // permissions to be served from the cookie, making tRPC RBAC checks fail
+      // even after an admin was granted a new module permission.
+      maxAge: 60, // 60 seconds
     },
     freshSession: {
       enabled: false,
@@ -92,10 +107,24 @@ export const auth = betterAuth({
       verify: async ({ password, hash }) => verifyStoredPassword(password, hash),
     },
   },
+  account: {
+    accountLinking: {
+      enabled: true,
+      // Allow automatic linking when the same verified email is used across providers.
+      // Without this, signing in with Google after an email/password sign-up
+      // throws `account_not_linked`.
+      trustedProviders: ['google', 'credential', 'email-password'],
+      allowDifferentEmails: false,
+      // Keep emailVerified strict — Google emails are verified by Google
+      updateUserInfoOnLink: false,
+    },
+  },
   socialProviders: {
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      // Explicitly allow implicit sign-up via Google; linking will handle existing emails
+      disableImplicitSignUp: false,
     },
   },
   databaseHooks: {
@@ -106,10 +135,37 @@ export const auth = betterAuth({
             where: (sp: any, { eq }: any) => eq(sp.userId, user.id),
           })
           if (!existing) {
-            await db.insert(schema.studentProfiles).values({ userId: user.id })
+            // Automatically assign a counselor by equal distribution when a
+            // new student registers (email/password, OTP, or Google sign-in).
+            const role = (user as any)?.role
+            const assignedCounselorId =
+              role === 'STUDENT' ? await autoAssignCounselor(db, schema) : null
+            await db.insert(schema.studentProfiles).values({
+              userId: user.id,
+              assignedCounselorId,
+            })
+            // Best-effort: notify the assigned counselor via email (SMTP).
+            if (assignedCounselorId) {
+              try {
+                await notifyCounselorNewStudent(db, schema, {
+                  counselorId: assignedCounselorId,
+                  studentName: (user as any)?.name || 'New student',
+                  studentEmail: (user as any)?.email || '',
+                })
+              } catch (err) {
+                console.error('[notify] Failed to notify counselor of new student:', err)
+              }
+            }
           }
         },
       },
+    },
+  },
+  onAPIError: {
+    errorURL: '/auth/error',
+    throw: false,
+    onError: (error, ctx: any) => {
+      console.error('[auth] API error:', error, ctx?.path ?? ctx?.request?.url)
     },
   },
   advanced: {
@@ -178,10 +234,17 @@ export const auth = betterAuth({
       },
     }),
     customSession(async ({ user, session }) => {
+      // Parse permissions which may be stored as JSON string, array, or MySQL json object
+      const perms = parsePermissionsJSON((user as any).permissions)
       return {
         user: {
           ...user,
           role: (user as any).role as UserRole,
+          // Serialize as JSON string so better-auth's `type: 'string'` handling
+          // stores it correctly in the cookie. Returning a raw array causes
+          // Array.prototype.toString() coercion → "a,b,c" (no brackets),
+          // which breaks JSON.parse on the next read → empty permissions.
+          permissions: JSON.stringify(perms),
         },
         session,
       }

@@ -89,7 +89,20 @@ export default function SignInForm() {
         return
       }
 
-      router.push('/dashboard')
+      // Role-aware redirect — prevents URL confusion (e.g., admin landing on student /dashboard)
+      try {
+        const sess = await authClient.getSession()
+        const role = (sess?.data?.user as any)?.role as string | undefined
+        const map: Record<string, string> = {
+          STUDENT: '/dashboard',
+          COUNSELOR: '/counselor',
+          ADMIN: '/admin',
+          SUPER_ADMIN: '/admin',
+        }
+        router.push(map[role ?? 'STUDENT'] || '/dashboard')
+      } catch {
+        router.push('/dashboard')
+      }
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {
@@ -137,7 +150,19 @@ export default function SignInForm() {
         return
       }
       toast.success('Signed in successfully')
-      router.push('/dashboard')
+      try {
+        const sess = await authClient.getSession()
+        const role = (sess?.data?.user as any)?.role as string | undefined
+        const map: Record<string, string> = {
+          STUDENT: '/dashboard',
+          COUNSELOR: '/counselor',
+          ADMIN: '/admin',
+          SUPER_ADMIN: '/admin',
+        }
+        router.push(map[role ?? 'STUDENT'] || '/dashboard')
+      } catch {
+        router.push('/dashboard')
+      }
     } catch {
       toast.error('Something went wrong. Please try again.')
     } finally {

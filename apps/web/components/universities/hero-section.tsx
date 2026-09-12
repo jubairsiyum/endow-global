@@ -4,6 +4,7 @@ import { motion, type Variants } from 'framer-motion'
 import { Search, GraduationCap, Users, Globe, Award, Star } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
+import { trpc } from '@/lib/trpc-client'
 
 const popularSearches = [
   'Engineering in South Korea',
@@ -14,6 +15,7 @@ const popularSearches = [
 
 export default function HeroSection() {
   const [searchQuery, setSearchQuery] = useState('')
+  const { data: dbStats } = trpc.university.stats.useQuery()
 
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -55,7 +57,7 @@ export default function HeroSection() {
             <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/[0.06] px-3 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
               <span className="text-[11px] font-semibold text-[#C41E3A]">
-                250+ Partner Universities
+                {dbStats?.universities ?? 0}+ Partner Universities
               </span>
             </div>
           </motion.div>
@@ -120,8 +122,8 @@ export default function HeroSection() {
           {/* Stats Row */}
           <motion.div variants={itemVariants} className="mt-10 flex flex-wrap items-center justify-center gap-6 sm:gap-10">
             {[
-              { icon: GraduationCap, value: '50+', label: 'Partner Unis' },
-              { icon: Globe, value: '2', label: 'Destinations' },
+              { icon: GraduationCap, value: `${dbStats?.universities ?? 0}+`, label: 'Partner Unis' },
+              { icon: Globe, value: `${dbStats?.countries ?? 0}`, label: 'Destinations' },
               { icon: Award, value: '98%', label: 'Visa Success' },
             ].map((stat) => (
               <div key={stat.label} className="flex items-center gap-3">

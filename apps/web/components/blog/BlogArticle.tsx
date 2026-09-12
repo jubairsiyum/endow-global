@@ -124,12 +124,16 @@ function RelatedArticles({ posts }: { posts: Post[] }) {
             href={`/blog/${post.slug}`}
             className="flex gap-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
-            {post.coverImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.coverImage} alt={post.title || 'Related article'} className="size-20 rounded-md object-cover" />
-            ) : (
-              <div className="size-20 rounded-md bg-gradient-to-br from-violet-100 to-pink-100" />
-            )}
+            {(() => {
+              const safeCoverImage = post.coverImage?.trim().startsWith('http') || post.coverImage?.trim().startsWith('/')
+                ? post.coverImage.trim() : null;
+              return safeCoverImage ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={safeCoverImage} alt={post.title || 'Related article'} className="size-20 rounded-md object-cover" />
+              ) : (
+                <div className="size-20 rounded-md bg-gradient-to-br from-violet-100 to-pink-100" />
+              )
+            })()}
 
             <div className="min-w-0">
               <h4 className="line-clamp-2 text-sm font-bold leading-5 text-slate-950">
@@ -221,12 +225,16 @@ export function BlogArticle({ post, related }: { post: Post; related: Post[] }) 
                 <MetaRow post={post} />
               </header>
 
-              {post.coverImage && (
-                <div className="mx-auto mt-5 mb-7 aspect-[16/7] w-full max-w-[720px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={post.coverImage} alt={title} className="h-full w-full object-cover" />
-                </div>
-              )}
+              {(() => {
+                const safeCoverImage = post.coverImage?.trim().startsWith('http') || post.coverImage?.trim().startsWith('/')
+                  ? post.coverImage.trim() : null;
+                return safeCoverImage ? (
+                  <div className="mx-auto mt-5 mb-7 aspect-[16/7] w-full max-w-[720px] overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={safeCoverImage} alt={title || 'Article'} className="h-full w-full object-cover" />
+                  </div>
+                ) : null;
+              })()}
 
               <div className="mx-auto max-w-[720px]">
                 {excerpt && (
