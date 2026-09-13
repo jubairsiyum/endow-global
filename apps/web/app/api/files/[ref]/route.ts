@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { readFile, stat } from 'fs/promises'
-import path from 'path'
 import { auth } from '@/lib/auth'
 import { db, schema } from '@/lib/db'
 import { or as _or, eq as _eq } from 'drizzle-orm'
+import { getObjectBuffer } from '@/lib/s3'
 
 const or = _or as any
 const eq = _eq as any
@@ -20,12 +19,13 @@ const MIME_TYPES: Record<string, string> = {
 }
 
 // Token filenames are generated server-side (uuid + extension), so anything
-// else (paths, slashes, traversal attempts) is rejected before touching disk.
+// else (paths, slashes, traversal attempts) is rejected before touching
+// storage.
 const VALID_REF = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/
 const CAREER_ROLES = ['ADMIN', 'SUPER_ADMIN', 'COUNSELOR']
 
-const PRIVATE_UPLOAD_DIR = path.join(process.cwd(), 'uploads')
-const LEGACY_UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads')
+const PRIVATE_PREFIX = 'private'
+const LEGACY_PUBLIC_PREFIX = 'public/uploads'
 
 interface Params {
   ref: string
@@ -86,31 +86,27 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
       }
     }
 
-    // Resolve the physical file: current private dir first, then legacy public
-    // dir for rows that have not been migrated yet.
+    // Resolve the object: current private prefix first, then the legacy public
+    // prefix for rows that have not been migrated yet.
     const candidates = [
-      path.join(PRIVATE_UPLOAD_DIR, ref),
-      path.join(LEGACY_UPLOAD_DIR, ref),
+      `${PRIVATE_PREFIX}/${ref}`,
+      `${LEGACY_PUBLIC_PREFIX}/${ref}`,
     ]
 
-    let filePath: string | null = null
-    for (const candidate of candidates) {
+    let data: Uint8Array | null = null
+    for (const key of candidates) {
       try {
-        const info = await stat(candidate)
-        if (info.isFile()) {
-          filePath = candidate
-          break
-        }
+        data = await getObjectBuffer(key)
+        break
       } catch {
         // keep searching
       }
     }
 
-    if (!filePath) {
+    if (!data) {
       return new NextResponse('Not found', { status: 404 })
     }
 
-    const data = await readFile(filePath)
     const ext = ref.split('.').pop()?.toLowerCase() ?? ''
     const type = MIME_TYPES[ext] ?? 'application/octet-stream'
 

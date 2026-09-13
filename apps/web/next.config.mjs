@@ -10,16 +10,18 @@ const isVercel = !!process.env.VERCEL
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // `standalone` is for Docker/self-hosted. Vercel manages its own output, so disable there.
-  // Windows cannot create the symlinks Next.js builds inside `.next/standalone` without
-  // Developer Mode / admin rights (EPERM), so also skip the standalone output there.
-  ...(isVercel || process.platform === 'win32' ? {} : { output: 'standalone' }),
+  // `standalone` output is only needed when self-hosting via `node .next/standalone/server.js`
+  // (e.g. Docker). For `next start` (PM2/VPS) keep it off — otherwise `next start` emits
+  // "does not work with output: standalone" and you must copy static/public assets manually.
+  // Opt in with NEXT_OUTPUT_STANDALONE=1 if you later move to Docker.
+  ...(isVercel || process.env.NEXT_OUTPUT_STANDALONE !== '1' ? {} : { output: 'standalone' }),
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'www.google.com' },
       { protocol: 'https', hostname: 'github.githubassets.com' },
       { protocol: 'https', hostname: 'upload.wikimedia.org' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: 'cdn.endowglobaleducation.com' },
     ],
   },
   experimental: {
@@ -100,7 +102,7 @@ const nextConfig = {
               : "script-src 'self' 'unsafe-inline'",
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
             "font-src 'self' https://fonts.gstatic.com",
-            "img-src 'self' data: blob: https://www.google.com https://github.githubassets.com https://upload.wikimedia.org https://images.unsplash.com https://flagcdn.com",
+            "img-src 'self' data: blob: https://www.google.com https://github.githubassets.com https://upload.wikimedia.org https://images.unsplash.com https://flagcdn.com https://cdn.endowglobaleducation.com",
             "connect-src 'self'",
             "frame-ancestors 'none'",
             "base-uri 'self'",

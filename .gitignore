@@ -38,6 +38,7 @@ venv/
 .env.local
 .env.*
 !.env.example
+!deploy/.env.production.example
 
 # IDE
 .vscode/

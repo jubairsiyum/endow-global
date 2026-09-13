@@ -34,15 +34,24 @@ function parseEnvFile(source) {
 }
 
 function loadRootEnv() {
-  const envPath = path.resolve(__dirname, '.env')
-  if (!fs.existsSync(envPath)) return
+  // Single source of truth: the web app's .env (loaded by Next.js too).
+  // Falls back to the repo root .env for backward compatibility.
+  const candidates = [
+    path.resolve(__dirname, 'apps', 'web', '.env'),
+    path.resolve(__dirname, '.env'),
+  ]
 
-  const parsed = parseEnvFile(fs.readFileSync(envPath, 'utf8'))
+  for (const envPath of candidates) {
+    if (!fs.existsSync(envPath)) continue
 
-  for (const [key, value] of Object.entries(parsed)) {
-    if (process.env[key] === undefined) {
-      process.env[key] = value
+    const parsed = parseEnvFile(fs.readFileSync(envPath, 'utf8'))
+
+    for (const [key, value] of Object.entries(parsed)) {
+      if (process.env[key] === undefined) {
+        process.env[key] = value
+      }
     }
+    return
   }
 }
 
