@@ -7,7 +7,7 @@ build/
 target/
 out/
 next-env.d.ts
-
+*.md
 # Next.js
 .next/
 *.tsbuildinfo
