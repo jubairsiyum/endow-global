@@ -12,6 +12,10 @@ import Spinner from '@/components/ui/Spinner'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc-client'
 
+function normalizeEmail(value: string): string {
+  return value.trim().toLowerCase()
+}
+
 function InputField({
   icon: Icon,
   label,
@@ -111,25 +115,28 @@ export default function SignInForm() {
   }
 
   const sendOtp = useCallback(async () => {
-    if (!email) { toast.error('Please enter your email'); return }
+    const normalizedEmail = normalizeEmail(email)
+    if (!normalizedEmail) { toast.error('Please enter your email'); return }
     setIsLoading(true)
     try {
-      const { exists } = await checkEmailExists.mutateAsync({ email })
+      const { exists } = await checkEmailExists.mutateAsync({ email: normalizedEmail })
       if (!exists) {
         toast.error('No account found with this email. Please create one first.')
         return
       }
       const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email,
+        email: normalizedEmail,
         type: 'sign-in',
       })
       if (error) { toast.error(error.message || 'Failed to send OTP'); return }
+      setEmail(normalizedEmail)
       setOtp(['', '', '', '', '', ''])
       toast.success('Verification code sent to your email')
       setSlideDir(1)
       setOtpStep('code')
       setResendTimer(60)
-    } catch {
+    } catch (error) {
+      console.error('[auth] Failed to send sign-in OTP:', error)
       toast.error('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)
@@ -139,10 +146,12 @@ export default function SignInForm() {
   const verifyOtp = useCallback(async () => {
     const code = otp.join('')
     if (code.length !== 6) { toast.error('Please enter the 6-digit code'); return }
+    const normalizedEmail = normalizeEmail(email)
+    if (!normalizedEmail) { toast.error('Please enter your email'); return }
     setIsLoading(true)
     try {
       const result = await authClient.signIn.emailOtp({
-        email,
+        email: normalizedEmail,
         otp: code,
       })
       if (result.error) {
@@ -163,7 +172,8 @@ export default function SignInForm() {
       } catch {
         router.push('/dashboard')
       }
-    } catch {
+    } catch (error) {
+      console.error('[auth] Failed to verify sign-in OTP:', error)
       toast.error('Something went wrong. Please try again.')
     } finally {
       setIsLoading(false)

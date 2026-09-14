@@ -25,10 +25,10 @@ function isValidPhone(value: string): boolean {
 
 export const userRouter = createTRPCRouter({
   checkEmailExists: publicProcedure
-    .input(z.object({ email: z.string().email() }))
+    .input(z.object({ email: z.string().trim().toLowerCase().email() }))
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.db.query.users.findFirst({
-        where: (u, { eq }) => eq(u.email, input.email.trim().toLowerCase()),
+        where: (u, { eq }) => eq(u.email, input.email),
       })
       return { exists: Boolean(user) }
     }),
