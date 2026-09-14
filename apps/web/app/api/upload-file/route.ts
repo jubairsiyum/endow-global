@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db, schema } from '@/lib/db'
 import { eq as _eq } from 'drizzle-orm'
-import { uploadBuffer, getCDNUrl } from '@/lib/s3'
+import { getLocalFileUrl, writeLocalFile } from '@/lib/local-storage'
 
 const eq = _eq as any
 
@@ -23,8 +23,8 @@ const VALID_FILENAME = /^[a-zA-Z0-9._-]+$/
 
 // Private documents (student uploads) live under the `private/` prefix and are
 // only served through the authenticated /api/files/<ref> route. Public
-// resources (brochures etc.) live under `public/uploads/` and are served
-// directly from the CDN.
+// resources (brochures etc.) live under `public/uploads/` and are served by the
+// local file route.
 const PUBLIC_PREFIX = 'public/uploads'
 const PRIVATE_PREFIX = 'private'
 
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid filename' }, { status: 400 })
       }
 
-      await uploadBuffer(`${PRIVATE_PREFIX}/${filename}`, buffer, ALLOWED_TYPES[ext])
+       await writeLocalFile(`${PRIVATE_PREFIX}/${filename}`, buffer)
 
       return NextResponse.json({
         url: `/api/files/${filename}`,
@@ -84,10 +84,10 @@ export async function POST(req: NextRequest) {
 
     // Public upload (resources / brochures)
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
-    await uploadBuffer(`${PUBLIC_PREFIX}/${filename}`, buffer, ALLOWED_TYPES[ext])
+    await writeLocalFile(`${PUBLIC_PREFIX}/${filename}`, buffer)
 
     return NextResponse.json({
-      url: getCDNUrl(`${PUBLIC_PREFIX}/${filename}`),
+      url: getLocalFileUrl(`${PUBLIC_PREFIX}/${filename}`),
       name: file.name,
       size: file.size,
       type: file.type || ALLOWED_TYPES[ext],

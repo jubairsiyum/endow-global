@@ -6,6 +6,7 @@ dist/
 build/
 target/
 out/
+apps/web/storage/
 next-env.d.ts
 *.md
 # Next.js

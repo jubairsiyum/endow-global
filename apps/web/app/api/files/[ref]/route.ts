@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { db, schema } from '@/lib/db'
 import { or as _or, eq as _eq } from 'drizzle-orm'
-import { getObjectBuffer } from '@/lib/s3'
+import { readLocalFile } from '@/lib/local-storage'
 
 const or = _or as any
 const eq = _eq as any
@@ -86,8 +86,8 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
       }
     }
 
-    // Resolve the object: current private prefix first, then the legacy public
-    // prefix for rows that have not been migrated yet.
+    // Resolve the local file: current private prefix first, then the legacy
+    // public prefix for rows that have not been migrated yet.
     const candidates = [
       `${PRIVATE_PREFIX}/${ref}`,
       `${LEGACY_PUBLIC_PREFIX}/${ref}`,
@@ -96,7 +96,7 @@ export async function GET(request: NextRequest, { params }: { params: Params }) 
     let data: Uint8Array | null = null
     for (const key of candidates) {
       try {
-        data = await getObjectBuffer(key)
+        data = await readLocalFile(key)
         break
       } catch {
         // keep searching
