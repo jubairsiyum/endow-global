@@ -72,6 +72,8 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3000',
     'https://egev2.vercel.app',
+    'https://endowglobaledu.com',
+    'https://www.endowglobaledu.com',
     process.env.BETTER_AUTH_URL,
     process.env.NEXT_PUBLIC_APP_URL,
     process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
