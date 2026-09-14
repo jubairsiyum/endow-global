@@ -37,6 +37,10 @@ export const metadata: Metadata = {
   description:
     'Your trusted partner for international education. Find the perfect university, get AI-powered course matching, and expert counselor support.',
 
+  icons: {
+    icon: '/endoedu.png',
+  },
+
   keywords: [
     'study abroad',
     'university application',
