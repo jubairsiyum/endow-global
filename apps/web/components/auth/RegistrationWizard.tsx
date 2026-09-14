@@ -10,7 +10,7 @@ import { Mail, LockKeyhole, Eye, EyeOff, ArrowRight, ArrowLeft, Check, User, Pho
 import Spinner from '@/components/ui/Spinner'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc-client'
-import SocialButtons from './SocialButtons'
+import OtpInput from './OtpInput'
 
 const STEPS = ['email', 'otp', 'profile', 'study'] as const
 type Step = (typeof STEPS)[number]
@@ -174,25 +174,6 @@ export default function RegistrationWizard() {
     }
   }, [name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
 
-  const handleOtpInput = (index: number, value: string) => {
-    if (value.length > 1) value = value.slice(-1)
-    if (value && !/^\d$/.test(value)) return
-    const newOtp = [...otp]
-    newOtp[index] = value
-    setOtp(newOtp)
-    if (value && index < 5) {
-      const next = document.querySelector(`input[name="otp-${index + 1}"]`) as HTMLInputElement
-      next?.focus()
-    }
-  }
-
-  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !otp[index] && index > 0) {
-      const prev = document.querySelector(`input[name="otp-${index - 1}"]`) as HTMLInputElement
-      prev?.focus()
-    }
-  }
-
   const stepIndex = STEPS.indexOf(step)
 
   const selectClass =
@@ -339,13 +320,7 @@ export default function RegistrationWizard() {
                   {isLoading ? 'Sending...' : 'Continue'}
                 </button>
 
-                <div className="my-5 flex items-center gap-3">
-                  <div className="h-px flex-1 bg-slate-200" />
-                  <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">or</span>
-                  <div className="h-px flex-1 bg-slate-200" />
-                </div>
-
-                <SocialButtons />
+                {/* Google sign-in is temporarily disabled. */}
 
                 <p className="mt-5 text-center text-sm text-slate-500">
                   Already have an account?{' '}
@@ -375,21 +350,7 @@ export default function RegistrationWizard() {
                   <span className="font-semibold text-slate-900">{email}</span>
                 </p>
 
-                <div className="mt-7 flex justify-center gap-2.5 sm:gap-3">
-                  {otp.map((digit, i) => (
-                    <input
-                      key={i}
-                      name={`otp-${i}`}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={digit}
-                      onChange={(e) => handleOtpInput(i, e.target.value)}
-                      onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                      className="h-13 w-11 rounded-xl border border-slate-200 bg-white text-center text-lg font-bold text-slate-900 shadow-sm outline-none transition-all focus:border-red-400 focus:ring-2 focus:ring-red-100 sm:h-14 sm:w-12"
-                    />
-                  ))}
-                </div>
+                <OtpInput value={otp} onChange={setOtp} disabled={isLoading} />
 
                 <button
                   type="button"

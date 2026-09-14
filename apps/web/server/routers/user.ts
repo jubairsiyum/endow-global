@@ -1,4 +1,4 @@
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/lib/trpc'
+import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
 import { eq as _eq, and as _and, ne as _ne } from 'drizzle-orm'
 const eq = _eq as any
@@ -24,15 +24,6 @@ function isValidPhone(value: string): boolean {
 }
 
 export const userRouter = createTRPCRouter({
-  checkEmailExists: publicProcedure
-    .input(z.object({ email: z.string().trim().toLowerCase().email() }))
-    .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db.query.users.findFirst({
-        where: (u, { eq }) => eq(u.email, input.email),
-      })
-      return { exists: Boolean(user) }
-    }),
-
   getProfile: protectedProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db
       .select({ user: schema.users, studentProfile: schema.studentProfiles })

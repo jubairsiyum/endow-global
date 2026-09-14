@@ -1,15 +1,24 @@
 import { getTransporter } from './nodemailer'
 
+type EmailAttachment = {
+  filename: string
+  content: string | Buffer
+  cid?: string
+  contentType?: string
+}
+
 export async function sendEmail({
   to,
   subject,
   text,
   html,
+  attachments,
 }: {
   to: string | string[]
   subject: string
   text?: string
   html?: string
+  attachments?: EmailAttachment[]
 }) {
   const from = process.env.SMTP_FROM || process.env.SMTP_USER
   if (!from) throw new Error('SMTP_FROM or SMTP_USER is not set')
@@ -23,6 +32,7 @@ export async function sendEmail({
     subject,
     text,
     html,
+    attachments,
   })
   console.log('[email] Sent successfully:', result.messageId)
   return result
