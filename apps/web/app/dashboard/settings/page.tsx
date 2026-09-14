@@ -407,7 +407,7 @@ function SettingsContent() {
       setImage(data.url)
       setImagePreview(data.url)
       await updateOwnProfile.mutateAsync({ image: data.url })
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       utils.user.getProfile.invalidate()
       toast.success('Profile photo updated')
     } catch (err: any) {
@@ -423,7 +423,7 @@ function SettingsContent() {
     setImagePreview(null)
     try {
       await updateOwnProfile.mutateAsync({ image: null })
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       utils.user.getProfile.invalidate()
       toast.success('Profile photo removed')
     } catch {
@@ -526,7 +526,7 @@ function SettingsContent() {
       if (newName && newName !== (session?.user?.name || '')) {
         try {
           await authClient.updateUser({ name: newName })
-          await refetchSession()
+          await refetchSession({ query: { disableCookieCache: true } })
         } catch {
           // The profile is already saved; the session will refresh on its own
           // (better-auth re-issues the cookie) even if this call fails.

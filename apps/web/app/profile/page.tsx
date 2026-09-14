@@ -83,7 +83,7 @@ export default function ProfilePage() {
       await updateOwnProfile.mutateAsync({ image: data.url })
       setImage(data.url)
       setPreview(data.url)
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       propagate()
       toast.success('Photo updated')
     } catch (err: any) {
@@ -99,7 +99,7 @@ export default function ProfilePage() {
       await updateOwnProfile.mutateAsync({ image: null })
       setImage(null)
       setPreview(null)
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       propagate()
       toast.success('Photo removed')
     } catch (err: any) {
@@ -119,7 +119,7 @@ export default function ProfilePage() {
       // updateUser re-issues the session cookie so the name updates everywhere.
       const { error } = await authClient.updateUser({ name: trimmed })
       if (error) throw new Error(error.message || 'Failed to update name')
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       propagate()
       toast.success('Name updated')
     } catch (err: any) {

@@ -218,7 +218,7 @@ function CounselorSettingsContent() {
       setImage(data.url)
       setImagePreview(data.url)
       await updateProfile.mutateAsync({ image: data.url } as any)
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       utils.counselor.getProfile.invalidate()
       toast.success('Profile photo updated')
     } catch (err: any) {
@@ -234,7 +234,7 @@ function CounselorSettingsContent() {
     setImagePreview(null)
     try {
       await updateProfile.mutateAsync({ image: null } as any)
-      await refetchSession()
+      await refetchSession({ query: { disableCookieCache: true } })
       utils.counselor.getProfile.invalidate()
       toast.success('Profile photo removed')
     } catch {
@@ -254,7 +254,7 @@ function CounselorSettingsContent() {
       if (name.trim() && name.trim() !== (session?.user?.name || '')) {
         try {
           await authClient.updateUser({ name: name.trim() })
-          await refetchSession()
+          await refetchSession({ query: { disableCookieCache: true } })
         } catch {}
       }
       await utils.counselor.getProfile.invalidate()
