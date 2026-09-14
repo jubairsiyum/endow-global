@@ -31,7 +31,7 @@ async function seedUserWithCredentials(
       email,
       name,
       role,
-      emailVerified: new Date(),
+      emailVerified: true,
     })
 
     const accountId = globalThis.crypto.randomUUID()
