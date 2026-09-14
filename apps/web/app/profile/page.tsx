@@ -22,6 +22,7 @@ const ROLE_META: Record<string, { label: string; cls: string }> = {
 export default function ProfilePage() {
   const router = useRouter()
   const utils = trpc.useUtils()
+  const updateOwnProfile = trpc.user.updateOwnProfile.useMutation()
   const { data: session, isPending: sessionLoading, refetch: refetchSession } = useSession()
 
   const [name, setName] = useState('')
@@ -79,8 +80,7 @@ export default function ProfilePage() {
       if (!res.ok) throw new Error(data.error || 'Upload failed')
       // Auth update persists to `users.image` AND re-issues the session cookie,
       // so the fresh image reaches every consumer (navbar, shells, sidebar).
-      const { error } = await authClient.updateUser({ image: data.url })
-      if (error) throw new Error(error.message || 'Failed to save photo')
+      await updateOwnProfile.mutateAsync({ image: data.url })
       setImage(data.url)
       setPreview(data.url)
       await refetchSession()
@@ -96,8 +96,7 @@ export default function ProfilePage() {
 
   async function removeImage() {
     try {
-      const { error } = await authClient.updateUser({ image: null })
-      if (error) throw new Error(error.message || 'Failed to remove photo')
+      await updateOwnProfile.mutateAsync({ image: null })
       setImage(null)
       setPreview(null)
       await refetchSession()

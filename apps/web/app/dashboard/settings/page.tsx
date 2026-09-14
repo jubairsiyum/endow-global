@@ -339,6 +339,7 @@ function SettingsContent() {
   const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery()
   const { data: universityCountries } = trpc.university.countries.useQuery(undefined, { staleTime: Infinity })
   const updateProfile = trpc.user.updateProfile.useMutation()
+  const updateOwnProfile = trpc.user.updateOwnProfile.useMutation()
   const setPassword = trpc.user.setPassword.useMutation()
   const utils = trpc.useUtils()
 
@@ -405,7 +406,7 @@ function SettingsContent() {
       if (!res.ok) throw new Error(data.error || 'Upload failed')
       setImage(data.url)
       setImagePreview(data.url)
-      await updateProfile.mutateAsync({ image: data.url })
+      await updateOwnProfile.mutateAsync({ image: data.url })
       await refetchSession()
       utils.user.getProfile.invalidate()
       toast.success('Profile photo updated')
@@ -421,7 +422,7 @@ function SettingsContent() {
     setImage(null)
     setImagePreview(null)
     try {
-      await updateProfile.mutateAsync({ image: '' })
+      await updateOwnProfile.mutateAsync({ image: null })
       await refetchSession()
       utils.user.getProfile.invalidate()
       toast.success('Profile photo removed')
