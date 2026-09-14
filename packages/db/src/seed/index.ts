@@ -1,3 +1,4 @@
+import '../../../../env-loader.cjs'
 import { db, schema } from '../..'
 import { eq } from 'drizzle-orm'
 import { hash } from 'bcryptjs'
