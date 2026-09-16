@@ -19,10 +19,7 @@ import {
   DOCUMENT_REQUIREMENTS,
   requirementKey,
 } from '@/lib/documents'
-import { notifySessionBooked } from '@/lib/notify'
-import { generateMeetingUrl } from '@/lib/meeting'
-import { autoAssignCounselor } from '@/lib/counselor-assignment'
-import { createInAppNotification } from '@/lib/in-app-notifications'
+import { createBooking } from '@/lib/booking'
 
 const eq = _eq as any
 const and = _and as any
@@ -61,8 +58,6 @@ function groupByCourse<T extends { courseId: string | null }>(rows: T[]) {
 // Appointment validation helpers
 // ─────────────────────────────────────────────────────────────
 
-const MIN_SESSION_DURATION = 15
-const MAX_SESSION_DURATION = 120
 const MIN_LEAD_MINUTES = 30
 
 function normalizeScheduledAt(value: string | Date): Date {
@@ -79,25 +74,6 @@ function assertLeadTime(date: Date) {
   if (date.getTime() < Date.now() + MIN_LEAD_MINUTES * 60 * 1000) {
     throw new Error(`Bookings must be made at least ${MIN_LEAD_MINUTES} minutes in advance`)
   }
-}
-
-async function getCounselor(ctx: any, counselorId: string) {
-  const [counselor] = await ctx.db
-    .select({
-      id: schema.counselorProfiles.id,
-      name: schema.users.name,
-      isAvailable: schema.counselorProfiles.isAvailable,
-    })
-    .from(schema.counselorProfiles)
-    .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
-    .where(eq(schema.counselorProfiles.id, counselorId))
-    .limit(1)
-  return counselor ?? null
-}
-
-function assertCounselorAvailable(counselor: any) {
-  if (!counselor) throw new Error('Counselor not found')
-  if (!counselor.isAvailable) throw new Error('This counselor is not currently available')
 }
 
 // Reject any overlapping SCHEDULED session for the same student or the same
@@ -135,13 +111,6 @@ async function assertNoConflict(ctx: any, { studentId, counselorId, scheduledAt,
   if (conflict) {
     if (conflict.studentId === studentId) throw new Error('You already have an overlapping session at this time')
     throw new Error('This counselor already has a session at that time')
-  }
-}
-
-function assertDuration(duration: number) {
-  if (!Number.isFinite(duration)) throw new Error('Invalid session duration')
-  if (duration < MIN_SESSION_DURATION || duration > MAX_SESSION_DURATION) {
-    throw new Error(`Session duration must be between ${MIN_SESSION_DURATION} and ${MAX_SESSION_DURATION} minutes`)
   }
 }
 
@@ -692,101 +661,28 @@ export const dashboardRouter = createTRPCRouter({
         const studentId = user?.studentProfile?.id
         if (!studentId) throw new Error('No student profile found')
 
-        // ── Counselor must be the student's assigned counselor ──
-        let assignedCounselorId = (user as any)?.studentProfile?.assignedCounselorId as string | null | undefined
-        // Lazy assign if the student slipped through registration without a counselor (e.g. no counselors at signup)
-        if (!assignedCounselorId) {
-          const fallbackId = await autoAssignCounselor(ctx.db, schema)
-          if (!fallbackId) {
-            throw new Error('No counselor assigned to you yet. Please contact support.')
-          }
-          await ctx.db
-            .update(schema.studentProfiles)
-            .set({ assignedCounselorId: fallbackId })
-            .where(eq(schema.studentProfiles.id, studentId))
-          // Best-effort notify the newly assigned counselor (fire-and-forget)
-          try {
-            const { notifyCounselorNewStudent } = await import('@/lib/notify')
-            await notifyCounselorNewStudent(ctx.db, schema, {
-              counselorId: fallbackId,
-              studentName: (ctx.session.user as any).name || user?.name || 'Student',
-              studentEmail: (ctx.session.user as any).email || '',
-            })
-          } catch {}
-          assignedCounselorId = fallbackId
-        }
-        if (input.counselorId !== assignedCounselorId) {
-          throw new Error('You can only book appointments with your assigned counselor.')
-        }
-
-        assertDuration(input.duration)
-        const scheduledAt = normalizeScheduledAt(input.scheduledAt)
-        assertFutureDate(scheduledAt)
-        assertLeadTime(scheduledAt)
-
-        const counselor = await getCounselor(ctx, input.counselorId)
-        assertCounselorAvailable(counselor)
-        await assertNoConflict(ctx, { studentId, counselorId: input.counselorId, scheduledAt, duration: input.duration })
-
-        // Generate a unique meeting URL for this session (Jitsi fallback; Google Meet if configured)
-        const bookingId = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 25)
-        const meetingUrl = generateMeetingUrl(bookingId)
-
-        await ctx.db.insert(schema.bookingSessions).values({
-          id: bookingId,
-          studentId,
+        const result = await createBooking({
+          db: ctx.db,
+          student: {
+            userId: ctx.session.user.id,
+            profileId: studentId,
+            name: (ctx.session.user as any).name || user?.name || 'Student',
+            email: (ctx.session.user as any).email || '',
+            phone: (user?.studentProfile as any)?.phone,
+            assignedCounselorId: (user?.studentProfile as any)?.assignedCounselorId,
+          },
           counselorId: input.counselorId,
-          scheduledAt,
+          scheduledAt: input.scheduledAt,
           duration: input.duration,
-          notes: input.notes ?? null,
-          status: 'SCHEDULED',
-          meetingUrl,
+          notes: input.notes,
         })
 
-        const counselorUser = await ctx.db
-          .select({ userId: schema.counselorProfiles.userId })
-          .from(schema.counselorProfiles)
-          .where(eq(schema.counselorProfiles.id, input.counselorId))
-          .limit(1)
-
-        try {
-          await Promise.all([
-            createInAppNotification(ctx.db, schema, {
-              userId: ctx.session.user.id,
-              type: 'SYSTEM',
-              title: 'Session booked',
-              body: `Your counseling session is scheduled for ${scheduledAt.toLocaleString()}.`,
-              data: { bookingId },
-            }),
-            counselorUser[0]?.userId
-              ? createInAppNotification(ctx.db, schema, {
-                  userId: counselorUser[0].userId,
-                  type: 'SYSTEM',
-                  title: 'New session booked',
-                  body: `${(ctx.session.user as any).name || 'A student'} booked a counseling session.`,
-                  data: { bookingId },
-                })
-              : Promise.resolve(),
-          ])
-        } catch (error) {
-          console.error('[notification] Failed to create booking notifications:', error)
+        return {
+          success: true,
+          id: result.booking.id,
+          meetingUrl: result.booking.meetingUrl,
+          emailNotification: result.emailNotification,
         }
-
-        // Best-effort: notify counselor + student via SMTP with meeting link
-        try {
-          await notifySessionBooked(ctx.db, schema, {
-            counselorId: input.counselorId,
-            studentEmail: (ctx.session.user as any).email,
-            studentName: (ctx.session.user as any).name || user?.name || 'Student',
-            scheduledAt,
-            duration: input.duration,
-            meetingUrl,
-          })
-        } catch (err) {
-          console.error('[booking] Failed to send session notification emails:', err)
-        }
-
-        return { success: true, id: bookingId, meetingUrl }
       }),
     reschedule: protectedProcedure
       .input(

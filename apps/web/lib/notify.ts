@@ -91,9 +91,10 @@ export async function notifySessionBooked(
     duration: number
     meetingUrl?: string | null
   }
-) {
+): Promise<{ counselorSent: boolean; studentSent: boolean }> {
   const counselor = await resolveCounselorEmail(db, schema, opts.counselorId)
-  if (!counselor?.email) return
+  const result = { counselorSent: false, studentSent: false }
+  if (!counselor?.email && !opts.studentEmail) return result
 
   const when = new Date(opts.scheduledAt)
   const dateStr = when.toLocaleString('en-US', { dateStyle: 'full', timeStyle: 'short' })
@@ -112,31 +113,49 @@ export async function notifySessionBooked(
     ...meetingDetails,
   ]
 
-  // Counselor notification
-  await sendEmail({
-    to: counselor.email,
-    subject: `Session booked: ${dateStr} — Endow Global`,
-    text: `A student ${opts.studentName || ''} booked a ${opts.duration} minute session with you on ${dateStr}.${opts.meetingUrl ? ` Meeting link: ${opts.meetingUrl}` : ''}`,
-    html: layout({
-      eyebrow: 'Session Booked',
-      heading: 'You have a new session',
-      body: `${opts.studentName || 'Your student'} has booked a session with you. Here are the details:`,
-      details: sessionInfo,
-      cta: { label: 'Open your calendar', url: 'https://endowglobaledu.com/counselor/sessions' },
-    }),
-  })
+  const deliveries: Promise<unknown>[] = []
+  let counselorDeliveryIndex = -1
+  let studentDeliveryIndex = -1
+  if (counselor?.email) {
+    counselorDeliveryIndex = deliveries.length
+    deliveries.push(
+      sendEmail({
+        to: counselor.email,
+        subject: `Session booked: ${dateStr} — Endow Global`,
+        text: `A student ${opts.studentName || ''} booked a ${opts.duration} minute session with you on ${dateStr}.${opts.meetingUrl ? ` Meeting link: ${opts.meetingUrl}` : ''}`,
+        html: layout({
+          eyebrow: 'Session Booked',
+          heading: 'You have a new session',
+          body: `${opts.studentName || 'Your student'} has booked a session with you. Here are the details:`,
+          details: sessionInfo,
+          cta: { label: 'Open your calendar', url: 'https://endowglobaledu.com/counselor/sessions' },
+        }),
+      })
+    )
+  }
+  if (opts.studentEmail) {
+    studentDeliveryIndex = deliveries.length
+    deliveries.push(
+      sendEmail({
+        to: opts.studentEmail,
+        subject: `Your session is confirmed: ${dateStr} — Endow Global`,
+        text: `Your ${opts.duration} minute session with ${counselor?.name || 'your counselor'} is confirmed for ${dateStr}.${opts.meetingUrl ? ` Meeting link: ${opts.meetingUrl}` : ''}`,
+        html: layout({
+          eyebrow: 'Session Confirmed',
+          heading: 'Your session is booked',
+          body: `Your session with ${counselor?.name || 'your counselor'} is confirmed.`,
+          details: sessionInfo,
+          cta: { label: 'View appointments', url: 'https://endowglobaledu.com/dashboard/appointments' },
+        }),
+      })
+    )
+  }
 
-  // Student confirmation
-  await sendEmail({
-    to: opts.studentEmail,
-    subject: `Your session is confirmed: ${dateStr} — Endow Global`,
-    text: `Your ${opts.duration} minute session with ${counselor.name || 'your counselor'} is confirmed for ${dateStr}.${opts.meetingUrl ? ` Meeting link: ${opts.meetingUrl}` : ''}`,
-    html: layout({
-      eyebrow: 'Session Confirmed',
-      heading: 'Your session is booked',
-      body: `Your session with ${counselor.name || 'your counselor'} is confirmed.`,
-      details: sessionInfo,
-      cta: { label: 'View appointments', url: 'https://endowglobaledu.com/dashboard/appointments' },
-    }),
-  })
+  const results = await Promise.allSettled(deliveries)
+  result.counselorSent = counselorDeliveryIndex >= 0 && results[counselorDeliveryIndex]?.status === 'fulfilled'
+  result.studentSent = studentDeliveryIndex >= 0 && results[studentDeliveryIndex]?.status === 'fulfilled'
+  for (const delivery of results) {
+    if (delivery.status === 'rejected') console.error('[email] Session notification delivery failed:', delivery.reason)
+  }
+  return result
 }

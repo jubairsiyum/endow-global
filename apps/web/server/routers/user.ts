@@ -7,6 +7,7 @@ const ne = _ne as any
 import { z } from 'zod'
 import { hash as bcryptHash } from 'bcryptjs'
 import { autoAssignCounselor } from '@/lib/counselor-assignment'
+import { notifyCounselorNewStudent } from '@/lib/notify'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -118,9 +119,14 @@ export const userRouter = createTRPCRouter({
       })
 
       if (existing) {
+        let assignedCounselorId = existing.assignedCounselorId
+        if (!assignedCounselorId) {
+          assignedCounselorId = await autoAssignCounselor(ctx.db, schema)
+        }
         await ctx.db
           .update(schema.studentProfiles)
           .set({
+            ...(assignedCounselorId && { assignedCounselorId }),
             ...(input.nationality !== undefined && { nationality: input.nationality }),
             ...(input.countryOfResidence !== undefined && { countryOfResidence: input.countryOfResidence }),
             ...(input.phone !== undefined && { phone: input.phone }),
@@ -136,6 +142,18 @@ export const userRouter = createTRPCRouter({
             ...(input.preferredIntakeMonth !== undefined && { preferredIntakeMonth: input.preferredIntakeMonth }),
           })
           .where(eq(schema.studentProfiles.userId, userId))
+        if (!existing.assignedCounselorId && assignedCounselorId) {
+          try {
+            await notifyCounselorNewStudent(ctx.db, schema, {
+              counselorId: assignedCounselorId,
+              studentName: input.name || ctx.session.user.name || 'New student',
+              studentEmail: ctx.session.user.email,
+              studentPhone: input.phone,
+            })
+          } catch (error) {
+            console.error('[assignment] Failed to notify counselor:', error)
+          }
+        }
       } else {
         // Profile doesn't exist yet (e.g. a user who registered before
         // auto-assignment, or an edge case) — create it and auto-assign a
@@ -158,6 +176,18 @@ export const userRouter = createTRPCRouter({
           preferredIntakeYear: input.preferredIntakeYear,
           preferredIntakeMonth: input.preferredIntakeMonth,
         })
+        if (assignedCounselorId) {
+          try {
+            await notifyCounselorNewStudent(ctx.db, schema, {
+              counselorId: assignedCounselorId,
+              studentName: input.name || ctx.session.user.name || 'New student',
+              studentEmail: ctx.session.user.email,
+              studentPhone: input.phone,
+            })
+          } catch (error) {
+            console.error('[assignment] Failed to notify counselor:', error)
+          }
+        }
       }
 
       return { success: true }
