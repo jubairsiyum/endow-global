@@ -34,19 +34,26 @@ export async function GET(request: Request) {
   const url = new URL(request.url)
   const { limit, offset } = parsePagination(url)
   const studentId = url.searchParams.get('studentId')?.trim()
+  const counselorEmail = url.searchParams.get('counselorEmail')?.trim().toLowerCase()
   const status = url.searchParams.get('status')
   const fromValue = url.searchParams.get('from')
   const toValue = url.searchParams.get('to')
   const from = fromValue ? new Date(fromValue) : null
   const to = toValue ? new Date(toValue) : null
+  const updatedSinceValue = url.searchParams.get('updatedSince')
+  const updatedSince = updatedSinceValue ? new Date(updatedSinceValue) : null
   if ((fromValue && (!from || Number.isNaN(from.getTime()))) || (toValue && (!to || Number.isNaN(to.getTime())))) {
     return NextResponse.json({ error: 'from and to must be valid ISO dates' }, { status: 400 })
+  }
+  if (updatedSinceValue && (!updatedSince || Number.isNaN(updatedSince.getTime()))) {
+    return NextResponse.json({ error: 'updatedSince must be a valid ISO date' }, { status: 400 })
   }
 
   const studentUser = alias(schema.users as any, 'external_student_user') as any
   const counselorUser = alias(schema.users as any, 'external_meeting_counselor_user') as any
   const conditions: any[] = []
   if (studentId) conditions.push(or(eq(schema.bookingSessions.studentId, studentId), eq(studentUser.id, studentId)))
+  if (counselorEmail) conditions.push(eq(counselorUser.email, counselorEmail))
   if (status) {
     if (!['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(status)) {
       return NextResponse.json({ error: 'Invalid meeting status' }, { status: 400 })
@@ -55,6 +62,7 @@ export async function GET(request: Request) {
   }
   if (from) conditions.push(gte(schema.bookingSessions.scheduledAt, from))
   if (to) conditions.push(lte(schema.bookingSessions.scheduledAt, to))
+  if (updatedSince) conditions.push(gte(schema.bookingSessions.updatedAt, updatedSince))
 
   const rows = await db
     .select({
@@ -63,6 +71,8 @@ export async function GET(request: Request) {
       studentId: schema.bookingSessions.studentId,
       studentName: studentUser.name,
       studentEmail: studentUser.email,
+      studentPhone: schema.studentProfiles.phone,
+      studentNationality: schema.studentProfiles.nationality,
       counselorId: schema.bookingSessions.counselorId,
       counselorName: counselorUser.name,
       counselorEmail: counselorUser.email,
@@ -80,7 +90,7 @@ export async function GET(request: Request) {
     .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
     .leftJoin(counselorUser, eq(counselorUser.id, schema.counselorProfiles.userId))
     .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(asc(schema.bookingSessions.scheduledAt))
+    .orderBy(asc(schema.bookingSessions.scheduledAt), asc(schema.bookingSessions.id))
     .limit(limit)
     .offset(offset)
 

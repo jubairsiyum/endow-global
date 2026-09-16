@@ -209,6 +209,11 @@ RBAC is enforced at three layers:
 | `/api/search` | `GET` | Typesense full-text search |
 | `/api/webhooks/cal` | `POST` | Cal.com webhook |
 | `/api/webhooks/stripe` | `POST` | Stripe webhook |
+| `/api/external/students` | `GET` | Authenticated counselor student synchronization feed |
+| `/api/external/applications` | `GET` | Authenticated counselor application synchronization feed |
+| `/api/external/meetings` | `GET` | Authenticated counselor appointment synchronization feed; also supports booking creation |
+
+The external synchronization routes require `Authorization: Bearer <ENDOW_EXTERNAL_API_KEY>` and are intended for the private Endow Education Laravel portal. Use `counselorEmail` to scope a response to one counselor and `limit`/`offset` for pagination.
 
 ---
 

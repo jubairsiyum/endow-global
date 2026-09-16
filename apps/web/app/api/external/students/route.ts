@@ -25,6 +25,7 @@ export async function GET(request: Request) {
   const limit = Math.min(Math.max(integerParam(url.searchParams.get('limit'), 50), 1), 100)
   const offset = integerParam(url.searchParams.get('offset'), 0)
   const email = url.searchParams.get('email')?.trim().toLowerCase()
+  const counselorEmail = url.searchParams.get('counselorEmail')?.trim().toLowerCase()
   const updatedSinceValue = url.searchParams.get('updatedSince')
   const updatedSince = updatedSinceValue ? new Date(updatedSinceValue) : null
   if (updatedSinceValue && (!updatedSince || Number.isNaN(updatedSince.getTime()))) {
@@ -34,6 +35,7 @@ export async function GET(request: Request) {
   const counselorUser = alias(schema.users as any, 'external_counselor_user') as any
   const conditions = [eq(schema.users.role, 'STUDENT')]
   if (email) conditions.push(eq(schema.users.email, email))
+  if (counselorEmail) conditions.push(eq(counselorUser.email, counselorEmail))
   if (updatedSince) conditions.push(or(gte(schema.users.updatedAt, updatedSince), gte(schema.studentProfiles.updatedAt, updatedSince)))
 
   const rows = await db
@@ -50,6 +52,15 @@ export async function GET(request: Request) {
       countryOfResidence: schema.studentProfiles.countryOfResidence,
       targetCountries: schema.studentProfiles.targetCountries,
       targetSubjects: schema.studentProfiles.targetSubjects,
+      budgetMin: schema.studentProfiles.budgetMin,
+      budgetMax: schema.studentProfiles.budgetMax,
+      gpa: schema.studentProfiles.gpa,
+      ieltsScore: schema.studentProfiles.ieltsScore,
+      toeflScore: schema.studentProfiles.toeflScore,
+      satScore: schema.studentProfiles.satScore,
+      greScore: schema.studentProfiles.greScore,
+      preferredIntakeMonth: schema.studentProfiles.preferredIntakeMonth,
+      preferredIntakeYear: schema.studentProfiles.preferredIntakeYear,
       highestEducation: schema.studentProfiles.highestEducation,
       completionPercent: schema.studentProfiles.completionPercent,
       assignedCounselorId: schema.studentProfiles.assignedCounselorId,
@@ -61,7 +72,7 @@ export async function GET(request: Request) {
     .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
     .leftJoin(counselorUser, eq(counselorUser.id, schema.counselorProfiles.userId))
     .where(and(...conditions))
-    .orderBy(schema.users.createdAt)
+    .orderBy(schema.users.createdAt, schema.users.id)
     .limit(limit)
     .offset(offset)
 
