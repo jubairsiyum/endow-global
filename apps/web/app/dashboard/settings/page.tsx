@@ -3,6 +3,9 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import {
   Bell,
   Camera,
@@ -325,6 +328,145 @@ function Toggle({ checked, onChange, label, description }: { checked: boolean; o
   )
 }
 
+const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required'),
+    newPassword: z.string().min(8, 'New password must be at least 8 characters'),
+    confirmPassword: z.string().min(1, 'Please confirm your new password'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: 'New password must be different from current password',
+    path: ['newPassword'],
+  })
+
+type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
+
+function StudentChangePasswordSection() {
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<ChangePasswordFormValues>({
+    resolver: zodResolver(changePasswordSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+  })
+
+  const onSubmit = async (values: ChangePasswordFormValues) => {
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+        revokeOtherSessions: false,
+      })
+      if (error) {
+        toast.error(error.message || 'Failed to update password')
+        return
+      }
+      toast.success('Password updated successfully')
+      reset()
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Could not update your password')
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-6 border-b border-gray-100 pb-6 md:grid-cols-2 dark:border-gray-800">
+      <div className="md:col-span-2">
+        <Field label="Current password" hint="Enter your current account password to authorize the change." error={errors.currentPassword?.message} required>
+          <div className="relative">
+            <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+            <input
+              aria-label="Current password"
+              type={showCurrent ? 'text' : 'password'}
+              {...register('currentPassword')}
+              className={cn(input, 'pl-10 pr-10', errors.currentPassword && 'border-rose-500 focus:border-rose-500')}
+              placeholder="Enter current password"
+            />
+            <button
+              type="button"
+              aria-label={showCurrent ? 'Hide current password' : 'Show current password'}
+              onClick={() => setShowCurrent((visible) => !visible)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 focus-visible:outline-2 focus-visible:outline-rose-600"
+            >
+              {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        </Field>
+      </div>
+
+      <Field label="New password" hint="Use at least 8 characters." error={errors.newPassword?.message} required>
+        <div className="relative">
+          <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+          <input
+            aria-label="New password"
+            type={showNew ? 'text' : 'password'}
+            {...register('newPassword')}
+            className={cn(input, 'pl-10 pr-10', errors.newPassword && 'border-rose-500 focus:border-rose-500')}
+            placeholder="Create a new password"
+          />
+          <button
+            type="button"
+            aria-label={showNew ? 'Hide new password' : 'Show new password'}
+            onClick={() => setShowNew((visible) => !visible)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 focus-visible:outline-2 focus-visible:outline-rose-600"
+          >
+            {showNew ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+      </Field>
+
+      <Field label="Confirm new password" hint="Re-enter your new password." error={errors.confirmPassword?.message} required>
+        <div className="relative">
+          <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+          <input
+            aria-label="Confirm new password"
+            type={showConfirm ? 'text' : 'password'}
+            {...register('confirmPassword')}
+            className={cn(input, 'pl-10 pr-10', errors.confirmPassword && 'border-rose-500 focus:border-rose-500')}
+            placeholder="Repeat your new password"
+          />
+          <button
+            type="button"
+            aria-label={showConfirm ? 'Hide confirm password' : 'Show confirm password'}
+            onClick={() => setShowConfirm((visible) => !visible)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 focus-visible:outline-2 focus-visible:outline-rose-600"
+          >
+            {showConfirm ? <EyeOff size={16} /> : <Eye size={16} />}
+          </button>
+        </div>
+      </Field>
+
+      <div className="md:col-span-2">
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className={cn(btnSecondary)}
+        >
+          {isSubmitting ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-600/30 border-t-rose-600" />
+          ) : (
+            <LockKeyhole size={15} />
+          )}
+          {isSubmitting ? 'Updating...' : 'Update password'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
 export default function SettingsPage() {
   return (
     <Suspense fallback={<DashboardLoading rows={5} className="mx-auto max-w-[1200px]" />}>
@@ -340,7 +482,6 @@ function SettingsContent() {
   const { data: universityCountries } = trpc.university.countries.useQuery(undefined, { staleTime: Infinity })
   const updateProfile = trpc.user.updateProfile.useMutation()
   const updateOwnProfile = trpc.user.updateOwnProfile.useMutation()
-  const setPassword = trpc.user.setPassword.useMutation()
   const utils = trpc.useUtils()
 
   const tabParam = searchParams.get('tab')
@@ -377,9 +518,6 @@ function SettingsContent() {
   const [countrySearch, setCountrySearch] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [errors, setErrors] = useState<Errors>({})
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
   const [copied, setCopied] = useState(false)
   const [preferences, setPreferences] = useState({ updates: true, recommendations: false })
 
@@ -544,19 +682,6 @@ function SettingsContent() {
     }
   }, [activeTab, country, education, image, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
 
-  async function changePassword(event: React.FormEvent) {
-    event.preventDefault()
-    if (newPassword.length < 8) return toast.error('Password must be at least 8 characters')
-    if (newPassword !== confirmPassword) return toast.error('Passwords do not match')
-    try {
-      await setPassword.mutateAsync({ password: newPassword })
-      setNewPassword('')
-      setConfirmPassword('')
-      toast.success('Password updated')
-    } catch (error: any) {
-      toast.error(error.message || 'Could not update your password')
-    }
-  }
 
   function togglePreference(key: keyof typeof preferences, value: boolean) {
     const next = { ...preferences, [key]: value }
@@ -672,7 +797,7 @@ function SettingsContent() {
 
           <div className={`${studentPanel} p-4 text-xs text-gray-500 dark:text-gray-400`}>
             <p className="truncate">{session?.user?.email}</p>
-            <button type="button" onClick={() => toast.info('Use the dashboard menu to sign out')} className="mt-3 inline-flex items-center gap-1.5 font-semibold text-gray-600 transition-colors hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-300">
+            <button type="button" onClick={() => selectTab('security')} className="mt-3 inline-flex items-center gap-1.5 font-semibold text-gray-600 transition-colors hover:text-rose-600 dark:text-gray-300 dark:hover:text-rose-300">
               <LockKeyhole size={13} /> Account security
             </button>
           </div>
@@ -844,11 +969,7 @@ function SettingsContent() {
             <section className="space-y-6" role="tabpanel">
               <div className={`${studentPanel} p-5 sm:p-6`}>
                 <div className="mb-6 flex items-start gap-3"><div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300"><ShieldCheck size={18} /></div><div><h2 className="text-lg font-bold text-gray-900 dark:text-white">Security &amp; privacy</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Control your password, messages, and account preferences.</p></div></div>
-                <form onSubmit={changePassword} className="grid grid-cols-1 gap-6 border-b border-gray-100 pb-6 md:grid-cols-2 dark:border-gray-800">
-                  <Field label="New password" hint="Use at least 8 characters."><div className="relative"><KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden /><input aria-label="New password" aria-describedby="new-password-hint" type={showPassword ? 'text' : 'password'} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} className={cn(input, 'pl-10 pr-10')} placeholder="Create a new password" /><button type="button" aria-label={showPassword ? 'Hide password' : 'Show password'} onClick={() => setShowPassword((visible) => !visible)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 focus-visible:outline-2 focus-visible:outline-rose-600">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button></div></Field>
-                  <Field label="Confirm password"><input aria-label="Confirm password" type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className={input} placeholder="Repeat your new password" /></Field>
-                  <div className="md:col-span-2"><button type="submit" disabled={setPassword.isPending || !newPassword || !confirmPassword} className={cn(btnSecondary)}>{setPassword.isPending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-rose-600/30 border-t-rose-600" /> : <LockKeyhole size={15} />} {setPassword.isPending ? 'Updating...' : 'Update password'}</button></div>
-                </form>
+                <StudentChangePasswordSection />
                  <div className="mt-6 space-y-3"><div className="flex items-center gap-2"><Bell size={17} className="text-rose-600" /><h3 className="text-sm font-bold text-gray-900 dark:text-white">Notification preferences</h3></div><Toggle label="Application updates" description="Get notified when your application status changes." checked={preferences.updates} onChange={(value) => togglePreference('updates', value)} /><Toggle label="Recommendations" description="Receive new course and destination suggestions." checked={preferences.recommendations} onChange={(value) => togglePreference('recommendations', value)} /></div>
               </div>
 

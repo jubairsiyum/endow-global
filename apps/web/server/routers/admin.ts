@@ -422,6 +422,73 @@ export const adminRouter = createTRPCRouter({
           .where(eq(schema.studentProfiles.userId, input.studentId))
         return { success: true }
       }),
+
+    create: adminWithPermission('students:manage')
+      .input(
+        z.object({
+          name: z.string().trim().min(1, 'Name is required'),
+          email: z.string().trim().email('Valid email is required'),
+          phone: z.string().trim().optional(),
+          nationality: z.string().trim().optional(),
+          countryOfResidence: z.string().trim().optional(),
+          highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).default('HIGH_SCHOOL'),
+          targetCountries: z.array(z.string()).default([]),
+          password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
+          assignedCounselorId: z.string().optional().nullable(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const email = input.email.trim().toLowerCase()
+          const existing = await db.query.users.findFirst({
+            where: (u: any, { eq: userEq }: any) => userEq(u.email, email),
+          })
+          if (existing) {
+            throw new Error('A user with this email already exists')
+          }
+
+          const userId = globalThis.crypto.randomUUID()
+          let hashed: string | null = null
+          if (input.password && input.password.length >= 8) {
+            hashed = await bcryptHash(input.password, 12)
+          }
+
+          await db.insert(schema.users).values({
+            id: userId,
+            name: input.name.trim(),
+            email,
+            role: 'STUDENT' as any,
+            emailVerified: true,
+          } as any)
+
+          if (hashed) {
+            await db.insert(schema.accounts).values({
+              userId,
+              providerId: 'credential',
+              accountId: userId,
+              password: hashed,
+            } as any)
+          }
+
+          await db.insert(schema.studentProfiles).values({
+            userId,
+            phone: input.phone?.trim() || undefined,
+            nationality: input.nationality?.trim() || undefined,
+            countryOfResidence: input.countryOfResidence?.trim() || undefined,
+            highestEducation: input.highestEducation || 'HIGH_SCHOOL',
+            targetCountries: JSON.stringify(input.targetCountries || []),
+            assignedCounselorId: input.assignedCounselorId || undefined,
+            completionPercent: 0,
+          } as any)
+
+          return { success: true, userId }
+        } catch (e: any) {
+          if (e?.message?.includes('Duplicate') || e?.code === 'ER_DUP_ENTRY') {
+            throw new Error('A user with this email already exists')
+          }
+          throw e
+        }
+      }),
   }),
 
   applications: createTRPCRouter({
