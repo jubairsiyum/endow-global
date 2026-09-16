@@ -8,7 +8,7 @@ const and = _and as any
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  const staticPages = ['', '/universities', '/blog', '/resources', '/about', '/faq', '/opportunities'].map(
+  const staticPages = ['', '/universities', '/blog', '/resources', '/about', '/contact', '/faq', '/opportunities'].map(
     (path) => ({
       url: `${baseUrl}${path}`,
       lastModified: new Date(),

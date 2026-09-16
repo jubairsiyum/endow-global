@@ -20,6 +20,7 @@ const navItems = [
   { label: 'Countries', href: '/universities', hasDropdown: true },
   { label: 'Courses', href: '/courses' },
   { label: 'Resources', href: '/blog' },
+  { label: 'Contact', href: '/contact' },
 ] as const
 
 export function Navbar() {
@@ -403,6 +404,18 @@ export function Navbar() {
                   }`}
                 >
                   Resources
+                </Link>
+
+                {/* Contact */}
+                <Link
+                  href="/contact"
+                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                    pathname.startsWith('/contact')
+                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                  }`}
+                >
+                  Contact
                 </Link>
               </div>
 

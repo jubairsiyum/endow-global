@@ -107,7 +107,7 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <Link href="/about" className="text-sm font-medium text-[#C41E3A] transition-colors hover:text-[#A01830]">
+                   <Link href="/contact" className="text-sm font-medium text-[#C41E3A] transition-colors hover:text-[#A01830]">
                   Contact us
                 </Link>
               </li>
