@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowRight, Home, Utensils, Bus, Briefcase } from 'lucide-react'
 
@@ -12,6 +13,7 @@ const studentLifeCards = [
       'Experience campus dorm culture, community living, and lifelong friendships with fellow students from around the world.',
     image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=500&h=400&fit=crop',
     color: 'bg-[#C41E3A]',
+    href: '/blog/dormitory-life',
   },
   {
     icon: Utensils,
@@ -20,6 +22,7 @@ const studentLifeCards = [
       'Explore authentic Korean cuisine, campus cafeteria experiences, and cultural food festivals throughout the year.',
     image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&h=400&fit=crop',
     color: 'bg-[#C41E3A]',
+    href: '/blog/food-culture',
   },
   {
     icon: Bus,
@@ -28,6 +31,7 @@ const studentLifeCards = [
       'Navigate Korea easily with local buses, trains, and the convenient T-money card system for students.',
     image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=500&h=400&fit=crop',
     color: 'bg-[#C41E3A]',
+    href: '/blog/transportation',
   },
   {
     icon: Briefcase,
@@ -36,6 +40,7 @@ const studentLifeCards = [
       'Opportunities to work on campus or off-campus with proper visa authorization and competitive hourly wages.',
     image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=500&h=400&fit=crop',
     color: 'bg-[#C41E3A]',
+    href: '/blog/part-time-jobs',
   },
 ]
 
@@ -92,7 +97,7 @@ export function StudentLifeSection() {
                 className="group overflow-hidden rounded-xl border border-[#E5E7EB] bg-white transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
               >
                 {/* IMAGE */}
-                <div className="relative h-48 overflow-hidden bg-[#F8FAFC]">
+                <Link href={card.href} className="relative block h-48 overflow-hidden bg-[#F8FAFC]">
                   <Image
                     src={card.image}
                     alt={card.title}
@@ -100,7 +105,7 @@ export function StudentLifeSection() {
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-[#C41E3A] opacity-0 transition-opacity duration-300 group-hover:opacity-15" />
-                </div>
+                </Link>
 
                 {/* CONTENT */}
                 <div className="p-8">
@@ -110,12 +115,19 @@ export function StudentLifeSection() {
                     <Icon className="h-6 w-6 text-white" />
                   </div>
 
-                  <h3 className="mb-3 text-2xl font-bold text-[#111827]">{card.title}</h3>
+                  <Link href={card.href}>
+                    <h3 className="mb-3 text-2xl font-bold text-[#111827] transition-colors group-hover:text-[#C41E3A]">
+                      {card.title}
+                    </h3>
+                  </Link>
                   <p className="text-base leading-relaxed text-[#6B7280]">{card.description}</p>
 
-                  <button className="mt-6 flex items-center gap-1 text-base font-semibold text-[#C41E3A] transition-all hover:gap-2 group-hover:translate-x-1">
+                  <Link
+                    href={card.href}
+                    className="mt-6 inline-flex items-center gap-1 text-base font-semibold text-[#C41E3A] transition-all hover:gap-2 group-hover:translate-x-1"
+                  >
                     Learn More <ArrowRight className="h-5 w-5" />
-                  </button>
+                  </Link>
                 </div>
               </motion.div>
             )
