@@ -69,6 +69,9 @@ export default function SignInForm() {
         email: normalizedEmail,
         password,
         callbackURL: '/dashboard',
+        fetchOptions: {
+          headers: { 'x-endow-login-portal': 'student' },
+        },
       })
 
       if (error) {
@@ -86,9 +89,15 @@ export default function SignInForm() {
           ADMIN: '/admin',
           SUPER_ADMIN: '/admin',
         }
+        if (role !== 'STUDENT') {
+          await authClient.signOut()
+          toast.error('This account must use its designated portal.')
+          return
+        }
         router.push(map[role ?? 'STUDENT'] || '/dashboard')
       } catch {
-        router.push('/dashboard')
+        await authClient.signOut().catch(() => undefined)
+        toast.error('Could not verify your account role. Please try again.')
       }
     } catch {
       toast.error('Something went wrong. Please try again.')

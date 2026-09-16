@@ -80,7 +80,7 @@ export function OverviewHeader({
           </div>
           <div className="flex shrink-0 flex-col items-start gap-2.5 lg:items-end">
             <Link
-              href={matchCount > 0 ? '/universities' : '/dashboard/settings?tab=study'}
+              href={matchCount > 0 ? '/dashboard#matches' : '/dashboard/settings?tab=study'}
               className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
             >
               {matchCount > 0 ? `See ${matchCount} matches` : 'Set study preferences'}

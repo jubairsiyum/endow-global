@@ -1,10 +1,11 @@
 import { z } from 'zod'
-import { createTRPCRouter, adminProcedure, superAdminProcedure, adminWithPermission } from '@/lib/trpc'
+import { createTRPCRouter, superAdminProcedure, adminWithPermission } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { applicantLevelFromEducation } from '@/lib/documents'
 import { hash as bcryptHash } from 'bcryptjs'
+import { getAdminActivityLog, logAdminActivity } from '@/lib/audit'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -17,6 +18,14 @@ const isNull = _isNull as any
 const inArray = _inArray as any
 const ne = _ne as any
 const gte = _gte as any
+
+function auditActor(ctx: any) {
+  return {
+    id: ctx.session.user.id,
+    email: ctx.session.user.email,
+    role: String(ctx.session.user.role ?? 'ADMIN'),
+  }
+}
 
 export const adminRouter = createTRPCRouter({
   dashboard: createTRPCRouter({
@@ -200,6 +209,12 @@ export const adminRouter = createTRPCRouter({
 
       return { nodes, arcs }
     }),
+  }),
+
+  activity: createTRPCRouter({
+    list: adminWithPermission('activity:view')
+      .input(z.object({ limit: z.number().int().min(1).max(200).default(100) }).optional())
+      .query(async ({ input }) => getAdminActivityLog(undefined, input?.limit ?? 100)),
   }),
 
   students: createTRPCRouter({
@@ -577,11 +592,48 @@ export const adminRouter = createTRPCRouter({
           ]),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const previous = await db
+          .select({ studentId: schema.applications.studentId, status: schema.applications.status })
+          .from(schema.applications)
+          .where(eq(schema.applications.id, input.id))
+          .limit(1)
+
         await db
           .update(schema.applications)
           .set({ status: input.status })
           .where(eq(schema.applications.id, input.id))
+
+        if (previous[0]) {
+          const student = await db
+            .select({ userId: schema.studentProfiles.userId })
+            .from(schema.studentProfiles)
+            .where(eq(schema.studentProfiles.id, previous[0].studentId))
+            .limit(1)
+
+          if (student[0]?.userId) {
+            try {
+              await import('@/lib/in-app-notifications').then(({ createInAppNotification }) =>
+                createInAppNotification(db, schema, {
+                  userId: student[0].userId,
+                  type: 'APPLICATION_UPDATE',
+                  title: 'Application status updated',
+                  body: `Your application status changed to ${input.status.replace(/_/g, ' ').toLowerCase()}.`,
+                  data: { applicationId: input.id, status: input.status },
+                })
+              )
+            } catch (error) {
+              console.error('[notification] Failed to create application update:', error)
+            }
+          }
+
+          await logAdminActivity({
+            action: 'application.status_change',
+            actor: auditActor(ctx),
+            target: { id: input.id, type: 'application' },
+            metadata: { from: previous[0].status, to: input.status },
+          })
+        }
         return { success: true }
       }),
 
@@ -735,8 +787,15 @@ export const adminRouter = createTRPCRouter({
           body: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
         if (input.userId) {
+          const target = await db
+            .select({ id: schema.users.id })
+            .from(schema.users)
+            .where(eq(schema.users.id, input.userId))
+            .limit(1)
+          if (!target[0]) throw new Error('User not found')
+
           await db.insert(schema.notifications).values({
             userId: input.userId,
             title: input.title,
@@ -757,6 +816,12 @@ export const adminRouter = createTRPCRouter({
             await db.insert(schema.notifications).values(values.slice(i, i + 1000))
           }
         }
+        await logAdminActivity({
+          action: 'notification.send',
+          actor: auditActor(ctx),
+          target: input.userId ? { id: input.userId, type: 'user' } : undefined,
+          metadata: { title: input.title, broadcast: !input.userId },
+        })
         return { success: true }
       }),
 

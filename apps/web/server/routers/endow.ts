@@ -1,8 +1,10 @@
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '@/lib/trpc'
+import { createTRPCRouter, adminWithPermission, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { z } from 'zod'
 import { fetchStudentOverviewFromEndow } from '@/lib/endowConnect'
 import { db, schema } from '@/lib/db'
 import { eq as _eq, sql as _sql, desc as _desc, and as _and, or as _or, count as _count } from 'drizzle-orm'
+import { createInAppNotification } from '@/lib/in-app-notifications'
+import { logAdminActivity } from '@/lib/audit'
 const eq = _eq as any; const sql = _sql as any; const desc = _desc as any; const and = _and as any; const or = _or as any; const count = _count as any
 
 const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
@@ -193,7 +195,19 @@ export const endowRouter = createTRPCRouter({
                   mastersYear: input.mastersYear,
                   mastersResult: input.mastersResult,
                 },
-              } as any)
+                } as any)
+              await createInAppNotification(db, schema, {
+                userId,
+                type: 'APPLICATION_UPDATE',
+                title: 'Application submitted',
+                body: 'Your application was submitted successfully and is now under review.',
+                data: { courseId: course.id },
+              })
+              await logAdminActivity({
+                action: 'application.submit',
+                actor: { id: userId, email: input.email, role: 'STUDENT' },
+                target: { id: course.id, type: 'course' },
+              })
             }
           }
         } catch {
@@ -204,7 +218,7 @@ export const endowRouter = createTRPCRouter({
       return { success: true, message: 'Application submitted! Our team will contact you shortly.' }
     }),
 
-  listInquiries: publicProcedure.query(async () => {
+  listInquiries: adminWithPermission('dashboard:view').query(async () => {
     return db.select().from(schema.studentInquiries).orderBy(desc(schema.studentInquiries.submittedAt)).limit(50)
   }),
 })

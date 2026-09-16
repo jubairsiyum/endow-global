@@ -12,13 +12,12 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Dashboard', href: '/dashboard' },
-  { id: 'explore', label: 'Explore', href: '/explore' },
-  { id: 'match', label: 'My Match', href: '/match' },
-  { id: 'shortlist', label: 'Shortlist', href: '/shortlist' },
-  { id: 'applications', label: 'Applications', href: '/applications' },
-  { id: 'sessions', label: 'Sessions', href: '/sessions' },
-  { id: 'messages', label: 'Messages', href: '/messages', badge: 3 },
-  { id: 'referral', label: 'Refer & Earn', href: '/referral' },
+  { id: 'explore', label: 'Explore', href: '/courses' },
+  { id: 'match', label: 'My Match', href: '/dashboard#matches' },
+  { id: 'shortlist', label: 'Shortlist', href: '/dashboard/shortlisted' },
+  { id: 'applications', label: 'Applications', href: '/dashboard/application' },
+  { id: 'sessions', label: 'Sessions', href: '/dashboard/appointments' },
+  { id: 'referral', label: 'Refer & Earn', href: '/dashboard/settings?tab=security' },
 ]
 
 export default function Sidebar() {

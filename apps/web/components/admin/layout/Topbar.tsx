@@ -2,10 +2,22 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, Menu, Plus, Search, LogOut, User, KeyRound } from 'lucide-react'
+import { Bell, Menu, Plus, LogOut, User, KeyRound } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { authClient, useSession } from '@/lib/auth-client'
 import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
+import { trpc } from '@/lib/trpc-client'
+import { QuickNavigation } from '@/components/ui/QuickNavigation'
+
+const QUICK_NAVIGATION = [
+  { label: 'Dashboard', href: '/admin' },
+  { label: 'Students', href: '/admin/students' },
+  { label: 'Applications', href: '/admin/applications' },
+  { label: 'Courses', href: '/admin/courses' },
+  { label: 'Universities', href: '/admin/universities' },
+  { label: 'Notifications', href: '/admin/notifications' },
+  { label: 'Activity Log', href: '/admin/activity' },
+]
 
 interface Props {
   onMenuClick: () => void
@@ -33,6 +45,7 @@ export function Topbar({ onMenuClick }: Props) {
   const router = useRouter()
   const { data: session } = useSession()
   const { image: avatarImage } = useUserAvatar()
+  const { data: unreadNotifications = 0 } = trpc.notification.unreadCount.useQuery()
   const [menuOpen, setMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -91,28 +104,7 @@ export function Topbar({ onMenuClick }: Props) {
           <Menu size={16} />
         </button>
 
-        <div
-          className="hidden w-[280px] items-center gap-2 rounded-md border px-3 py-1.5 md:flex"
-          style={{ borderColor: '#e5e7eb', background: '#ffffff' }}
-        >
-          <Search size={14} style={{ color: '#6b7280' }} aria-hidden />
-          <input
-            type="text"
-            placeholder="Search students, courses, universities..."
-            className="w-full bg-transparent text-[13px] outline-none placeholder:text-[#6b7280]/60"
-            style={{ color: '#111827' }}
-          />
-          <kbd
-            className="rounded px-1.5 py-0.5 text-[10px]"
-            style={{
-              background: '#f8fafc',
-              color: '#6b7280',
-              border: '1px solid #e5e7eb',
-            }}
-          >
-            Ctrl+K
-          </kbd>
-        </div>
+        <QuickNavigation items={QUICK_NAVIGATION} placeholder="Quick navigation..." className="hidden w-[280px] md:block" />
       </div>
 
       <div className="flex items-center gap-2">
@@ -138,17 +130,13 @@ export function Topbar({ onMenuClick }: Props) {
         </div>
 
         <button
+          onClick={() => router.push('/admin/notifications')}
           className="relative flex h-8 w-8 items-center justify-center rounded-md border hover:bg-white/[0.04]"
           style={{ borderColor: '#e5e7eb', color: '#6b7280' }}
           aria-label="Notifications"
         >
           <Bell size={15} />
-          <span
-            className="absolute right-1 top-1 flex h-3.5 min-w-[14px] items-center justify-center rounded-full px-1 text-[9px] font-bold"
-            style={{ background: '#F0625B', color: '#fff' }}
-          >
-            12
-          </span>
+          {unreadNotifications > 0 && <span className="absolute right-1 top-1 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#F0625B] px-1 text-[9px] font-bold text-white">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}
         </button>
 
         <div className="relative" ref={menuRef}>

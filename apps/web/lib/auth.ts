@@ -1,4 +1,5 @@
-import { betterAuth } from 'better-auth'
+import { APIError, betterAuth } from 'better-auth'
+import { createAuthMiddleware } from 'better-auth/api'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
 import { customSession, emailOTP } from 'better-auth/plugins'
 import { nextCookies } from 'better-auth/next-js'
@@ -14,11 +15,24 @@ import { absoluteUrl } from './utils'
 import { autoAssignCounselor } from './counselor-assignment'
 import { notifyCounselorNewStudent } from './notify'
 import { parsePermissionsJSON } from './rbac'
+import { logAdminActivity } from './audit'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
 const BCRYPT_PREFIXES = ['$2a$', '$2b$', '$2y$']
 const scrypt = promisify(nodeScrypt)
+
+const LOGIN_PORTAL_ROLES = {
+  student: [UserRole.STUDENT],
+  counselor: [UserRole.COUNSELOR, UserRole.ADMIN, UserRole.SUPER_ADMIN],
+  admin: [UserRole.ADMIN, UserRole.SUPER_ADMIN],
+  superadmin: [UserRole.SUPER_ADMIN],
+} as const
+
+function isAllowedLoginPortal(portal: string, role: string): boolean {
+  const roles = LOGIN_PORTAL_ROLES[portal as keyof typeof LOGIN_PORTAL_ROLES]
+  return Boolean(roles?.includes(role as never))
+}
 
 function getEmailLogoAttachment() {
   const logoPaths = [
@@ -193,6 +207,43 @@ export const auth = betterAuth({
     onError: (error, ctx: any) => {
       console.error('[auth] API error:', error, ctx?.path ?? ctx?.request?.url)
     },
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== '/sign-in/email') return
+
+      const portal = ctx.request?.headers.get('x-endow-login-portal')
+      const email = typeof ctx.body?.email === 'string' ? ctx.body.email.trim().toLowerCase() : ''
+
+      // Every web login must declare its portal. This prevents a valid account
+      // from silently crossing into another portal through the generic API.
+      if (!portal || !email || !(portal in LOGIN_PORTAL_ROLES)) {
+        throw new APIError('UNAUTHORIZED', { message: 'Invalid email or password' })
+      }
+
+      const user = await db.query.users.findFirst({
+        where: (table, { eq }) => eq(table.email, email),
+        columns: { role: true },
+      })
+
+      if (!user || !isAllowedLoginPortal(portal, user.role)) {
+        throw new APIError('FORBIDDEN', { message: 'This account is not authorized for this portal' })
+      }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      const newSession = ctx.context.newSession
+      const role = newSession?.user?.role as string | undefined
+      if (ctx.path !== '/sign-in/email' || !newSession?.user || !role || role === UserRole.STUDENT) return
+
+      await logAdminActivity({
+        action: 'login.success',
+        actor: {
+          id: newSession.user.id,
+          email: newSession.user.email,
+          role,
+        },
+      })
+    }),
   },
   advanced: {
     defaultCookieAttributes: {

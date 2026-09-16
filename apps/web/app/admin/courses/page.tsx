@@ -7,6 +7,9 @@ import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
 import { Plus, Pencil, Trash2, X, Search, BookOpen, GraduationCap, DollarSign, EyeOff, Calendar, Star, FileText } from 'lucide-react'
 import { toast } from 'sonner'
+import { useSession } from '@/lib/auth-client'
+import { hasPermission, parsePermissionsJSON } from '@/lib/rbac'
+import { UserRole } from '@endow/types'
 
 const LEVELS = ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']
 const MODES = ['FULL_TIME', 'PART_TIME', 'ONLINE', 'HYBRID']
@@ -66,6 +69,7 @@ function highlightsToText(value: unknown): string {
 const is = { background: '#fff', borderColor: '#e5e7eb', color: '#111827' }
 
 export default function CoursesPage() {
+  const { data: session } = useSession()
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebounce(search, 400)
   const [showModal, setShowModal] = useState(false)
@@ -80,6 +84,9 @@ export default function CoursesPage() {
   useEffect(() => { setMounted(true) }, [])
 
   const utils = trpc.useUtils()
+  const role = (session?.user as any)?.role as UserRole | undefined
+  const permissions = parsePermissionsJSON((session?.user as any)?.permissions)
+  const canManage = role === UserRole.SUPER_ADMIN || hasPermission(permissions, 'courses:manage', role)
   const { data: courses, isLoading } = trpc.admin.courses.list.useQuery({ search: debouncedSearch || undefined, level: (levelFilter as any) || undefined, universityId: universityFilter || undefined })
   const { data: universities } = trpc.admin.universities.list.useQuery({})
   const { data: subjects } = trpc.admin.courses.getSubjects.useQuery()
@@ -152,7 +159,7 @@ export default function CoursesPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Courses" description="Manage course catalog across partner universities." buttonText="Add Course" onButtonClick={openCreate} />
+       <PageHeader title="Courses" description="Manage course catalog across partner universities." buttonText={canManage ? 'Add Course' : undefined} onButtonClick={canManage ? openCreate : undefined} />
       <div className="flex flex-col gap-3 lg:flex-row">
         <div className="relative flex-1"><Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" /><input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name or subject…" className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all focus:border-primary" /></div>
         <select value={levelFilter} onChange={e => setLevelFilter(e.target.value)} className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none lg:w-44"><option value="">All Levels</option>{LEVELS.map(l => <option key={l} value={l}>{l.replace(/_/g, ' ')}</option>)}</select>
@@ -177,10 +184,10 @@ export default function CoursesPage() {
               <div className="text-xs text-gray-500">{c.modeOfStudy ? c.modeOfStudy.replace(/_/g, ' ') : '—'}</div>
               <div className="text-sm font-medium text-gray-900">{c.currency} {c.tuitionFee?.toLocaleString()}</div>
               <div>{c.isActive ? <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Active</span> : <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500"><EyeOff size={11} />Hidden</span>}</div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => openEdit(c)} className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"><Pencil size={14} /></button>
-                {deleteConfirm === c.id ? (<div className="flex items-center gap-1"><button onClick={() => deleteMutation.mutate({ id: c.id })} className="rounded-lg bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600">Confirm</button><button onClick={() => setDeleteConfirm(null)} className="rounded-lg bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300">Cancel</button></div>) : (<button onClick={() => setDeleteConfirm(c.id)} className="rounded-xl bg-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-200"><Trash2 size={14} /></button>)}
-              </div>
+               {canManage && <div className="flex items-center gap-2">
+                 <button onClick={() => openEdit(c)} className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"><Pencil size={14} /></button>
+                 {deleteConfirm === c.id ? (<div className="flex items-center gap-1"><button onClick={() => deleteMutation.mutate({ id: c.id })} className="rounded-lg bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600">Confirm</button><button onClick={() => setDeleteConfirm(null)} className="rounded-lg bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300">Cancel</button></div>) : (<button onClick={() => setDeleteConfirm(c.id)} className="rounded-xl bg-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-200"><Trash2 size={14} /></button>)}
+               </div>}
             </div>
           ))}
         </div>

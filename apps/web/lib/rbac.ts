@@ -107,27 +107,6 @@ export function hasPermission(
 
   const { module, action } = parsePermission(required) ?? { module: '', action: '' as any }
 
-  // --- HARDCODED PERMISSIONS OVERRIDE ---
-  // The user requested to hardcode module permissions for ADMIN and COUNSELOR to avoid complex UI configuration
-  if (role === 'ADMIN') {
-    const adminModules = [
-      'dashboard', 'students', 'counselors', 'documents', 'deadlines', 
-      'universities', 'courses', 'scholarships', 'countries', 'resources', 
-      'testimonials', 'branches', 'settings'
-    ]
-    if (adminModules.includes(module)) return true
-  }
-  
-  if (role === 'COUNSELOR') {
-    const counselorModules = [
-      'dashboard', 'students', 'documents', 'deadlines', 
-      'universities', 'courses', 'scholarships', 'countries', 
-      'resources', 'settings'
-    ]
-    if (counselorModules.includes(module)) return true
-  }
-  // --------------------------------------
-
   if (!userPermissions || userPermissions.length === 0) return false
   if (userPermissions.includes(required)) return true
   // `manage` implies `view` for same module
@@ -184,7 +163,6 @@ export const COUNSELOR_MODULES = [
   { id: 'counselor:students', label: 'My Students' },
   { id: 'counselor:applications', label: 'Applications' },
   { id: 'counselor:sessions', label: 'Sessions' },
-  { id: 'counselor:messages', label: 'Messages' },
 ] as const
 
 export type CounselorModuleId = typeof COUNSELOR_MODULES[number]['id']

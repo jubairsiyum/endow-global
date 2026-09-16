@@ -122,7 +122,7 @@ export default function DashboardPage() {
       <DashboardCourseShelf matches={data?.matches ?? []} />
 
       <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <DashboardInstitutionShelf />
+        <DashboardInstitutionShelf recommendedUniversities={data?.recommendedUniversities ?? []} />
         <DashboardResourceShelf />
       </section>
 

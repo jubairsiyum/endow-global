@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, adminProcedure, publicProcedure } from '@/lib/trpc'
+import { createTRPCRouter, adminWithPermission, publicProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, or as _or, like as _like } from 'drizzle-orm'
 
@@ -97,7 +97,7 @@ export const resourceRouter = createTRPCRouter({
   }),
 
   admin: createTRPCRouter({
-    list: adminProcedure
+    list: adminWithPermission('resources:view')
       .input(
         z.object({
           type: z.enum(['BLOG', 'FILE']).optional(),
@@ -127,7 +127,7 @@ export const resourceRouter = createTRPCRouter({
           .orderBy(desc(schema.resources.updatedAt))
       }),
 
-    getById: adminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+    getById: adminWithPermission('resources:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
       return db
         .select()
         .from(schema.resources)
@@ -136,14 +136,14 @@ export const resourceRouter = createTRPCRouter({
         .then((r) => r[0] || null)
     }),
 
-    create: adminProcedure.input(resourceInput).mutation(async ({ input }) => {
+    create: adminWithPermission('resources:manage').input(resourceInput).mutation(async ({ input }) => {
       const publishedAt = input.isPublished ? input.publishedAt ?? new Date() : null
       const { publishedAt: _ignored, ...rest } = input
       await db.insert(schema.resources).values({ ...rest, publishedAt })
       return { success: true }
     }),
 
-    update: adminProcedure
+    update: adminWithPermission('resources:manage')
       .input(resourceInput.extend({ id: z.string() }))
       .mutation(async ({ input }) => {
         const { id, publishedAt, ...rest } = input
@@ -165,7 +165,7 @@ export const resourceRouter = createTRPCRouter({
         return { success: true }
       }),
 
-    delete: adminProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+    delete: adminWithPermission('resources:manage').input(z.object({ id: z.string() })).mutation(async ({ input }) => {
       await db.delete(schema.resources).where(eq(schema.resources.id, input.id))
       return { success: true }
     }),

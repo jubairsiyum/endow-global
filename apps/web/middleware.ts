@@ -77,18 +77,24 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    if (payload) {
-      if (isSaPath && !hasSuperAdminRole(payload)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url))
-      }
+    // Never allow a session through a protected route when its role cannot be
+    // verified. The server layouts remain a second authorization boundary.
+    if (!payload) {
+      const url = new URL('/login', req.url)
+      url.searchParams.set('error', 'session-verification')
+      return NextResponse.redirect(url)
+    }
 
-      if (isAdminPath && !hasAdminRole(payload)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url))
-      }
+    if (isSaPath && !hasSuperAdminRole(payload)) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
 
-      if (isCounselorPath && !hasCounselorRole(payload)) {
-        return NextResponse.redirect(new URL('/dashboard', req.url))
-      }
+    if (isAdminPath && !hasAdminRole(payload)) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
+    }
+
+    if (isCounselorPath && !hasCounselorRole(payload)) {
+      return NextResponse.redirect(new URL('/dashboard', req.url))
     }
   }
 
@@ -104,7 +110,9 @@ export async function middleware(req: NextRequest) {
       }
       return NextResponse.redirect(new URL(map[role ?? 'STUDENT'] || '/dashboard', req.url))
     }
-    return NextResponse.redirect(new URL('/dashboard', req.url))
+    // If the cache cannot be verified, let the login page render instead of
+    // redirecting an unknown role into the student portal.
+    return NextResponse.next()
   }
 
   if (isCareerLogin(pathname) && payload) {

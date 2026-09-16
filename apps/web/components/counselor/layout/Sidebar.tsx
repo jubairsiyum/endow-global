@@ -8,7 +8,6 @@ import {
   Users,
   FileText,
   Calendar,
-  MessageSquare,
   Settings,
   ChevronLeft,
 } from 'lucide-react'
@@ -21,7 +20,6 @@ const navItems = [
   { name: 'My Students', href: '/counselor/students', icon: Users },
   { name: 'Applications', href: '/counselor/applications', icon: FileText },
   { name: 'Sessions', href: '/counselor/sessions', icon: Calendar },
-  { name: 'Messages', href: '/counselor/messages', icon: MessageSquare },
   { name: 'Settings', href: '/counselor/settings', icon: Settings },
 ]
 

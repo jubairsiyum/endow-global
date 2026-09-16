@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createTRPCRouter, adminProcedure, publicProcedure } from '@/lib/trpc'
+import { createTRPCRouter, adminWithPermission, publicProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc } from 'drizzle-orm'
 const eq = _eq as any
@@ -15,14 +15,14 @@ export const testimonialRouter = createTRPCRouter({
   }),
 
   admin: createTRPCRouter({
-    list: adminProcedure.query(async () => {
+    list: adminWithPermission('testimonials:view').query(async () => {
       return db
         .select()
         .from(schema.testimonials)
         .orderBy(desc(schema.testimonials.createdAt))
     }),
 
-    create: adminProcedure
+    create: adminWithPermission('testimonials:manage')
       .input(
         z.object({
           name: z.string().min(1),
@@ -42,7 +42,7 @@ export const testimonialRouter = createTRPCRouter({
         return result
       }),
 
-    update: adminProcedure
+    update: adminWithPermission('testimonials:manage')
       .input(
         z.object({
           id: z.string(),
@@ -65,7 +65,7 @@ export const testimonialRouter = createTRPCRouter({
         return result
       }),
 
-    delete: adminProcedure
+    delete: adminWithPermission('testimonials:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
         const [result] = await db

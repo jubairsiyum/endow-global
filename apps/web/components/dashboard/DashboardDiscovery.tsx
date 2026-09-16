@@ -93,6 +93,11 @@ function CourseCard({ course, shortlisted, onToggle }: { course: NormalizedCours
   )
 }
 
+function universityHref(university: { country?: string; slug?: string }) {
+  const country = (university.country || 'international').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+  return `/universities/${country}/${university.slug || ''}`
+}
+
 export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
   const utils = trpc.useUtils()
   const [tab, setTab] = useState<CourseTab>('matches')
@@ -196,7 +201,7 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
     `whitespace-nowrap rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${active ? 'bg-white text-gray-900 shadow-sm dark:bg-[#12141c] dark:text-white' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'}`
 
   return (
-    <section className={`${panel} p-5 sm:p-6`}>
+    <section id="matches" className={`${panel} scroll-mt-24 p-5 sm:p-6`}>
       <WidgetHeader icon={BookOpen} title="Courses" description="Matches based on your goals and the full course catalogue to explore." href="/courses" />
 
       <div className="mt-5 flex gap-1 overflow-x-auto rounded-xl bg-gray-50 p-1 dark:bg-[#1a1d25]" role="tablist" aria-label="Course views">
@@ -309,7 +314,7 @@ export function DashboardInstitutionShelf({ recommendedUniversities = [] }: { re
         <WidgetHeader icon={Building2} title="Recommended universities" description="Matched to your study preferences, ranked by fit." href="/universities" />
         <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
           {recommendedUniversities.slice(0, 6).map((uni: any) => (
-            <Link key={uni.id} href={`/universities/${uni.slug}`} className="group rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-rose-200 hover:bg-rose-50/30 focus-visible:outline-2 focus-visible:outline-rose-600 dark:border-gray-800 dark:bg-[#1a1d25] dark:hover:border-rose-900/50 dark:hover:bg-rose-500/5">
+            <Link key={uni.id} href={universityHref(uni)} className="group rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-rose-200 hover:bg-rose-50/30 focus-visible:outline-2 focus-visible:outline-rose-600 dark:border-gray-800 dark:bg-[#1a1d25] dark:hover:border-rose-900/50 dark:hover:bg-rose-500/5">
               <div className="flex items-center justify-between">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-sm font-bold text-rose-600 dark:bg-[#12141c] dark:text-rose-300">{uni.name?.charAt(0) || 'U'}</div>
                 {typeof uni.matchScore === 'number' && <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">{uni.matchScore}% fit</span>}
@@ -333,7 +338,7 @@ export function DashboardInstitutionShelf({ recommendedUniversities = [] }: { re
           <div className="mt-5 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Institution countries">
             {['All', ...countries.slice(0, 5)].map((option) => <button key={option} type="button" role="tab" aria-selected={country === option} onClick={() => setCountry(option)} className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${country === option ? 'border-rose-600 bg-rose-600 text-white' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300'}`}>{option}</button>)}
           </div>
-          {institutions.length === 0 ? <div className="mt-4 rounded-xl border border-dashed border-gray-200 px-5 py-8 text-center text-sm text-gray-500 dark:border-gray-700">No institutions match this country.</div> : <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">{institutions.slice(0, 6).map((institution: any) => <Link key={institution.id} href={`/universities/${institution.slug}`} className="group rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-rose-200 hover:bg-rose-50/30 focus-visible:outline-2 focus-visible:outline-rose-600 dark:border-gray-800 dark:bg-[#1a1d25] dark:hover:border-rose-900/50 dark:hover:bg-rose-500/5"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-sm font-bold text-rose-600 dark:bg-[#12141c] dark:text-rose-300">{institution.name?.charAt(0) || 'U'}</div><h3 className="mt-3 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-300">{institution.name}</h3><p className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><MapPin size={12} /> {institution.city}, {institution.country}</p></Link>)}</div>}
+           {institutions.length === 0 ? <div className="mt-4 rounded-xl border border-dashed border-gray-200 px-5 py-8 text-center text-sm text-gray-500 dark:border-gray-700">No institutions match this country.</div> : <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">{institutions.slice(0, 6).map((institution: any) => <Link key={institution.id} href={universityHref(institution)} className="group rounded-xl border border-gray-100 bg-white p-4 transition-colors hover:border-rose-200 hover:bg-rose-50/30 focus-visible:outline-2 focus-visible:outline-rose-600 dark:border-gray-800 dark:bg-[#1a1d25] dark:hover:border-rose-900/50 dark:hover:bg-rose-500/5"><div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gray-50 text-sm font-bold text-rose-600 dark:bg-[#12141c] dark:text-rose-300">{institution.name?.charAt(0) || 'U'}</div><h3 className="mt-3 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-300">{institution.name}</h3><p className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400"><MapPin size={12} /> {institution.city}, {institution.country}</p></Link>)}</div>}
         </>
       )}
     </section>

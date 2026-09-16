@@ -22,6 +22,7 @@ import {
 import { notifySessionBooked } from '@/lib/notify'
 import { generateMeetingUrl } from '@/lib/meeting'
 import { autoAssignCounselor } from '@/lib/counselor-assignment'
+import { createInAppNotification } from '@/lib/in-app-notifications'
 
 const eq = _eq as any
 const and = _and as any
@@ -741,6 +742,35 @@ export const dashboardRouter = createTRPCRouter({
           status: 'SCHEDULED',
           meetingUrl,
         })
+
+        const counselorUser = await ctx.db
+          .select({ userId: schema.counselorProfiles.userId })
+          .from(schema.counselorProfiles)
+          .where(eq(schema.counselorProfiles.id, input.counselorId))
+          .limit(1)
+
+        try {
+          await Promise.all([
+            createInAppNotification(ctx.db, schema, {
+              userId: ctx.session.user.id,
+              type: 'SYSTEM',
+              title: 'Session booked',
+              body: `Your counseling session is scheduled for ${scheduledAt.toLocaleString()}.`,
+              data: { bookingId },
+            }),
+            counselorUser[0]?.userId
+              ? createInAppNotification(ctx.db, schema, {
+                  userId: counselorUser[0].userId,
+                  type: 'SYSTEM',
+                  title: 'New session booked',
+                  body: `${(ctx.session.user as any).name || 'A student'} booked a counseling session.`,
+                  data: { bookingId },
+                })
+              : Promise.resolve(),
+          ])
+        } catch (error) {
+          console.error('[notification] Failed to create booking notifications:', error)
+        }
 
         // Best-effort: notify counselor + student via SMTP with meeting link
         try {

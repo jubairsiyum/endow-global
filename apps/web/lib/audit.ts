@@ -20,6 +20,12 @@ export type AuditAction =
   | 'university.update'
   | 'university.delete'
   | 'settings.update'
+  | 'application.status_change'
+  | 'application.submit'
+  | 'notification.send'
+  | 'counselor.create'
+  | 'counselor.update'
+  | 'counselor.delete'
 
 interface AuditEntry {
   timestamp: string

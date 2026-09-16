@@ -49,6 +49,7 @@ const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permi
   { name: 'Testimonials', icon: Star, href: '/admin/testimonials', perm: 'testimonials:view' },
   { name: 'Notifications', icon: Bell, href: '/admin/notifications', perm: 'notifications:view' },
   { name: 'Newsletters', icon: Mail, href: '/admin/newsletters', perm: 'newsletters:view' },
+  { name: 'System Activity', icon: Activity, href: '/admin/activity', perm: 'activity:view' },
   { name: 'Settings', icon: Settings, href: '/admin/settings', perm: 'settings:view' },
 ]
 
@@ -56,7 +57,6 @@ const superAdminExtraItems: Array<{ name: string; icon: any; href: string; perm:
   { name: 'Branches', icon: Building2, href: '/admin/branches', perm: 'branches:view' },
   { name: 'Users', icon: Users, href: '/admin/users', perm: 'users:view' },
   { name: 'Admin Management', icon: Shield, href: '/admin/admins', perm: 'admins:view' },
-  { name: 'System Activity', icon: Activity, href: '/admin/activity', perm: 'activity:view' },
   { name: 'Revenue', icon: DollarSign, href: '/admin/revenue', perm: 'revenue:view' },
 ]
 

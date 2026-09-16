@@ -104,6 +104,9 @@ export default function SALoginPage() {
       const res = await authClient.signIn.email({
         email: email.trim(),
         password,
+        fetchOptions: {
+          headers: { 'x-endow-login-portal': 'superadmin' },
+        },
       })
 
       if (res.error) {
@@ -122,6 +125,7 @@ export default function SALoginPage() {
 
       const userRole = (sessionRes.data?.user as any)?.role as UserRole | undefined
       if (!userRole || !ALLOWED_ROLES.includes(userRole)) {
+        await authClient.signOut()
         setError(
           `Access denied. This portal is restricted to ${PORTAL_LABEL} accounts.${
             userRole ? ` Your account role is ${userRole}.` : ''
