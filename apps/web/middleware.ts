@@ -33,6 +33,7 @@ function isCareerLogin(pathname: string): boolean {
 
 const jwtSecret = process.env.BETTER_AUTH_SECRET
 const jwtVerificationAvailable = typeof jwtSecret === 'string' && jwtSecret.length > 0
+const secureSessionCookie = process.env.NODE_ENV === 'production'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -59,7 +60,10 @@ export async function middleware(req: NextRequest) {
       // Decode the better-auth `session_data` cookie cache (which carries the
       // enriched `user.role`). Unlike the raw `session_token` cookie this is a
       // signed payload we can read on the edge runtime without a DB round-trip.
-      payload = await getCookieCache(req, { secret: jwtSecret })
+      // This must match auth.ts' explicit useSecureCookies setting. Without
+      // isSecure, Better Auth's cookie helper defaults to its own runtime
+      // detection and may look for a different session_data cookie name.
+      payload = await getCookieCache(req, { secret: jwtSecret, isSecure: secureSessionCookie })
     } catch {
       payload = null
     }

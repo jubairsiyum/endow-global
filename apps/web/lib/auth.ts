@@ -246,6 +246,10 @@ export const auth = betterAuth({
     }),
   },
   advanced: {
+    // Keep the cookie prefix deterministic across the Node and Edge runtimes.
+    // Better Auth otherwise derives it from baseURL in one runtime and from
+    // NODE_ENV in another, which can make middleware miss session_data.
+    useSecureCookies: process.env.NODE_ENV === 'production',
     defaultCookieAttributes: {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
