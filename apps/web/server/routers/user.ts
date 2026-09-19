@@ -6,7 +6,7 @@ const and = _and as any
 const ne = _ne as any
 import { z } from 'zod'
 import { hash as bcryptHash } from 'bcryptjs'
-import { autoAssignCounselor } from '@/lib/counselor-assignment'
+import { autoAssignCounselor, notifyStudentCounselorAssigned } from '@/lib/counselor-assignment'
 import { notifyCounselorNewStudent } from '@/lib/notify'
 
 const BCRYPT_SALT_ROUNDS = 12
@@ -121,7 +121,7 @@ export const userRouter = createTRPCRouter({
       if (existing) {
         let assignedCounselorId = existing.assignedCounselorId
         if (!assignedCounselorId) {
-          assignedCounselorId = await autoAssignCounselor(ctx.db, schema)
+          assignedCounselorId = await autoAssignCounselor(ctx.db, schema, input)
         }
         await ctx.db
           .update(schema.studentProfiles)
@@ -150,6 +150,10 @@ export const userRouter = createTRPCRouter({
               studentEmail: ctx.session.user.email,
               studentPhone: input.phone,
             })
+            await notifyStudentCounselorAssigned(ctx.db, schema, {
+              studentUserId: userId,
+              counselorName: 'Your assigned counselor',
+            })
           } catch (error) {
             console.error('[assignment] Failed to notify counselor:', error)
           }
@@ -158,7 +162,7 @@ export const userRouter = createTRPCRouter({
         // Profile doesn't exist yet (e.g. a user who registered before
         // auto-assignment, or an edge case) — create it and auto-assign a
         // counselor by equal distribution.
-        const assignedCounselorId = await autoAssignCounselor(ctx.db, schema)
+        const assignedCounselorId = await autoAssignCounselor(ctx.db, schema, input)
         await ctx.db.insert(schema.studentProfiles).values({
           userId,
           assignedCounselorId,
@@ -183,6 +187,10 @@ export const userRouter = createTRPCRouter({
               studentName: input.name || ctx.session.user.name || 'New student',
               studentEmail: ctx.session.user.email,
               studentPhone: input.phone,
+            })
+            await notifyStudentCounselorAssigned(ctx.db, schema, {
+              studentUserId: userId,
+              counselorName: 'Your assigned counselor',
             })
           } catch (error) {
             console.error('[assignment] Failed to notify counselor:', error)

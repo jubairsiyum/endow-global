@@ -6,6 +6,8 @@ import { alias } from 'drizzle-orm/mysql-core'
 import { applicantLevelFromEducation } from '@/lib/documents'
 import { hash as bcryptHash } from 'bcryptjs'
 import { getAdminActivityLog, logAdminActivity } from '@/lib/audit'
+import { notifyCounselorNewStudent } from '@/lib/notify'
+import { autoAssignCounselor, notifyStudentCounselorAssigned } from '@/lib/counselor-assignment'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -373,6 +375,7 @@ export const adminRouter = createTRPCRouter({
           targetSubjects: row.targetSubjects,
           preferredIntakeYear: row.preferredIntakeYear,
           preferredIntakeMonth: row.preferredIntakeMonth,
+          assignedCounselorId: row.assignedCounselorId,
           assignedCounselor: row.assignedCounselorId
             ? { id: row.assignedCounselorId, user: { name: row.counselorName || 'Counselor' } }
             : null,
@@ -416,10 +419,47 @@ export const adminRouter = createTRPCRouter({
         })
       )
       .mutation(async ({ input }) => {
+        const [student] = await db
+          .select({ userId: schema.studentProfiles.userId, name: schema.users.name, email: schema.users.email, phone: schema.studentProfiles.phone })
+          .from(schema.studentProfiles)
+          .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
+          .where(eq(schema.studentProfiles.userId, input.studentId))
+          .limit(1)
+        if (!student) throw new Error('Student profile not found')
+
+        let counselor: { id: string; name: string | null; email: string | null } | undefined
+        if (input.counselorId) {
+          const rows = await db
+            .select({ id: schema.counselorProfiles.id, name: schema.users.name, email: schema.users.email })
+            .from(schema.counselorProfiles)
+            .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+            .where(eq(schema.counselorProfiles.id, input.counselorId))
+            .limit(1)
+          counselor = rows[0]
+          if (!counselor) throw new Error('Counselor not found')
+        }
+
         await db
           .update(schema.studentProfiles)
           .set({ assignedCounselorId: input.counselorId })
           .where(eq(schema.studentProfiles.userId, input.studentId))
+
+        if (counselor) {
+          try {
+            await notifyCounselorNewStudent(db, schema, {
+              counselorId: counselor.id,
+              studentName: student.name || 'Student',
+              studentEmail: student.email || '',
+              studentPhone: student.phone || undefined,
+            })
+            await notifyStudentCounselorAssigned(db, schema, {
+              studentUserId: student.userId,
+              counselorName: counselor.name || 'Your assigned counselor',
+            })
+          } catch (error) {
+            console.error('[assignment] Failed to notify manual assignment:', error)
+          }
+        }
         return { success: true }
       }),
 
@@ -433,6 +473,7 @@ export const adminRouter = createTRPCRouter({
           countryOfResidence: z.string().trim().optional(),
           highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).default('HIGH_SCHOOL'),
           targetCountries: z.array(z.string()).default([]),
+          targetSubjects: z.array(z.string()).default([]),
           password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
           assignedCounselorId: z.string().optional().nullable(),
         })
@@ -470,6 +511,7 @@ export const adminRouter = createTRPCRouter({
             } as any)
           }
 
+          const assignedCounselorId = input.assignedCounselorId ?? await autoAssignCounselor(db, schema, input)
           await db.insert(schema.studentProfiles).values({
             userId,
             phone: input.phone?.trim() || undefined,
@@ -477,9 +519,23 @@ export const adminRouter = createTRPCRouter({
             countryOfResidence: input.countryOfResidence?.trim() || undefined,
             highestEducation: input.highestEducation || 'HIGH_SCHOOL',
             targetCountries: JSON.stringify(input.targetCountries || []),
-            assignedCounselorId: input.assignedCounselorId || undefined,
+            assignedCounselorId: assignedCounselorId || undefined,
+            targetSubjects: JSON.stringify(input.targetSubjects || []),
             completionPercent: 0,
           } as any)
+
+          if (assignedCounselorId) {
+            try {
+              await notifyCounselorNewStudent(db, schema, {
+                counselorId: assignedCounselorId,
+                studentName: input.name,
+                studentEmail: email,
+                studentPhone: input.phone,
+              })
+            } catch (error) {
+              console.error('[assignment] Failed to notify counselor:', error)
+            }
+          }
 
           return { success: true, userId }
         } catch (e: any) {
@@ -723,7 +779,7 @@ export const adminRouter = createTRPCRouter({
   counselors: createTRPCRouter({
     list: adminWithPermission('counselors:view').query(async () => {
       const users = await db.select().from(schema.users)
-        .where(eq(schema.users.role, 'COUNSELOR' as any))
+        .where(inArray(schema.users.role, ['COUNSELOR', 'ADMIN', 'SUPER_ADMIN'] as any))
 
       if (users.length === 0) return []
 

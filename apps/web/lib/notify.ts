@@ -41,7 +41,7 @@ function layout({
 
 async function resolveCounselorEmail(db: any, schema: any, counselorId: string) {
   const [row] = await db
-    .select({ email: schema.users.email, name: schema.users.name })
+    .select({ email: schema.users.email, name: schema.users.name, userId: schema.users.id })
     .from(schema.counselorProfiles)
     .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
     .where(eq(schema.counselorProfiles.id, counselorId))
@@ -56,7 +56,20 @@ export async function notifyCounselorNewStudent(
   opts: { counselorId: string; studentName: string; studentEmail: string; studentPhone?: string }
 ) {
   const counselor = await resolveCounselorEmail(db, schema, opts.counselorId)
-  if (!counselor?.email) return
+  if (!counselor) return
+
+  try {
+    const { createInAppNotification } = await import('./in-app-notifications')
+    await createInAppNotification(db, schema, {
+      userId: counselor.userId,
+      type: 'SYSTEM',
+      title: 'New student assigned',
+      body: `${opts.studentName || 'A new student'} has been assigned to you.`,
+      data: { studentEmail: opts.studentEmail },
+    })
+  } catch (error) {
+    console.error('[notification] Failed to create counselor portal notification:', error)
+  }
 
   const details = [
     { label: 'Student', value: opts.studentName || 'New student' },
@@ -64,6 +77,7 @@ export async function notifyCounselorNewStudent(
   ]
   if (opts.studentPhone) details.push({ label: 'Phone', value: opts.studentPhone })
 
+  if (!counselor.email) return
   await sendEmail({
     to: counselor.email,
     subject: 'New student assigned to you — Endow Global',

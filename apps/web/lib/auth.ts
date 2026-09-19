@@ -12,8 +12,6 @@ import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
 import { sendEmail } from './email'
 import { absoluteUrl } from './utils'
-import { autoAssignCounselor } from './counselor-assignment'
-import { notifyCounselorNewStudent } from './notify'
 import { parsePermissionsJSON } from './rbac'
 import { logAdminActivity } from './audit'
 
@@ -175,27 +173,13 @@ export const auth = betterAuth({
             where: (sp: any, { eq }: any) => eq(sp.userId, user.id),
           })
           if (!existing) {
-            // Automatically assign a counselor by equal distribution when a
-            // new student registers (email/password, OTP, or Google sign-in).
-            const role = (user as any)?.role
-            const assignedCounselorId =
-              role === 'STUDENT' ? await autoAssignCounselor(db, schema) : null
+            // Preferences are collected after account creation. Assignment is
+            // therefore performed when the registration profile is submitted.
+            const assignedCounselorId = null
             await db.insert(schema.studentProfiles).values({
               userId: user.id,
               assignedCounselorId,
             })
-            // Best-effort: notify the assigned counselor via email (SMTP).
-            if (assignedCounselorId) {
-              try {
-                await notifyCounselorNewStudent(db, schema, {
-                  counselorId: assignedCounselorId,
-                  studentName: (user as any)?.name || 'New student',
-                  studentEmail: (user as any)?.email || '',
-                })
-              } catch (err) {
-                console.error('[notify] Failed to notify counselor of new student:', err)
-              }
-            }
           }
         },
       },
