@@ -33,7 +33,7 @@ function isCareerLogin(pathname: string): boolean {
 
 const jwtSecret = process.env.BETTER_AUTH_SECRET
 const jwtVerificationAvailable = typeof jwtSecret === 'string' && jwtSecret.length > 0
-const secureSessionCookie = process.env.NODE_ENV === 'production'
+ const secureSessionCookie = process.env.NODE_ENV === 'production'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
