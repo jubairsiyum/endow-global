@@ -2770,6 +2770,129 @@ return db.select().from(schema.countries)
       }
     }),
   }),
+
+  // ─── Events CRUD ─────────────────────────────────────────
+  events: createTRPCRouter({
+    list: adminWithPermission('events:view')
+      .input(
+        z.object({
+          search: z.string().optional(),
+          category: z.enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER']).optional(),
+          isPublished: z.boolean().optional(),
+          isFeatured: z.boolean().optional(),
+        })
+      )
+      .query(async ({ input }) => {
+        const conditions: any[] = []
+        if (input.category) conditions.push(eq(schema.events.category, input.category))
+        if (input.isPublished !== undefined) conditions.push(eq(schema.events.isPublished, input.isPublished))
+        if (input.isFeatured !== undefined) conditions.push(eq(schema.events.isFeatured, input.isFeatured))
+        if (input.search) {
+          const term = `%${input.search.trim()}%`
+          conditions.push(
+            or(
+              like(schema.events.title, term),
+              like(schema.events.slug, term),
+              like(schema.events.location, term)
+            )
+          )
+        }
+        return db
+          .select()
+          .from(schema.events)
+          .where(conditions.length > 0 ? and(...conditions) : undefined)
+          .orderBy(desc(schema.events.createdAt))
+      }),
+
+    getById: adminWithPermission('events:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return db
+          .select()
+          .from(schema.events)
+          .where(eq(schema.events.id, input.id))
+          .limit(1)
+          .then((r) => r[0] ?? null)
+      }),
+
+    create: adminWithPermission('events:manage')
+      .input(
+        z.object({
+          title: z.string().min(1),
+          slug: z.string().regex(/^[a-z0-9-]+$/),
+          excerpt: z.string().optional().nullable(),
+          content: z.string().optional().nullable(),
+          coverImage: z.string().optional().nullable(),
+          category: z.enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER']).default('OTHER'),
+          eventDate: z.date().optional().nullable(),
+          eventEndDate: z.date().optional().nullable(),
+          location: z.string().optional().nullable(),
+          registrationUrl: z.string().optional().nullable(),
+          tags: z.array(z.string()).default([]),
+          author: z.string().optional().nullable(),
+          isFeatured: z.boolean().default(false),
+          isPublished: z.boolean().default(false),
+          metaTitle: z.string().optional().nullable(),
+          metaDescription: z.string().optional().nullable(),
+          ogImageUrl: z.string().optional().nullable(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const publishedAt = input.isPublished ? new Date() : null
+        await db.insert(schema.events).values({ ...input, publishedAt } as any)
+        return { success: true }
+      }),
+
+    update: adminWithPermission('events:manage')
+      .input(
+        z.object({
+          id: z.string(),
+          title: z.string().min(1),
+          slug: z.string().regex(/^[a-z0-9-]+$/),
+          excerpt: z.string().optional().nullable(),
+          content: z.string().optional().nullable(),
+          coverImage: z.string().optional().nullable(),
+          category: z.enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER']).default('OTHER'),
+          eventDate: z.date().optional().nullable(),
+          eventEndDate: z.date().optional().nullable(),
+          location: z.string().optional().nullable(),
+          registrationUrl: z.string().optional().nullable(),
+          tags: z.array(z.string()).default([]),
+          author: z.string().optional().nullable(),
+          isFeatured: z.boolean().default(false),
+          isPublished: z.boolean().default(false),
+          metaTitle: z.string().optional().nullable(),
+          metaDescription: z.string().optional().nullable(),
+          ogImageUrl: z.string().optional().nullable(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...rest } = input
+        const existing = await db
+          .select()
+          .from(schema.events)
+          .where(eq(schema.events.id, id))
+          .limit(1)
+          .then((r) => r[0] ?? null)
+
+        const publishedAt = rest.isPublished
+          ? (existing as any)?.publishedAt ?? new Date()
+          : null
+
+        await db
+          .update(schema.events)
+          .set({ ...rest, publishedAt } as any)
+          .where(eq(schema.events.id, id))
+        return { success: true }
+      }),
+
+    delete: adminWithPermission('events:manage')
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        await db.delete(schema.events).where(eq(schema.events.id, input.id))
+        return { success: true }
+      }),
+  }),
 })
 
 

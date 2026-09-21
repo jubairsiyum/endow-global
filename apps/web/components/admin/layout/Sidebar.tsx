@@ -27,6 +27,7 @@ import {
   Building2,
   FileCheck2,
   CalendarClock,
+  CalendarDays,
 } from 'lucide-react'
 import { UserRole } from '@endow/types'
 import { cn } from '@/lib/utils'
@@ -49,6 +50,7 @@ const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permi
   { name: 'Testimonials', icon: Star, href: '/admin/testimonials', perm: 'testimonials:view' },
   { name: 'Notifications', icon: Bell, href: '/admin/notifications', perm: 'notifications:view' },
   { name: 'Newsletters', icon: Mail, href: '/admin/newsletters', perm: 'newsletters:view' },
+  { name: 'Events', icon: CalendarDays, href: '/admin/events', perm: 'events:view' },
   { name: 'System Activity', icon: Activity, href: '/admin/activity', perm: 'activity:view' },
   { name: 'Settings', icon: Settings, href: '/admin/settings', perm: 'settings:view' },
 ]
@@ -222,4 +224,3 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
     </aside>
   )
 }
-

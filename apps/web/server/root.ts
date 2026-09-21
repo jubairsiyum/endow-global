@@ -15,6 +15,7 @@ import { universityRouter } from './routers/university'
 import { resourceRouter } from './routers/resource'
 import { dashboardRouter } from './routers/dashboard'
 import { scholarshipRouter } from './routers/scholarship'
+import { eventRouter } from './routers/event'
 
 export const appRouter = createTRPCRouter({
   user: userRouter,
@@ -33,6 +34,7 @@ export const appRouter = createTRPCRouter({
   resource: resourceRouter,
   dashboard: dashboardRouter,
   scholarship: scholarshipRouter,
+  event: eventRouter,
 })
 
 export type AppRouter = typeof appRouter

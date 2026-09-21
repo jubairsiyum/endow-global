@@ -24,6 +24,7 @@ import {
   referrals,
   newsletterSubscribers,
   chatHistory,
+  events,
 } from './tables'
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -218,3 +219,6 @@ export const relatedCoursesRelations = relations(relatedCourses, ({ one }) => ({
   course: one(courses, { fields: [relatedCourses.courseId], references: [courses.id] }),
   relatedCourse: one(courses, { fields: [relatedCourses.relatedCourseId], references: [courses.id] }),
 }))
+
+// Events is a standalone content table — no FK relations needed
+export const eventsRelations = relations(events, () => ({}))

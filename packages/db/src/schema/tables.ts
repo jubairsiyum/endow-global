@@ -626,3 +626,41 @@ export const studentInquiries = mysqlTable('student_inquiry', {
   ipAddress: varchar('ip_address', { length: 50 }),
   submittedAt: timestamp('submitted_at', { mode: 'date' }).defaultNow().notNull(),
 })
+
+// ─── Events ────────────────────────────────────────────────
+
+export const events = mysqlTable(
+  'event',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    title: varchar('title', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    excerpt: text('excerpt'),
+    content: text('content'),
+    coverImage: varchar('cover_image', { length: 500 }),
+    category: mysqlEnum('category', ['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER'])
+      .default('OTHER')
+      .notNull(),
+    eventDate: datetime('event_date', { mode: 'date' }),
+    eventEndDate: datetime('event_end_date', { mode: 'date' }),
+    location: varchar('location', { length: 255 }),
+    registrationUrl: varchar('registration_url', { length: 500 }),
+    tags: json('tags').default('[]').notNull(),
+    author: varchar('author', { length: 255 }),
+    isFeatured: boolean('is_featured').default(false).notNull(),
+    isPublished: boolean('is_published').default(false).notNull(),
+    publishedAt: datetime('published_at', { mode: 'date' }),
+    metaTitle: varchar('meta_title', { length: 255 }),
+    metaDescription: text('meta_description'),
+    ogImageUrl: varchar('og_image_url', { length: 500 }),
+    viewCount: int('view_count').default(0).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex('idx_event_slug').on(table.slug),
+    publishedFeaturedIdx: index('idx_event_published_featured').on(table.isPublished, table.isFeatured),
+    eventDateIdx: index('idx_event_date').on(table.eventDate),
+    publishedDateIdx: index('idx_event_published_date').on(table.isPublished, table.publishedAt),
+  })
+)

@@ -8,7 +8,7 @@ const and = _and as any
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
-  const staticPages = ['', '/universities', '/blog', '/resources', '/about', '/contact', '/faq', '/opportunities'].map(
+  const staticPages = ['', '/universities', '/blog', '/resources', '/about', '/contact', '/faq', '/opportunities', '/events'].map(
     (path) => ({
       url: `${baseUrl}${path}`,
       lastModified: new Date(),
@@ -42,7 +42,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }))
 
-    return [...staticPages, ...universityPages, ...blogPages]
+    const eventRows = await db
+      .select({ slug: schema.events.slug, updatedAt: schema.events.updatedAt })
+      .from(schema.events)
+      .where(eq(schema.events.isPublished as any, true) as any)
+
+    const eventPages = eventRows.map((e) => ({
+      url: `${baseUrl}/events/${e.slug}`,
+      lastModified: e.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.65,
+    }))
+
+    return [...staticPages, ...universityPages, ...blogPages, ...eventPages]
   } catch {
     return staticPages
   }

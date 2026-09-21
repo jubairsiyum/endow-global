@@ -43,6 +43,13 @@
       "when": 1787997128594,
       "tag": "0005_add_rbac_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1789986167529,
+      "tag": "0006_modern_warstar",
+      "breakpoints": true
     }
   ]
 }

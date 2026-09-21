@@ -6,6 +6,7 @@ import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUnivers
 import PremiumHero from '@/components/home/PremiumHero'
 import CountryCards from '@/components/home/CountryCards'
 import TrendingCourses from '@/components/home/TrendingCourses'
+import FeaturedEvents from '@/components/home/FeaturedEvents'
 import ApplicationRoadmap from '@/components/universities/application-roadmap'
 import Testimonials from '@/components/home/Testimonials'
 import FAQAccordion from '@/components/home/FAQAccordion'
@@ -74,6 +75,7 @@ export default function HomePage() {
           <PremiumHero />
           <DiagnosticUniversityMarquee universities={universityLogos} />
           <TrendingCourses />
+          <FeaturedEvents />
           <CountryCards />
           <ApplicationRoadmap />
           <Testimonials />
