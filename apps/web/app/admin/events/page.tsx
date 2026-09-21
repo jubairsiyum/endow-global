@@ -13,6 +13,7 @@ import { toast } from 'sonner'
 import { useSession } from '@/lib/auth-client'
 import { hasPermission, parsePermissionsJSON } from '@/lib/rbac'
 import { UserRole } from '@endow/types'
+import { ImageUploader } from '@/components/super-admin/shared/ImageUploader'
 
 const CATEGORIES = ['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER'] as const
 type Category = typeof CATEGORIES[number]
@@ -449,13 +450,11 @@ export default function EventsPage() {
 
                 {/* Cover Image */}
                 <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Cover Image URL</label>
-                  <input
+                  <ImageUploader
                     value={form.coverImage}
-                    onChange={e => setF('coverImage', e.target.value)}
-                    placeholder="/uploads/event-cover.jpg or https://…"
-                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary"
-                    style={is}
+                    onChange={v => setF('coverImage', v)}
+                    label="Cover Image"
+                    previewHeight={120}
                   />
                 </div>
 
