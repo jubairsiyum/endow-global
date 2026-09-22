@@ -766,6 +766,11 @@ textarea:focus-visible:not([class*="focus-visible"]),
   max-width: 100%;
 }
 
+/* Justified text creates distracting gaps in narrow course cards. */
+.course-description .ql-align-justify {
+  text-align: left;
+}
+
 .course-description a,
 .course-description code {
   overflow-wrap: anywhere;

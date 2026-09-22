@@ -93,7 +93,7 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 <FadeUp>
                   <div className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                     <h2 className="flex items-center gap-2.5 text-lg font-bold text-gray-900"><BookOpen size={20} className="text-[#C41E3A]" />About This Course</h2>
-                    <div className="course-description mt-4 min-w-0 max-w-full text-left text-sm leading-7 text-gray-600 sm:text-justify" dangerouslySetInnerHTML={{ __html: course.description || 'No description available.' }} />
+                    <div className="course-description mt-4 min-w-0 max-w-full text-left text-sm leading-7 text-gray-600" dangerouslySetInnerHTML={{ __html: course.description || 'No description available.' }} />
                   </div>
                 </FadeUp>
 
