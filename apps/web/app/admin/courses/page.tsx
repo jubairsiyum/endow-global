@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { useSession } from '@/lib/auth-client'
 import { hasPermission, parsePermissionsJSON } from '@/lib/rbac'
 import { UserRole } from '@endow/types'
+import { QuillEditor } from '@/components/super-admin/shared/QuillEditor'
 
 const LEVELS = ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']
 const MODES = ['FULL_TIME', 'PART_TIME', 'ONLINE', 'HYBRID']
@@ -64,6 +65,13 @@ function highlightsToText(value: unknown): string {
     if (typeof current !== 'string') break
   }
   return typeof current === 'string' ? current : ''
+}
+
+function hasRichTextContent(value: string): boolean {
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .trim().length > 0
 }
 
 const is = { background: '#fff', borderColor: '#e5e7eb', color: '#111827' }
@@ -137,6 +145,7 @@ export default function CoursesPage() {
 
   function onSave() {
     if (!form.name.trim() || !form.slug.trim() || !form.universityId) { toast.error('Required fields missing'); return }
+    if (!hasRichTextContent(form.description)) { toast.error('Course description is required'); return }
     const data: any = {
       ...form,
       duration: parseInt(form.duration) || 1,
@@ -212,7 +221,15 @@ export default function CoursesPage() {
                 <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><select value={(form as any)[f.k]} onChange={e => setF(f.k, e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is}>{f.options.map(o => <option key={o.v} value={o.v}>{o.label}</option>)}</select></div>
               ))}
               <div><label className="mb-1.5 block text-sm font-medium text-gray-700">Campus</label><input value={form.campus} onChange={e => setF('campus', e.target.value)} placeholder="e.g. Aston Birmingham Campus" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
-              <div className="sm:col-span-2"><label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label><textarea value={form.description} onChange={e => setF('description', e.target.value)} rows={3} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
+              <div className="sm:col-span-2">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700">Description *</label>
+                <QuillEditor
+                  value={form.description}
+                  onChange={(value) => setF('description', value)}
+                  placeholder="Write a clear overview of the course..."
+                  minHeight={180}
+                />
+              </div>
 
               {/* Study Details */}
               <div className="sm:col-span-2 mb-1"><h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><DollarSign size={15} className="text-[#C41E3A]" />Study Details</h3></div>
