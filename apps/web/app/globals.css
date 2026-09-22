@@ -748,3 +748,55 @@ textarea:focus-visible:not([class*="focus-visible"]),
   color: #020617;
   font-weight: 800;
 }
+
+/* =========================
+   COURSE DESCRIPTION RICH CONTENT
+   Keep editor-generated HTML inside the responsive course card.
+======================= */
+
+.course-description {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.course-description > * {
+  max-width: 100%;
+}
+
+.course-description a,
+.course-description code {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.course-description img,
+.course-description video,
+.course-description iframe {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.course-description pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.course-description table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.course-description th,
+.course-description td {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}

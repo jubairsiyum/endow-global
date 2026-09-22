@@ -87,13 +87,13 @@ export default function CourseDetailContent({ course }: { course: any }) {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
 
               {/* LEFT - Content */}
-              <div className="lg:col-span-2 space-y-5 order-2 lg:order-1">
+              <div className="min-w-0 space-y-5 order-2 lg:order-1 lg:col-span-2">
 
                 {/* About */}
                 <FadeUp>
-                  <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
+                  <div className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                     <h2 className="flex items-center gap-2.5 text-lg font-bold text-gray-900"><BookOpen size={20} className="text-[#C41E3A]" />About This Course</h2>
-                    <div className="mt-4 text-sm leading-7 text-gray-600 space-y-3 text-justify" dangerouslySetInnerHTML={{ __html: course.description || 'No description available.' }} />
+                    <div className="course-description mt-4 min-w-0 max-w-full text-left text-sm leading-7 text-gray-600 sm:text-justify" dangerouslySetInnerHTML={{ __html: course.description || 'No description available.' }} />
                   </div>
                 </FadeUp>
 
