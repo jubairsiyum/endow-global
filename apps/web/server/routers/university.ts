@@ -79,7 +79,10 @@ export const universityRouter = createTRPCRouter({
         })
         .from(universities)
         .where(and(...conditions))
-        .orderBy(desc(universities.featured), desc(universities.ranking))
+        .orderBy(
+          desc(universities.featured),
+          sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`,
+        )
         .limit(input.limit)
     }),
 
@@ -97,7 +100,10 @@ export const universityRouter = createTRPCRouter({
       })
       .from(universities)
       .where(eq(universities.isActive, true))
-      .orderBy(desc(universities.featured), desc(universities.ranking))
+      .orderBy(
+        desc(universities.featured),
+        sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`,
+      )
       .limit(12)
   }),
 
@@ -152,7 +158,7 @@ export const universityRouter = createTRPCRouter({
             sql`LOWER(${universities.country}) = LOWER(${countryName})`
           )
         )
-        .orderBy(universities.ranking)
+        .orderBy(sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`)
         .limit(60)
 
       if (unis.length > 0) {

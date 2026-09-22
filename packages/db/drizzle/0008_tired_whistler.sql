@@ -1,0 +1,1 @@
+ALTER TABLE `university` MODIFY COLUMN `ranking` varchar(50);

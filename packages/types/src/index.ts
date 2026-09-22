@@ -72,7 +72,7 @@ export interface University {
   logo: string | null
   coverImage: string | null
   description: string
-  ranking: number | null
+  ranking: string | null
   koreaRanking: number | null
   website: string | null
   established: number | null

@@ -166,7 +166,7 @@ export function scoreCourse(profile: MatchProfile, course: MatchCourse): { score
 
 export function scoreUniversity(
   profile: MatchProfile,
-  university: { country: string; ranking: number | null },
+  university: { country: string; ranking: string | null },
   matchedCourses: { score: number }[]
 ): { score: number; reasons: string[] } {
   const reasons: string[] = []
@@ -186,16 +186,20 @@ export function scoreUniversity(
     reasons.push(`${matchedCourses.length} matching course${matchedCourses.length > 1 ? 's' : ''}`)
   }
 
-  if (university.ranking != null && university.ranking > 0) {
-    if (university.ranking <= 100) {
+  const rankingStart = university.ranking
+    ? Number.parseInt(String(university.ranking).replace(/,/g, '').match(/\d+/)?.[0] ?? '', 10)
+    : NaN
+
+  if (Number.isFinite(rankingStart) && rankingStart > 0) {
+    if (rankingStart <= 100) {
       score += 15
-      reasons.push(`Top 100 university (#${university.ranking})`)
-    } else if (university.ranking <= 300) {
+      reasons.push(`Top 100 university (QS ${university.ranking})`)
+    } else if (rankingStart <= 300) {
       score += 10
-      reasons.push(`Ranked #${university.ranking} globally`)
+      reasons.push(`Ranked QS ${university.ranking} globally`)
     } else {
       score += 5
-      reasons.push(`Ranked #${university.ranking} globally`)
+      reasons.push(`Ranked QS ${university.ranking} globally`)
     }
   }
 

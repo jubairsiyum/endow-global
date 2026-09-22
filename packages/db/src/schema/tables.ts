@@ -150,7 +150,7 @@ export const universities = mysqlTable('university', {
   logo: varchar('logo', { length: 255 }),
   coverImage: varchar('cover_image', { length: 255 }),
   description: text('description').notNull(),
-  ranking: int('ranking'),
+  ranking: varchar('ranking', { length: 50 }),
   koreaRanking: int('korea_ranking'),
   website: varchar('website', { length: 255 }),
   established: int('established'),

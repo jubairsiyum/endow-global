@@ -11,7 +11,7 @@ export type UniversityCardData = {
   country: string
   city: string
   logo: string | null
-  ranking: number | null
+  ranking: string | null
   description: string | null
   slug: string
 }
@@ -68,7 +68,7 @@ export function UniversityCard({ uni }: { uni: UniversityCardData }) {
         <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
           <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
           <span>{uni.country}</span>
-          {uni.ranking && <span className="ml-auto text-[10px] text-[#C41E3A]">QS #{uni.ranking}</span>}
+          {uni.ranking && <span className="ml-auto text-[10px] text-[#C41E3A]">QS {uni.ranking}</span>}
         </div>
 
         <div className="mt-auto flex items-end justify-between border-t border-slate-100 pt-4">

@@ -415,7 +415,7 @@ export default function CountryDetailContent({
                       <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-white/10">
                         {[
                           { label: 'Scholarship', value: featured.scholarship > 0 ? `Up to ${featured.scholarship}%` : 'Merit-based' },
-                          { label: 'QS Ranking', value: `#${featured.ranking}` },
+                          { label: 'QS Ranking', value: String(featured.ranking) },
                           { label: 'Visa success', value: `${featured.visaSuccessRate}%` },
                         ].map((fact, i) => (
                           <div key={fact.label} className={`px-6 py-5 ${i !== 0 ? 'border-t border-white/10' : ''}`}>
@@ -447,7 +447,7 @@ export default function CountryDetailContent({
                               </span>
                             )}
                           </div>
-                          <span className="font-mono text-xs text-[#9aa0a8]">QS #{uni.ranking}</span>
+                          <span className="font-mono text-xs text-[#9aa0a8]">QS {uni.ranking}</span>
                         </div>
 
                         <h3 className="mt-5 font-display text-xl font-semibold text-[#0E1116] transition-colors group-hover:text-[#C41E3A]">

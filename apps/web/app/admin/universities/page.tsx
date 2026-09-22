@@ -122,7 +122,7 @@ export default function UniversitiesPage() {
   ...(form.logo ? { logo: form.logo } : {}),
   ...(form.coverImage ? { coverImage: form.coverImage } : {}),
   ...(form.website ? { website: form.website } : {}),
-  ...(form.ranking ? { ranking: Number(form.ranking) } : {}),
+  ...(form.ranking ? { ranking: form.ranking.trim() } : {}),
   ...(form.koreaRanking ? { koreaRanking: Number(form.koreaRanking) } : {}),
   ...(form.established ? { established: Number(form.established) } : {}),
   ...(form.totalStudents ? { totalStudents: Number(form.totalStudents) } : {}),
@@ -242,7 +242,7 @@ export default function UniversitiesPage() {
  <div className="flex flex-wrap gap-1.5">
  {u.ranking ? (
  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
- <Hash size={11} /> QS #{u.ranking}
+  <Hash size={11} /> QS {u.ranking}
  </span>
  ) : null}
  {u.koreaRanking ? (
@@ -322,7 +322,7 @@ export default function UniversitiesPage() {
  </div>
  <div>
  <label className="mb-1.5 block text-sm font-medium text-gray-700">QS Ranking</label>
- <input type="number" value={form.ranking} onChange={e => updateField('ranking', e.target.value)} placeholder="e.g. 150" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
+  <input type="text" value={form.ranking} onChange={e => updateField('ranking', e.target.value)} placeholder="e.g. 1001-1100" maxLength={50} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
  </div>
  <div>
  <label className="mb-1.5 block text-sm font-medium text-gray-700">Ranking in Korea</label>
