@@ -20,6 +20,19 @@ const SCRYPT_KEY_LENGTH = 64
 const BCRYPT_PREFIXES = ['$2a$', '$2b$', '$2y$']
 const scrypt = promisify(nodeScrypt)
 
+const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
+const socialProviders = googleClientId && googleClientSecret
+  ? {
+      google: {
+        clientId: googleClientId,
+        clientSecret: googleClientSecret,
+        // Explicitly allow implicit sign-up via Google; linking will handle existing emails
+        disableImplicitSignUp: false,
+      },
+    }
+  : undefined
+
 const LOGIN_PORTAL_ROLES = {
   student: [UserRole.STUDENT],
   counselor: [UserRole.COUNSELOR, UserRole.ADMIN, UserRole.SUPER_ADMIN],
@@ -157,14 +170,7 @@ export const auth = betterAuth({
       updateUserInfoOnLink: false,
     },
   },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      // Explicitly allow implicit sign-up via Google; linking will handle existing emails
-      disableImplicitSignUp: false,
-    },
-  },
+  socialProviders,
   databaseHooks: {
     user: {
       create: {

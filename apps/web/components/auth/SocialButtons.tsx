@@ -7,6 +7,9 @@ import Spinner from '@/components/ui/Spinner'
 
 export default function SocialButtons() {
   const [isLoading, setIsLoading] = useState(false)
+  const googleEnabled = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID)
+
+  if (!googleEnabled) return null
 
   const handleGoogleSignIn = async () => {
     if (isLoading) return
