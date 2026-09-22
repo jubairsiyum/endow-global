@@ -1,0 +1,12 @@
+import '../../env-loader.cjs'
+import { defineConfig } from 'drizzle-kit'
+
+export default defineConfig({
+  schema: './src/schema/index.ts',
+  out: './drizzle',
+  dialect: 'mysql',
+  tablesFilter: ['university'],
+  dbCredentials: {
+    url: process.env.DATABASE_URL!,
+  },
+})
