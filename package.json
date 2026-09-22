@@ -10,7 +10,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "cd packages/db && pnpm drizzle-kit generate",
     "db:push": "cd packages/db && pnpm drizzle-kit push",
-    "db:push:university": "cd packages/db && pnpm drizzle-kit push --config drizzle.university.config.ts",
+    "db:ensure-university-schema": "node packages/db/scripts/ensure-university-schema.cjs",
+    "db:push:university": "pnpm db:ensure-university-schema",
     "db:migrate": "cd packages/db && pnpm db:migrate",
     "db:seed": "turbo run db:seed",
     "db:studio": "cd packages/db && pnpm drizzle-kit studio"
