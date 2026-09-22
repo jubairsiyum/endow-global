@@ -26,6 +26,7 @@ const gt = _gt as any
 const or = _or as any
 import { courses, universities, courseModules, platformCourseIntakes } from '@endow/db'
 import { SITE_CONFIG } from '@/lib/config/site'
+import { isMissingColumnError } from '@/server/utils/db-errors'
 
 export const courseRouter = createTRPCRouter({
   list: publicProcedure
@@ -350,7 +351,7 @@ export const courseRouter = createTRPCRouter({
             .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
             .limit(1)
         } catch (error) {
-          if ((error as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw error
+          if (!isMissingColumnError(error)) throw error
           result = await ctx.db
             .select(baseSelection)
             .from(courses)

@@ -9,6 +9,7 @@ import { hash as bcryptHash } from 'bcryptjs'
 import { getAdminActivityLog, logAdminActivity } from '@/lib/audit'
 import { notifyCounselorNewStudent } from '@/lib/notify'
 import { autoAssignCounselor, notifyStudentCounselorAssigned } from '@/lib/counselor-assignment'
+import { isMissingColumnError } from '@/server/utils/db-errors'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -1004,7 +1005,7 @@ export const adminRouter = createTRPCRouter({
             .where(where)
             .orderBy(desc(schema.universities.createdAt))
         } catch (error) {
-          if ((error as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw error
+          if (!isMissingColumnError(error)) throw error
 
           // Keep the admin list usable while an older deployment is being
           // migrated. New ranking/student fields remain empty until db:push
@@ -1069,10 +1070,10 @@ return db.select().from(schema.universities)
           await db.insert(schema.universities).values(input)
           return { success: true }
         } catch (error) {
-          if ((error as { code?: string }).code === 'ER_BAD_FIELD_ERROR') {
+          if (isMissingColumnError(error)) {
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'The database schema is out of date. Run pnpm db:push on the production server, then reload the app.',
+              message: 'The database schema is out of date. Run pnpm db:push:university on the production server, then reload the app.',
             })
           }
           throw error
@@ -1108,10 +1109,10 @@ return db.select().from(schema.universities)
           await db.update(schema.universities).set(data).where(eq(schema.universities.id, id))
           return { success: true }
         } catch (error) {
-          if ((error as { code?: string }).code === 'ER_BAD_FIELD_ERROR') {
+          if (isMissingColumnError(error)) {
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'The database schema is out of date. Run pnpm db:push on the production server, then reload the app.',
+              message: 'The database schema is out of date. Run pnpm db:push:university on the production server, then reload the app.',
             })
           }
           throw error

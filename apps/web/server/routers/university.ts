@@ -2,6 +2,7 @@ import { createTRPCRouter, publicProcedure } from '@/lib/trpc'
 import { z } from 'zod'
 import { eq as _eq, and as _and, or as _or, like as _like, sql as _sql, desc as _desc, count as _count } from 'drizzle-orm'
 import { universities, courses } from '@endow/db'
+import { isMissingColumnError } from '@/server/utils/db-errors'
 
 const eq = _eq as any
 const and = _and as any
@@ -190,7 +191,7 @@ export const universityRouter = createTRPCRouter({
           .limit(1)
           .then((r) => r[0] || null)
       } catch (error) {
-        if ((error as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw error
+        if (!isMissingColumnError(error)) throw error
 
         const legacyResult = await ctx.db
           .select({
