@@ -103,7 +103,7 @@ export function Navbar() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          className={`flex w-full max-w-6xl min-h-[64px] items-center justify-between gap-4 rounded-full px-4 py-2.5 transition-all duration-300 sm:px-6 sm:py-3 ${
+          className={`flex w-full max-w-7xl min-h-[64px] items-center justify-between gap-4 rounded-xl px-4 py-2.5 transition-all duration-300 sm:px-6 sm:py-3 ${
             isScrolled
               ? 'bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.8] ring-1 ring-black/[0.04]'
               : 'bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.5] ring-1 ring-white/40'
@@ -120,10 +120,10 @@ export function Navbar() {
               priority
             />
             <div className="w-fit leading-none">
-              <span className="block text-[13px] font-bold tracking-tight text-gray-900">
+              <span className="block text-sm font-bold tracking-tight text-gray-900">
                 Endow Global
               </span>
-              <span className="block text-[11px] font-semibold tracking-[0.22em] text-gray-400 uppercase">
+              <span className="block text-xs font-semibold tracking-[0.22em] text-gray-400 uppercase">
                 Education
               </span>
             </div>
@@ -143,7 +143,7 @@ export function Navbar() {
                   >
                     <button
                       onClick={() => setIsCountriesOpen(!isCountriesOpen)}
-                      className={`relative flex items-center gap-1 rounded-full px-6 py-2.5 text-[13px] font-medium transition-colors ${
+                      className={`relative flex items-center gap-1 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
                         isCountriesActive
                           ? 'text-[#C41E3A]'
                           : 'text-gray-500 hover:text-gray-900'
@@ -157,7 +157,7 @@ export function Navbar() {
                       {isCountriesActive && (
                         <motion.span
                           layoutId="nav-pill"
-                          className="absolute inset-0 rounded-full bg-[#C41E3A]/[0.06]"
+                          className="absolute inset-0 rounded-lg bg-[#C41E3A]/[0.06]"
                           transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                         />
                       )}
@@ -204,7 +204,7 @@ export function Navbar() {
                   href={item.href}
                   prefetch={true}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex items-center gap-1 rounded-full px-6 py-2.5 text-[13px] font-medium transition-colors ${
+                  className={`relative flex items-center gap-1 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
                     isActive
                       ? 'text-[#C41E3A]'
                       : 'text-gray-500 hover:text-gray-900'
@@ -214,7 +214,7 @@ export function Navbar() {
                   {isActive && (
                     <motion.span
                       layoutId="nav-pill"
-                      className="absolute inset-0 rounded-full bg-[#C41E3A]/[0.06]"
+                      className="absolute inset-0 rounded-lg bg-[#C41E3A]/[0.06]"
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
@@ -226,12 +226,12 @@ export function Navbar() {
           {/* Desktop CTA */}
           <div className="hidden items-center gap-2 lg:flex">
             {sessionPending ? (
-              <div className="h-9 w-28 animate-pulse rounded-full bg-gray-100" aria-hidden />
+              <div className="h-9 w-28 animate-pulse rounded-lg bg-gray-100" aria-hidden />
             ) : session ? (
               <>
                 <Link
                   href={portalHref}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#C41E3A] px-4 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:-translate-y-0.5"
                 >
                   <LayoutDashboard size={14} />
                   {portalLabel}
@@ -240,7 +240,7 @@ export function Navbar() {
                   type="button"
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900 disabled:opacity-50"
                 >
                   <LogOut size={14} />
                   {isSigningOut ? 'Signing out…' : 'Sign out'}
@@ -251,14 +251,14 @@ export function Navbar() {
                 <Link
                   href="/login"
                   prefetch={true}
-                  className="rounded-full px-4 py-2 text-[13px] font-medium text-gray-500 transition-colors hover:text-gray-900"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-900"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/register"
                   prefetch={true}
-                  className="group inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A] px-5 py-2 text-[13px] font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
+                  className="group inline-flex items-center gap-1.5 rounded-lg bg-[#C41E3A] px-5 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
                 >
                   Get Started
                   <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
@@ -270,19 +270,19 @@ export function Navbar() {
           {/* Mobile CTA + Toggle */}
           <div className="flex items-center gap-2 lg:hidden">
             {sessionPending ? (
-              <div className="h-8 w-20 animate-pulse rounded-full bg-gray-100" aria-hidden />
+              <div className="h-8 w-20 animate-pulse rounded-lg bg-gray-100" aria-hidden />
             ) : session ? (
               <Link
                 href={portalHref}
                 aria-label={portalLabel}
-                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#263238] text-[11px] font-bold text-white"
+                className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#263238] text-xs font-bold text-white"
               >
                 {userImage ? <img src={userImage} alt="" className="h-full w-full object-cover" /> : userInitials}
               </Link>
             ) : (
               <Link
                 href="/register"
-                className="inline-flex items-center rounded-full bg-[#C41E3A] px-3.5 py-1.5 text-[11px] font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)]"
+                className="inline-flex items-center rounded-lg bg-[#C41E3A] px-3.5 py-1.5 text-xs font-semibold text-white shadow-[0_2px_8px_rgba(196,30,58,0.25)]"
               >
                 Get Started
               </Link>
@@ -306,7 +306,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed inset-x-0 top-[72px] z-50 mx-4 max-h-[80vh] overflow-y-auto rounded-2xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-sm backdrop-saturate-[1.8] lg:hidden"
+            className="fixed inset-x-0 top-[72px] z-50 mx-4 max-h-[80vh] overflow-y-auto rounded-xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-sm backdrop-saturate-[1.8] lg:hidden"
           >
             <div className="p-3">
               <div className="flex flex-col gap-0.5">
@@ -449,7 +449,7 @@ export function Navbar() {
                     </Link>
                     <Link
                       href="/register"
-                      className="flex items-center justify-center rounded-full bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
+                      className="flex items-center justify-center rounded-xl bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
                     >
                       Get Started
                     </Link>
