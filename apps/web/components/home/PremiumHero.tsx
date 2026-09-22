@@ -30,6 +30,12 @@ export default function PremiumHero() {
   const { data: stats } = trpc.university.stats.useQuery()
   const uniCount = stats?.universities || 50
   const countryCount = stats?.countries || 2
+  const { data: reviews } = trpc.testimonial.published.useQuery()
+  const publishedReviews = reviews ?? []
+  const reviewCount = publishedReviews.length
+  const avgRating = reviewCount > 0
+    ? (publishedReviews.reduce((sum, t) => sum + t.rating, 0) / reviewCount).toFixed(1)
+    : null
 
   function paginate(dir:number){setPage([mod(page+dir,images.length),dir])}
   function handleDragEnd(_:any, info:PanInfo){
@@ -69,7 +75,8 @@ export default function PremiumHero() {
               Personalised counselling for South Korea — from university selection to the day your visa clears.
             </p>
             <div className="flex items-center gap-2 text-[12px] mb-5" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#5b6070'}}>
-              <span className="tracking-[2px]" style={{color:BRAND_GOLD,fontSize:'14px'}}>★★★★★</span> 4.7 rated by 5,000+ students
+              <span className="tracking-[2px]" style={{color:BRAND_GOLD,fontSize:'14px'}}>★★★★★</span>
+              <span>{avgRating ? `${avgRating} rated by ${reviewCount.toLocaleString()} students` : 'Trusted by students across South Korea & Australia'}</span>
             </div>
             <div className="flex flex-wrap gap-3">
               <Link href="/apply-now" className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white hover:opacity-90 transition-opacity" style={{background:BRAND_RED}}>Apply Now</Link>
