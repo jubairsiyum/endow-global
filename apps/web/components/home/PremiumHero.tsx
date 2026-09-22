@@ -22,11 +22,27 @@ function mod(n:number,m:number){return((n%m)+m)%m}
 
 const SVGFallback = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260"><rect fill="%23e5e7eb" width="200" height="260"/><text x="100" y="130" text-anchor="middle" fill="%239ca3af" font-size="14">Student</text></svg>`
 
+const BUDGET_RANGES: Record<string, { feeMin?: number; feeMax?: number }> = {
+  'Any budget': {},
+  'Under $5k': { feeMax: 5000 },
+  '$5k-$15k': { feeMin: 5000, feeMax: 15000 },
+  '$15k+': { feeMin: 15000 },
+}
+
+const INTAKE_YEARS: Record<string, string | undefined> = {
+  'Any intake': undefined,
+  'Spring 2026': '2026',
+  'Fall 2026': '2026',
+  'Spring 2027': '2027',
+}
+
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
   const [[page, direction], setPage] = useState<[number,number]>([0,0])
   const [fCountry, setFCountry] = useState('')
   const [fLevel, setFLevel] = useState('')
+  const [fBudget, setFBudget] = useState('Any budget')
+  const [fIntake, setFIntake] = useState('Any intake')
   const { data: stats } = trpc.university.stats.useQuery()
   const uniCount = stats?.universities || 50
   const countryCount = stats?.countries || 2
@@ -52,6 +68,11 @@ export default function PremiumHero() {
     const p=new URLSearchParams()
     if(fCountry)p.set('country',fCountry)
     if(fLevel)p.set('level',fLevel)
+    const budget = BUDGET_RANGES[fBudget]
+    if(budget?.feeMin)p.set('feeMin', String(budget.feeMin))
+    if(budget?.feeMax)p.set('feeMax', String(budget.feeMax))
+    const year = INTAKE_YEARS[fIntake]
+    if(year)p.set('year', year)
     return `/courses?${p.toString()}`
   }
 
@@ -135,11 +156,19 @@ export default function PremiumHero() {
               <span className="text-[10px] uppercase tracking-[0.08em] px-2.5 py-1 rounded font-medium" style={{fontFamily:"'IBM Plex Mono',monospace",color:BRAND_GOLD,background:'rgba(184,147,74,0.12)'}}>Search Class · All Routes</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 sm:gap-4 items-end">
-              {[{label:'Country',val:fCountry,set:setFCountry,opts:['','South Korea','Australia']},{label:'Degree',val:fLevel,set:setFLevel,opts:['',"Bachelor's","Master's",'PhD','Diploma']},{label:'Budget',opts:['Any budget','Under $5k','$5k-$15k','$15k+']},{label:'Intake',opts:['Any intake','Spring 2026','Fall 2026','Spring 2027']}].map(f=>(
+              {[
+                {label:'Country',val:fCountry,set:setFCountry,opts:['','South Korea','Australia','UK'],disabled:['Australia','UK']},
+                {label:'Degree',val:fLevel,set:setFLevel,opts:['',"Bachelor's","Master's",'PhD','Diploma'],disabled:[]},
+                {label:'Budget',val:fBudget,set:setFBudget,opts:['Any budget','Under $5k','$5k-$15k','$15k+'],disabled:[]},
+                {label:'Intake',val:fIntake,set:setFIntake,opts:['Any intake','Spring 2026','Fall 2026','Spring 2027'],disabled:[]},
+              ].map(f=>(
                 <div key={f.label} className="w-full">
                   <label className="block text-[9px] uppercase tracking-[0.07em] mb-1.5 font-medium" style={{fontFamily:"'IBM Plex Mono',monospace",color:'#9299a8'}}>{f.label}</label>
-                  <select value={f.val||''} onChange={e=>f.set?.(e.target.value)} className="w-full py-2.5 px-3 rounded-lg border text-[13px] bg-[#F5F6F9] outline-none focus:border-[#C41E3A]" style={{fontFamily:"'IBM Plex Sans',sans-serif",borderColor:'rgba(16,27,61,0.13)',color:BRAND_NAVY}}>
-                    {f.opts.map(o=><option key={o} value={o}>{o||'Any'}</option>)}
+                  <select value={f.val||''} onChange={e=>f.set(e.target.value)} className="w-full py-2.5 px-3 rounded-lg border text-[13px] bg-[#F5F6F9] outline-none focus:border-[#C41E3A]" style={{fontFamily:"'IBM Plex Sans',sans-serif",borderColor:'rgba(16,27,61,0.13)',color:BRAND_NAVY}}>
+                    {f.opts.map(o=>{
+                      const isDisabled = f.disabled.includes(o)
+                      return <option key={o} value={o} disabled={isDisabled}>{o||'Any'}{isDisabled ? ' (coming soon)' : ''}</option>
+                    })}
                   </select>
                 </div>
               ))}
