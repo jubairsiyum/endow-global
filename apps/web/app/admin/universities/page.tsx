@@ -17,17 +17,18 @@ interface UniForm {
  logo: string
  coverImage: string
  ranking: string
+ koreaRanking: string
  website: string
  established: string
  totalStudents: string
- internationalPercent: string
+ internationalStudents: string
  isActive: boolean
 }
 
 const emptyForm: UniForm = {
  name: '', slug: '', country: '', city: '', description: '',
- logo: '', coverImage: '', ranking: '', website: '', established: '',
- totalStudents: '', internationalPercent: '', isActive: true,
+ logo: '', coverImage: '', ranking: '', koreaRanking: '', website: '', established: '',
+ totalStudents: '', internationalStudents: '', isActive: true,
 }
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -96,10 +97,10 @@ export default function UniversitiesPage() {
  name: u.name || '', slug: u.slug || '', country: u.country || '',
  city: u.city || '', description: u.description || '',
  logo: u.logo || '', coverImage: u.coverImage || '',
- ranking: u.ranking?.toString() || '', website: u.website || '',
+ ranking: u.ranking?.toString() || '', koreaRanking: u.koreaRanking?.toString() || '', website: u.website || '',
  established: u.established?.toString() || '',
  totalStudents: u.totalStudents?.toString() || '',
- internationalPercent: u.internationalPercent?.toString() || '',
+ internationalStudents: u.internationalStudents?.toString() || '',
  isActive: u.isActive ?? true,
  })
  setShowModal(true)
@@ -110,9 +111,10 @@ export default function UniversitiesPage() {
  const data = {
  ...form,
  ranking: form.ranking ? Number(form.ranking) : undefined,
+ koreaRanking: form.koreaRanking ? Number(form.koreaRanking) : undefined,
  established: form.established ? Number(form.established) : undefined,
  totalStudents: form.totalStudents ? Number(form.totalStudents) : undefined,
- internationalPercent: form.internationalPercent ? Number(form.internationalPercent) : undefined,
+ internationalStudents: form.internationalStudents ? Number(form.internationalStudents) : undefined,
  }
  if (editingId) {
  updateMutation.mutate({ id: editingId, ...data })
@@ -213,14 +215,18 @@ export default function UniversitiesPage() {
  <MapPin size={11} /> {u.city}
  </div>
  </div>
- <div>
+ <div className="flex flex-wrap gap-1.5">
  {u.ranking ? (
  <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
- <Hash size={11} /> #{u.ranking}
+ <Hash size={11} /> QS #{u.ranking}
  </span>
- ) : (
- <span className="text-xs text-gray-400">—</span>
- )}
+ ) : null}
+ {u.koreaRanking ? (
+ <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+ <Hash size={11} /> KR #{u.koreaRanking}
+ </span>
+ ) : null}
+ {!u.ranking && !u.koreaRanking && <span className="text-xs text-gray-400">—</span>}
  </div>
  <div className="text-sm font-medium text-gray-700">
  {(u.courses || []).length} programs
@@ -286,8 +292,12 @@ export default function UniversitiesPage() {
  <input required value={form.city} onChange={e => updateField('city', e.target.value)} placeholder="e.g. Seoul" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
  </div>
  <div>
- <label className="mb-1.5 block text-sm font-medium text-gray-700">Ranking</label>
+ <label className="mb-1.5 block text-sm font-medium text-gray-700">QS Ranking</label>
  <input type="number" value={form.ranking} onChange={e => updateField('ranking', e.target.value)} placeholder="e.g. 150" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
+ </div>
+ <div>
+ <label className="mb-1.5 block text-sm font-medium text-gray-700">Ranking in Korea</label>
+ <input type="number" value={form.koreaRanking} onChange={e => updateField('koreaRanking', e.target.value)} placeholder="e.g. 5" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
  </div>
  <div className="sm:col-span-2">
  <ImageUploader value={form.logo} onChange={(v) => updateField('logo', v)} label="University Logo" previewHeight={120} />
@@ -302,11 +312,11 @@ export default function UniversitiesPage() {
  </div>
  <div>
  <label className="mb-1.5 block text-sm font-medium text-gray-700">Total Students</label>
- <input type="number" value={form.totalStudents} onChange={e => updateField('totalStudents', e.target.value)} placeholder="e.g. 15000" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
+ <input type="number" value={form.totalStudents} onChange={e => updateField('totalStudents', e.target.value)} placeholder="e.g. 8500" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
  </div>
  <div>
- <label className="mb-1.5 block text-sm font-medium text-gray-700">Intl. Student %</label>
- <input type="number" step="0.1" value={form.internationalPercent} onChange={e => updateField('internationalPercent', e.target.value)} placeholder="e.g. 15.5" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
+ <label className="mb-1.5 block text-sm font-medium text-gray-700">Intl. Students</label>
+ <input type="number" value={form.internationalStudents} onChange={e => updateField('internationalStudents', e.target.value)} placeholder="e.g. 250" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
  </div>
  <div className="sm:col-span-2">
  <label className="mb-1.5 block text-sm font-medium text-gray-700">Description *</label>

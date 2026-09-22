@@ -125,7 +125,7 @@ async function main() {
       website: 'https://www.manchester.ac.uk',
       established: 1824,
       totalStudents: 40000,
-      internationalPercent: 30,
+      internationalStudents: 12000,
     },
     {
       name: 'University of Melbourne',
@@ -137,7 +137,7 @@ async function main() {
       website: 'https://www.unimelb.edu.au',
       established: 1853,
       totalStudents: 50000,
-      internationalPercent: 38,
+      internationalStudents: 19000,
     },
     {
       name: 'University of Toronto',
@@ -149,7 +149,7 @@ async function main() {
       website: 'https://www.utoronto.ca',
       established: 1827,
       totalStudents: 97000,
-      internationalPercent: 20,
+      internationalStudents: 19400,
     },
   ]
 

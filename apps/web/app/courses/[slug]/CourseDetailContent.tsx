@@ -18,6 +18,10 @@ function safeArray(v: any): string[] {
   return []
 }
 
+function formatPlus(n: number | null | undefined): string {
+  return n != null && n > 0 ? `${n}+` : '—'
+}
+
 export default function CourseDetailContent({ course }: { course: any }) {
   const highlights = safeArray(course.highlights)
   const requirements = safeArray(course.requirements)
@@ -207,6 +211,18 @@ export default function CourseDetailContent({ course }: { course: any }) {
                     </div>
                     <div className="min-w-0"><p className="text-sm font-semibold text-gray-900 truncate">{course.universityName}</p><p className="text-[11px] text-gray-500">{course.universityCity}, {course.universityCountry}</p></div>
                   </div>
+                  {(course.universityRanking || course.universityKoreaRanking) && (
+                    <div className="mb-3 flex flex-wrap gap-1.5">
+                      {course.universityRanking && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700"><Award size={11} /> QS #{course.universityRanking}</span>}
+                      {course.universityKoreaRanking && <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"><Award size={11} /> Korea #{course.universityKoreaRanking}</span>}
+                    </div>
+                  )}
+                  {(course.universityTotalStudents || course.universityInternationalStudents) && (
+                    <div className="mb-3 grid grid-cols-2 gap-2">
+                      {course.universityTotalStudents ? <div className="rounded-lg bg-gray-50 px-3 py-2 text-center"><p className="text-sm font-bold text-gray-900">{formatPlus(course.universityTotalStudents)}</p><p className="text-[10px] text-gray-500">Total Students</p></div> : null}
+                      {course.universityInternationalStudents ? <div className="rounded-lg bg-gray-50 px-3 py-2 text-center"><p className="text-sm font-bold text-gray-900">{formatPlus(course.universityInternationalStudents)}</p><p className="text-[10px] text-gray-500">Intl. Students</p></div> : null}
+                    </div>
+                  )}
                   {course.universityWebsite && <a href={course.universityWebsite} target="_blank" className="flex items-center justify-center gap-1.5 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"><ExternalLink size={13} />Visit University Website</a>}
                 </div>
 

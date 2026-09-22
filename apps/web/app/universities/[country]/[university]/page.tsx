@@ -25,6 +25,10 @@ function toArray(value: unknown): any[] {
   return Array.isArray(parsed) ? parsed : []
 }
 
+function formatPlus(n: number | null | undefined): string {
+  return n != null && n > 0 ? `${n}+` : '—'
+}
+
 export default function UniversityDetailPage() {
   const { university } = useParams<{ country: string; university: string }>()
   const { data: uni, isLoading } = trpc.university.getBySlug.useQuery({ slug: university as string })
@@ -88,7 +92,8 @@ export default function UniversityDetailPage() {
               <div className="flex flex-wrap items-center gap-2 mb-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/15 backdrop-blur px-2.5 py-0.5 text-[11px] font-semibold text-white"><MapPin size={11} />{uni.country}</span>
                 {uni.city && <span className="text-sm text-white/60">{uni.city}</span>}
-                {uni.ranking && <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300"><Award size={11} />#{uni.ranking}</span>}
+                {uni.ranking && <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300"><Award size={11} />QS #{uni.ranking}</span>}
+                {uni.koreaRanking && <span className="inline-flex items-center gap-1 rounded-full bg-blue-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-blue-300"><Award size={11} />Korea #{uni.koreaRanking}</span>}
               </div>
 
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight text-white">{uni.name}</h1>
@@ -120,9 +125,9 @@ export default function UniversityDetailPage() {
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: 'Est.', v: uni.established || '—' },
-              { label: 'Students', v: uni.totalStudents?.toLocaleString() || '—' },
-              { label: 'Intl. %', v: uni.internationalPercent != null ? `${uni.internationalPercent}%` : '—' },
-              { label: 'Rank', v: uni.ranking ? `#${uni.ranking}` : '—' },
+              { label: 'Students', v: formatPlus(uni.totalStudents) },
+              { label: 'Intl. Students', v: formatPlus(uni.internationalStudents) },
+              { label: 'QS Rank', v: uni.ranking ? `#${uni.ranking}` : '—' },
             ].map((s) => (
               <div key={s.label} className="rounded-xl bg-white/8 backdrop-blur border border-white/10 py-3 px-4 text-center">
                 <p className="text-lg font-bold text-white">{s.v}</p>
@@ -230,9 +235,10 @@ export default function UniversityDetailPage() {
               <div className="space-y-3">
                 {[
                   uni.established && { icon: Calendar, label: 'Established', value: uni.established },
-                  uni.totalStudents && { icon: Users, label: 'Total Students', value: uni.totalStudents?.toLocaleString() },
-                  uni.internationalPercent != null && { icon: Globe, label: 'International Students', value: `${uni.internationalPercent}%` },
-                  uni.ranking && { icon: Award, label: 'Global Ranking', value: `#${uni.ranking}` },
+                  uni.totalStudents && { icon: Users, label: 'Total Students', value: formatPlus(uni.totalStudents) },
+                  uni.internationalStudents && { icon: Globe, label: 'International Students', value: formatPlus(uni.internationalStudents) },
+                  uni.ranking && { icon: Award, label: 'QS Ranking', value: `#${uni.ranking}` },
+                  uni.koreaRanking && { icon: Award, label: 'Ranking in Korea', value: `#${uni.koreaRanking}` },
                   { icon: Layers, label: 'Programs', value: `${courses.length} courses` },
                 ].filter(Boolean).map((item: any, i) => (
                   <div key={i} className="flex items-center gap-3">

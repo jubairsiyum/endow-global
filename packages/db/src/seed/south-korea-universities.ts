@@ -132,7 +132,7 @@ async function main() {
       website: null,
       established: uni.established,
       totalStudents: null,
-      internationalPercent: null,
+      internationalStudents: null,
       accreditation: null,
       rankings: [],
       featured: uni.featured,

@@ -73,10 +73,11 @@ export interface University {
   coverImage: string | null
   description: string
   ranking: number | null
+  koreaRanking: number | null
   website: string | null
   established: number | null
   totalStudents: number | null
-  internationalPercent: number | null
+  internationalStudents: number | null
   isActive: boolean
 }
 

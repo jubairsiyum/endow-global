@@ -333,10 +333,11 @@ export const courseRouter = createTRPCRouter({
             universityCoverImage: universities.coverImage,
             universityDescription: universities.description,
             universityRanking: universities.ranking,
+            universityKoreaRanking: universities.koreaRanking,
             universityWebsite: universities.website,
             universityEstablished: universities.established,
             universityTotalStudents: universities.totalStudents,
-            universityInternationalPercent: universities.internationalPercent,
+            universityInternationalStudents: universities.internationalStudents,
           })
           .from(courses)
           .leftJoin(universities, eq(courses.universityId, universities.id))
