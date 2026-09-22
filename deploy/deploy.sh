@@ -15,8 +15,12 @@ git pull --ff-only
 echo "==> Installing dependencies"
 pnpm install --frozen-lockfile
 
-echo "==> Pushing DB schema (drizzle-kit push)"
-pnpm db:push
+echo "==> Applying university schema changes"
+# Keep this deploy scoped to the current migration. The legacy catalog table
+# `course_tags` has a composite primary key that Drizzle's full push attempts
+# to rebuild, and MySQL correctly rejects that unsafe operation while its
+# foreign-key index is in use.
+pnpm db:push:university
 
 echo "==> Building web app"
 pnpm build
