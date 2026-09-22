@@ -47,7 +47,7 @@ export default function UniversityMarquee() {
   return (
     <section className="relative overflow-hidden border-y border-gray-200 bg-[#F8FAFC] py-10 lg:py-12">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <p className="mb-6 text-center text-sm font-semibold uppercase tracking-widest text-gray-600">
+        <p className="mb-6 text-center text-base font-semibold uppercase tracking-widest text-gray-600">
           Trusted by <span className="text-gradient-brand">5000+</span> Students Across
         </p>
 

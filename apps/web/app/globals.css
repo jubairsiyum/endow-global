@@ -147,6 +147,17 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Keep the university discovery experience comfortable to read without
+   changing typography on the rest of the application. */
+.universities-page {
+  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-size: 1rem;
+}
+
+.universities-page :where(p, li) {
+  text-wrap: pretty;
+}
+
 .dark body {
   background: #09090b;
   color: #fafafa;

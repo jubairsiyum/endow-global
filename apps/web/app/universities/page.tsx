@@ -13,7 +13,7 @@ import PremiumConsultationCTA from '@/components/universities/premium-consultati
 
 export default function UniversitiesPage() {
   return (
-    <div className="flex w-full flex-col overflow-x-hidden">
+    <div className="universities-page flex w-full flex-col overflow-x-hidden">
       <Navbar />
       <main className="flex-grow">
         <HeroSection />

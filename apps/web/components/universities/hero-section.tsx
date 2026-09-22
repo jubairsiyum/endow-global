@@ -56,7 +56,7 @@ export default function HeroSection() {
           <motion.div variants={itemVariants}>
             <div className="mb-4 inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/[0.06] px-3 py-1">
               <span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A]" />
-              <span className="text-[11px] font-semibold text-[#C41E3A]">
+              <span className="text-xs font-semibold text-[#C41E3A]">
                 {dbStats?.universities ?? 0}+ Partner Universities
               </span>
             </div>
@@ -73,7 +73,7 @@ export default function HeroSection() {
 
           {/* Description */}
           <motion.div variants={itemVariants}>
-            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-gray-500">
+            <p className="mx-auto mt-5 max-w-md text-lg leading-relaxed text-gray-600">
               Explore world-class universities in South Korea and Australia.
               Get personalized recommendations based on your profile.
             </p>
@@ -95,11 +95,11 @@ export default function HeroSection() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search universities, programs, or countries..."
-                className="w-full border-0 border-none bg-transparent p-0 text-sm text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400 sm:text-[15px]"
+                className="w-full border-0 border-none bg-transparent p-0 text-base text-gray-700 outline-none shadow-none focus:border-none focus:outline-none focus:ring-0 placeholder:text-gray-400"
               />
               <button
                 type="submit"
-                className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#A01830] sm:px-5 sm:text-sm"
+                className="shrink-0 rounded-xl bg-[#C41E3A] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#A01830] sm:px-5"
               >
                 Search
               </button>
@@ -111,7 +111,7 @@ export default function HeroSection() {
                   key={term}
                   type="button"
                   onClick={() => setSearchQuery(term)}
-                  className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-500 transition-colors hover:border-[#C41E3A]/30 hover:text-[#C41E3A]"
+                  className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:border-[#C41E3A]/30 hover:text-[#C41E3A]"
                 >
                   {term}
                 </button>
@@ -131,8 +131,8 @@ export default function HeroSection() {
                   <stat.icon size={18} className="text-[#C41E3A]" />
                 </div>
                 <div className="text-left">
-                  <p className="text-lg font-bold text-gray-900">{stat.value}</p>
-                  <p className="text-xs text-gray-400">{stat.label}</p>
+                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="text-sm text-gray-600">{stat.label}</p>
                 </div>
               </div>
             ))}

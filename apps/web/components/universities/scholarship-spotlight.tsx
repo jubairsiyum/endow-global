@@ -141,7 +141,7 @@ export default function ScholarshipSpotlight() {
             Exclusive Scholarship <span className="text-[#C41E3A]">Opportunities</span>
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-600">
             Reduce your tuition burden with partner-university scholarships and
             expert financial aid guidance.
           </p>
@@ -161,7 +161,7 @@ export default function ScholarshipSpotlight() {
             <p className="text-sm font-medium text-slate-500">
               No exclusive scholarships are available right now.
             </p>
-            <p className="mx-auto mt-2 max-w-md text-sm text-slate-400">
+            <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
               New opportunities are added by our admin team — check back soon or explore all
               universities.
             </p>
@@ -238,7 +238,7 @@ export default function ScholarshipSpotlight() {
                     <h3 className="line-clamp-1 text-[19px] font-bold leading-6 tracking-normal text-[#111827]">
                       {item.universityName}
                     </h3>
-                    <p className="mt-1 flex items-center gap-1.5 text-[13px] font-semibold text-slate-500">
+                    <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-slate-600">
                       <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
                       <span className="line-clamp-1">{item.country}</span>
                     </p>
@@ -261,7 +261,7 @@ export default function ScholarshipSpotlight() {
                   </div>
 
                   <div className="mt-4 border-t border-slate-100 pt-4">
-                    <div className="grid grid-cols-2 gap-2 text-[13px] font-semibold text-slate-600">
+                    <div className="grid grid-cols-2 gap-2 text-sm font-semibold text-slate-600">
                       <div className="flex min-w-0 items-center gap-1.5">
                         <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
                         <span className="line-clamp-1">{item.country}</span>

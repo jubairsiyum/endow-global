@@ -37,7 +37,7 @@ export function UniversityCard({ uni }: { uni: UniversityCardData }) {
     >
       <div className="absolute inset-x-0 bottom-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-[#8B0E1A] via-[#A91324] to-[#C9A15B] transition-transform duration-500 ease-out group-hover:scale-x-100" />
 
-      <div className="flex flex-1 flex-col p-5">
+      <div className="flex flex-1 flex-col p-6">
         <div className="flex items-start gap-4">
           <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-white shadow-sm flex items-center justify-center">
             {uni.logo && !imgError ? (
@@ -52,23 +52,23 @@ export function UniversityCard({ uni }: { uni: UniversityCardData }) {
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-base font-bold leading-snug text-[#111827] line-clamp-2">
+            <h3 className="text-lg font-bold leading-snug text-[#111827] line-clamp-2">
               {uni.name}
             </h3>
-            <p className="mt-1 text-sm font-medium text-slate-500">
+            <p className="mt-1 text-sm font-medium text-slate-600">
               {uni.city ? `${uni.city}, ` : ''}{uni.country}
             </p>
           </div>
         </div>
 
         {uni.description && (
-          <p className="mt-3 text-xs leading-relaxed text-slate-400 line-clamp-2">{uni.description.replace(/<[^>]*>/g, '').slice(0, 120)}</p>
+          <p className="mt-3 text-sm leading-relaxed text-slate-600 line-clamp-2">{uni.description.replace(/<[^>]*>/g, '').slice(0, 120)}</p>
         )}
 
-        <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <div className="mt-4 flex items-center gap-1.5 text-sm font-semibold uppercase tracking-wide text-slate-500">
           <MapPin className="h-3.5 w-3.5 shrink-0 text-[#C9A15B]" />
           <span>{uni.country}</span>
-          {uni.ranking && <span className="ml-auto text-[10px] text-[#C41E3A]">QS {uni.ranking}</span>}
+          {uni.ranking && <span className="ml-auto text-xs text-[#C41E3A]">QS {uni.ranking}</span>}
         </div>
 
         <div className="mt-auto flex items-end justify-between border-t border-slate-100 pt-4">

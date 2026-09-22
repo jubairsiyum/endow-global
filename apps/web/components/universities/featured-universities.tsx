@@ -30,7 +30,7 @@ export default function FeaturedUniversities() {
           <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
             Partner <span className="text-[#C41E3A]">Universities</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-600">
             Handpicked universities offering world-class education, exclusive scholarships, and
             guaranteed visa support — all in one place
           </p>
@@ -40,8 +40,8 @@ export default function FeaturedUniversities() {
           <UniversityCardSkeleton />
         ) : isError ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-10 text-center">
-            <p className="text-sm font-semibold text-amber-800">University information is temporarily unavailable.</p>
-            <p className="mt-1 text-xs text-amber-700">Please try again shortly.</p>
+            <p className="text-base font-semibold text-amber-800">University information is temporarily unavailable.</p>
+            <p className="mt-1 text-sm text-amber-700">Please try again shortly.</p>
           </div>
         ) : (
           <motion.div

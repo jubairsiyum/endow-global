@@ -123,7 +123,7 @@ export default function StatisticsSection() {
             Global <span className="text-[#C41E3A]">Success</span> by Numbers
           </h2>
           
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-600">
             Join thousands of students who have successfully pursued their education dreams globally
           </p>
         </motion.div>
@@ -141,7 +141,7 @@ export default function StatisticsSection() {
               key={idx}
               variants={itemVariants}
               whileHover={{ y: -4, transition: { duration: 0.25 } }}
-              className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-5 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
+              className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-6 shadow-[0_10px_40px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-1 hover:border-red-100 hover:shadow-red-100"
             >
               <div className="relative space-y-4">
                 <motion.div
@@ -154,14 +154,14 @@ export default function StatisticsSection() {
                 </motion.div>
 
                 <div>
-                  <div className="text-3xl font-bold text-gray-900">
+                  <div className="text-4xl font-bold text-gray-900">
                     <AnimatedCounter value={stat.value} />
                     <span>{stat.suffix}</span>
                   </div>
                 </div>
 
                 {/* Label */}
-                <p className="text-sm text-gray-600">{stat.label}</p>
+                <p className="text-base text-gray-600">{stat.label}</p>
               </div>
             </motion.div>
           ))}

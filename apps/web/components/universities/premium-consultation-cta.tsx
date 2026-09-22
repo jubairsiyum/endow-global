@@ -51,7 +51,7 @@ export default function PremiumConsultationCTA() {
               Ready to Transform Your{' '}
               <span className="text-[#C41E3A]">Educational Future?</span>
             </h2>
-            <p className="mx-auto max-w-xl text-base leading-relaxed text-gray-500 sm:text-lg">
+            <p className="mx-auto max-w-xl text-base leading-relaxed text-gray-600 sm:text-lg">
               Get a free profile evaluation from our education experts. Receive
               personalized university recommendations and exclusive scholarship
               opportunities.
@@ -80,8 +80,8 @@ export default function PremiumConsultationCTA() {
                 <MessageCircle className="h-5 w-5" />
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">WhatsApp Consultation</h3>
-              <p className="mb-4 text-sm text-gray-600">Chat with our counselors instantly</p>
-              <p className="text-xs font-semibold text-[#C41E3A]">Available 24/7</p>
+              <p className="mb-4 text-base text-gray-600">Chat with our counselors instantly</p>
+              <p className="text-sm font-semibold text-[#C41E3A]">Available 24/7</p>
             </motion.a>
 
             {/* Phone */}
@@ -99,8 +99,8 @@ export default function PremiumConsultationCTA() {
                 <Phone className="h-5 w-5" />
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">Phone Call</h3>
-              <p className="mb-4 text-sm text-gray-600">Speak with an expert counselor</p>
-              <p className="text-xs font-semibold text-[#C41E3A]">+880 190146 3204</p>
+              <p className="mb-4 text-base text-gray-600">Speak with an expert counselor</p>
+              <p className="text-sm font-semibold text-[#C41E3A]">+880 190146 3204</p>
             </motion.a>
 
             {/* Calendar */}
@@ -118,14 +118,14 @@ export default function PremiumConsultationCTA() {
                 <Calendar className="h-5 w-5" />
               </motion.div>
               <h3 className="mb-2 font-bold text-gray-950">Book Appointment</h3>
-              <p className="mb-4 text-sm text-gray-600">Schedule your personalized session</p>
-              <p className="text-xs font-semibold text-[#C41E3A]">Pick your time</p>
+              <p className="mb-4 text-base text-gray-600">Schedule your personalized session</p>
+              <p className="text-sm font-semibold text-[#C41E3A]">Pick your time</p>
             </motion.a>
           </motion.div>
 
           {/* Benefits */}
           <motion.div variants={itemVariants} className="mx-auto max-w-2xl space-y-3 pt-2">
-            <p className="text-sm font-semibold text-gray-500">WHAT YOU'LL GET</p>
+            <p className="text-base font-semibold text-gray-600">WHAT YOU'LL GET</p>
             <div className="grid gap-3 sm:grid-cols-2">
               {[
                 'Free Profile Assessment',

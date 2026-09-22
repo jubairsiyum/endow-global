@@ -210,7 +210,7 @@ const FlightPathScene = memo(function FlightPathScene({ viewBox, activeStep, onS
                 <div
                   style={{
                     fontFamily: "'Space Grotesk', sans-serif",
-                    fontSize: 14.5,
+                    fontSize: 16,
                     fontWeight: isActive ? 700 : 600,
                     lineHeight: 1.2,
                     marginTop: 3,
@@ -231,7 +231,7 @@ const FlightPathScene = memo(function FlightPathScene({ viewBox, activeStep, onS
                   <p
                     style={{
                       fontFamily: "'IBM Plex Sans', sans-serif",
-                      fontSize: 11.5,
+                      fontSize: 13,
                       lineHeight: 1.45,
                       color: '#5b6370',
                       marginTop: 3,
@@ -335,7 +335,7 @@ function MobileJourney({ activeStep, onStepClick, reduceMotion }: { activeStep: 
                 <PlaneSvg className="h-4 w-4 text-[#C41E3A]" />
               ) : (
                 <span
-                  className="font-mono text-[11px] font-semibold"
+                  className="font-mono text-xs font-semibold"
                   style={{ color: isActive || isPast ? RED : MUTED }}
                 >
                   {step.number}
@@ -439,7 +439,7 @@ export default function ApplicationRoadmap() {
           <div className="mb-10 text-center lg:mb-12">
             <div className="flex items-center justify-center gap-3">
               <span className="h-px w-8 bg-[#C41E3A]" />
-              <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#C41E3A] sm:text-xs">
+              <span className="font-mono text-xs uppercase tracking-[0.22em] text-[#C41E3A] sm:text-sm">
                 Your journey starts here
               </span>
               <span className="h-px w-8 bg-[#C41E3A]" />
@@ -478,7 +478,7 @@ export default function ApplicationRoadmap() {
             <p className="font-display text-2xl font-semibold tracking-tight text-[#0E1116] sm:text-3xl">
               Ready to start your journey?
             </p>
-            <p className="mt-3 text-base leading-relaxed text-[#4b5563]">
+            <p className="mt-3 text-base leading-relaxed text-[#3f4752]">
               Get personalized guidance from application to departure.
             </p>
             <a

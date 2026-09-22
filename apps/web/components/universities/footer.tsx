@@ -10,7 +10,7 @@ import {
 } from '@/components/footer/footer-data'
 
 const linkItemClass =
-  'group flex items-center gap-2 text-[13px] text-gray-500 transition-colors hover:text-[#C41E3A]'
+  'group flex items-center gap-2 text-sm text-gray-600 transition-colors hover:text-[#C41E3A]'
 
 const accentBar = 'mt-2 mb-3 h-px w-8 bg-[#C41E3A] sm:mt-3 sm:mb-4'
 
@@ -32,15 +32,15 @@ export default function UniversitiesFooter() {
                 className="h-8 w-8"
               />
               <div className="leading-none">
-                <span className="block text-[13px] font-bold tracking-tight text-gray-900">
+                <span className="block text-sm font-bold tracking-tight text-gray-900">
                   {SITE_CONFIG.shortName}
                 </span>
-                <span className="block text-[11px] font-semibold tracking-[0.22em] text-gray-400 uppercase">
+                <span className="block text-xs font-semibold tracking-[0.22em] text-gray-400 uppercase">
                   {SITE_CONFIG.tagline}
                 </span>
               </div>
             </Link>
-            <p className="mt-3 text-[13px] leading-relaxed text-gray-500 text-justify sm:mt-4 lg:max-w-xs">
+            <p className="mt-3 text-sm leading-relaxed text-gray-600 text-justify sm:mt-4 lg:max-w-xs">
               Your gateway to world-class universities. We connect students with 250+ partner
               institutions across South Korea, Australia, and beyond — guiding you from selection to
               enrollment.
@@ -115,7 +115,7 @@ export default function UniversitiesFooter() {
                   className="mt-0.5 shrink-0 text-[#C41E3A]"
                   aria-hidden="true"
                 />
-                <span className="text-[13px] leading-relaxed text-gray-500">
+                <span className="text-sm leading-relaxed text-gray-600">
                   {SITE_CONFIG.address}
                 </span>
               </li>
@@ -157,7 +157,7 @@ export default function UniversitiesFooter() {
       {/* Bottom Bar */}
       <div className="border-t border-gray-200/80">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-5 py-4 sm:flex-row sm:gap-4 sm:py-6 sm:px-6 lg:px-8">
-          <p className="text-[12px] text-gray-400 sm:text-[13px]">
+          <p className="text-[13px] text-gray-500 sm:text-sm">
             &copy; {new Date().getFullYear()} {SITE_CONFIG.companyName}. All rights reserved.
           </p>
           <nav aria-label="Legal links">
@@ -166,7 +166,7 @@ export default function UniversitiesFooter() {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className="text-[11px] text-gray-400 transition-colors hover:text-gray-700 sm:text-[12px]"
+                  className="text-xs text-gray-500 transition-colors hover:text-gray-700 sm:text-[13px]"
                 >
                   {link.label}
                 </Link>

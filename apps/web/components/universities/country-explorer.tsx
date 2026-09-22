@@ -120,7 +120,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
           </Link>
         </div>
 
-        <p className="mt-2 line-clamp-2 min-h-[2.6em] text-[13px] leading-[1.45] text-slate-600 sm:text-[13.5px]">
+        <p className="mt-2 line-clamp-2 min-h-[2.6em] text-sm leading-relaxed text-slate-600 sm:text-[15px]">
           {destination.description}
         </p>
 
@@ -129,7 +129,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Building2 aria-hidden="true" className="h-3.5 w-3.5" />
             </span>
-            <p className="truncate text-[12.5px] font-semibold leading-4 text-[#071225] sm:text-[13px]">
+            <p className="truncate text-sm font-semibold leading-5 text-[#071225]">
               {destination.universities} Universities
             </p>
           </div>
@@ -138,7 +138,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#FFF5F6] text-[#C41E3A]">
               <Wallet aria-hidden="true" className="h-3.5 w-3.5" />
             </span>
-            <p className="truncate text-[12.5px] font-semibold leading-4 text-[#071225] sm:text-[13px]">
+            <p className="truncate text-sm font-semibold leading-5 text-[#071225]">
               {destination.avgTuition}
             </p>
           </div>
@@ -177,14 +177,14 @@ export default function CountryExplorer() {
         className="relative mx-auto max-w-[1320px]"
       >
         <div className="mx-auto mb-8 max-w-4xl text-center sm:mb-10">
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm sm:text-xs">
+          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
             Study Destinations
           </span>
           <h2 className="mt-4 text-[28px] font-bold tracking-tight text-gray-950 sm:text-4xl lg:text-[42px]">
             Find Your Ideal Study <span className="text-[#C41E3A]">Destination</span>
           </h2>
 
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-gray-500 sm:text-base">
+          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-600">
             Discover the world&apos;s best education destinations and find the
             perfect fit for your future.
           </p>
@@ -219,7 +219,7 @@ export default function CountryExplorer() {
                 <h3 className="text-xl font-semibold leading-tight text-[#071225] sm:text-2xl">
                   Can&apos;t decide where to study?
                 </h3>
-                <p className="mt-1 text-sm font-medium text-slate-600">
+                <p className="mt-1 text-base font-medium text-slate-600">
                   Our experts will help.
                 </p>
               </div>
