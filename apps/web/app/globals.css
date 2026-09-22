@@ -758,23 +758,36 @@ textarea:focus-visible:not([class*="focus-visible"]),
   min-width: 0;
   max-width: 100%;
   overflow-x: hidden;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
   word-break: normal;
+  hyphens: none;
 }
 
 .course-description > * {
   max-width: 100%;
 }
 
-/* Justified text creates distracting gaps in narrow course cards. */
-.course-description .ql-align-justify {
+.course-description .ql-align-left {
   text-align: left;
+}
+
+.course-description .ql-align-center {
+  text-align: center;
+}
+
+.course-description .ql-align-right {
+  text-align: right;
+}
+
+.course-description .ql-align-justify {
+  text-align: justify;
 }
 
 .course-description a,
 .course-description code {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 .course-description img,
@@ -789,8 +802,9 @@ textarea:focus-visible:not([class*="focus-visible"]),
   max-width: 100%;
   overflow-x: auto;
   white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
 
 .course-description table {
@@ -802,6 +816,7 @@ textarea:focus-visible:not([class*="focus-visible"]),
 
 .course-description th,
 .course-description td {
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  overflow-wrap: break-word;
+  word-break: normal;
+  hyphens: none;
 }
