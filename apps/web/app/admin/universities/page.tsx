@@ -354,12 +354,26 @@ export default function UniversitiesPage() {
  <div className="sm:col-span-2">
  <ImageUploader value={form.coverImage} onChange={(v) => updateField('coverImage', v)} label="Cover Image" previewHeight={100} />
  </div>
- <div className="sm:col-span-2 flex items-center gap-3">
- <label className="flex items-center gap-2 cursor-pointer">
- <input type="checkbox" checked={form.isActive} onChange={e => updateField('isActive', e.target.checked)} className="h-4 w-4 rounded border-gray-300 accent-primary" />
- <span className="text-sm font-medium text-gray-700">Active (visible on frontend)</span>
- </label>
- </div>
+  <div className="sm:col-span-2 flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-3">
+  <div>
+  <p className="text-sm font-semibold text-gray-800">Frontend visibility</p>
+  <p className="mt-0.5 text-xs text-gray-500">{form.isActive ? 'This university is visible to students.' : 'This university is hidden from the frontend.'}</p>
+  </div>
+  <label className="inline-flex shrink-0 cursor-pointer items-center gap-2.5">
+  <span className={`text-xs font-semibold ${form.isActive ? 'text-[#C41E3A]' : 'text-gray-500'}`}>{form.isActive ? 'Active' : 'Hidden'}</span>
+  <input
+    type="checkbox"
+    checked={form.isActive}
+    onChange={e => updateField('isActive', e.target.checked)}
+    aria-label="Toggle frontend visibility"
+    className="peer sr-only"
+  />
+  <span
+    aria-hidden="true"
+    className="relative h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:content-[''] peer-checked:bg-[#C41E3A] peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-[#C41E3A]/40 peer-focus-visible:ring-offset-2"
+  />
+  </label>
+  </div>
  <div className="sm:col-span-2 flex justify-end gap-3 pt-2">
  <button type="button" onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
  Cancel

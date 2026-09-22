@@ -25,9 +25,9 @@ pnpm build
 
 echo "==> (Re)loading PM2 processes"
 if pm2 show endow-web >/dev/null 2>&1; then
-  pm2 reload ecosystem.config.js
+  pm2 reload ecosystem.config.js --update-env
 else
-  pm2 start ecosystem.config.js
+  pm2 start ecosystem.config.js --update-env
 fi
 
 pm2 save
