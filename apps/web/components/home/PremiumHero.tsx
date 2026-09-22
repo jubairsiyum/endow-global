@@ -36,6 +36,14 @@ const INTAKE_YEARS: Record<string, string | undefined> = {
   'Spring 2027': '2027',
 }
 
+const LEVEL_VALUES: Record<string, string> = {
+  "Bachelor's": 'UNDERGRADUATE',
+  "Master's": 'POSTGRADUATE',
+  PhD: 'PHD',
+  Diploma: 'DIPLOMA',
+  Certificate: 'CERTIFICATE',
+}
+
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
   const [[page, direction], setPage] = useState<[number,number]>([0,0])
@@ -67,7 +75,7 @@ export default function PremiumHero() {
   function buildSearchUrl(){
     const p=new URLSearchParams()
     if(fCountry)p.set('country',fCountry)
-    if(fLevel)p.set('level',fLevel)
+    if(fLevel)p.set('level', LEVEL_VALUES[fLevel] ?? fLevel)
     const budget = BUDGET_RANGES[fBudget]
     if(budget?.feeMin)p.set('feeMin', String(budget.feeMin))
     if(budget?.feeMax)p.set('feeMax', String(budget.feeMax))
@@ -158,7 +166,7 @@ export default function PremiumHero() {
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 sm:gap-4 items-end">
               {[
                 {label:'Country',val:fCountry,set:setFCountry,opts:['','South Korea','Australia','UK'],disabled:['Australia','UK']},
-                {label:'Degree',val:fLevel,set:setFLevel,opts:['',"Bachelor's","Master's",'PhD','Diploma'],disabled:[]},
+                {label:'Degree',val:fLevel,set:setFLevel,opts:['',"Bachelor's","Master's",'PhD','Diploma','Certificate'],disabled:[]},
                 {label:'Budget',val:fBudget,set:setFBudget,opts:['Any budget','Under $5k','$5k-$15k','$15k+'],disabled:[]},
                 {label:'Intake',val:fIntake,set:setFIntake,opts:['Any intake','Spring 2026','Fall 2026','Spring 2027'],disabled:[]},
               ].map(f=>(
