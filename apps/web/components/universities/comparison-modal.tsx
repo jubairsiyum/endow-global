@@ -97,13 +97,13 @@ export default function UniversityComparisonModal({
                     <tbody>
                       {/* Ranking */}
                       <tr className="border-b border-gray-100">
-                        <td className="px-3 py-3 font-semibold text-gray-700">Ranking</td>
+                        <td className="px-3 py-3 font-semibold text-gray-700">QS Ranking</td>
                         {selectedUniversities.map((uni) => (
                           <td
                             key={uni.id}
                             className="flex items-center gap-2 px-3 py-3 text-gray-600"
                           >
-                            <TrendingUp className="h-4 w-4 text-[#C41E3A]" /># {uni.ranking}
+                            <TrendingUp className="h-4 w-4 text-[#C41E3A]" />QS # {uni.ranking}
                           </td>
                         ))}
                       </tr>

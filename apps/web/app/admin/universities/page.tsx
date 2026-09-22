@@ -54,7 +54,7 @@ export default function UniversitiesPage() {
 
  const utils = trpc.useUtils()
 
- const { data: universities, isLoading } = trpc.admin.universities.list.useQuery({
+  const { data: universities, isLoading, isError, error: universitiesError } = trpc.admin.universities.list.useQuery({
  search: debouncedSearch || undefined,
  country: countryFilter || undefined,
  })
@@ -85,14 +85,18 @@ export default function UniversitiesPage() {
 
  const countries = Array.from(new Set((universities || []).map((u: any) => u.country).filter(Boolean))).sort()
 
- function openCreate() {
- setEditingId(null)
+  function openCreate() {
+  createMutation.reset()
+  updateMutation.reset()
+  setEditingId(null)
  setForm(emptyForm)
  setShowModal(true)
  }
 
- function openEdit(u: any) {
- setEditingId(u.id)
+  function openEdit(u: any) {
+  createMutation.reset()
+  updateMutation.reset()
+  setEditingId(u.id)
  setForm({
  name: u.name || '', slug: u.slug || '', country: u.country || '',
  city: u.city || '', description: u.description || '',
@@ -106,16 +110,24 @@ export default function UniversitiesPage() {
  setShowModal(true)
  }
 
- function handleSubmit(e: React.FormEvent) {
- e.preventDefault()
- const data = {
- ...form,
- ranking: form.ranking ? Number(form.ranking) : undefined,
- koreaRanking: form.koreaRanking ? Number(form.koreaRanking) : undefined,
- established: form.established ? Number(form.established) : undefined,
- totalStudents: form.totalStudents ? Number(form.totalStudents) : undefined,
- internationalStudents: form.internationalStudents ? Number(form.internationalStudents) : undefined,
- }
+  function handleSubmit(e: React.FormEvent) {
+  e.preventDefault()
+  const data = {
+  name: form.name,
+  slug: form.slug,
+  country: form.country,
+  city: form.city,
+  description: form.description,
+  isActive: form.isActive,
+  ...(form.logo ? { logo: form.logo } : {}),
+  ...(form.coverImage ? { coverImage: form.coverImage } : {}),
+  ...(form.website ? { website: form.website } : {}),
+  ...(form.ranking ? { ranking: Number(form.ranking) } : {}),
+  ...(form.koreaRanking ? { koreaRanking: Number(form.koreaRanking) } : {}),
+  ...(form.established ? { established: Number(form.established) } : {}),
+  ...(form.totalStudents ? { totalStudents: Number(form.totalStudents) } : {}),
+  ...(form.internationalStudents ? { internationalStudents: Number(form.internationalStudents) } : {}),
+  }
  if (editingId) {
  updateMutation.mutate({ id: editingId, ...data })
  } else {
@@ -154,11 +166,17 @@ export default function UniversitiesPage() {
  className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none lg:w-48"
  >
  <option value="">All Countries</option>
- {countries.map(c => <option key={c} value={c}>{c}</option>)}
- </select>
- </div>
+  {countries.map(c => <option key={c} value={c}>{c}</option>)}
+  </select>
+  </div>
 
- {/* TABLE */}
+  {isError && (
+  <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+  Unable to load universities. {(universitiesError as { message?: string } | null)?.message || 'Please check the database connection and try again.'}
+  </div>
+  )}
+
+  {/* TABLE */}
  <AdminTable>
  <div className="overflow-x-auto">
  <div className="grid min-w-[800px] grid-cols-6 border-b border-gray-100 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-600">
@@ -186,7 +204,13 @@ export default function UniversitiesPage() {
  </div>
  ))}
  </div>
- ) : (universities || []).length === 0 ? (
+  ) : isError ? (
+  <div className="flex flex-col items-center justify-center py-16 text-red-400">
+  <Building2 size={48} className="mb-3" />
+  <p className="text-lg font-semibold text-red-600">Unable to load universities</p>
+  <p className="text-sm text-red-500">Use the error above to identify the configuration issue.</p>
+  </div>
+  ) : (universities || []).length === 0 ? (
  <div className="flex flex-col items-center justify-center py-16 text-gray-400">
  <Building2 size={48} className="mb-3" />
  <p className="text-lg font-semibold text-gray-500">No universities found</p>
@@ -271,10 +295,15 @@ export default function UniversitiesPage() {
  <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600">
  <X size={18} />
  </button>
- </div>
+  </div>
 
- <div className="min-h-0 overflow-y-auto">
- <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
+  <div className="min-h-0 overflow-y-auto">
+  {(createMutation.isError || updateMutation.isError) && (
+  <div role="alert" className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+  {(createMutation.error as { message?: string } | null)?.message || (updateMutation.error as { message?: string } | null)?.message || 'Unable to save this university. Please try again.'}
+  </div>
+  )}
+  <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
  <div className="sm:col-span-2">
  <label className="mb-1.5 block text-sm font-medium text-gray-700">University Name *</label>
  <input required value={form.name} onChange={e => { updateField('name', e.target.value); updateField('slug', e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')) }} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />

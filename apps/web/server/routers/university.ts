@@ -66,7 +66,16 @@ export const universityRouter = createTRPCRouter({
       }
 
       return ctx.db
-        .select()
+        .select({
+          id: universities.id,
+          name: universities.name,
+          slug: universities.slug,
+          country: universities.country,
+          city: universities.city,
+          logo: universities.logo,
+          description: universities.description,
+          ranking: universities.ranking,
+        })
         .from(universities)
         .where(and(...conditions))
         .orderBy(desc(universities.featured), desc(universities.ranking))
@@ -75,7 +84,16 @@ export const universityRouter = createTRPCRouter({
 
   featured: publicProcedure.query(async ({ ctx }) => {
     return ctx.db
-      .select()
+      .select({
+        id: universities.id,
+        name: universities.name,
+        slug: universities.slug,
+        country: universities.country,
+        city: universities.city,
+        logo: universities.logo,
+        description: universities.description,
+        ranking: universities.ranking,
+      })
       .from(universities)
       .where(eq(universities.isActive, true))
       .orderBy(desc(universities.featured), desc(universities.ranking))
@@ -163,12 +181,44 @@ export const universityRouter = createTRPCRouter({
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
-      const uni = await ctx.db
-        .select()
-        .from(universities)
-        .where(eq(universities.slug, input.slug))
-        .limit(1)
-        .then((r) => r[0] || null)
+      let uni: any
+      try {
+        uni = await ctx.db
+          .select()
+          .from(universities)
+          .where(eq(universities.slug, input.slug))
+          .limit(1)
+          .then((r) => r[0] || null)
+      } catch (error) {
+        if ((error as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw error
+
+        const legacyResult = await ctx.db
+          .select({
+            id: universities.id,
+            name: universities.name,
+            slug: universities.slug,
+            country: universities.country,
+            city: universities.city,
+            logo: universities.logo,
+            coverImage: universities.coverImage,
+            description: universities.description,
+            ranking: universities.ranking,
+            website: universities.website,
+            established: universities.established,
+            totalStudents: universities.totalStudents,
+            accreditation: universities.accreditation,
+            rankings: universities.rankings,
+            featured: universities.featured,
+            isActive: universities.isActive,
+          })
+          .from(universities)
+          .where(eq(universities.slug, input.slug))
+          .limit(1)
+
+        uni = legacyResult[0]
+          ? { ...legacyResult[0], koreaRanking: null, internationalStudents: null }
+          : null
+      }
       if (!uni) return null
 
       const uniCourses = await ctx.db

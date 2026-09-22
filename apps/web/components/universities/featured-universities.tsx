@@ -7,7 +7,7 @@ import { trpc } from '@/lib/trpc-client'
 import { UniversityCard, UniversityCardSkeleton, containerVariants, type UniversityCardData } from '@/components/universities/UniversityCard'
 
 export default function FeaturedUniversities() {
-  const { data: universities, isLoading } = trpc.university.featured.useQuery()
+  const { data: universities, isLoading, isError } = trpc.university.featured.useQuery()
 
   return (
     <section className="relative overflow-hidden bg-white px-5 py-20 sm:px-6 lg:px-8 lg:py-28">
@@ -38,6 +38,11 @@ export default function FeaturedUniversities() {
 
         {isLoading ? (
           <UniversityCardSkeleton />
+        ) : isError ? (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-10 text-center">
+            <p className="text-sm font-semibold text-amber-800">University information is temporarily unavailable.</p>
+            <p className="mt-1 text-xs text-amber-700">Please try again shortly.</p>
+          </div>
         ) : (
           <motion.div
             variants={containerVariants}

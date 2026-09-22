@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { createTRPCRouter, superAdminProcedure, adminWithPermission } from '@/lib/trpc'
+import { TRPCError } from '@trpc/server'
 import { db, schema } from '@endow/db'
 import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
@@ -996,9 +997,42 @@ export const adminRouter = createTRPCRouter({
         if (input.country) conditions.push(eq(schema.universities.country, input.country))
         if (input.isActive !== undefined) conditions.push(eq(schema.universities.isActive, input.isActive))
 
-        return db.select().from(schema.universities)
-          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
-          .orderBy(desc(schema.universities.createdAt))
+        const where = conditions.length > 0 ? and(...conditions) : undefined as any
+
+        try {
+          return await db.select().from(schema.universities)
+            .where(where)
+            .orderBy(desc(schema.universities.createdAt))
+        } catch (error) {
+          if ((error as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw error
+
+          // Keep the admin list usable while an older deployment is being
+          // migrated. New ranking/student fields remain empty until db:push
+          // has added their columns.
+          return db.select({
+            id: schema.universities.id,
+            name: schema.universities.name,
+            slug: schema.universities.slug,
+            country: schema.universities.country,
+            city: schema.universities.city,
+            logo: schema.universities.logo,
+            coverImage: schema.universities.coverImage,
+            description: schema.universities.description,
+            ranking: schema.universities.ranking,
+            website: schema.universities.website,
+            established: schema.universities.established,
+            totalStudents: schema.universities.totalStudents,
+            accreditation: schema.universities.accreditation,
+            rankings: schema.universities.rankings,
+            featured: schema.universities.featured,
+            isActive: schema.universities.isActive,
+            createdAt: schema.universities.createdAt,
+            updatedAt: schema.universities.updatedAt,
+          })
+            .from(schema.universities)
+            .where(where)
+            .orderBy(desc(schema.universities.createdAt))
+        }
       }),
 
     getById: adminWithPermission('universities:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
@@ -1031,8 +1065,18 @@ return db.select().from(schema.universities)
         })
       )
       .mutation(async ({ input }) => {
-        await db.insert(schema.universities).values(input)
-        return { success: true }
+        try {
+          await db.insert(schema.universities).values(input)
+          return { success: true }
+        } catch (error) {
+          if ((error as { code?: string }).code === 'ER_BAD_FIELD_ERROR') {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'The database schema is out of date. Run pnpm db:push on the production server, then reload the app.',
+            })
+          }
+          throw error
+        }
       }),
 
     update: adminWithPermission('universities:manage')
@@ -1060,8 +1104,18 @@ return db.select().from(schema.universities)
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(schema.universities).set(data).where(eq(schema.universities.id, id))
-        return { success: true }
+        try {
+          await db.update(schema.universities).set(data).where(eq(schema.universities.id, id))
+          return { success: true }
+        } catch (error) {
+          if ((error as { code?: string }).code === 'ER_BAD_FIELD_ERROR') {
+            throw new TRPCError({
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'The database schema is out of date. Run pnpm db:push on the production server, then reload the app.',
+            })
+          }
+          throw error
+        }
       }),
 
     delete: adminWithPermission('universities:manage')

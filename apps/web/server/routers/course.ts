@@ -295,54 +295,69 @@ export const courseRouter = createTRPCRouter({
     .input(z.object({ slug: z.string() }))
     .query(async ({ ctx, input }) => {
       try {
-        const result = await ctx.db
-          .select({
-            id: courses.id,
-            name: courses.name,
-            slug: courses.slug,
-            subject: courses.subject,
-            level: courses.level,
-            duration: courses.duration,
-            durationUnit: courses.durationUnit,
-            tuitionFee: courses.tuitionFee,
-            currency: courses.currency,
-            applicationDeadline: courses.applicationDeadline,
-            startDate: courses.startDate,
-            language: courses.language,
-            requirements: courses.requirements,
-            hasScholarship: courses.hasScholarship,
-            scholarshipDetails: courses.scholarshipDetails,
-            description: courses.description,
-            campus: courses.campus,
-            modeOfStudy: courses.modeOfStudy,
-            highlights: courses.highlights,
-            professionalAccreditation: courses.professionalAccreditation,
-            offerResponseTime: courses.offerResponseTime,
-            backlogsAccepted: courses.backlogsAccepted,
-            gapYearsAccepted: courses.gapYearsAccepted,
-            englishTestWaiver: courses.englishTestWaiver,
-            expressOffer: courses.expressOffer,
-            applicationFee: courses.applicationFee,
-            brochureUrl: courses.brochureUrl,
-            universityId: courses.universityId,
-            universityName: universities.name,
-            universitySlug: universities.slug,
-            universityCountry: universities.country,
-            universityCity: universities.city,
-            universityLogo: universities.logo,
-            universityCoverImage: universities.coverImage,
-            universityDescription: universities.description,
-            universityRanking: universities.ranking,
-            universityKoreaRanking: universities.koreaRanking,
-            universityWebsite: universities.website,
-            universityEstablished: universities.established,
-            universityTotalStudents: universities.totalStudents,
-            universityInternationalStudents: universities.internationalStudents,
-          })
-          .from(courses)
-          .leftJoin(universities, eq(courses.universityId, universities.id))
-          .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
-          .limit(1)
+        const baseSelection = {
+          id: courses.id,
+          name: courses.name,
+          slug: courses.slug,
+          subject: courses.subject,
+          level: courses.level,
+          duration: courses.duration,
+          durationUnit: courses.durationUnit,
+          tuitionFee: courses.tuitionFee,
+          currency: courses.currency,
+          applicationDeadline: courses.applicationDeadline,
+          startDate: courses.startDate,
+          language: courses.language,
+          requirements: courses.requirements,
+          hasScholarship: courses.hasScholarship,
+          scholarshipDetails: courses.scholarshipDetails,
+          description: courses.description,
+          campus: courses.campus,
+          modeOfStudy: courses.modeOfStudy,
+          highlights: courses.highlights,
+          professionalAccreditation: courses.professionalAccreditation,
+          offerResponseTime: courses.offerResponseTime,
+          backlogsAccepted: courses.backlogsAccepted,
+          gapYearsAccepted: courses.gapYearsAccepted,
+          englishTestWaiver: courses.englishTestWaiver,
+          expressOffer: courses.expressOffer,
+          applicationFee: courses.applicationFee,
+          brochureUrl: courses.brochureUrl,
+          universityId: courses.universityId,
+          universityName: universities.name,
+          universitySlug: universities.slug,
+          universityCountry: universities.country,
+          universityCity: universities.city,
+          universityLogo: universities.logo,
+          universityCoverImage: universities.coverImage,
+          universityDescription: universities.description,
+          universityRanking: universities.ranking,
+          universityWebsite: universities.website,
+          universityEstablished: universities.established,
+          universityTotalStudents: universities.totalStudents,
+        }
+
+        let result: any[]
+        try {
+          result = await ctx.db
+            .select({
+              ...baseSelection,
+              universityKoreaRanking: universities.koreaRanking,
+              universityInternationalStudents: universities.internationalStudents,
+            })
+            .from(courses)
+            .leftJoin(universities, eq(courses.universityId, universities.id))
+            .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
+            .limit(1)
+        } catch (error) {
+          if ((error as { code?: string }).code !== 'ER_BAD_FIELD_ERROR') throw error
+          result = await ctx.db
+            .select(baseSelection)
+            .from(courses)
+            .leftJoin(universities, eq(courses.universityId, universities.id))
+            .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
+            .limit(1)
+        }
 
         if (!result[0]) return null
         const courseData = result[0] as any
