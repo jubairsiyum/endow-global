@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Eye, EyeOff, Pencil, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { trpc } from '@/lib/trpc-client'
@@ -202,9 +203,9 @@ export default function HeroImagesPage() {
         </div>
       </AdminTable>
 
-      {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
-          <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl">
+      {showModal && createPortal(
+        <div className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto bg-black/60 px-4 py-6 sm:py-10">
+          <div className="relative max-h-[calc(100vh-3rem)] w-full max-w-xl overflow-y-auto rounded-3xl border border-gray-200 bg-white shadow-2xl sm:max-h-[calc(100vh-5rem)]">
             <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
               <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Hero Image' : 'Add Hero Image'}</h2>
               <button type="button" onClick={closeModal} aria-label="Close dialog" className="rounded-xl p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-700"><X size={18} /></button>
@@ -242,7 +243,8 @@ export default function HeroImagesPage() {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   )
