@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { motion, useReducedMotion, AnimatePresence, type PanInfo } from 'framer-motion'
 import Link from 'next/link'
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
+import { Search } from 'lucide-react'
 import { trpc } from '@/lib/trpc-client'
 
 const BRAND_RED = '#C41E3A'
@@ -20,7 +21,7 @@ const images = [
 
 function mod(n:number,m:number){return((n%m)+m)%m}
 
-const SVGFallback = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260"><rect fill="%23e5e7eb" width="200" height="260"/><text x="100" y="130" text-anchor="middle" fill="%239ca3af" font-size="14">Student</text></svg>`
+const FALLBACK_IMAGE = '/hero-1.jpg'
 
 const BUDGET_RANGES: Record<string, { feeMin?: number; feeMax?: number }> = {
   'Any budget': {},
@@ -47,6 +48,8 @@ const LEVEL_VALUES: Record<string, string> = {
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
   const [[page, direction], setPage] = useState<[number,number]>([0,0])
+  const [isCarouselPaused, setIsCarouselPaused] = useState(false)
+  const [failedImages, setFailedImages] = useState<number[]>([])
   const [fCountry, setFCountry] = useState('')
   const [fLevel, setFLevel] = useState('')
   const [fBudget, setFBudget] = useState('Any budget')
@@ -61,8 +64,18 @@ export default function PremiumHero() {
     ? (publishedReviews.reduce((sum, t) => sum + t.rating, 0) / reviewCount).toFixed(1)
     : null
 
-  function paginate(dir:number){setPage([mod(page+dir,images.length),dir])}
-  function handleDragEnd(_:any, info:PanInfo){
+  const paginate = useCallback((dir:number) => {
+    setPage(([current]) => [mod(current + dir, images.length), dir])
+  }, [])
+
+  useEffect(() => {
+    if (prefersReducedMotion || isCarouselPaused) return
+
+    const interval = window.setInterval(() => paginate(1), 6000)
+    return () => window.clearInterval(interval)
+  }, [isCarouselPaused, paginate, prefersReducedMotion])
+
+  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info:PanInfo){
     if(Math.abs(info.offset.x)>60) paginate(info.offset.x<0?1:-1)
   }
 
@@ -113,13 +126,29 @@ export default function PremiumHero() {
             </div>
           </motion.div>
 
-          {/* Right: Animated slider */}
-          <div className="hidden lg:flex relative items-center justify-center h-[360px] sm:h-[420px] select-none z-10">
-            {/* Stacked background cards */}
-            <div className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl bg-gray-200 rotate-6 opacity-30"/>
-            <div className="absolute w-48 h-60 sm:w-56 sm:h-72 rounded-2xl bg-gray-200 -rotate-3 opacity-20"/>
+          {/* Right: notice-ready animated photo carousel */}
+          <div
+            className="relative z-10 flex h-[390px] select-none items-center justify-center sm:h-[480px] lg:h-[520px]"
+            role="region"
+            aria-roledescription="carousel"
+            aria-label="Featured Endow Global stories"
+            onMouseEnter={() => setIsCarouselPaused(true)}
+            onMouseLeave={() => setIsCarouselPaused(false)}
+            onFocusCapture={() => setIsCarouselPaused(true)}
+            onBlur={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setIsCarouselPaused(false)
+              }
+            }}
+          >
+            <div className="pointer-events-none absolute h-[82%] w-[76%] rounded-3xl bg-white/70 blur-3xl" aria-hidden="true" />
+            <div className="pointer-events-none absolute h-[78%] w-[68%] rounded-3xl border border-white/80 bg-white/20" aria-hidden="true" />
 
-            <div className="relative w-48 h-60 sm:w-56 sm:h-72">
+            {/* Stacked background cards */}
+            <div className="absolute h-[324px] w-[250px] rotate-6 rounded-2xl bg-gray-200 opacity-30 shadow-xl sm:h-[403px] sm:w-[310px]" aria-hidden="true" />
+            <div className="absolute h-[324px] w-[250px] -rotate-3 rounded-2xl bg-gray-200 opacity-20 shadow-xl sm:h-[403px] sm:w-[310px]" aria-hidden="true" />
+
+            <div className="relative h-[330px] w-[255px] sm:h-[416px] sm:w-[320px] lg:h-[455px] lg:w-[350px]">
               <AnimatePresence initial={false} custom={direction} mode="popLayout">
                 <motion.div
                   key={page}
@@ -132,23 +161,27 @@ export default function PremiumHero() {
                   dragConstraints={{left:0,right:0}}
                   dragElastic={0.2}
                   onDragEnd={handleDragEnd}
-                  transition={{type:'spring',stiffness:350,damping:30}}
-                  className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl cursor-grab active:cursor-grabbing"
+                  transition={prefersReducedMotion ? {duration:0.01} : {type:'spring',stiffness:350,damping:30}}
+                  className="absolute inset-0 cursor-grab overflow-hidden rounded-2xl border border-white/70 bg-gray-200 shadow-[0_24px_70px_rgba(16,27,61,0.24)] active:cursor-grabbing"
+                  role="group"
+                  aria-roledescription="slide"
+                  aria-label={`Featured image ${page + 1} of ${images.length}`}
                 >
-                  <img src={images[page].src} alt={images[page].alt} className="w-full h-full object-cover" onError={(e)=>{ (e.target as HTMLImageElement).src = `data:image/svg+xml,${SVGFallback}` }}/>
+                  <Image
+                    src={failedImages.includes(page) ? FALLBACK_IMAGE : images[page].src}
+                    alt={images[page].alt}
+                    fill
+                    priority={page === 0}
+                    quality={100}
+                    sizes="(max-width: 639px) 255px, (max-width: 1023px) 320px, 350px"
+                    className="object-cover"
+                    onError={() => setFailedImages((current) => current.includes(page) ? current : [...current, page])}
+                  />
+                  <span className="pointer-events-none absolute bottom-5 right-5 shrink-0 rounded-full border border-white/45 bg-black/30 px-2.5 py-1 font-mono text-[11px] text-white/95 backdrop-blur-sm">
+                    {String(page + 1).padStart(2, '0')}/{String(images.length).padStart(2, '0')}
+                  </span>
                 </motion.div>
               </AnimatePresence>
-            </div>
-
-            {/* Arrows */}
-            <button onClick={()=>paginate(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 -ml-2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors z-20"><ChevronLeft size={18} className="text-gray-600"/></button>
-            <button onClick={()=>paginate(1)} className="absolute right-0 top-1/2 -translate-y-1/2 -mr-2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-gray-50 transition-colors z-20"><ChevronRight size={18} className="text-gray-600"/></button>
-
-            {/* Dots */}
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
-              {images.map((_,i)=>(
-                <button key={i} onClick={()=>setPage([i,i>page?1:-1])} className={`rounded-full transition-all ${i===page?'w-5 h-2 bg-[#C41E3A]':'w-2 h-2 bg-gray-300 hover:bg-gray-400'}`}/>
-              ))}
             </div>
           </div>
         </div>
