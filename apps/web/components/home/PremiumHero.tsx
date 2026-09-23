@@ -104,11 +104,22 @@ export default function PremiumHero() {
 
   return (
     <section className="relative bg-[#F5F6F9] pt-20 sm:pt-24 pb-16 sm:pb-24 overflow-hidden">
+      <Image
+        src="/images/signin-bg.png"
+        alt=""
+        fill
+        priority
+        quality={100}
+        sizes="100vw"
+        className="pointer-events-none object-cover object-center opacity-25"
+        aria-hidden="true"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fdf8f4]/95 via-[#f5f6f9]/88 to-[#f5f6f9]/72" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{backgroundImage:'radial-gradient(circle, #101B3D 1px, transparent 1px)',backgroundSize:'28px 28px'}}/>
       <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl"/>
       <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl"/>
 
-      <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
+      <div className="relative z-10 mx-auto max-w-[1180px] px-5 sm:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center mb-12">
           {/* Left */}
           <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
