@@ -16,7 +16,8 @@ export default function AuthBackground() {
         priority
         quality={90}
         sizes="100vw"
-        className="object-cover"
+        draggable={false}
+        className="pointer-events-none select-none object-cover"
         style={{ filter: 'contrast(1.03) saturate(0.85) brightness(1.05)' }}
       />
 
