@@ -9,9 +9,10 @@ interface Props {
   onChange: (url: string) => void
   label: string
   previewHeight?: number
+  recommendation?: string
 }
 
-export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Props) {
+export function ImageUploader({ value, onChange, label, previewHeight = 96, recommendation = 'Recommended: 500 × 500 px, PNG or JPG' }: Props) {
   const [urlInput, setUrlInput] = useState(value || '')
   const [preview, setPreview] = useState(value || '')
   const [previewError, setPreviewError] = useState(false)
@@ -140,7 +141,7 @@ export function ImageUploader({ value, onChange, label, previewHeight = 96 }: Pr
                 {uploading ? 'Uploading...' : 'Click or drag to upload (max 8MB)'}
               </span>
               <span className="block text-[10px]" style={{ color: 'rgba(136,144,168,0.6)' }}>
-                Recommended: 500 Ã— 500 px, PNG or JPG
+                {recommendation}
               </span>
             </div>
           </label>

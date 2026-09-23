@@ -15,6 +15,12 @@ git pull --ff-only
 echo "==> Installing dependencies"
 pnpm install --frozen-lockfile
 
+echo "==> Applying tracked database migrations"
+# Applies pending Drizzle migrations (including the homepage hero image table).
+# This is intentionally different from `db:push`, which is unsafe against the
+# legacy production schema drift.
+pnpm db:migrate
+
 echo "==> Applying university schema changes"
 # Use an idempotent targeted SQL check. The legacy catalog schema has drifted
 # from Drizzle's snapshot, so a full drizzle-kit push is unsafe here.

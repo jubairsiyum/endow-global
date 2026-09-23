@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { getLocalFileUrl, writeLocalFile } from '@/lib/local-storage'
+import { db } from '@/lib/db'
 
 const ALLOWED_TYPES: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -10,12 +11,20 @@ const ALLOWED_TYPES: Record<string, string> = {
   gif: 'image/gif',
 }
 
-const MAX_SIZE = 4 * 1024 * 1024
+const MAX_SIZE = 8 * 1024 * 1024
 
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers })
     if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    const user = await db.query.users.findFirst({
+      where: (table, operators) => operators.eq(table.id, session.user.id),
+      columns: { role: true },
+    })
+    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const formData = await req.formData()
     const file = formData.get('file') as File | null
@@ -35,7 +44,8 @@ export async function POST(req: NextRequest) {
 
     const url = getLocalFileUrl(key)
     return NextResponse.json({ url, name: file.name })
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message || 'Upload failed' }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Upload failed'
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }

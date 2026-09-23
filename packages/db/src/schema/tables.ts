@@ -666,3 +666,22 @@ export const events = mysqlTable(
     publishedDateIdx: index('idx_event_published_date').on(table.isPublished, table.publishedAt),
   })
 )
+
+// ─── Homepage Hero Images ───────────────────────────────────
+
+export const homepageHeroImages = mysqlTable(
+  'homepage_hero_image',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    imageUrl: varchar('image_url', { length: 500 }).notNull(),
+    altText: varchar('alt_text', { length: 255 }).default('Homepage hero image').notNull(),
+    sortOrder: int('sort_order').default(0).notNull(),
+    isActive: boolean('is_active').default(true).notNull(),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    activeOrderIdx: index('idx_homepage_hero_image_active_order').on(table.isActive, table.sortOrder),
+    createdAtIdx: index('idx_homepage_hero_image_created_at').on(table.createdAt),
+  })
+)

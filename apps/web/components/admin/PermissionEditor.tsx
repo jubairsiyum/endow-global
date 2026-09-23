@@ -22,6 +22,7 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
   countries: 'Country catalog',
   messages: 'Student–counselor chats',
   resources: 'Blogs & file uploads',
+  hero: 'Homepage hero images',
   analytics: 'Platform analytics',
   testimonials: 'Student stories',
   notifications: 'System notifications',

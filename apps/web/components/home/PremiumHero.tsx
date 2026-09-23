@@ -11,7 +11,7 @@ const BRAND_RED = '#C41E3A'
 const BRAND_NAVY = '#101B3D'
 const BRAND_GOLD = '#B8934A'
 
-const images = [
+const fallbackImages = [
   { src:'/student-1.jpg', alt:'Student studying abroad' },
   { src:'/student-2.jpg', alt:'International student' },
   { src:'/student-3.jpg', alt:'University student' },
@@ -49,12 +49,13 @@ export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
   const [[page, direction], setPage] = useState<[number,number]>([0,0])
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
-  const [failedImages, setFailedImages] = useState<number[]>([])
+  const [failedImages, setFailedImages] = useState<string[]>([])
   const [fCountry, setFCountry] = useState('')
   const [fLevel, setFLevel] = useState('')
   const [fBudget, setFBudget] = useState('Any budget')
   const [fIntake, setFIntake] = useState('Any intake')
   const { data: stats } = trpc.university.stats.useQuery()
+  const { data: managedHeroImages } = trpc.university.heroImages.useQuery(undefined, { staleTime: 30_000 })
   const uniCount = stats?.universities || 50
   const countryCount = stats?.countries || 2
   const { data: reviews } = trpc.testimonial.published.useQuery()
@@ -63,10 +64,14 @@ export default function PremiumHero() {
   const avgRating = reviewCount > 0
     ? (publishedReviews.reduce((sum, t) => sum + t.rating, 0) / reviewCount).toFixed(1)
     : null
+  const images = managedHeroImages?.length
+    ? managedHeroImages.map((image) => ({ src: image.imageUrl, alt: image.altText }))
+    : fallbackImages
+  const activePage = mod(page, images.length)
 
   const paginate = useCallback((dir:number) => {
     setPage(([current]) => [mod(current + dir, images.length), dir])
-  }, [])
+  }, [images.length])
 
   useEffect(() => {
     if (prefersReducedMotion || isCarouselPaused) return
@@ -151,7 +156,7 @@ export default function PremiumHero() {
             <div className="relative h-[330px] w-[255px] sm:h-[416px] sm:w-[320px] lg:h-[455px] lg:w-[350px]">
               <AnimatePresence initial={false} custom={direction} mode="popLayout">
                 <motion.div
-                  key={page}
+                  key={activePage}
                   custom={direction}
                   variants={variants}
                   initial="enter"
@@ -165,20 +170,20 @@ export default function PremiumHero() {
                   className="absolute inset-0 cursor-grab overflow-hidden rounded-2xl border border-white/70 bg-gray-200 shadow-[0_24px_70px_rgba(16,27,61,0.24)] active:cursor-grabbing"
                   role="group"
                   aria-roledescription="slide"
-                  aria-label={`Featured image ${page + 1} of ${images.length}`}
+                  aria-label={`Featured image ${activePage + 1} of ${images.length}`}
                 >
                   <Image
-                    src={failedImages.includes(page) ? FALLBACK_IMAGE : images[page].src}
-                    alt={images[page].alt}
+                    src={failedImages.includes(images[activePage].src) ? FALLBACK_IMAGE : images[activePage].src}
+                    alt={images[activePage].alt}
                     fill
-                    priority={page === 0}
+                    priority={activePage === 0}
                     quality={100}
                     sizes="(max-width: 639px) 255px, (max-width: 1023px) 320px, 350px"
                     className="object-cover"
-                    onError={() => setFailedImages((current) => current.includes(page) ? current : [...current, page])}
+                    onError={() => setFailedImages((current) => current.includes(images[activePage].src) ? current : [...current, images[activePage].src])}
                   />
                   <span className="pointer-events-none absolute bottom-5 right-5 shrink-0 rounded-full border border-white/45 bg-black/30 px-2.5 py-1 font-mono text-[11px] text-white/95 backdrop-blur-sm">
-                    {String(page + 1).padStart(2, '0')}/{String(images.length).padStart(2, '0')}
+                    {String(activePage + 1).padStart(2, '0')}/{String(images.length).padStart(2, '0')}
                   </span>
                 </motion.div>
               </AnimatePresence>

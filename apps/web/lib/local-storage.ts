@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 function storageRoot(): string {
@@ -24,6 +24,14 @@ export async function writeLocalFile(key: string, data: Buffer | Uint8Array): Pr
   const filePath = resolveStoragePath(key)
   await mkdir(path.dirname(filePath), { recursive: true })
   await writeFile(filePath, data)
+}
+
+export async function deleteLocalFile(key: string): Promise<void> {
+  try {
+    await unlink(resolveStoragePath(key))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+  }
 }
 
 export async function readLocalFile(key: string): Promise<Buffer> {

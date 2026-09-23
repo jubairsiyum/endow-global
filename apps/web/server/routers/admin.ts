@@ -10,6 +10,7 @@ import { getAdminActivityLog, logAdminActivity } from '@/lib/audit'
 import { notifyCounselorNewStudent } from '@/lib/notify'
 import { autoAssignCounselor, notifyStudentCounselorAssigned } from '@/lib/counselor-assignment'
 import { isMissingColumnError } from '@/server/utils/db-errors'
+import { deleteLocalFile } from '@/lib/local-storage'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -28,6 +29,20 @@ function auditActor(ctx: any) {
     id: ctx.session.user.id,
     email: ctx.session.user.email,
     role: String(ctx.session.user.role ?? 'ADMIN'),
+  }
+}
+
+function localStorageKeyFromUrl(url: string): string | null {
+  const prefix = '/api/local-files/'
+  if (!url.startsWith(prefix)) return null
+  try {
+    return url
+      .slice(prefix.length)
+      .split('/')
+      .map((part) => decodeURIComponent(part))
+      .join('/')
+  } catch {
+    return null
   }
 }
 
@@ -2826,6 +2841,63 @@ return db.select().from(schema.countries)
         upcomingSessions: upcomingSessionsCount[0]?.value || 0,
       }
     }),
+  }),
+
+  // ─── Homepage Hero Images CRUD ──────────────────────────
+  heroImages: createTRPCRouter({
+    list: adminWithPermission('hero:view').query(async () => {
+      return db
+        .select()
+        .from(schema.homepageHeroImages)
+        .orderBy(asc(schema.homepageHeroImages.sortOrder), desc(schema.homepageHeroImages.createdAt))
+    }),
+
+    create: adminWithPermission('hero:manage')
+      .input(z.object({
+        imageUrl: z.string().min(1).max(500),
+        altText: z.string().max(255).default('Homepage hero image'),
+        sortOrder: z.number().int().min(0).default(0),
+        isActive: z.boolean().default(true),
+      }))
+      .mutation(async ({ input }) => {
+        const inserted = await db.insert(schema.homepageHeroImages).values(input).$returningId()
+        return { success: true, id: (inserted as any)?.[0]?.id }
+      }),
+
+    update: adminWithPermission('hero:manage')
+      .input(z.object({
+        id: z.string(),
+        imageUrl: z.string().min(1).max(500),
+        altText: z.string().max(255),
+        sortOrder: z.number().int().min(0),
+        isActive: z.boolean(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input
+        await db.update(schema.homepageHeroImages).set(data).where(eq(schema.homepageHeroImages.id, id))
+        return { success: true }
+      }),
+
+    delete: adminWithPermission('hero:manage')
+      .input(z.object({ id: z.string() }))
+      .mutation(async ({ input }) => {
+        const existing = await db
+          .select({ imageUrl: schema.homepageHeroImages.imageUrl })
+          .from(schema.homepageHeroImages)
+          .where(eq(schema.homepageHeroImages.id, input.id))
+          .limit(1)
+          .then((rows) => rows[0] ?? null)
+        await db.delete(schema.homepageHeroImages).where(eq(schema.homepageHeroImages.id, input.id))
+        const storageKey = existing ? localStorageKeyFromUrl(existing.imageUrl) : null
+        if (storageKey) {
+          try {
+            await deleteLocalFile(storageKey)
+          } catch (error) {
+            console.error('[admin.heroImages.delete] Could not remove image file:', error)
+          }
+        }
+        return { success: true }
+      }),
   }),
 
   // ─── Events CRUD ─────────────────────────────────────────

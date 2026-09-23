@@ -23,6 +23,7 @@ export const MODULES = [
   { id: 'newsletters', label: 'Newsletters', icon: 'Mail', group: 'Communication' },
   { id: 'settings', label: 'Settings', icon: 'Settings', group: 'System' },
   { id: 'events', label: 'Events', icon: 'CalendarDays', group: 'Content' },
+  { id: 'hero', label: 'Homepage Hero', icon: 'ImagePlus', group: 'Content' },
   // Super-admin only modules (also RBAC-controllable for delegated super staff)
   { id: 'branches', label: 'Branches', icon: 'Building2', group: 'System' },
   { id: 'users', label: 'Users', icon: 'Users', group: 'System' },
@@ -155,6 +156,7 @@ export const ROUTER_MODULE_MAP: Record<string, ModuleId> = {
   branches: 'branches',
   revenue: 'revenue',
   events: 'events',
+  heroImages: 'hero',
   // super/admin/users => mapping
   super: 'admins',
 }

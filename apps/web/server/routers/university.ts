@@ -1,8 +1,8 @@
 import { createTRPCRouter, publicProcedure } from '@/lib/trpc'
 import { z } from 'zod'
 import { eq as _eq, and as _and, or as _or, like as _like, sql as _sql, desc as _desc, count as _count } from 'drizzle-orm'
-import { universities, courses } from '@endow/db'
-import { isMissingColumnError } from '@/server/utils/db-errors'
+import { schema, universities, courses } from '@endow/db'
+import { isMissingColumnError, isMissingTableError } from '@/server/utils/db-errors'
 
 const eq = _eq as any
 const and = _and as any
@@ -130,6 +130,26 @@ export const universityRouter = createTRPCRouter({
       .where(eq(universities.isActive, true))
       .groupBy(universities.country)
       .orderBy(sql`COUNT(*) DESC`)
+  }),
+
+  heroImages: publicProcedure.query(async ({ ctx }) => {
+    try {
+      return await ctx.db
+        .select({
+          id: schema.homepageHeroImages.id,
+          imageUrl: schema.homepageHeroImages.imageUrl,
+          altText: schema.homepageHeroImages.altText,
+        })
+        .from(schema.homepageHeroImages)
+        .where(eq(schema.homepageHeroImages.isActive, true))
+        .orderBy(schema.homepageHeroImages.sortOrder, schema.homepageHeroImages.createdAt)
+        .limit(12)
+    } catch (error) {
+      // Keep the homepage on its built-in image fallback until the migration
+      // has been applied to an existing production database.
+      if (isMissingTableError(error)) return []
+      throw error
+    }
   }),
 
   byCountry: publicProcedure
