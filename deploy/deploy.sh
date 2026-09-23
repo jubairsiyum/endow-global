@@ -15,11 +15,10 @@ git pull --ff-only
 echo "==> Installing dependencies"
 pnpm install --frozen-lockfile
 
-echo "==> Applying tracked database migrations"
-# Applies pending Drizzle migrations (including the homepage hero image table).
-# This is intentionally different from `db:push`, which is unsafe against the
-# legacy production schema drift.
-pnpm db:migrate
+echo "==> Applying homepage hero image schema"
+# Production was initialized with a targeted schema flow and has legacy drift.
+# Keep this repair idempotent instead of replaying the full Drizzle history.
+node packages/db/scripts/ensure-homepage-hero-schema.cjs
 
 echo "==> Applying university schema changes"
 # Use an idempotent targeted SQL check. The legacy catalog schema has drifted
