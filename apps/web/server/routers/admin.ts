@@ -613,16 +613,38 @@ export const adminRouter = createTRPCRouter({
         const counselorIds = Array.from(new Set(items.map(i => i.counselorId).filter(Boolean) as string[]))
 
         const [students, courses, counselors] = await Promise.all([
-          studentIds.length > 0 ? db.select().from(schema.users).where(or(...studentIds.map(id => eq(schema.users.id, id))) as any) : [],
+          studentIds.length > 0
+            ? db
+                .select({
+                  profileId: schema.studentProfiles.id,
+                  userId: schema.users.id,
+                  name: schema.users.name,
+                  email: schema.users.email,
+                })
+                .from(schema.studentProfiles)
+                .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
+                .where(inArray(schema.studentProfiles.id, studentIds))
+            : [],
           courseIds.length > 0 ? db.select().from(schema.courses).where(or(...courseIds.map(id => eq(schema.courses.id, id))) as any) : [],
-          counselorIds.length > 0 ? db.select().from(schema.users).where(or(...counselorIds.map(id => eq(schema.users.id, id))) as any) : [],
+          counselorIds.length > 0
+            ? db
+                .select({
+                  profileId: schema.counselorProfiles.id,
+                  userId: schema.users.id,
+                  name: schema.users.name,
+                  email: schema.users.email,
+                })
+                .from(schema.counselorProfiles)
+                .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+                .where(inArray(schema.counselorProfiles.id, counselorIds))
+            : [],
         ])
         const universityIds = Array.from(new Set(courses.map(c => c.universityId)))
         const unis = universityIds.length > 0 ? await db.select().from(schema.universities).where(or(...universityIds.map(id => eq(schema.universities.id, id))) as any) : []
 
-        const studentMap = new Map(students.map(s => [s.id, s]))
+        const studentMap = new Map(students.map(s => [s.profileId, s]))
         const courseMap = new Map(courses.map(c => [c.id, c]))
-        const counselorMap = new Map(counselors.map(c => [c.id, c]))
+        const counselorMap = new Map(counselors.map(c => [c.profileId, c]))
         const uniMap = new Map(unis.map(u => [u.id, u]))
 
         const enriched = items.map(item => ({

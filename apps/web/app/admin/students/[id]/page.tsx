@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import PageHeader from '@/components/ui/PageHeader'
+import { toast } from 'sonner'
 
 export default function StudentDetailPage() {
  const params = useParams()
@@ -13,9 +13,13 @@ export default function StudentDetailPage() {
  const { data: student, isLoading, refetch } = trpc.admin.students.getById.useQuery({ id })
  const { data: counselors } = trpc.admin.counselors.list.useQuery()
 
- const assignMutation = trpc.admin.students.assignCounselor.useMutation({
- onSuccess: () => refetch(),
- })
+  const assignMutation = trpc.admin.students.assignCounselor.useMutation({
+  onSuccess: async () => {
+  await refetch()
+  toast.success('Counselor assignment updated')
+  },
+  onError: (error) => toast.error(error.message || 'Could not update counselor assignment'),
+  })
 
  if (isLoading) {
  return (
@@ -174,8 +178,8 @@ export default function StudentDetailPage() {
  disabled={assignMutation.isPending}
  >
  <option value="">Unassigned</option>
- {counselors?.map((c) => (
- <option key={c.id} value={c.id}>
+  {counselors?.filter((c) => c.counselorProfile?.id).map((c) => (
+  <option key={c.counselorProfile!.id} value={c.counselorProfile!.id}>
  {c.name}
  </option>
  ))}
