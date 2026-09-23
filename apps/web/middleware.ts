@@ -81,12 +81,12 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Never allow a session through a protected route when its role cannot be
-    // verified. The server layouts remain a second authorization boundary.
+    // The cookie cache is an edge optimization, not the source of truth. It
+    // can be expired or temporarily unverifiable while the raw session cookie
+    // is still valid. Let the request reach the server-side layouts/tRPC, which
+    // verify the session from the database, instead of forcing a login loop.
     if (!payload) {
-      const url = new URL('/login', req.url)
-      url.searchParams.set('error', 'session-verification')
-      return NextResponse.redirect(url)
+      return NextResponse.next()
     }
 
     if (isSaPath && !hasSuperAdminRole(payload)) {

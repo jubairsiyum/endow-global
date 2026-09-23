@@ -140,11 +140,11 @@ export const auth = betterAuth({
     updateAge: 60 * 60 * 4, // re-issue session after 4 hours of inactivity
     cookieCache: {
       enabled: true,
-      // Short TTL so permission changes (via Manage Permissions) propagate within
-      // ~60s without requiring a full re-login. A 24h cache caused stale
-      // permissions to be served from the cookie, making tRPC RBAC checks fail
-      // even after an admin was granted a new module permission.
-      maxAge: 60, // 60 seconds
+      // Keep the edge cache long enough to avoid treating a healthy database
+      // session as invalid during normal navigation. Server-side layouts and
+      // tRPC authorization still validate the session and permissions against
+      // the database, so this cache is only an edge performance hint.
+      maxAge: 60 * 60, // 1 hour
     },
     freshSession: {
       enabled: false,
