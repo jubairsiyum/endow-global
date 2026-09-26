@@ -1037,17 +1037,40 @@ export const adminRouter = createTRPCRouter({
 
         const where = conditions.length > 0 ? and(...conditions) : undefined as any
 
+        const withCourseCounts = async (rows: any[]) => {
+          if (rows.length === 0) return rows
+
+          const courseCounts = await db
+            .select({
+              universityId: schema.courses.universityId,
+              programCount: count(),
+            })
+            .from(schema.courses)
+            .where(inArray(schema.courses.universityId, rows.map((row) => row.id)))
+            .groupBy(schema.courses.universityId)
+
+          const countByUniversity = new Map(
+            courseCounts.map((row) => [row.universityId, Number(row.programCount ?? 0)]),
+          )
+
+          return rows.map((row) => ({
+            ...row,
+            programCount: countByUniversity.get(row.id) ?? 0,
+          }))
+        }
+
         try {
-          return await db.select().from(schema.universities)
+          const rows = await db.select().from(schema.universities)
             .where(where)
             .orderBy(desc(schema.universities.createdAt))
+          return withCourseCounts(rows)
         } catch (error) {
           if (!isMissingColumnError(error)) throw error
 
           // Keep the admin list usable while an older deployment is being
           // migrated. New ranking/student fields remain empty until db:push
           // has added their columns.
-          return db.select({
+          const rows = await db.select({
             id: schema.universities.id,
             name: schema.universities.name,
             slug: schema.universities.slug,
@@ -1070,6 +1093,7 @@ export const adminRouter = createTRPCRouter({
             .from(schema.universities)
             .where(where)
             .orderBy(desc(schema.universities.createdAt))
+          return withCourseCounts(rows)
         }
       }),
 

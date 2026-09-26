@@ -72,8 +72,8 @@ export default function UniversityDetailPage() {
     <div className="flex min-h-screen flex-col bg-[#f7f2ec]">
       <div className="relative z-30"><Navbar /></div>
 
-      <section className="relative -mt-[72px]">
-        <div className="absolute inset-0 h-[540px] sm:h-[520px] overflow-hidden">
+      <section className="relative -mt-[72px] overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
           {uni.coverImage ? (
             <img src={uni.coverImage} alt="" className="w-full h-full object-cover" />
           ) : (

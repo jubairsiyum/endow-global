@@ -13,6 +13,110 @@ const desc = _desc as any
 const count = _count as any
 
 export const universityRouter = createTRPCRouter({
+  list: publicProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        perPage: z.number().int().min(1).max(24).default(9),
+        q: z.string().optional(),
+        country: z.string().optional(),
+        level: z.string().optional(),
+        degree: z.string().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, perPage } = input
+      const offset = (page - 1) * perPage
+      const conditions: any[] = [eq(universities.isActive, true)]
+
+      if (input.country?.trim()) {
+        conditions.push(sql`LOWER(${universities.country}) = LOWER(${input.country.trim()})`)
+      }
+
+      const rawLevel = (input.level || input.degree)?.trim().toUpperCase()
+      const degreeAlias: Record<string, string> = {
+        BACHELOR: 'UNDERGRADUATE',
+        MASTER: 'POSTGRADUATE',
+        PHD: 'PHD',
+      }
+      const normalizedLevel = rawLevel && (degreeAlias[rawLevel] || rawLevel)
+      const validLevels = ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']
+      const level = normalizedLevel && validLevels.includes(normalizedLevel) ? normalizedLevel : undefined
+      const query = input.q?.trim()
+
+      if (level) {
+        conditions.push(
+          sql`EXISTS (
+            SELECT 1 FROM ${courses}
+            WHERE ${courses.universityId} = ${universities.id}
+              AND ${courses.isActive} = 1
+              AND ${courses.level} = ${level}
+          )` as any,
+        )
+      }
+
+      if (query) {
+        const term = `%${query}%`
+        const courseMatch = level
+          ? sql`EXISTS (
+              SELECT 1 FROM ${courses}
+              WHERE ${courses.universityId} = ${universities.id}
+                AND ${courses.isActive} = 1
+                AND ${courses.level} = ${level}
+                AND (${courses.name} LIKE ${term} OR ${courses.subject} LIKE ${term} OR ${courses.description} LIKE ${term})
+            )` as any
+          : sql`EXISTS (
+              SELECT 1 FROM ${courses}
+              WHERE ${courses.universityId} = ${universities.id}
+                AND ${courses.isActive} = 1
+                AND (${courses.name} LIKE ${term} OR ${courses.subject} LIKE ${term} OR ${courses.description} LIKE ${term})
+            )` as any
+
+        conditions.push(
+          or(
+            like(universities.name, term),
+            like(universities.city, term),
+            like(universities.country, term),
+            courseMatch,
+          ) as any,
+        )
+      }
+
+      const where = and(...conditions)
+      const [rows, countResult] = await Promise.all([
+        ctx.db
+          .select({
+            id: universities.id,
+            name: universities.name,
+            slug: universities.slug,
+            country: universities.country,
+            city: universities.city,
+            logo: universities.logo,
+            description: universities.description,
+            ranking: universities.ranking,
+          })
+          .from(universities)
+          .where(where)
+          .orderBy(
+            desc(universities.featured),
+            sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`,
+          )
+          .limit(perPage)
+          .offset(offset),
+        ctx.db.select({ count: count() }).from(universities).where(where),
+      ])
+
+      const total = Number(countResult[0]?.count ?? 0)
+
+      return {
+        universities: rows,
+        total,
+        page,
+        perPage,
+        totalPages: Math.max(1, Math.ceil(total / perPage)),
+      }
+    }),
+
   search: publicProcedure
     .input(
       z.object({

@@ -252,9 +252,9 @@ export default function UniversitiesPage() {
  ) : null}
  {!u.ranking && !u.koreaRanking && <span className="text-xs text-gray-400">—</span>}
  </div>
- <div className="text-sm font-medium text-gray-700">
- {(u.courses || []).length} programs
- </div>
+  <div className="text-sm font-medium text-gray-700">
+  {Number(u.programCount ?? (u.courses || []).length)} {Number(u.programCount ?? (u.courses || []).length) === 1 ? 'program' : 'programs'}
+  </div>
  <div>
  {u.isActive ? (
  <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">Active</span>
