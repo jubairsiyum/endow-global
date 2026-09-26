@@ -149,10 +149,10 @@ export default function FeaturedUniversities() {
         ) : (
           <div className="relative">
             <motion.div
+              key={`university-page-${page}-${data?.page ?? 'loading'}`}
               variants={containerVariants}
               initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-80px' }}
+              animate="visible"
               className={`grid grid-cols-1 gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3 ${isPagePending ? 'opacity-60' : 'opacity-100'}`}
             >
               {universities.map((uni) => (
