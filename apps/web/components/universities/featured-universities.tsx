@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion'
 import { ArrowRight, ChevronLeft, ChevronRight, Landmark, MoreHorizontal, SearchX } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import { UniversityCard, UniversityCardSkeleton, containerVariants } from '@/components/universities/UniversityCard'
 
@@ -24,45 +24,72 @@ function getPageItems(page: number, totalPages: number): PageItem[] {
 }
 
 export default function FeaturedUniversities() {
-  const router = useRouter()
   const searchParams = useSearchParams()
-  const requestedPage = Number(searchParams.get('page') || 1)
-  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1
+  const initialPage = Number(searchParams.get('page') || 1)
+  const [page, setPage] = useState(() => Number.isInteger(initialPage) && initialPage > 0 ? initialPage : 1)
   const q = searchParams.get('q') || undefined
   const country = searchParams.get('country') || undefined
   const level = searchParams.get('level') || searchParams.get('degree') || undefined
   const perPage = 9
 
-  const { data, isLoading, isFetching, isError } = trpc.university.list.useQuery({
-    page,
-    perPage,
-    q,
-    country,
-    level,
-  })
+  const { data, isLoading, isFetching, isError } = trpc.university.list.useQuery(
+    { page, perPage, q, country, level },
+    {
+      // Keep the current cards mounted while a page transition is in flight.
+      // This prevents a route change from creating an empty section between
+      // the previous response and the response for the requested page.
+      placeholderData: (previousData) => previousData,
+    },
+  )
 
   const universities = data?.universities ?? []
   const total = data?.total ?? 0
   const totalPages = data?.totalPages ?? 1
   const pageItems = getPageItems(page, totalPages)
+  const hasCurrentPageData = data?.page === page
+  const isInitialLoading = isLoading && !data
+  const isPagePending = isFetching && !hasCurrentPageData
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlPage = Number(new URLSearchParams(window.location.search).get('page') || 1)
+      setPage(Number.isInteger(urlPage) && urlPage > 0 ? urlPage : 1)
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
 
   useEffect(() => {
     if (!data || page <= data.totalPages) return
 
-    const params = new URLSearchParams(searchParams.toString())
-    if (data.totalPages === 1) params.delete('page')
-    else params.set('page', String(data.totalPages))
-    const queryString = params.toString()
-    router.replace(queryString ? `/universities?${queryString}` : '/universities', { scroll: false })
-  }, [data, page, router, searchParams])
-
-  function goToPage(nextPage: number) {
-    const safePage = Math.max(1, Math.min(nextPage, totalPages))
-    const params = new URLSearchParams(searchParams.toString())
+    const safePage = data.totalPages
+    const params = new URLSearchParams(window.location.search)
     if (safePage === 1) params.delete('page')
     else params.set('page', String(safePage))
     const queryString = params.toString()
-    router.push(queryString ? `/universities?${queryString}` : '/universities', { scroll: false })
+    window.history.replaceState(window.history.state, '', queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname)
+    // This is a deliberate correction for an out-of-range URL after the
+    // server has returned the authoritative total page count.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(safePage)
+  }, [data, page])
+
+  function goToPage(nextPage: number) {
+    const safePage = Math.max(1, Math.min(nextPage, totalPages))
+    if (safePage === page) return
+
+    const params = new URLSearchParams(window.location.search)
+    if (safePage === 1) params.delete('page')
+    else params.set('page', String(safePage))
+    const queryString = params.toString()
+    const nextUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
+
+    // Keep pagination local and update the address bar without triggering a
+    // route remount. React Query then owns the request transition, while the
+    // previous response remains visible through placeholderData.
+    window.history.pushState(window.history.state, '', nextUrl)
+    setPage(safePage)
 
     requestAnimationFrame(() => {
       document.getElementById('partner-universities')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -94,44 +121,56 @@ export default function FeaturedUniversities() {
             Explore partner universities offering world-class education, exclusive scholarships, and
             guaranteed visa support — all in one place.
           </p>
-          {!isLoading && total > 0 && (
+          {hasCurrentPageData && total > 0 && (
             <p className="mt-3 text-sm font-medium text-gray-400">
               Showing <span className="text-gray-700">{(page - 1) * perPage + 1}–{Math.min(page * perPage, total)}</span> of {total} universities
             </p>
           )}
         </motion.div>
 
-        {isLoading ? (
+        {isInitialLoading ? (
           <UniversityCardSkeleton />
-        ) : isError ? (
+        ) : isError && !data ? (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-6 py-10 text-center">
             <p className="text-base font-semibold text-amber-800">University information is temporarily unavailable.</p>
             <p className="mt-1 text-sm text-amber-700">Please try again shortly.</p>
           </div>
         ) : universities.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 px-6 py-14 text-center">
-            <SearchX className="mx-auto h-10 w-10 text-gray-300" />
-            <p className="mt-4 text-base font-semibold text-gray-700">No universities found</p>
-            <p className="mt-1 text-sm text-gray-500">Try clearing your filters or searching for a different destination.</p>
-            <Link href="/universities/search" className="mt-5 inline-flex rounded-full bg-[#C41E3A] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#A01830]">
-              Search universities
-            </Link>
-          </div>
+          isPagePending ? <UniversityCardSkeleton /> : (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50/70 px-6 py-14 text-center">
+              <SearchX className="mx-auto h-10 w-10 text-gray-300" />
+              <p className="mt-4 text-base font-semibold text-gray-700">No universities found</p>
+              <p className="mt-1 text-sm text-gray-500">Try clearing your filters or searching for a different destination.</p>
+              <Link href="/universities/search" className="mt-5 inline-flex rounded-full bg-[#C41E3A] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#A01830]">
+                Search universities
+              </Link>
+            </div>
+          )
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-80px' }}
-            className={`grid grid-cols-1 gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3 ${isFetching ? 'opacity-60' : 'opacity-100'}`}
-          >
-            {universities.map((uni) => (
-              <UniversityCard key={uni.id} uni={uni} />
-            ))}
-          </motion.div>
+          <div className="relative">
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-80px' }}
+              className={`grid grid-cols-1 gap-5 transition-opacity sm:grid-cols-2 lg:grid-cols-3 ${isPagePending ? 'opacity-60' : 'opacity-100'}`}
+            >
+              {universities.map((uni) => (
+                <UniversityCard key={uni.id} uni={uni} />
+              ))}
+            </motion.div>
+            {isPagePending && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-white/45 backdrop-blur-[1px]" aria-live="polite" aria-label="Loading universities">
+                <div className="flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-600 shadow-lg">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#C41E3A]/25 border-t-[#C41E3A]" />
+                  Loading page {page}
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
-        {!isLoading && !isError && totalPages > 1 && (
+        {!isInitialLoading && !isError && totalPages > 1 && (
           <nav aria-label="University pages" className="mt-12 flex flex-col items-center justify-between gap-5 border-t border-gray-100 pt-6 sm:flex-row">
             <p className="text-sm text-gray-500">
               Page <span className="font-semibold text-gray-900">{page}</span> of <span className="font-semibold text-gray-900">{totalPages}</span>
