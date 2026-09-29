@@ -11,6 +11,7 @@ import ApplicationRoadmap from '@/components/universities/application-roadmap'
 import Testimonials from '@/components/home/Testimonials'
 import FAQAccordion from '@/components/home/FAQAccordion'
 import PremiumCTA from '@/components/home/PremiumCTA'
+import HeroScrollDemo from '@/components/container-scroll-animation-demo'
 
 const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 
@@ -74,6 +75,7 @@ export default function HomePage() {
         <main className="flex-grow">
           <PremiumHero />
           <DiagnosticUniversityMarquee universities={universityLogos} />
+          <HeroScrollDemo />
           <TrendingCourses />
           <FeaturedEvents />
           <CountryCards />
