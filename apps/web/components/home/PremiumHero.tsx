@@ -12,14 +12,16 @@ const BRAND_NAVY = '#101B3D'
 const BRAND_GOLD = '#B8934A'
 
 const fallbackImages = [
-  { src:'/student-1.jpg', alt:'Student studying abroad' },
-  { src:'/student-2.jpg', alt:'International student' },
-  { src:'/student-3.jpg', alt:'University student' },
-  { src:'/student-4.jpg', alt:'Graduate student' },
-  { src:'/student-5.jpg', alt:'Exchange student' },
+  { src: '/student-1.jpg', alt: 'Student studying abroad' },
+  { src: '/student-2.jpg', alt: 'International student' },
+  { src: '/student-3.jpg', alt: 'University student' },
+  { src: '/student-4.jpg', alt: 'Graduate student' },
+  { src: '/student-5.jpg', alt: 'Exchange student' },
 ]
 
-function mod(n:number,m:number){return((n%m)+m)%m}
+function mod(n: number, m: number) {
+  return ((n % m) + m) % m
+}
 
 const FALLBACK_IMAGE = '/hero-1.jpg'
 
@@ -47,7 +49,7 @@ const LEVEL_VALUES: Record<string, string> = {
 
 export default function PremiumHero() {
   const prefersReducedMotion = useReducedMotion()
-  const [[page, direction], setPage] = useState<[number,number]>([0,0])
+  const [[page, direction], setPage] = useState<[number, number]>([0, 0])
   const [isCarouselPaused, setIsCarouselPaused] = useState(false)
   const [failedImages, setFailedImages] = useState<string[]>([])
   const [fCountry, setFCountry] = useState('')
@@ -64,12 +66,13 @@ export default function PremiumHero() {
   const avgRating = reviewCount > 0
     ? (publishedReviews.reduce((sum, t) => sum + t.rating, 0) / reviewCount).toFixed(1)
     : null
+
   const images = managedHeroImages?.length
     ? managedHeroImages.map((image) => ({ src: image.imageUrl, alt: image.altText }))
     : fallbackImages
   const activePage = mod(page, images.length)
 
-  const paginate = useCallback((dir:number) => {
+  const paginate = useCallback((dir: number) => {
     setPage(([current]) => [mod(current + dir, images.length), dir])
   }, [images.length])
 
@@ -80,14 +83,14 @@ export default function PremiumHero() {
     return () => window.clearInterval(interval)
   }, [isCarouselPaused, paginate, prefersReducedMotion])
 
-  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info:PanInfo){
-    if(Math.abs(info.offset.x)>60) paginate(info.offset.x<0?1:-1)
+  function handleDragEnd(_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) {
+    if (Math.abs(info.offset.x) > 60) paginate(info.offset.x < 0 ? 1 : -1)
   }
 
   const variants = {
-    enter: (d:number)=>({x:d>0?300:-300,opacity:0,scale:0.88,rotate:d>0?5:-5}),
-    center:{x:0,opacity:1,scale:1,rotate:0,zIndex:1},
-    exit: (d:number)=>({x:d>0?-200:200,opacity:0,scale:0.88,rotate:d>0?-3:3,zIndex:0}),
+    enter: (d: number) => ({ x: d > 0 ? 300 : -300, opacity: 0, scale: 0.88, rotate: d > 0 ? 5 : -5 }),
+    center: { x: 0, opacity: 1, scale: 1, rotate: 0, zIndex: 1 },
+    exit: (d: number) => ({ x: d > 0 ? -200 : 200, opacity: 0, scale: 0.88, rotate: d > 0 ? -3 : 3, zIndex: 0 }),
   }
 
   function buildSearchUrl(){
@@ -103,24 +106,24 @@ export default function PremiumHero() {
   }
 
   return (
-    <section className="relative bg-[#F5F6F9] pt-20 sm:pt-24 pb-16 sm:pb-24 overflow-hidden">
+    <section className="relative overflow-hidden bg-[#F5F6F9] pb-16 pt-20 sm:pb-24 sm:pt-24">
       <Image
-        src="/images/signin-bg.png"
+        src="/images/world-map-red.png"
         alt=""
         fill
         priority
-        quality={100}
+        quality={80}
         sizes="100vw"
-        className="pointer-events-none object-cover object-center opacity-25"
+        className="pointer-events-none z-[1] object-cover object-center opacity-[0.22] mix-blend-screen"
         aria-hidden="true"
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fdf8f4]/95 via-[#f5f6f9]/88 to-[#f5f6f9]/72" />
+      <div className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-[#fdf8f4]/88 via-[#f5f6f9]/82 to-[#f5f6f9]/72" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.03]" style={{backgroundImage:'radial-gradient(circle, #101B3D 1px, transparent 1px)',backgroundSize:'28px 28px'}}/>
       <div className="pointer-events-none absolute -left-32 -top-32 h-96 w-96 rounded-full bg-rose-100/40 blur-3xl"/>
       <div className="pointer-events-none absolute -right-32 top-20 h-80 w-80 rounded-full bg-blue-50/30 blur-3xl"/>
 
       <div className="relative z-10 mx-auto max-w-[1180px] px-5 sm:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] gap-10 lg:gap-14 items-center mb-12">
+        <div className="mb-12 grid grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
           {/* Left */}
           <motion.div initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:0.6}}>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] uppercase tracking-[0.08em] font-semibold" style={{fontFamily:"'IBM Plex Mono',monospace",color:BRAND_RED,background:'rgba(196,30,58,0.07)',border:`1px solid rgba(196,30,58,0.2)`}}>
@@ -173,17 +176,18 @@ export default function PremiumHero() {
                   initial="enter"
                   animate="center"
                   exit="exit"
-                  drag={prefersReducedMotion?false:'x'}
-                  dragConstraints={{left:0,right:0}}
+                  drag={prefersReducedMotion ? false : 'x'}
+                  dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.2}
                   onDragEnd={handleDragEnd}
-                  transition={prefersReducedMotion ? {duration:0.01} : {type:'spring',stiffness:350,damping:30}}
+                  transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 350, damping: 30 }}
                   className="absolute inset-0 cursor-grab overflow-hidden rounded-2xl border border-white/70 bg-gray-200 shadow-[0_24px_70px_rgba(16,27,61,0.24)] active:cursor-grabbing"
                   role="group"
                   aria-roledescription="slide"
                   aria-label={`Featured image ${activePage + 1} of ${images.length}`}
                 >
                   <Image
+                    draggable={false}
                     src={failedImages.includes(images[activePage].src) ? FALLBACK_IMAGE : images[activePage].src}
                     alt={images[activePage].alt}
                     fill
