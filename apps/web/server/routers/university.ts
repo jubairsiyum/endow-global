@@ -12,6 +12,21 @@ const sql = _sql as any
 const desc = _desc as any
 const count = _count as any
 
+/**
+ * University records store display names (for example, "South Korea"), while
+ * public links intentionally use URL slugs (for example, "south-korea").
+ * Normalize both forms before comparing so destination links work everywhere.
+ */
+function normalizeCountryFilter(value?: string) {
+  const normalized = value
+    ?.trim()
+    .toLowerCase()
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+
+  return normalized || undefined
+}
+
 export const universityRouter = createTRPCRouter({
   list: publicProcedure
     .input(
@@ -29,8 +44,10 @@ export const universityRouter = createTRPCRouter({
       const offset = (page - 1) * perPage
       const conditions: any[] = [eq(universities.isActive, true)]
 
-      if (input.country?.trim()) {
-        conditions.push(sql`LOWER(${universities.country}) = LOWER(${input.country.trim()})`)
+      const country = normalizeCountryFilter(input.country)
+
+      if (country) {
+        conditions.push(sql`LOWER(TRIM(${universities.country})) = ${country}`)
       }
 
       const rawLevel = (input.level || input.degree)?.trim().toUpperCase()
@@ -130,9 +147,10 @@ export const universityRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const conditions: any[] = [eq(universities.isActive, true)]
 
-      if (input.country) {
-        const c = input.country.trim()
-        if (c) conditions.push(sql`LOWER(${universities.country}) = LOWER(${c})`)
+      const country = normalizeCountryFilter(input.country)
+
+      if (country) {
+        conditions.push(sql`LOWER(TRIM(${universities.country})) = ${country}`)
       }
 
       const rawLevel = (input.level || (input as any).degree)?.trim().toUpperCase()
