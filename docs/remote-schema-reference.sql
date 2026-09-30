@@ -154,6 +154,7 @@ CREATE TABLE `course` (
   `duration_unit` varchar(10) NOT NULL DEFAULT 'YEARS',
   `tuition_fee` int NOT NULL,
   `currency` varchar(3) NOT NULL DEFAULT 'USD',
+  `application_fee_currency` varchar(3) NOT NULL DEFAULT 'USD',
   `application_deadline` datetime,
   `start_date` datetime,
   `language` varchar(50) NOT NULL DEFAULT 'English',

@@ -1278,6 +1278,7 @@ const course = await db.select().from(schema.courses)
           englishTestWaiver: z.boolean().default(false),
           expressOffer: z.boolean().default(false),
           applicationFee: z.number().optional(),
+          applicationFeeCurrency: z.string().optional(),
           brochureUrl: z.string().optional(),
           isActive: z.boolean().default(true),
         })
@@ -1318,6 +1319,7 @@ const course = await db.select().from(schema.courses)
           englishTestWaiver: z.boolean().optional(),
           expressOffer: z.boolean().optional(),
           applicationFee: z.number().optional(),
+          applicationFeeCurrency: z.string().optional(),
           brochureUrl: z.string().optional(),
           isActive: z.boolean().optional(),
         })

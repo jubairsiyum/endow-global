@@ -323,6 +323,7 @@ export const courseRouter = createTRPCRouter({
           englishTestWaiver: courses.englishTestWaiver,
           expressOffer: courses.expressOffer,
           applicationFee: courses.applicationFee,
+          applicationFeeCurrency: courses.applicationFeeCurrency,
           brochureUrl: courses.brochureUrl,
           universityId: courses.universityId,
           universityName: universities.name,

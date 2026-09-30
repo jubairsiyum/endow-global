@@ -202,6 +202,9 @@ export const courses = mysqlTable(
     englishTestWaiver: boolean('english_test_waiver').default(false).notNull(),
     expressOffer: boolean('express_offer').default(false).notNull(),
     applicationFee: float('application_fee'),
+    applicationFeeCurrency: varchar('application_fee_currency', { length: 3 })
+      .default('USD')
+      .notNull(),
     brochureUrl: varchar('brochure_url', { length: 500 }),
     isActive: boolean('is_active').default(true).notNull(),
     vectorId: varchar('vector_id', { length: 255 }),

@@ -1,0 +1,1 @@
+ALTER TABLE `course` ADD `application_fee_currency` varchar(3) DEFAULT 'USD' NOT NULL;--> statement-breakpoint

@@ -15,6 +15,7 @@ import { QuillEditor } from '@/components/super-admin/shared/QuillEditor'
 const LEVELS = ['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']
 const MODES = ['FULL_TIME', 'PART_TIME', 'ONLINE', 'HYBRID']
 const DURATION_UNITS = ['YEARS', 'MONTHS']
+const CURRENCIES = ['USD', 'BDT', 'KRW', 'AUD', 'GBP', 'EUR', 'CAD', 'CNY', 'JPY']
 
 interface CourseForm {
   universityId: string; name: string; slug: string; subject: string; level: string
@@ -22,7 +23,7 @@ interface CourseForm {
   language: string; description: string; isActive: boolean
   campus: string; modeOfStudy: string
   highlights: string; professionalAccreditation: string
-  offerResponseTime: string; applicationFee: string; brochureUrl: string
+  offerResponseTime: string; applicationFee: string; applicationFeeCurrency: string; brochureUrl: string
   applicationDeadline: string; startDate: string
   hasScholarship: boolean; scholarshipDetails: string
   backlogsAccepted: boolean; gapYearsAccepted: boolean
@@ -35,7 +36,7 @@ const emptyForm: CourseForm = {
   language: 'English', description: '', isActive: true,
   campus: '', modeOfStudy: 'FULL_TIME',
   highlights: '', professionalAccreditation: '',
-  offerResponseTime: '', applicationFee: '', brochureUrl: '',
+  offerResponseTime: '', applicationFee: '', applicationFeeCurrency: 'USD', brochureUrl: '',
   applicationDeadline: '', startDate: '',
   hasScholarship: false, scholarshipDetails: '',
   backlogsAccepted: false, gapYearsAccepted: false,
@@ -125,6 +126,7 @@ export default function CoursesPage() {
       highlights: highlightsToText(c.highlights),
       professionalAccreditation: c.professionalAccreditation || '',
       offerResponseTime: c.offerResponseTime || '', applicationFee: c.applicationFee?.toString() || '',
+      applicationFeeCurrency: c.applicationFeeCurrency || 'USD',
       brochureUrl: c.brochureUrl || '',
       applicationDeadline: c.applicationDeadline ? new Date(c.applicationDeadline).toISOString().slice(0, 10) : '',
       startDate: c.startDate ? new Date(c.startDate).toISOString().slice(0, 10) : '',
@@ -241,8 +243,10 @@ export default function CoursesPage() {
 
               {/* Admission */}
               <div className="sm:col-span-2 mb-1"><h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2"><GraduationCap size={15} className="text-[#C41E3A]" />Admission & Offers</h3></div>
-              {[{ l: 'Application Fee', k: 'applicationFee', t: 'number' }, { l: 'Offer Response Time', k: 'offerResponseTime', p: 'e.g. 2 days' }, { l: 'Professional Accreditation', k: 'professionalAccreditation', p: 'e.g. CMI Level 7' }, { l: 'Brochure URL', k: 'brochureUrl', p: 'https://…' }].map(f => (
-                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type={f.t || 'text'} value={(form as any)[f.k]} onChange={e => setF(f.k, e.target.value)} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
+              <div><label className="mb-1.5 block text-sm font-medium text-gray-700">Application Fee</label><input type="number" min="0" step="any" value={form.applicationFee} onChange={e => setF('applicationFee', e.target.value)} placeholder="e.g. 100" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
+              <div><label className="mb-1.5 block text-sm font-medium text-gray-700">Application Fee Currency</label><select value={form.applicationFeeCurrency} onChange={e => setF('applicationFeeCurrency', e.target.value)} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is}>{CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+              {[{ l: 'Offer Response Time', k: 'offerResponseTime', p: 'e.g. 2 days' }, { l: 'Professional Accreditation', k: 'professionalAccreditation', p: 'e.g. CMI Level 7' }, { l: 'Brochure URL', k: 'brochureUrl', p: 'https://…' }].map(f => (
+                <div key={f.k}><label className="mb-1.5 block text-sm font-medium text-gray-700">{f.l}</label><input type="text" value={(form as any)[f.k]} onChange={e => setF(f.k, e.target.value)} placeholder={f.p} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" style={is} /></div>
               ))}
               <div className="sm:col-span-2 flex flex-wrap gap-3">
                 {[{ k: 'backlogsAccepted', l: 'Backlogs Accepted' }, { k: 'gapYearsAccepted', l: 'Gap Years Accepted' }, { k: 'englishTestWaiver', l: 'English Test Waiver' }, { k: 'expressOffer', l: 'Express Offer' }].map(({ k, l }) => (
