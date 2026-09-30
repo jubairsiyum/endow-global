@@ -10,6 +10,31 @@ import { FadeUp } from '@/components/home/FadeUp'
 const levelLabels: Record<string, string> = { UNDERGRADUATE: 'Undergraduate', POSTGRADUATE: 'Postgraduate', PHD: 'PhD', DIPLOMA: 'Diploma', CERTIFICATE: 'Certificate', FOUNDATION: 'Foundation' }
 const modeLabels: Record<string, string> = { FULL_TIME: 'Full Time', PART_TIME: 'Part Time', ONLINE: 'Online', HYBRID: 'Hybrid' }
 
+/* Public-friendly labels + colours for stored requirement types
+   (e.g. "ENGLISH_LANGUAGE: N/A" renders as “English Language — Not applicable”) */
+const requirementTypeStyles: Record<string, { label: string; className: string }> = {
+  ACADEMIC: { label: 'Academic', className: 'bg-blue-50 text-blue-700 ring-blue-200/70' },
+  ENGLISH_LANGUAGE: { label: 'English Language', className: 'bg-sky-50 text-sky-700 ring-sky-200/70' },
+  IDENTITY: { label: 'Identity', className: 'bg-purple-50 text-purple-700 ring-purple-200/70' },
+  MEDICAL: { label: 'Medical', className: 'bg-rose-50 text-rose-700 ring-rose-200/70' },
+  PROFESSIONAL: { label: 'Professional', className: 'bg-teal-50 text-teal-700 ring-teal-200/70' },
+  OTHER: { label: 'Other', className: 'bg-gray-100 text-gray-600 ring-gray-200/70' },
+}
+
+function requirementMeta(rawType: string) {
+  const key = rawType.trim().toUpperCase().replace(/\s+/g, '_')
+  const hit = requirementTypeStyles[key]
+  if (hit) return hit
+  const label = key.split('_').filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+  return { label: label || 'Requirement', className: 'bg-gray-100 text-gray-600 ring-gray-200/70' }
+}
+
+function formatRequirementDetail(detail: string): string {
+  const d = detail.trim()
+  if (/^n\/?a\.?$/i.test(d)) return 'Not applicable'
+  return d
+}
+
 function safeArray(v: any): string[] {
   if (!v) return []
   if (Array.isArray(v)) return v
@@ -20,6 +45,16 @@ function safeArray(v: any): string[] {
 
 function formatPlus(n: number | null | undefined): string {
   return n != null && n > 0 ? `${n}+` : '—'
+}
+
+/* Card heading with a tinted icon chip — keeps sections scannable */
+function SectionHeading({ chipClass, icon, children }: { chipClass: string; icon: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <h2 className="flex items-center gap-3 text-xl font-bold text-gray-900">
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${chipClass}`}>{icon}</span>
+      {children}
+    </h2>
+  )
 }
 
 export default function CourseDetailContent({ course }: { course: any }) {
@@ -42,14 +77,14 @@ export default function CourseDetailContent({ course }: { course: any }) {
       {/* Breadcrumb */}
       <section className="bg-white border-b border-gray-100 pt-24 pb-4">
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400 flex-wrap" aria-label="Breadcrumb">
+          <nav className="flex items-center gap-1.5 text-[13px] text-gray-400 flex-wrap" aria-label="Breadcrumb">
             <Link href="/" className="hover:text-gray-600 transition-colors" title="Home">
-                <Home size={14} className="fill-gray-400 text-gray-400 hover:fill-gray-600 hover:text-gray-600" />
+                <Home size={15} className="fill-gray-400 text-gray-400 hover:fill-gray-600 hover:text-gray-600" />
               </Link>
-            <ChevronRight size={12} />
+            <ChevronRight size={13} />
             <Link href="/universities" className="hover:text-gray-600 transition-colors">Universities</Link>
-            <ChevronRight size={12} />
-            {uniSlug && <><Link href={`/universities/${course.universityCountry?.toLowerCase().replace(/\s+/g, '-')}/${uniSlug}`} className="hover:text-gray-600 transition-colors">{course.universityName}</Link><ChevronRight size={12} /></>}
+            <ChevronRight size={13} />
+            {uniSlug && <><Link href={`/universities/${course.universityCountry?.toLowerCase().replace(/\s+/g, '-')}/${uniSlug}`} className="hover:text-gray-600 transition-colors">{course.universityName}</Link><ChevronRight size={13} /></>}
             <span className="text-gray-700 font-medium truncate">{course.name}</span>
           </nav>
         </div>
@@ -61,21 +96,21 @@ export default function CourseDetailContent({ course }: { course: any }) {
           <div className="py-3 lg:py-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                  <span className="inline-flex items-center rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-[11px] font-semibold text-[#C41E3A]">{levelLabels[course.level] ?? course.level}</span>
-                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">{course.subject}</span>
-                  {course.expressOffer && <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700"><Star size={10} />Express</span>}
+                <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                  <span className="inline-flex items-center rounded-full bg-[#C41E3A]/10 px-2.5 py-0.5 text-xs font-semibold text-[#C41E3A]">{levelLabels[course.level] ?? course.level}</span>
+                  <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{course.subject}</span>
+                  {course.expressOffer && <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700"><Star size={11} />Express</span>}
                 </div>
-                <h1 className="text-lg font-bold text-gray-900 truncate lg:text-xl">{course.name}</h1>
-                <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-0.5 text-xs text-gray-500">
-                  {course.universityName && <span className="flex items-center gap-1"><GraduationCap size={12} className="text-[#C41E3A]" />{course.universityName}</span>}
-                  {course.universityCountry && <span className="flex items-center gap-1"><MapPin size={12} />{course.universityCity}, {course.universityCountry}</span>}
+                <h1 className="text-xl font-bold text-gray-900 truncate lg:text-2xl">{course.name}</h1>
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-gray-500">
+                  {course.universityName && <span className="flex items-center gap-1.5"><GraduationCap size={14} className="text-[#C41E3A]" />{course.universityName}</span>}
+                  {course.universityCountry && <span className="flex items-center gap-1.5"><MapPin size={14} />{course.universityCity}, {course.universityCountry}</span>}
                   {course.modeOfStudy && <span>{modeLabels[course.modeOfStudy]}</span>}
                 </div>
               </div>
-              <div className="flex items-center gap-4 shrink-0">
-                <div className="text-right"><p className="text-xs text-gray-400">Duration</p><p className="text-sm font-bold text-gray-900">{course.duration} {course.durationUnit?.toLowerCase()}</p></div>
-                {course.tuitionFee > 0 && <div className="text-right"><p className="text-xs text-gray-400">Per Year</p><p className="text-sm font-bold text-gray-900">{formatCurrency(course.tuitionFee, course.currency)}</p></div>}
+              <div className="flex items-center gap-5 shrink-0">
+                <div className="text-right"><p className="text-[13px] text-gray-400">Duration</p><p className="text-base font-bold text-gray-900">{course.duration} {course.durationUnit?.toLowerCase()}</p></div>
+                {course.tuitionFee > 0 && <div className="text-right"><p className="text-[13px] text-gray-400">Per Year</p><p className="text-base font-bold text-[#C41E3A]">{formatCurrency(course.tuitionFee, course.currency)}</p></div>}
               </div>
             </div>
           </div>
@@ -92,18 +127,18 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 {/* About */}
                 <FadeUp>
                   <div className="min-w-0 overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-                    <h2 className="flex items-center gap-2.5 text-lg font-bold text-gray-900"><BookOpen size={20} className="text-[#C41E3A]" />About This Course</h2>
-                    <div className="course-description mt-4 min-w-0 max-w-full text-left text-sm leading-7 text-gray-600" dangerouslySetInnerHTML={{ __html: course.description || 'No description available.' }} />
+                    <SectionHeading chipClass="bg-[#C41E3A]/10" icon={<BookOpen size={18} className="text-[#C41E3A]" />}>About This Course</SectionHeading>
+                    <div className="course-description mt-4 min-w-0 max-w-full text-left text-base leading-7 text-gray-600" dangerouslySetInnerHTML={{ __html: course.description || 'No description available.' }} />
                   </div>
                 </FadeUp>
 
                 {highlights.length > 0 && (
                   <FadeUp>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-                      <h2 className="flex items-center gap-2.5 text-lg font-bold text-gray-900"><Award size={20} className="text-amber-500" />Key Program Highlights</h2>
-                      <ul className="mt-4 space-y-3">
+                      <SectionHeading chipClass="bg-amber-100" icon={<Award size={18} className="text-amber-500" />}>Key Program Highlights</SectionHeading>
+                      <ul className="mt-4 space-y-3.5">
                         {highlights.map((h: string, i: number) => (
-                          <li key={i} className="flex items-start gap-3 text-sm text-gray-700"><CheckCircle2 size={16} className="mt-0.5 shrink-0 text-green-500" />{h}</li>
+                          <li key={i} className="flex items-start gap-3 text-base text-gray-700"><CheckCircle2 size={18} className="mt-0.5 shrink-0 text-green-500" />{h}</li>
                         ))}
                       </ul>
                     </div>
@@ -113,13 +148,13 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 {modules.length > 0 && (
                   <FadeUp>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-                      <h2 className="flex items-center gap-2.5 text-lg font-bold text-gray-900"><Layers size={20} className="text-purple-500" />Course Modules</h2>
+                      <SectionHeading chipClass="bg-purple-100" icon={<Layers size={18} className="text-purple-500" />}>Course Modules</SectionHeading>
                       <div className="mt-4 space-y-5">
                         {Object.entries(moduleGroups).map(([term, groups]) => (
                           <div key={term}>
-                            <h3 className="text-sm font-semibold text-[#C41E3A] mb-2">{term}</h3>
-                            {groups.core.length > 0 && <div className="mb-2"><span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Core Modules</span><div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">{groups.core.map((m: any) => <div key={m.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700"><span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A] shrink-0" />{m.name}</div>)}</div></div>}
-                            {groups.optional.length > 0 && <div><span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Optional Modules</span><div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">{groups.optional.map((m: any) => <div key={m.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-700"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />{m.name}</div>)}</div></div>}
+                            <h3 className="text-base font-bold text-[#C41E3A] mb-2">{term}</h3>
+                            {groups.core.length > 0 && <div className="mb-2"><span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Core Modules</span><div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2">{groups.core.map((m: any) => <div key={m.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-[15px] text-gray-700"><span className="h-1.5 w-1.5 rounded-full bg-[#C41E3A] shrink-0" />{m.name}</div>)}</div></div>}
+                            {groups.optional.length > 0 && <div><span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Optional Modules</span><div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2">{groups.optional.map((m: any) => <div key={m.id} className="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2.5 text-[15px] text-gray-700"><span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />{m.name}</div>)}</div></div>}
                           </div>
                         ))}
                       </div>
@@ -130,19 +165,23 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 {requirements.length > 0 && (
                   <FadeUp>
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 sm:p-6 shadow-sm">
-                      <h2 className="flex items-center gap-2.5 text-lg font-bold text-gray-900"><FileText size={20} className="text-blue-500" />Requirements</h2>
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {requirements.map((r: string, i: number) => (
-                          <div key={i} className="flex items-start gap-2.5 rounded-lg border border-gray-100 bg-gray-50/60 p-3 text-sm text-gray-700">
-                            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C41E3A]" />
-                            <div>
-                              <span className="font-medium text-gray-900">{r.includes(':') ? r.split(':')[0] : ''}</span>
-                              <span className="text-gray-600">{r.includes(':') ? r.slice(r.indexOf(':')) : r}</span>
-      </div>
-
-      {/* Main */}
-                          </div>
-                        ))}
+                      <SectionHeading chipClass="bg-blue-100" icon={<FileText size={18} className="text-blue-500" />}>Requirements</SectionHeading>
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        {requirements.map((r: string, i: number) => {
+                          const sep = r.indexOf(':')
+                          const rawType = sep >= 0 ? r.slice(0, sep) : ''
+                          const detail = formatRequirementDetail(sep >= 0 ? r.slice(sep + 1) : r)
+                          const meta = rawType ? requirementMeta(rawType) : null
+                          return (
+                            <div key={i} className="flex items-start gap-2.5 rounded-xl border border-gray-100 bg-gray-50/60 p-3.5">
+                              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C41E3A]" />
+                              <div className="min-w-0">
+                                {meta && <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide ring-1 ring-inset ${meta.className}`}>{meta.label}</span>}
+                                {detail && <p className={`${meta ? 'mt-1.5' : ''} text-[15px] leading-6 text-gray-700`}>{detail}</p>}
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
                   </FadeUp>
@@ -151,8 +190,8 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 {course.professionalAccreditation && (
                   <FadeUp>
                     <div className="rounded-2xl border border-green-200 bg-green-50/50 p-5 sm:p-6 shadow-sm">
-                      <h2 className="flex items-center gap-2.5 text-lg font-bold text-green-800"><Award size={20} />Professional Accreditation</h2>
-                      <p className="mt-3 text-sm text-green-700 leading-relaxed">{course.professionalAccreditation}</p>
+                      <h2 className="flex items-center gap-3 text-xl font-bold text-green-800"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-green-100"><Award size={18} /></span>Professional Accreditation</h2>
+                      <p className="mt-3 text-base text-green-700 leading-relaxed">{course.professionalAccreditation}</p>
                     </div>
                   </FadeUp>
                 )}
@@ -163,27 +202,27 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 {/* Quick Facts Card */}
                 <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                   <div className="bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-3.5">
-                    <h3 className="text-sm font-bold text-white">Application Details</h3>
+                    <h3 className="text-base font-bold text-white">Application Details</h3>
                   </div>
-                  <div className="p-5 space-y-3.5">
-                    {course.applicationDeadline && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50"><Clock size={14} className="text-red-500" /></div><div className="flex-1 min-w-0"><p className="text-[11px] text-gray-400 uppercase tracking-wider">Apply By</p><p className="text-sm font-semibold text-gray-900">{new Date(course.applicationDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p></div></div>}
-                    {course.startDate && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50"><CalendarDays size={14} className="text-blue-500" /></div><div className="flex-1 min-w-0"><p className="text-[11px] text-gray-400 uppercase tracking-wider">Start Date</p><p className="text-sm font-semibold text-gray-900">{new Date(course.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p></div></div>}
-                    {course.campus && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-50"><Building2 size={14} className="text-purple-500" /></div><div className="flex-1 min-w-0"><p className="text-[11px] text-gray-400 uppercase tracking-wider">Campus</p><p className="text-sm font-semibold text-gray-900">{course.campus}</p></div></div>}
-                    {course.offerResponseTime && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={14} className="text-green-500" /></div><div className="flex-1 min-w-0"><p className="text-[11px] text-gray-400 uppercase tracking-wider">Offer Response</p><p className="text-sm font-semibold text-gray-900">{course.offerResponseTime}</p></div></div>}
-                    {course.applicationFee != null && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50"><DollarSign size={14} className="text-amber-500" /></div><div className="flex-1 min-w-0"><p className="text-[11px] text-gray-400 uppercase tracking-wider">Application Fee</p><p className="text-sm font-semibold text-gray-900">{course.applicationFeeCurrency || course.currency} {course.applicationFee}</p></div></div>}
-                    <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50"><Monitor size={14} className="text-indigo-500" /></div><div className="flex-1 min-w-0"><p className="text-[11px] text-gray-400 uppercase tracking-wider">Mode of Study</p><p className="text-sm font-semibold text-gray-900">{modeLabels[course.modeOfStudy] || '—'}</p></div></div>
+                  <div className="p-5 space-y-4">
+                    {course.applicationDeadline && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-red-50"><Clock size={14} className="text-red-500" /></div><div className="flex-1 min-w-0"><p className="text-xs text-gray-400 uppercase tracking-wider">Apply By</p><p className="text-base font-semibold text-gray-900">{new Date(course.applicationDeadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</p></div></div>}
+                    {course.startDate && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-50"><CalendarDays size={14} className="text-blue-500" /></div><div className="flex-1 min-w-0"><p className="text-xs text-gray-400 uppercase tracking-wider">Start Date</p><p className="text-base font-semibold text-gray-900">{new Date(course.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</p></div></div>}
+                    {course.campus && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-purple-50"><Building2 size={14} className="text-purple-500" /></div><div className="flex-1 min-w-0"><p className="text-xs text-gray-400 uppercase tracking-wider">Campus</p><p className="text-base font-semibold text-gray-900">{course.campus}</p></div></div>}
+                    {course.offerResponseTime && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={14} className="text-green-500" /></div><div className="flex-1 min-w-0"><p className="text-xs text-gray-400 uppercase tracking-wider">Offer Response</p><p className="text-base font-semibold text-gray-900">{course.offerResponseTime}</p></div></div>}
+                    {course.applicationFee != null && <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50"><DollarSign size={14} className="text-amber-500" /></div><div className="flex-1 min-w-0"><p className="text-xs text-gray-400 uppercase tracking-wider">Application Fee</p><p className="text-base font-semibold text-gray-900">{course.applicationFeeCurrency || course.currency} {course.applicationFee}</p></div></div>}
+                    <div className="flex items-center gap-3"><div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50"><Monitor size={14} className="text-indigo-500" /></div><div className="flex-1 min-w-0"><p className="text-xs text-gray-400 uppercase tracking-wider">Mode of Study</p><p className="text-base font-semibold text-gray-900">{modeLabels[course.modeOfStudy] || '—'}</p></div></div>
                   </div>
                 </div>
 
                 {/* Admission Flags */}
                 {(course.backlogsAccepted || course.gapYearsAccepted || course.englishTestWaiver || course.expressOffer) && (
                   <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3">Admission</h3>
-                    <div className="space-y-2">
-                      {course.backlogsAccepted && <div className="flex items-center gap-2.5 text-sm"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={14} className="text-green-500" /></div><span className="text-gray-700">Backlogs accepted</span></div>}
-                      {course.gapYearsAccepted && <div className="flex items-center gap-2.5 text-sm"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={14} className="text-green-500" /></div><span className="text-gray-700">Gap years accepted</span></div>}
-                      {course.englishTestWaiver && <div className="flex items-center gap-2.5 text-sm"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={14} className="text-green-500" /></div><span className="text-gray-700">English test waiver available</span></div>}
-                      {course.expressOffer && <div className="flex items-center gap-2.5 text-sm"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50"><Star size={14} className="text-amber-500" /></div><span className="text-gray-700">Express Offer available</span></div>}
+                    <h3 className="text-base font-bold text-gray-900 mb-3">Admission</h3>
+                    <div className="space-y-2.5">
+                      {course.backlogsAccepted && <div className="flex items-center gap-2.5 text-base"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={15} className="text-green-500" /></div><span className="text-gray-700">Backlogs accepted</span></div>}
+                      {course.gapYearsAccepted && <div className="flex items-center gap-2.5 text-base"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={15} className="text-green-500" /></div><span className="text-gray-700">Gap years accepted</span></div>}
+                      {course.englishTestWaiver && <div className="flex items-center gap-2.5 text-base"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-green-50"><CheckCircle2 size={15} className="text-green-500" /></div><span className="text-gray-700">English test waiver available</span></div>}
+                      {course.expressOffer && <div className="flex items-center gap-2.5 text-base"><div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-amber-50"><Star size={15} className="text-amber-500" /></div><span className="text-gray-700">Express Offer available</span></div>}
                     </div>
                   </div>
                 )}
@@ -191,12 +230,12 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 {/* Intakes */}
                 {intakes.length > 0 && (
                   <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                    <h3 className="text-sm font-bold text-gray-900 mb-3">Intake Dates</h3>
+                    <h3 className="text-base font-bold text-gray-900 mb-3">Intake Dates</h3>
                     <div className="space-y-2">
                       {intakes.map((i: any, idx: number) => (
                         <div key={idx} className="flex items-center justify-between rounded-xl border border-gray-100 px-3.5 py-2.5">
-                          <span className="text-sm font-semibold text-gray-900">{new Date(i.intakeDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                          {i.applyByDate && <span className="text-[11px] text-gray-500">Apply by {new Date(i.applyByDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
+                          <span className="text-base font-semibold text-gray-900">{new Date(i.intakeDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                          {i.applyByDate && <span className="text-xs text-gray-500">Apply by {new Date(i.applyByDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>}
                         </div>
                       ))}
                     </div>
@@ -209,34 +248,34 @@ export default function CourseDetailContent({ course }: { course: any }) {
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-100 overflow-hidden bg-white">
                       {course.universityLogo ? <img src={course.universityLogo} alt="" className="h-full w-full object-contain p-1.5" /> : <Building2 size={18} className="text-gray-300" />}
                     </div>
-                    <div className="min-w-0"><p className="text-sm font-semibold text-gray-900 truncate">{course.universityName}</p><p className="text-[11px] text-gray-500">{course.universityCity}, {course.universityCountry}</p></div>
+                    <div className="min-w-0"><p className="text-base font-semibold text-gray-900 truncate">{course.universityName}</p><p className="text-xs text-gray-500">{course.universityCity}, {course.universityCountry}</p></div>
                   </div>
                   {(course.universityRanking || course.universityKoreaRanking) && (
                     <div className="mb-3 flex flex-wrap gap-1.5">
-                      {course.universityRanking && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700"><Award size={11} /> QS {course.universityRanking}</span>}
-                      {course.universityKoreaRanking && <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700"><Award size={11} /> Korea #{course.universityKoreaRanking}</span>}
+                      {course.universityRanking && <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700"><Award size={12} /> QS {course.universityRanking}</span>}
+                      {course.universityKoreaRanking && <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700"><Award size={12} /> Korea #{course.universityKoreaRanking}</span>}
                     </div>
                   )}
                   {(course.universityTotalStudents || course.universityInternationalStudents) && (
                     <div className="mb-3 grid grid-cols-2 gap-2">
-                      {course.universityTotalStudents ? <div className="rounded-lg bg-gray-50 px-3 py-2 text-center"><p className="text-sm font-bold text-gray-900">{formatPlus(course.universityTotalStudents)}</p><p className="text-[10px] text-gray-500">Total Students</p></div> : null}
-                      {course.universityInternationalStudents ? <div className="rounded-lg bg-gray-50 px-3 py-2 text-center"><p className="text-sm font-bold text-gray-900">{formatPlus(course.universityInternationalStudents)}</p><p className="text-[10px] text-gray-500">Intl. Students</p></div> : null}
+                      {course.universityTotalStudents ? <div className="rounded-lg bg-gray-50 px-3 py-2 text-center"><p className="text-base font-bold text-gray-900">{formatPlus(course.universityTotalStudents)}</p><p className="text-xs text-gray-500">Total Students</p></div> : null}
+                      {course.universityInternationalStudents ? <div className="rounded-lg bg-gray-50 px-3 py-2 text-center"><p className="text-base font-bold text-gray-900">{formatPlus(course.universityInternationalStudents)}</p><p className="text-xs text-gray-500">Intl. Students</p></div> : null}
                     </div>
                   )}
-                  {course.universityWebsite && <a href={course.universityWebsite} target="_blank" className="flex items-center justify-center gap-1.5 w-full rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"><ExternalLink size={13} />Visit University Website</a>}
+                  {course.universityWebsite && <a href={course.universityWebsite} target="_blank" className="flex items-center justify-center gap-1.5 w-full rounded-xl border border-gray-200 px-4 py-2.5 text-base font-medium text-gray-700 hover:bg-gray-50 transition-colors"><ExternalLink size={14} />Visit University Website</a>}
                 </div>
 
                 {/* Scholarship */}
                 {course.hasScholarship && course.scholarshipDetails && (
                   <div className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50 p-5">
-                    <h3 className="flex items-center gap-2 text-sm font-bold text-amber-800"><Award size={16} />Scholarship Available</h3>
-                    <p className="mt-2 text-sm text-amber-700 leading-relaxed">{course.scholarshipDetails}</p>
+                    <h3 className="flex items-center gap-2 text-base font-bold text-amber-800"><Award size={17} />Scholarship Available</h3>
+                    <p className="mt-2 text-base text-amber-700 leading-relaxed">{course.scholarshipDetails}</p>
                   </div>
                 )}
 
                 {/* CTA */}
-                <Link href={applyUrl} className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-3.5 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
-                  <Send size={16} /> Apply Now <ChevronRight size={15} />
+                <Link href={applyUrl} className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
+                  <Send size={17} /> Apply Now <ChevronRight size={16} />
                 </Link>
               </div>
             </div>
@@ -247,8 +286,8 @@ export default function CourseDetailContent({ course }: { course: any }) {
 
       {/* Floating Apply CTA — mobile */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3 lg:hidden">
-        <Link href={applyUrl} className="flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] py-3 text-sm font-bold text-white shadow-lg">
-          <Send size={16} /> Apply Now
+        <Link href={applyUrl} className="flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] py-3.5 text-base font-bold text-white shadow-lg">
+          <Send size={17} /> Apply Now
         </Link>
       </div>
     </div>
