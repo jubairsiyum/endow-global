@@ -10,6 +10,16 @@ interface TiltCardProps {
 }
 
 /**
+ * Interactive children (buttons, links) should not continuously drive the tilt.
+ * Otherwise hovering a CTA near the card edge re-renders the transform on every
+ * mousemove, which reads as flicker on the button's own hover transition.
+ */
+function isTiltIgnored(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false
+  return target.closest('[data-tilt-ignore]') !== null
+}
+
+/**
  * Wraps children with a subtle 3D perspective tilt on hover.
  * Disables tilt when `prefers-reduced-motion` is set but keeps other hover styles.
  */
@@ -19,7 +29,7 @@ export function TiltCard({ children, className, tiltDegree = 6 }: TiltCardProps)
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (prefersReducedMotion || !ref.current) return
+      if (prefersReducedMotion || isTiltIgnored(e.target) || !ref.current) return
       const rect = ref.current.getBoundingClientRect()
       const x = (e.clientX - rect.left) / rect.width - 0.5
       const y = (e.clientY - rect.top) / rect.height - 0.5
@@ -29,7 +39,7 @@ export function TiltCard({ children, className, tiltDegree = 6 }: TiltCardProps)
         rotateX(${-y * tiltDegree}deg)
       `
     },
-    [prefersReducedMotion, tiltDegree],
+    [prefersReducedMotion, tiltDegree]
   )
 
   const handleMouseLeave = useCallback(() => {
@@ -43,7 +53,11 @@ export function TiltCard({ children, className, tiltDegree = 6 }: TiltCardProps)
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={className}
-      style={{ transformStyle: 'preserve-3d', transition: 'transform 0.15s ease-out' }}
+      style={{
+        transformStyle: 'preserve-3d',
+        willChange: 'transform',
+        transition: 'transform 0.15s ease-out',
+      }}
       whileHover={prefersReducedMotion ? undefined : { scale: 1.02 }}
       transition={{ type: 'spring', stiffness: 300, damping: 15 }}
     >

@@ -59,12 +59,8 @@ export default function CountryCards() {
   return (
     <section
       aria-labelledby="study-destinations-title"
-      className="relative overflow-hidden bg-[#F8FAFC] py-20 sm:py-28"
+      className="destinations-section relative overflow-hidden py-20 sm:py-28"
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_60%_45%_at_50%_20%,rgba(196,30,58,0.045),transparent_72%)]" />
-      <div className="pointer-events-none absolute -left-32 top-24 h-72 w-72 rounded-full border border-[#C41E3A]/[0.04]" />
-      <div className="pointer-events-none absolute -right-24 bottom-10 h-80 w-80 rounded-full border border-[#B88952]/[0.06]" />
-
       <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <FadeUp>
           <div className="text-center">
@@ -208,11 +204,11 @@ function DestinationCard({ destination }: { destination: Destination }) {
             )}
           </div>
 
-          <footer className="mt-auto pt-6">
+          <footer data-tilt-ignore className="mt-auto pt-6">
             {destination.available ? (
               <Link
                 href={`/universities?country=${destination.slug}`}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)] transition-all hover:bg-[#A01830] hover:shadow-[0_12px_26px_rgba(196,30,58,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
+                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)] transition-[background-color,box-shadow] duration-300 ease-out hover:bg-[#A01830] hover:shadow-[0_12px_26px_rgba(196,30,58,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
               >
                 Explore programs
                 <ArrowRight size={15} aria-hidden="true" />
@@ -222,7 +218,7 @@ function DestinationCard({ destination }: { destination: Destination }) {
                 type="button"
                 disabled
                 aria-disabled="true"
-                className="inline-flex h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-400 opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
+                className="inline-flex h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-400 opacity-90 transition-[background-color,box-shadow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
               >
                 Notify me
                 <Clock3 size={15} aria-hidden="true" />

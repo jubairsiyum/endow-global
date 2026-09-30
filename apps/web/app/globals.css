@@ -158,6 +158,27 @@ body {
   text-wrap: pretty;
 }
 
+/* Homepage destination map texture: soft regional color cues with a quiet
+   route-planning grid that fades before it can compete with the cards. */
+.destinations-section {
+  background:
+    radial-gradient(600px 300px at 50% 55%, rgba(196, 30, 58, 0.1), transparent 70%),
+    radial-gradient(500px 300px at 12% 30%, rgba(251, 191, 36, 0.1), transparent 70%),
+    radial-gradient(500px 300px at 88% 30%, rgba(59, 130, 246, 0.08), transparent 70%),
+    #f6f7fb;
+}
+
+.destinations-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse at center, #000 30%, transparent 75%);
+}
+
 .dark body {
   background: #09090b;
   color: #fafafa;
