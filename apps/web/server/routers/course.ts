@@ -323,7 +323,6 @@ export const courseRouter = createTRPCRouter({
           englishTestWaiver: courses.englishTestWaiver,
           expressOffer: courses.expressOffer,
           applicationFee: courses.applicationFee,
-          applicationFeeCurrency: courses.applicationFeeCurrency,
           brochureUrl: courses.brochureUrl,
           universityId: courses.universityId,
           universityName: universities.name,
@@ -338,12 +337,13 @@ export const courseRouter = createTRPCRouter({
           universityEstablished: universities.established,
           universityTotalStudents: universities.totalStudents,
         }
+        const appFeeSelection = { ...baseSelection, applicationFeeCurrency: courses.applicationFeeCurrency }
 
         let result: any[]
         try {
           result = await ctx.db
             .select({
-              ...baseSelection,
+              ...appFeeSelection,
               universityKoreaRanking: universities.koreaRanking,
               universityInternationalStudents: universities.internationalStudents,
             })
@@ -353,12 +353,22 @@ export const courseRouter = createTRPCRouter({
             .limit(1)
         } catch (error) {
           if (!isMissingColumnError(error)) throw error
-          result = await ctx.db
-            .select(baseSelection)
-            .from(courses)
-            .leftJoin(universities, eq(courses.universityId, universities.id))
-            .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
-            .limit(1)
+          try {
+            result = await ctx.db
+              .select(appFeeSelection)
+              .from(courses)
+              .leftJoin(universities, eq(courses.universityId, universities.id))
+              .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
+              .limit(1)
+          } catch (error2) {
+            if (!isMissingColumnError(error2)) throw error2
+            result = await ctx.db
+              .select(baseSelection)
+              .from(courses)
+              .leftJoin(universities, eq(courses.universityId, universities.id))
+              .where(and(eq(courses.slug, input.slug), eq(courses.isActive, true)))
+              .limit(1)
+          }
         }
 
         if (!result[0]) return null

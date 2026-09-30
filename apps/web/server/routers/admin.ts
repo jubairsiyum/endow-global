@@ -24,6 +24,49 @@ const inArray = _inArray as any
 const ne = _ne as any
 const gte = _gte as any
 
+// Course column sets used by the admin courses CRUD.
+// dminCourseAllColumns includes application_fee_currency; the base set omits it
+// so queries stay compatible with deployments where that column has not been added yet.
+const adminCourseBaseColumns = {
+  id: schema.courses.id,
+  universityId: schema.courses.universityId,
+  name: schema.courses.name,
+  slug: schema.courses.slug,
+  subject: schema.courses.subject,
+  level: schema.courses.level,
+  duration: schema.courses.duration,
+  durationUnit: schema.courses.durationUnit,
+  tuitionFee: schema.courses.tuitionFee,
+  currency: schema.courses.currency,
+  applicationDeadline: schema.courses.applicationDeadline,
+  startDate: schema.courses.startDate,
+  language: schema.courses.language,
+  requirements: schema.courses.requirements,
+  hasScholarship: schema.courses.hasScholarship,
+  scholarshipDetails: schema.courses.scholarshipDetails,
+  description: schema.courses.description,
+  campus: schema.courses.campus,
+  modeOfStudy: schema.courses.modeOfStudy,
+  highlights: schema.courses.highlights,
+  professionalAccreditation: schema.courses.professionalAccreditation,
+  offerResponseTime: schema.courses.offerResponseTime,
+  backlogsAccepted: schema.courses.backlogsAccepted,
+  gapYearsAccepted: schema.courses.gapYearsAccepted,
+  englishTestWaiver: schema.courses.englishTestWaiver,
+  expressOffer: schema.courses.expressOffer,
+  applicationFee: schema.courses.applicationFee,
+  brochureUrl: schema.courses.brochureUrl,
+  isActive: schema.courses.isActive,
+  vectorId: schema.courses.vectorId,
+  typesenseId: schema.courses.typesenseId,
+  createdAt: schema.courses.createdAt,
+  updatedAt: schema.courses.updatedAt,
+}
+const adminCourseAllColumns = {
+  ...adminCourseBaseColumns,
+  applicationFeeCurrency: schema.courses.applicationFeeCurrency,
+}
+
 function auditActor(ctx: any) {
   return {
     id: ctx.session.user.id,
@@ -1216,9 +1259,18 @@ return db.select().from(schema.universities)
         if (input.level) conditions.push(eq(schema.courses.level, input.level))
         if (input.isActive !== undefined) conditions.push(eq(schema.courses.isActive, input.isActive))
 
-        const courses = await db.select().from(schema.courses)
-          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
-          .orderBy(desc(schema.courses.createdAt))
+        let courseRows: any[]
+        try {
+          courseRows = await db.select(adminCourseAllColumns).from(schema.courses)
+            .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+            .orderBy(desc(schema.courses.createdAt))
+        } catch (error) {
+          if (!isMissingColumnError(error)) throw error
+          courseRows = await db.select(adminCourseBaseColumns).from(schema.courses)
+            .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+            .orderBy(desc(schema.courses.createdAt))
+        }
+        const courses = courseRows
 
         const uniIds = Array.from(new Set(courses.map((c) => c.universityId)))
         const universities = uniIds.length > 0
@@ -1237,10 +1289,19 @@ return db.select().from(schema.universities)
       }),
 
     getById: adminWithPermission('courses:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-const course = await db.select().from(schema.courses)
-          .where(eq(schema.courses.id, input.id))
-          .limit(1)
-          .then((rows) => rows[0] || null)
+let course: any
+        try {
+          course = await db.select(adminCourseAllColumns).from(schema.courses)
+            .where(eq(schema.courses.id, input.id))
+            .limit(1)
+            .then((rows) => rows[0] || null)
+        } catch (error) {
+          if (!isMissingColumnError(error)) throw error
+          course = await db.select(adminCourseBaseColumns).from(schema.courses)
+            .where(eq(schema.courses.id, input.id))
+            .limit(1)
+            .then((rows) => rows[0] || null)
+        }
         if (!course) return null
         const uni = await db.select().from(schema.universities)
           .where(eq(schema.universities.id, course.universityId))

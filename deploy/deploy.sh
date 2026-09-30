@@ -25,6 +25,11 @@ echo "==> Applying university schema changes"
 # from Drizzle's snapshot, so a full drizzle-kit push is unsafe here.
 pnpm db:ensure-university-schema
 
+echo "==> Applying course schema changes"
+# Idempotent targeted SQL check. Keeps production aligned with Drizzle 0010
+# (course.application_fee_currency) without replaying the full history.
+pnpm db:ensure-course-schema
+
 echo "==> Building web app"
 pnpm build
 
