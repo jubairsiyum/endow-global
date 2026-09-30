@@ -162,10 +162,10 @@ body {
    route-planning grid that fades before it can compete with the cards. */
 .destinations-section {
   background:
-    radial-gradient(600px 300px at 50% 55%, rgba(196, 30, 58, 0.1), transparent 70%),
-    radial-gradient(500px 300px at 12% 30%, rgba(251, 191, 36, 0.1), transparent 70%),
-    radial-gradient(500px 300px at 88% 30%, rgba(59, 130, 246, 0.08), transparent 70%),
-    #f6f7fb;
+    radial-gradient(600px 300px at 50% 55%, rgba(196, 30, 58, 0.08), transparent 70%),
+    radial-gradient(500px 300px at 12% 30%, rgba(251, 191, 36, 0.08), transparent 70%),
+    radial-gradient(500px 300px at 88% 30%, rgba(59, 130, 246, 0.14), transparent 70%),
+    linear-gradient(180deg, #eef4fb, #e7eef9);
 }
 
 .destinations-section::before {

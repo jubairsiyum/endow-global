@@ -182,7 +182,9 @@ function DestinationCard({ destination }: { destination: Destination }) {
           <p className="mt-5 text-sm leading-relaxed text-slate-600">{destination.description}</p>
 
           <div
-            className="mt-5 flex flex-nowrap items-center gap-2 overflow-hidden"
+            className={`flex flex-nowrap items-center gap-2 overflow-hidden ${
+              destination.available ? 'mt-5' : 'mt-auto pt-6'
+            }`}
             aria-label="Popular programs"
           >
             {visibleTags.map((tag) => (
@@ -204,8 +206,8 @@ function DestinationCard({ destination }: { destination: Destination }) {
             )}
           </div>
 
-          <footer data-tilt-ignore className="mt-auto pt-6">
-            {destination.available ? (
+          {destination.available && (
+            <footer data-tilt-ignore className="mt-auto pt-6">
               <Link
                 href={`/universities?country=${destination.slug}`}
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#C41E3A] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(196,30,58,0.18)] transition-[background-color,box-shadow] duration-300 ease-out hover:bg-[#A01830] hover:shadow-[0_12px_26px_rgba(196,30,58,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
@@ -213,18 +215,8 @@ function DestinationCard({ destination }: { destination: Destination }) {
                 Explore programs
                 <ArrowRight size={15} aria-hidden="true" />
               </Link>
-            ) : (
-              <button
-                type="button"
-                disabled
-                aria-disabled="true"
-                className="inline-flex h-11 w-full cursor-not-allowed items-center justify-center gap-2 rounded-full border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-400 opacity-90 transition-[background-color,box-shadow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300 focus-visible:ring-offset-2"
-              >
-                Notify me
-                <Clock3 size={15} aria-hidden="true" />
-              </button>
-            )}
-          </footer>
+            </footer>
+          )}
         </div>
       </article>
     </TiltCard>
