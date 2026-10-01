@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, ChevronDown, BookOpen, ArrowRight, SlidersHorizontal, X } from 'lucide-react'
+import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, ChevronDown, ArrowRight, SlidersHorizontal, X } from 'lucide-react'
+import { FaBookOpen } from 'react-icons/fa6'
 
 import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
@@ -324,8 +325,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
           <div className="pb-14 pt-16 lg:pb-20 lg:pt-24">
             <FadeUp>
               <div className="text-center">
-                <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/20 bg-white/70 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#C41E3A] shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
-                  <BookOpen size={14} />
+                <span className="mb-5 inline-flex items-center gap-2.5 rounded-full border border-[#9C0D0D]/20 bg-white/70 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#9C0D0D] shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
+                  <FaBookOpen size={18} style={{ color: 'rgb(156, 13, 13)' }} />
                   Course Catalog
                 </span>
                 <h1 className="text-[32px] font-extrabold leading-[1.12] tracking-tight text-gray-950 sm:text-[38px] lg:text-[50px]">
@@ -410,9 +411,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
 
             {/* Trust stats */}
             <FadeUp>
-              <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_16px_44px_-20px_rgba(17,24,39,0.28)]">
-                <div className="h-[3px] w-full bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A]" aria-hidden="true" />
-                <div className="flex items-stretch divide-x divide-gray-100 px-2 py-6 sm:px-4">
+              <div className="mx-auto mt-12 max-w-3xl rounded-2xl border border-gray-200/70 bg-white px-4 py-8 shadow-[0_1px_2px_rgba(17,24,39,0.04),0_16px_40px_-26px_rgba(17,24,39,0.22)] sm:px-8">
+                <div className="flex items-stretch divide-x divide-gray-100">
                   {[
                     { value: `${displayData?.total ?? initialData.total}`, label: 'Courses' },
                     { value: `${filterOptions?.institutions.length ?? 0}`, label: 'Universities' },
@@ -421,13 +421,13 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                   ].map((s, i) => (
                     <div key={i} className="flex-1 px-3 text-center">
                       <p
-                        className={`text-[26px] font-extrabold leading-none tracking-tight sm:text-[32px] ${
+                        className={`text-[26px] font-extrabold leading-none tracking-tight tabular-nums sm:text-[32px] ${
                           i === 3 ? 'text-[#C41E3A]' : 'text-gray-900'
                         }`}
                       >
                         {s.value}
                       </p>
-                      <p className="mt-2.5 text-[13px] font-medium uppercase tracking-wide text-gray-500 sm:text-sm">{s.label}</p>
+                      <p className="mt-3 text-[13px] font-medium uppercase tracking-[0.12em] text-gray-500 sm:text-sm">{s.label}</p>
                     </div>
                   ))}
                 </div>
@@ -599,8 +599,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
               ) : isLoading ? (
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                      <div className="h-[3px] w-full bg-gray-100" />
+                    <div key={i} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white">
                       <div className="p-5">
                         <div className="flex items-start gap-3.5">
                           <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-gray-100" />
@@ -677,14 +676,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                         <Link
                           href={courseUrl}
                           aria-label={`View ${course.name} at ${course.universityName}`}
-                          className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-[#C41E3A]/25 hover:shadow-[0_22px_48px_-18px_rgba(17,24,39,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
+                          className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-[0_20px_40px_-18px_rgba(17,24,39,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
                         >
-                          {/* Brand accent rule */}
-                          <div
-                            className="h-[3px] w-full shrink-0 bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
-                            aria-hidden="true"
-                          />
-
                           {/* Header: logo + university + location */}
                           <div className="flex items-start gap-3.5 p-5 pb-3">
                             {course.universityLogo ? (
