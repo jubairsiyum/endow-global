@@ -95,16 +95,16 @@ function Section({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2.5 py-2.5 text-left"
+        className="flex w-full items-center gap-3 py-3 text-left"
       >
-        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
           {icon}
         </span>
-        <span className={`flex-1 text-[13px] font-semibold ${count > 0 ? 'text-[#C41E3A]' : 'text-gray-800'}`}>
+        <span className={`flex-1 text-[15px] font-semibold ${count > 0 ? 'text-[#C41E3A]' : 'text-gray-800'}`}>
           {title}
         </span>
         {count > 0 && (
-          <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[10px] font-bold text-white">
+          <span className="flex h-6 min-w-6 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-2 text-xs font-bold text-white">
             {count}
           </span>
         )}
@@ -121,11 +121,11 @@ function Section({
 function CheckIndicator({ checked }: { checked: boolean }) {
   return (
     <span
-      className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+      className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
         checked ? 'border-[#C41E3A] bg-gradient-to-br from-[#C41E3A] to-[#A01830]' : 'border-gray-300 bg-white'
       }`}
     >
-      {checked && <Check size={12} strokeWidth={3} className="text-white" />}
+      {checked && <Check size={14} strokeWidth={3} className="text-white" />}
     </span>
   )
 }
@@ -141,14 +141,14 @@ function CheckboxRow({
 }) {
   return (
     <label
-      className={`flex cursor-pointer items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors ${
+      className={`flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors ${
         checked ? 'bg-rose-50' : 'hover:bg-gray-50'
       }`}
     >
       <input type="checkbox" className="sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       <CheckIndicator checked={checked} />
       <span
-        className={`min-w-0 flex-1 text-[13px] leading-5 ${checked ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'}`}
+        className={`min-w-0 flex-1 text-[15px] leading-6 ${checked ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'}`}
       >
         {label}
       </span>
@@ -175,24 +175,24 @@ function ToggleRow({
       role="switch"
       aria-checked={checked}
       onClick={() => onChange(!checked)}
-      className="flex w-full items-center gap-2.5 py-2.5 text-left transition-colors hover:bg-gray-50"
+      className="flex w-full items-center gap-3 py-3 text-left transition-colors hover:bg-gray-50"
     >
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-[13px] font-semibold ${checked ? 'text-[#C41E3A]' : 'text-gray-800'}`}>{label}</span>
-        {description && <span className="block text-[11px] leading-4 text-gray-400">{description}</span>}
+        <span className={`block text-[15px] font-semibold ${checked ? 'text-[#C41E3A]' : 'text-gray-800'}`}>{label}</span>
+        {description && <span className="block text-[13px] leading-5 text-gray-500">{description}</span>}
       </span>
       <span
         aria-hidden="true"
-        className={`relative inline-flex h-5 w-9 shrink-0 rounded-full transition-colors duration-200 ${
+        className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors duration-200 ${
           checked ? 'bg-gradient-to-r from-[#C41E3A] to-[#A01830]' : 'bg-gray-300'
         }`}
       >
         <span
-          className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-200 ${
-            checked ? 'translate-x-4' : 'translate-x-0'
+          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform duration-200 ${
+            checked ? 'translate-x-5' : 'translate-x-0'
           }`}
         />
       </span>
@@ -233,29 +233,29 @@ function SearchableMultiSelect({
 
   return (
     <div>
-      <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-2.5 py-2 focus-within:border-[#C41E3A] focus-within:ring-1 focus-within:ring-[#C41E3A]/10">
-        <Search size={14} className="shrink-0 text-gray-400" />
+      <div className="flex items-center gap-2.5 rounded-lg border border-gray-200 bg-white px-3 py-2.5 focus-within:border-[#C41E3A] focus-within:ring-1 focus-within:ring-[#C41E3A]/10">
+        <Search size={16} className="shrink-0 text-gray-400" />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder={placeholder ?? `Search ${label.toLowerCase()}...`}
-          className="w-full bg-transparent text-sm text-gray-700 outline-none placeholder:text-gray-400"
+          className="w-full bg-transparent text-base text-gray-700 outline-none placeholder:text-gray-500"
         />
         {search && (
           <button type="button" onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600">
-            <X size={14} />
+            <X size={16} />
           </button>
         )}
       </div>
 
-      <div className="filter-scroll mt-1.5 max-h-56 space-y-0.5 overflow-y-auto overscroll-contain pr-1">
+      <div className="filter-scroll mt-2 max-h-64 space-y-0.5 overflow-y-auto overscroll-contain pr-1">
         {filtered.map((option) => {
           const isSelected = selected.includes(option.value)
           const isDisabled = limit !== undefined && !isSelected && selected.length >= limit
           return (
             <label
               key={option.value}
-              className={`flex items-center gap-2.5 rounded-md px-1.5 py-1 transition-colors ${
+              className={`flex items-center gap-3 rounded-md px-2 py-1.5 transition-colors ${
                 isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'
               } ${isSelected ? 'bg-rose-50' : 'hover:bg-gray-50'}`}
             >
@@ -271,11 +271,11 @@ function SearchableMultiSelect({
                 <img
                   src={`https://flagcdn.com/w40/${option.code}.png`}
                   alt=""
-                  className="h-4 w-6 shrink-0 rounded-[2px] object-cover"
+                  className="h-[18px] w-[26px] shrink-0 rounded-[2px] object-cover"
                 />
               )}
               <span
-                className={`min-w-0 flex-1 truncate text-[13px] ${
+                className={`min-w-0 flex-1 truncate text-[15px] ${
                   isSelected ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'
                 }`}
               >
@@ -284,28 +284,28 @@ function SearchableMultiSelect({
             </label>
           )
         })}
-        {filtered.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No matches found</p>}
+        {filtered.length === 0 && <p className="px-2 py-3 text-base text-gray-500">No matches found</p>}
       </div>
 
       {selected.length > 0 && (
-        <div className="mt-1.5 flex flex-wrap gap-1.5">
+        <div className="mt-2 flex flex-wrap gap-2">
           {selected.map((value) => {
             const option = options.find((o) => o.value === value)
             return (
               <span
                 key={value}
-                className="inline-flex items-center gap-1 rounded-full bg-[#C41E3A]/10 px-2 py-0.5 text-xs font-medium text-[#C41E3A]"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/10 px-2.5 py-1 text-sm font-medium text-[#C41E3A]"
               >
                 {option?.code && (
                   <img
                     src={`https://flagcdn.com/w40/${option.code}.png`}
                     alt=""
-                    className="h-3.5 w-5 shrink-0 rounded-[2px] object-cover"
+                    className="h-4 w-6 shrink-0 rounded-[2px] object-cover"
                   />
                 )}
                 {option?.label ?? value}
                 <button type="button" onClick={() => toggle(value)} className="text-[#C41E3A]/60 hover:text-[#C41E3A]">
-                  <X size={11} />
+                  <X size={13} />
                 </button>
               </span>
             )
@@ -393,7 +393,7 @@ export function FilterPanel({
             />
           ))}
         </div>
-        {levelOptions.length === 0 && <p className="px-1 py-2 text-sm text-gray-400">No levels available</p>}
+        {levelOptions.length === 0 && <p className="px-2 py-3 text-base text-gray-500">No levels available</p>}
       </Section>
 
       <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
@@ -429,7 +429,7 @@ export function FilterPanel({
       <Section icon={<DollarSign size={15} />} title="Tuition Fee" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Min ($)</label>
+            <label className="mb-1 block text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">Min ($)</label>
             <input
               type="number"
               min={0}
@@ -437,11 +437,11 @@ export function FilterPanel({
               value={filters.feeMin ?? ''}
               onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
               placeholder="0"
-              className="w-full rounded-lg border border-gray-200 bg-white py-2 px-2.5 text-sm text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
+              className="w-full rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-base text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium uppercase tracking-wide text-gray-400">Max ($)</label>
+            <label className="mb-1 block text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">Max ($)</label>
             <input
               type="number"
               min={0}
@@ -449,12 +449,12 @@ export function FilterPanel({
               value={filters.feeMax ?? ''}
               onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
               placeholder={feeMax.toLocaleString()}
-              className="w-full rounded-lg border border-gray-200 bg-white py-2 px-2.5 text-sm text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
+              className="w-full rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-base text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
             />
           </div>
         </div>
         {feeMax > 0 && (
-          <p className="mt-2 text-xs text-gray-400">Up to {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeMax).replace(/\.00$/, '')} max</p>
+          <p className="mt-2.5 text-sm text-gray-500">Up to {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeMax).replace(/\.00$/, '')} max</p>
         )}
       </Section>
 
@@ -490,7 +490,7 @@ export function FilterPanel({
                         : [...filters.startYears, year],
                     })
                   }
-                  className={`rounded-lg border px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+                  className={`rounded-lg border px-3.5 py-2 text-[15px] font-semibold transition-colors ${
                     active
                       ? 'border-[#C41E3A] bg-[#C41E3A] text-white shadow-sm'
                       : 'border-gray-200 bg-white text-gray-600 hover:border-[#C41E3A]/30 hover:text-[#C41E3A]'
@@ -502,12 +502,12 @@ export function FilterPanel({
             })}
           </div>
         ) : (
-          <p className="px-1 py-2 text-sm text-gray-400">No intake years available</p>
+          <p className="px-2 py-3 text-base text-gray-500">No intake years available</p>
         )}
       </Section>
 
       <div className="space-y-0 border-t border-gray-100 pt-1">
-        <p className="px-1 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-widest text-gray-400">Additional Options</p>
+        <p className="px-2 pb-1.5 pt-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-gray-500">Additional Options</p>
         <ToggleRow
           icon={<Zap size={15} />}
           label="Express Offer"
@@ -570,11 +570,12 @@ export function CourseFilters({
         }`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-gray-900">Filters</h3>
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
+          <div className="flex items-center gap-2.5">
+            <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]" aria-hidden="true" />
+            <h3 className="text-lg font-bold tracking-tight text-gray-900">Filters</h3>
             {activeCount > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-1.5 text-[11px] font-bold text-white">
+              <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-2 text-[13px] font-bold text-white">
                 {activeCount}
               </span>
             )}
@@ -582,31 +583,31 @@ export function CourseFilters({
           <button
             onClick={onClose}
             aria-label="Close filters"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="min-h-0 flex-1 overflow-y-auto px-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5">
           <FilterPanel filters={filters} onChange={onChange} options={options} />
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-2 border-t border-gray-100 px-4 py-3">
+        <div className="flex shrink-0 items-center gap-2.5 border-t border-gray-100 px-5 py-4">
           {activeCount > 0 && (
             <button
               onClick={onClear}
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2.5 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-200 px-4 py-3 text-base font-semibold text-gray-600 transition-colors hover:bg-gray-50"
             >
-              <RotateCcw size={15} />
+              <RotateCcw size={16} />
               Reset
             </button>
           )}
           <button
             onClick={onClose}
-            className="flex-1 rounded-lg bg-gradient-to-r from-[#EEF2FF] via-[#F4E8FF] to-[#FFE4F0] py-2.5 text-sm font-bold text-[#C41E3A] transition-opacity hover:opacity-90"
+            className="flex-1 rounded-lg bg-[#C41E3A] py-3 text-base font-bold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830]"
           >
             Show {resultsCount} results
           </button>

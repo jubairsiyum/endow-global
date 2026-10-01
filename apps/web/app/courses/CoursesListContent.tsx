@@ -324,14 +324,18 @@ export default function CoursesListContent({ initialData, initialFilters, initia
           <div className="pb-14 pt-16 lg:pb-20 lg:pt-24">
             <FadeUp>
               <div className="text-center">
-                <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/15 bg-[#C41E3A]/[0.04] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A]">
-                  <BookOpen size={13} />
+                <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#C41E3A]/20 bg-white/70 px-4 py-2 text-sm font-semibold uppercase tracking-[0.16em] text-[#C41E3A] shadow-[0_1px_2px_rgba(17,24,39,0.04)]">
+                  <BookOpen size={14} />
                   Course Catalog
                 </span>
-                <h1 className="text-3xl font-extrabold tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
+                <h1 className="text-[32px] font-extrabold leading-[1.12] tracking-tight text-gray-950 sm:text-[38px] lg:text-[50px]">
                   Find Your <span className="text-[#C41E3A]">Perfect Course</span>
                 </h1>
-                <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-gray-500 sm:text-lg">
+                <span
+                  className="mx-auto mt-6 block h-[3px] w-20 rounded-full bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A]"
+                  aria-hidden="true"
+                />
+                <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-gray-600 sm:text-xl">
                   Browse thousands of programs from partner universities worldwide
                 </p>
               </div>
@@ -340,8 +344,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
             {/* Search Bar */}
             <FadeUp>
               <div className="mx-auto mt-8 max-w-3xl">
-                <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-sm transition-all focus-within:border-[#C41E3A]/40 focus-within:shadow-[0_2px_16px_rgba(196,30,58,0.08)] focus-within:ring-2 focus-within:ring-[#C41E3A]/10 sm:px-5 sm:py-2.5">
-                  <Search size={18} className="shrink-0 text-gray-400" aria-hidden="true" />
+                <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-5 py-3 shadow-[0_2px_10px_rgba(17,24,39,0.05)] transition-all focus-within:border-[#C41E3A]/40 focus-within:shadow-[0_4px_22px_rgba(196,30,58,0.12)] focus-within:ring-2 focus-within:ring-[#C41E3A]/10 sm:px-6 sm:py-3.5">
+                  <Search size={20} className="shrink-0 text-gray-400" aria-hidden="true" />
                   <input
                     type="search"
                     aria-label="Search courses, universities, or subjects"
@@ -354,7 +358,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                         ;(e.target as HTMLInputElement).blur()
                       }
                     }}
-                    className="w-full border-0 bg-transparent p-0 text-sm text-gray-900 outline-none placeholder:text-gray-400 sm:text-[15px]"
+                    className="w-full border-0 bg-transparent p-0 text-base text-gray-900 outline-none placeholder:text-gray-500 sm:text-[17px]"
                   />
                   {search && (
                     <button
@@ -368,7 +372,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                   )}
                   <Button
                     onClick={() => setDebouncedSearch(search)}
-                    className="hidden shrink-0 rounded-full bg-[#C41E3A] px-6 py-2 text-[13px] font-semibold text-white hover:bg-[#A01830] sm:inline-flex"
+                    className="hidden shrink-0 rounded-full bg-[#C41E3A] px-7 py-2.5 text-[15px] font-semibold text-white shadow-[0_2px_10px_rgba(196,30,58,0.25)] transition-colors hover:bg-[#A01830] sm:inline-flex"
                     aria-label="Search courses"
                   >
                     Search
@@ -377,8 +381,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
 
                 {/* Popular searches — act as subject filters */}
                 {popularSearches && popularSearches.length > 0 && (
-                  <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                    <span className="text-sm font-medium text-gray-400">Popular:</span>
+                  <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                    <span className="text-base font-medium text-gray-500">Popular:</span>
                     {popularSearches.map((term) => {
                       const isActive = filters.subjects.includes(term)
                       return (
@@ -389,9 +393,9 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                             const nextSubjects = isActive ? filters.subjects.filter((s) => s !== term) : [...filters.subjects, term]
                             updateFilters({ ...filters, subjects: nextSubjects })
                           }}
-                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                             isActive
-                              ? 'border-[#C41E3A] bg-[#C41E3A] text-white shadow-sm'
+                              ? 'border-[#C41E3A] bg-[#C41E3A] text-white shadow-[0_2px_10px_rgba(196,30,58,0.25)]'
                               : 'border-gray-200 bg-white text-gray-600 hover:border-[#C41E3A]/30 hover:bg-rose-50 hover:text-[#C41E3A]'
                           }`}
                         >
@@ -406,18 +410,27 @@ export default function CoursesListContent({ initialData, initialFilters, initia
 
             {/* Trust stats */}
             <FadeUp>
-              <div className="mx-auto mt-12 flex max-w-3xl items-stretch divide-x divide-gray-100 rounded-2xl border border-gray-200 bg-white/80 px-2 py-5 shadow-sm backdrop-blur sm:px-4">
-                {[
-                  { value: `${displayData?.total ?? initialData.total}`, label: 'Courses' },
-                  { value: `${filterOptions?.institutions.length ?? 0}`, label: 'Universities' },
-                  { value: `${filterOptions?.countries.length ?? 0}`, label: 'Countries' },
-                  { value: '98%', label: 'Visa Success' },
-                ].map((s, i) => (
-                  <div key={i} className="flex-1 px-3 text-center">
-                    <p className="text-2xl font-extrabold text-gray-900 sm:text-3xl">{s.value}</p>
-                    <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-gray-400 sm:text-xs">{s.label}</p>
-                  </div>
-                ))}
+              <div className="mx-auto mt-12 max-w-3xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_16px_44px_-20px_rgba(17,24,39,0.28)]">
+                <div className="h-[3px] w-full bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A]" aria-hidden="true" />
+                <div className="flex items-stretch divide-x divide-gray-100 px-2 py-6 sm:px-4">
+                  {[
+                    { value: `${displayData?.total ?? initialData.total}`, label: 'Courses' },
+                    { value: `${filterOptions?.institutions.length ?? 0}`, label: 'Universities' },
+                    { value: `${filterOptions?.countries.length ?? 0}`, label: 'Countries' },
+                    { value: '98%', label: 'Visa Success' },
+                  ].map((s, i) => (
+                    <div key={i} className="flex-1 px-3 text-center">
+                      <p
+                        className={`text-[26px] font-extrabold leading-none tracking-tight sm:text-[32px] ${
+                          i === 3 ? 'text-[#C41E3A]' : 'text-gray-900'
+                        }`}
+                      >
+                        {s.value}
+                      </p>
+                      <p className="mt-2.5 text-[13px] font-medium uppercase tracking-wide text-gray-500 sm:text-sm">{s.label}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </FadeUp>
           </div>
@@ -431,13 +444,16 @@ export default function CoursesListContent({ initialData, initialFilters, initia
             <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-8">
               {/* Filters sidebar (desktop) */}
               <aside className="sticky top-24 hidden lg:block">
-                <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                  <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-4 py-3">
-                    <h3 className="text-base font-bold text-gray-900">Filters</h3>
+                <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_12px_36px_-18px_rgba(17,24,39,0.22)]">
+                  <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
+                    <h3 className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-gray-900">
+                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]" aria-hidden="true" />
+                      Filters
+                    </h3>
                     {activeFilterCount > 0 && (
                       <button
                         onClick={clearFilters}
-                        className="text-sm font-medium text-[#C41E3A] transition-colors hover:underline"
+                        className="text-base font-medium text-[#C41E3A] transition-colors hover:underline"
                       >
                         Reset all
                       </button>
@@ -466,18 +482,23 @@ export default function CoursesListContent({ initialData, initialFilters, initia
               {/* Results */}
               <div className="min-w-0">
                 {/* Results toolbar */}
-                <div className="mb-5">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <h2 className="text-lg font-bold text-gray-900 sm:text-xl" aria-live="polite">
-                        {displayData
-                          ? `${displayData.total} ${displayData.total === 1 ? 'course' : 'courses'} found`
-                          : 'Courses'}
-                        {isFetching && !isLoading && <span className="ml-2 text-sm font-normal text-[#C41E3A]">Updating…</span>}
+                <div className="mb-6">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between gap-3 border-b border-gray-200 pb-4">
+                      <h2 className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-gray-900 sm:text-[22px]" aria-live="polite">
+                        <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]" aria-hidden="true" />
+                        <span>
+                          {displayData
+                            ? `${displayData.total} ${displayData.total === 1 ? 'course' : 'courses'} found`
+                            : 'Courses'}
+                          {isFetching && !isLoading && (
+                            <span className="ml-2 text-base font-normal text-[#C41E3A]">Updating…</span>
+                          )}
+                        </span>
                       </h2>
                       {/* Desktop sort */}
                       <div className="hidden items-center gap-2 lg:flex">
-                        <label htmlFor="sort-desktop" className="text-sm font-medium text-gray-500">
+                        <label htmlFor="sort-desktop" className="text-base font-medium text-gray-500">
                           Sort:
                         </label>
                         <div className="relative">
@@ -485,7 +506,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                             id="sort-desktop"
                             value={sort}
                             onChange={(e) => handleSortChange(e.target.value as SortValue)}
-                            className="appearance-none rounded-xl border border-gray-200 bg-white py-2 pl-3 pr-8 text-sm font-medium text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
+                            className="appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-9 text-base font-medium text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
                           >
                             {SORT_OPTIONS.map((opt) => (
                               <option key={opt.value} value={opt.value}>
@@ -493,7 +514,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                               </option>
                             ))}
                           </select>
-                          <ChevronDown size={14} className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                         </div>
                       </div>
                     </div>
@@ -503,12 +524,12 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                       <button
                         onClick={() => setFiltersOpen(true)}
                         aria-label={`Open filters${activeFilterCount ? `, ${activeFilterCount} active` : ''}`}
-                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:border-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1"
+                        className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-base font-semibold text-gray-700 shadow-sm transition-colors hover:border-gray-300 hover:text-[#C41E3A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1"
                       >
-                        <SlidersHorizontal size={16} aria-hidden="true" />
+                        <SlidersHorizontal size={18} aria-hidden="true" />
                         Filters
                         {activeFilterCount > 0 && (
-                          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C41E3A] px-1.5 text-[11px] font-bold text-white">
+                          <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-[#C41E3A] px-1.5 text-sm font-bold text-white">
                             {activeFilterCount}
                           </span>
                         )}
@@ -521,7 +542,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                           id="sort-mobile"
                           value={sort}
                           onChange={(e) => handleSortChange(e.target.value as SortValue)}
-                          className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-3 pr-8 text-sm font-medium text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
+                          className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-4 pr-9 text-base font-medium text-gray-700 outline-none transition-colors hover:border-gray-300 focus:border-[#C41E3A] focus:ring-2 focus:ring-[#C41E3A]/10"
                         >
                           {SORT_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -529,7 +550,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                             </option>
                           ))}
                         </select>
-                        <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                        <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
                       </div>
                     </div>
 
@@ -540,15 +561,15 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                             key={chip.key}
                             onClick={chip.remove}
                             aria-label={`Remove filter ${chip.label}`}
-                            className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 transition-colors hover:border-[#C41E3A]/40 hover:text-[#C41E3A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1"
+                            className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-[#C41E3A]/40 hover:text-[#C41E3A] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1"
                           >
                             {chip.label}
-                            <X size={12} className="text-gray-400" aria-hidden="true" />
+                            <X size={14} className="text-gray-400" aria-hidden="true" />
                           </button>
                         ))}
                         <button
                           onClick={clearFilters}
-                          className="text-xs font-semibold text-[#C41E3A] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1 rounded"
+                          className="text-sm font-semibold text-[#C41E3A] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1 rounded"
                         >
                           Clear all
                         </button>
@@ -560,88 +581,91 @@ export default function CoursesListContent({ initialData, initialFilters, initia
             {/* Results Grid */}
             <div ref={resultsRef} className="scroll-mt-24">
               {isError ? (
-                <div className="mx-auto max-w-xl rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-600">
-                    <X size={24} aria-hidden="true" />
+                <div className="mx-auto max-w-xl rounded-2xl border border-red-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+                    <X size={26} aria-hidden="true" />
                   </div>
-                  <h3 className="mt-4 text-lg font-bold text-gray-900">Unable to load courses</h3>
-                  <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-gray-500">
+                  <h3 className="mt-5 text-[22px] font-bold tracking-tight text-gray-900">Unable to load courses</h3>
+                  <p className="mx-auto mt-2.5 max-w-md text-base leading-7 text-gray-500">
                     Something went wrong while loading the course catalog. Please try again.
                   </p>
                   <button
                     onClick={() => window.location.reload()}
-                    className="mt-6 inline-flex items-center justify-center rounded-full bg-[#C41E3A] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#A01830] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
+                    className="mt-7 inline-flex items-center justify-center rounded-full bg-[#C41E3A] px-7 py-3 text-base font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
                   >
                     Try again
                   </button>
                 </div>
               ) : isLoading ? (
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
                   {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-gray-100" />
-                        <div className="flex-1 space-y-2">
-                          <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
-                          <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                    <div key={i} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                      <div className="h-[3px] w-full bg-gray-100" />
+                      <div className="p-5">
+                        <div className="flex items-start gap-3.5">
+                          <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-gray-100" />
+                          <div className="flex-1 space-y-2">
+                            <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
+                            <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                          </div>
+                          <div className="h-7 w-16 animate-pulse rounded-md bg-gray-100" />
                         </div>
-                        <div className="h-6 w-16 animate-pulse rounded-md bg-gray-100" />
-                      </div>
-                      <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-gray-100" />
-                      <div className="mt-1 h-5 w-1/2 animate-pulse rounded bg-gray-100" />
-                      <div className="mt-3 flex gap-2">
-                        <div className="h-6 w-20 animate-pulse rounded-md bg-gray-100" />
-                        <div className="h-6 w-16 animate-pulse rounded-md bg-gray-100" />
-                      </div>
-                      <div className="mt-auto border-t border-gray-100 pt-4">
-                        <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
-                        <div className="mt-2 h-6 w-32 animate-pulse rounded bg-gray-100" />
-                        <div className="mt-3 h-10 animate-pulse rounded-lg bg-gray-100" />
+                        <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-gray-100" />
+                        <div className="mt-2 h-5 w-1/2 animate-pulse rounded bg-gray-100" />
+                        <div className="mt-4 flex gap-2">
+                          <div className="h-7 w-20 animate-pulse rounded-md bg-gray-100" />
+                          <div className="h-7 w-16 animate-pulse rounded-md bg-gray-100" />
+                        </div>
+                        <div className="mt-auto border-t border-gray-100 pt-5">
+                          <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+                          <div className="mt-2.5 h-7 w-32 animate-pulse rounded bg-gray-100" />
+                          <div className="mt-4 h-11 animate-pulse rounded-lg bg-gray-100" />
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : displayData?.hits.length === 0 ? (
-                <div className="mx-auto max-w-xl rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-sm">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-rose-50 text-[#C41E3A]">
+                <div className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
+                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#C41E3A]/10 bg-rose-50 text-[#C41E3A]">
                     <GraduationCap className="h-8 w-8" />
                   </div>
-                  <h3 className="mt-4 text-xl font-bold text-gray-900">No courses match your criteria</h3>
-                  <p className="mt-2 text-sm text-gray-500">
+                  <h3 className="mt-5 text-[22px] font-bold tracking-tight text-gray-900">No courses match your criteria</h3>
+                  <p className="mx-auto mt-2.5 max-w-md text-base leading-7 text-gray-500">
                     Try adjusting your filters or explore our popular study subjects below.
                   </p>
 
-                  <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                  <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
                     {['Computer Science', 'Business', 'Engineering', 'Healthcare'].map((s) => (
                       <button
                         key={s}
                         onClick={() => { setSearch(''); updateFilters({ ...filters, subjects: [s] }) }}
-                        className="rounded-full border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
+                        className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
                       >
                         {s}
                       </button>
                     ))}
                     <button
                       onClick={() => { setSearch(''); clearFilters() }}
-                      className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-200"
+                      className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-200"
                     >
                       Clear All Filters
                     </button>
                   </div>
 
-                  <div className="mt-8 rounded-2xl border border-rose-100 bg-rose-50/50 p-5">
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#C41E3A]">Need Direct Assistance?</p>
-                    <p className="mt-1 text-sm font-medium text-gray-800">Our advisors can find & match courses directly for you in South Korea & Australia.</p>
+                  <div className="mt-9 rounded-2xl border border-[#C41E3A]/12 bg-gradient-to-br from-rose-50/70 to-white p-6">
+                    <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#C41E3A]">Need Direct Assistance?</p>
+                    <p className="mx-auto mt-2 max-w-sm text-base font-medium leading-7 text-gray-800">Our advisors can find & match courses directly for you in South Korea & Australia.</p>
                     <Link
                       href="/register"
-                      className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-5 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-[#A01830]"
+                      className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830]"
                     >
-                      Get Free Course Matching <ArrowRight size={13} />
+                      Get Free Course Matching <ArrowRight size={15} />
                     </Link>
                   </div>
                 </div>
               ) : (
-                <FadeUpStagger className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3" amount={0.08}>
+                <FadeUpStagger className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3" amount={0.08}>
                   {displayData?.hits.map((course) => {
                     const courseUrl = course.universitySlug
                       ? `/institutions/${course.universitySlug}/${(course.level || 'postgraduate').toLowerCase()}/${course.slug}`
@@ -653,89 +677,95 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                         <Link
                           href={courseUrl}
                           aria-label={`View ${course.name} at ${course.universityName}`}
-                          className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2 transition-all duration-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]"
+                          className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-[#C41E3A]/25 hover:shadow-[0_22px_48px_-18px_rgba(17,24,39,0.28)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
                         >
+                          {/* Brand accent rule */}
+                          <div
+                            className="h-[3px] w-full shrink-0 bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+                            aria-hidden="true"
+                          />
+
                           {/* Header: logo + university + location */}
-                          <div className="flex items-start gap-3.5 p-4 pb-3">
+                          <div className="flex items-start gap-3.5 p-5 pb-3">
                             {course.universityLogo ? (
                               <img
                                 src={course.universityLogo}
                                 alt=""
                                 aria-hidden="true"
-                                className="h-11 w-11 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2"
+                                className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2 shadow-[0_1px_3px_rgba(17,24,39,0.06)]"
                                 loading="lazy"
                               />
                             ) : (
-                              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400" aria-hidden="true">
-                                <GraduationCap size={18} />
+                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400" aria-hidden="true">
+                                <GraduationCap size={20} />
                               </div>
                             )}
                             <div className="min-w-0 flex-1 pt-0.5">
-                              <p className="line-clamp-2 break-words text-[15px] font-bold leading-snug tracking-tight text-gray-900">
+                              <p className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-gray-700">
                                 {course.universityName || 'University'}
                               </p>
-                              <p className="mt-1 flex items-center gap-1 text-xs leading-none text-gray-500">
-                                <MapPin size={11} className="shrink-0 text-gray-400" aria-hidden="true" />
+                              <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-5 text-gray-500">
+                                <MapPin size={13} className="shrink-0 text-gray-400" aria-hidden="true" />
                                 <span className="truncate">
                                   {course.universityCity ? `${course.universityCity}, ` : ''}
                                   {course.universityCountry || 'International'}
                                 </span>
                               </p>
-                              <span className="mt-2 inline-flex rounded-md bg-[#F8F5F0] px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#8B7355]">
+                              <span className="mt-2.5 inline-flex rounded-md border border-[#B8934A]/25 bg-[#B8934A]/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A6034]">
                                 {levelLabels[course.level] ?? course.level}
                               </span>
                             </div>
                           </div>
 
                           {/* Body */}
-                          <div className="flex flex-1 flex-col p-4 pt-0">
-                            <h3 className="min-h-[3rem] line-clamp-2 break-words text-[15px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
+                          <div className="flex flex-1 flex-col p-5 pt-0">
+                            <h3 className="min-h-[3.4rem] line-clamp-2 break-words text-[17px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
                               {course.name}
                             </h3>
 
-                            <div className="mt-2.5 flex flex-wrap gap-1.5">
+                            <div className="mt-3 flex flex-wrap gap-2">
                               {course.duration ? (
-                                <span className="inline-flex items-center gap-1 rounded-md bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-600">
-                                  <Clock size={11} aria-hidden="true" />
+                                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
+                                  <Clock size={13} aria-hidden="true" />
                                   {course.duration} {course.durationUnit?.toLowerCase() || 'year'}
                                 </span>
                               ) : null}
                               {course.language && (
-                                <span className="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-[11px] font-medium text-gray-600">
+                                <span className="inline-flex items-center rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
                                   {course.language}
                                 </span>
                               )}
                             </div>
 
-                            <div className="mt-auto pt-4">
+                            <div className="mt-auto pt-5">
                               <div className="border-t border-gray-100 pt-4">
                                 <div className="flex items-end justify-between gap-3">
                                   <div className="min-w-0">
-                                    <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400">Annual tuition</p>
+                                    <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">Annual tuition</p>
                                     {hasTuition ? (
-                                      <p className="mt-1 flex flex-wrap items-baseline gap-1.5">
-                                        <span className="text-[17px] font-bold leading-none tracking-tight text-gray-900">{tuition.display}</span>
+                                      <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
+                                        <span className="text-[19px] font-bold leading-none tracking-tight text-gray-900">{tuition.display}</span>
                                         {tuition.code && (
-                                          <span className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{tuition.code}</span>
+                                          <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-500">{tuition.code}</span>
                                         )}
                                       </p>
                                     ) : (
-                                      <p className="mt-1 text-sm font-medium text-gray-500">Contact university</p>
+                                      <p className="mt-1.5 text-base font-medium text-gray-500">Contact university</p>
                                     )}
                                   </div>
                                   {course.hasScholarship && (
-                                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-                                      <Award size={11} aria-hidden="true" />
+                                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-700">
+                                      <Award size={13} aria-hidden="true" />
                                       Scholarship
                                     </span>
                                   )}
                                 </div>
                               </div>
 
-                              <div className="mt-3">
-                                <span className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-200 bg-white py-2.5 text-[13px] font-semibold text-gray-700 transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
+                              <div className="mt-4">
+                                <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#C41E3A]/20 bg-[#C41E3A]/[0.05] py-3 text-[15px] font-semibold text-[#C41E3A] transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
                                   View Details
-                                  <ArrowRight size={14} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+                                  <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
                                 </span>
                               </div>
                             </div>
@@ -756,16 +786,17 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-11 w-11 p-0"
                       onClick={() => goToPage(page - 1)}
                       disabled={page === 1 || isFetching}
                       aria-label="Previous page"
                     >
-                      <ChevronLeft size={16} />
+                      <ChevronLeft size={18} />
                     </Button>
 
                     {getPageItems(page, displayData.totalPages).map((item, index) =>
                       item === '...' ? (
-                        <span key={`ellipsis-${index}`} className="px-1.5 text-sm font-medium text-gray-400">
+                        <span key={`ellipsis-${index}`} className="px-2 text-base font-medium text-gray-500">
                           …
                         </span>
                       ) : (
@@ -773,6 +804,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                           key={item}
                           variant={item === page ? 'default' : 'outline'}
                           size="sm"
+                          className="h-11 min-w-11 px-4 text-base"
                           onClick={() => goToPage(item)}
                           disabled={isFetching}
                           aria-current={item === page ? 'page' : undefined}
@@ -785,15 +817,16 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                     <Button
                       variant="outline"
                       size="sm"
+                      className="h-11 w-11 p-0"
                       onClick={() => goToPage(page + 1)}
                       disabled={page === displayData.totalPages || isFetching}
                       aria-label="Next page"
                     >
-                      <ChevronRight size={16} />
+                      <ChevronRight size={18} />
                     </Button>
                   </div>
 
-                  <p className="text-sm text-gray-500">
+                  <p className="text-base text-gray-500">
                     Page {page} of {displayData.totalPages}
                     {isFetching && <span className="ml-2 text-[#C41E3A]">Loading…</span>}
                   </p>
