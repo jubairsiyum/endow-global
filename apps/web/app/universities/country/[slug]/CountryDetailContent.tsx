@@ -1,24 +1,16 @@
 'use client'
 
-import Link from 'next/link'
+import { AnimatePresence, motion } from 'framer-motion'
+import { ArrowRight, Briefcase, Check, Clock, MapPin, Plus, Star } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useState, type ReactNode } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  ArrowRight,
-  MapPin,
-  Check,
-  Plus,
-  Star,
-  Clock,
-  Briefcase,
-} from 'lucide-react'
 
-import { Navbar } from '@/components/layout/Navbar'
+import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import { Footer } from '@/components/layout/Footer'
-import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
-import type { University, Scholarship, StudentStory } from '@/lib/universities/data'
+import { Navbar } from '@/components/layout/Navbar'
 import type { CountryMetadata } from '@/lib/universities/country-metadata'
+import type { Scholarship, StudentStory, University } from '@/lib/universities/data'
 
 type CountryDetailContentProps = {
   country: {
@@ -86,7 +78,10 @@ function FaqItem({ question, answer, index }: { question: string; answer: string
             isOpen ? 'border-[#C41E3A] text-[#C41E3A]' : 'border-black/[0.15] text-black/50'
           }`}
         >
-          <Plus size={16} className={`transition-transform duration-200 ${isOpen ? 'rotate-45' : ''}`} />
+          <Plus
+            size={16}
+            className={`transition-transform duration-200 ${isOpen ? 'rotate-45' : ''}`}
+          />
         </span>
       </button>
       <AnimatePresence initial={false}>
@@ -140,7 +135,7 @@ export default function CountryDetailContent({
   const faqs = meta?.faqs ?? []
 
   return (
-    <div className="w-full flex flex-col overflow-x-hidden">
+    <div className="flex w-full flex-col overflow-x-hidden">
       {/* ───────────────────────── HERO ───────────────────────── */}
       <section className="relative flex min-h-[92vh] flex-col overflow-hidden bg-[#0B0C0F]">
         <div className="absolute inset-0">
@@ -165,7 +160,7 @@ export default function CountryDetailContent({
             <Navbar />
           </div>
 
-          <div className="flex flex-col justify-center pb-10 pt-24 sm:pt-28 lg:pt-36 lg:pb-16">
+          <div className="flex flex-col justify-center pb-10 pt-24 sm:pt-28 lg:pb-16 lg:pt-36">
             <FadeUp>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
                 {meta?.flag && (
@@ -180,9 +175,7 @@ export default function CountryDetailContent({
                 </span>
               </div>
 
-              <h1
-                className="mt-8 max-w-[900px] font-display text-[42px] font-semibold leading-[0.98] tracking-[-0.02em] text-white sm:text-[64px] lg:text-[78px]"
-              >
+              <h1 className="mt-8 max-w-[900px] font-display text-[42px] font-semibold leading-[0.98] tracking-[-0.02em] text-white sm:text-[64px] lg:text-[78px]">
                 Study in
                 <br />
                 <span style={{ color: RED_LIGHT }}>{country.name}</span>
@@ -198,7 +191,10 @@ export default function CountryDetailContent({
                   className="group inline-flex items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-[15px] font-semibold text-[#0B0C0F] transition-all hover:-translate-y-0.5 hover:bg-gray-100"
                 >
                   Start Your Application
-                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight
+                    size={17}
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
                 </Link>
                 <Link
                   href="/universities"
@@ -213,12 +209,9 @@ export default function CountryDetailContent({
               <div className="mt-16 border-t border-white/[0.15] lg:mt-24">
                 <div className="grid grid-cols-2 md:grid-cols-4">
                   {stats.map((stat, i) => (
-                    <div
-                      key={stat.label}
-                      className="relative py-7 pr-4 sm:py-8 sm:pr-6"
-                    >
+                    <div key={stat.label} className="relative py-7 pr-4 sm:py-8 sm:pr-6">
                       {i !== 0 && (
-                        <span className="absolute bottom-7 left-0 top-7 hidden w-px bg-white/[0.12] md:block sm:bottom-8 sm:top-8" />
+                        <span className="absolute bottom-7 left-0 top-7 hidden w-px bg-white/[0.12] sm:bottom-8 sm:top-8 md:block" />
                       )}
                       <div className="font-display text-3xl font-semibold text-white sm:text-4xl">
                         {stat.value}
@@ -260,10 +253,15 @@ export default function CountryDetailContent({
                     {reasons.map((reason, i) => (
                       <FadeUpItem key={i}>
                         <div className="grid grid-cols-[56px_1fr] gap-6 border-b border-black/10 py-6 sm:grid-cols-[72px_1fr] sm:py-7">
-                          <span className="font-mono text-xl font-medium leading-none pt-0.5 sm:text-2xl" style={{ color: RED }}>
+                          <span
+                            className="pt-0.5 font-mono text-xl font-medium leading-none sm:text-2xl"
+                            style={{ color: RED }}
+                          >
                             {String(i + 1).padStart(2, '0')}
                           </span>
-                          <p className="text-base leading-relaxed text-[#3f4752] sm:text-[17px]">{reason}</p>
+                          <p className="text-base leading-relaxed text-[#3f4752] sm:text-[17px]">
+                            {reason}
+                          </p>
                         </div>
                       </FadeUpItem>
                     ))}
@@ -349,7 +347,10 @@ export default function CountryDetailContent({
                     className="group inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-[#0E1116] transition-colors hover:text-[#C41E3A]"
                   >
                     View all universities
-                    <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+                    <ArrowRight
+                      size={16}
+                      className="transition-transform group-hover:translate-x-0.5"
+                    />
                   </Link>
                 </div>
               </FadeUp>
@@ -379,16 +380,27 @@ export default function CountryDetailContent({
                             )}
                           </div>
                           <div>
-                            <h3 className="font-display text-2xl font-semibold leading-tight sm:text-3xl">
-                              {featured.name}
-                            </h3>
+                            {(featured as UniversityWithSlug).slug ? (
+                              <Link
+                                href={`/universities/${country.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${(featured as UniversityWithSlug).slug}`}
+                                className="font-display text-2xl font-semibold leading-tight sm:text-3xl"
+                              >
+                                {featured.name}
+                              </Link>
+                            ) : (
+                              <h3 className="font-display text-2xl font-semibold leading-tight sm:text-3xl">
+                                {featured.name}
+                              </h3>
+                            )}
                             <p className="mt-1.5 flex items-center gap-1.5 text-sm text-white/60">
                               <MapPin size={14} />
                               {featured.city}, {country.name}
                             </p>
                           </div>
                         </div>
-                        <p className="mt-6 max-w-lg leading-relaxed text-white/70">{featured.description}</p>
+                        <p className="mt-6 max-w-lg leading-relaxed text-white/70">
+                          {featured.description}
+                        </p>
                         <div className="mt-7 flex flex-wrap items-center gap-4">
                           {(featured as UniversityWithSlug).slug ? (
                             <Link
@@ -396,7 +408,10 @@ export default function CountryDetailContent({
                               className="group inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0C1220] transition-all hover:-translate-y-0.5 hover:bg-gray-100"
                             >
                               View University
-                              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
+                              <ArrowRight
+                                size={15}
+                                className="transition-transform group-hover:translate-x-0.5"
+                              />
                             </Link>
                           ) : (
                             <span className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-[#0C1220]">
@@ -406,7 +421,11 @@ export default function CountryDetailContent({
                           )}
                           {tuitionLabel(featured) && (
                             <span className="text-sm text-white/60">
-                              From <span className="font-semibold text-white">{tuitionLabel(featured)}</span> / year
+                              From{' '}
+                              <span className="font-semibold text-white">
+                                {tuitionLabel(featured)}
+                              </span>{' '}
+                              / year
                             </span>
                           )}
                         </div>
@@ -414,12 +433,23 @@ export default function CountryDetailContent({
 
                       <div className="grid grid-cols-1 overflow-hidden rounded-xl border border-white/10">
                         {[
-                          { label: 'Scholarship', value: featured.scholarship > 0 ? `Up to ${featured.scholarship}%` : 'Merit-based' },
+                          {
+                            label: 'Scholarship',
+                            value:
+                              featured.scholarship > 0
+                                ? `Up to ${featured.scholarship}%`
+                                : 'Merit-based',
+                          },
                           { label: 'QS Ranking', value: String(featured.ranking) },
                           { label: 'Visa success', value: `${featured.visaSuccessRate}%` },
                         ].map((fact, i) => (
-                          <div key={fact.label} className={`px-6 py-5 ${i !== 0 ? 'border-t border-white/10' : ''}`}>
-                            <div className="font-display text-xl font-semibold text-white">{fact.value}</div>
+                          <div
+                            key={fact.label}
+                            className={`px-6 py-5 ${i !== 0 ? 'border-t border-white/10' : ''}`}
+                          >
+                            <div className="font-display text-xl font-semibold text-white">
+                              {fact.value}
+                            </div>
                             <div className="mt-1 font-mono text-[11px] uppercase tracking-[0.16em] text-white/[0.45]">
                               {fact.label}
                             </div>
@@ -440,7 +470,11 @@ export default function CountryDetailContent({
                         <div className="flex items-start justify-between">
                           <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-black/[0.06] bg-[#FAFAFA] p-2.5">
                             {uni.logo ? (
-                              <img src={uni.logo} alt={uni.name} className="max-h-full max-w-full object-contain" />
+                              <img
+                                src={uni.logo}
+                                alt={uni.name}
+                                className="max-h-full max-w-full object-contain"
+                              />
                             ) : (
                               <span className="font-display text-xl font-semibold text-black/40">
                                 {uni.name.charAt(0)}
@@ -449,10 +483,18 @@ export default function CountryDetailContent({
                           </div>
                           <span className="font-mono text-xs text-[#9aa0a8]">QS {uni.ranking}</span>
                         </div>
-
-                        <h3 className="mt-5 font-display text-xl font-semibold text-[#0E1116] transition-colors group-hover:text-[#C41E3A]">
-                          {uni.name}
-                        </h3>
+                        {(uni as UniversityWithSlug).slug ? (
+                          <Link
+                            href={`/universities/${country.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${(uni as UniversityWithSlug).slug}`}
+                            className="mt-5 font-display text-xl font-semibold text-[#0E1116] transition-colors group-hover:text-[#C41E3A]"
+                          >
+                            {uni.name}
+                          </Link>
+                        ) : (
+                          <h3 className="mt-5 font-display text-xl font-semibold text-[#0E1116] transition-colors group-hover:text-[#C41E3A]">
+                            {uni.name}
+                          </h3>
+                        )}
                         <p className="mt-1.5 flex items-center gap-1.5 text-sm text-[#6b7280]">
                           <MapPin size={13} />
                           {uni.city}, {country.name}
@@ -469,7 +511,10 @@ export default function CountryDetailContent({
                             </span>
                           </span>
                           <span className="text-sm text-[#6b7280]">
-                            Visa <span className="font-semibold text-[#0E1116]">{uni.visaSuccessRate}%</span>
+                            Visa{' '}
+                            <span className="font-semibold text-[#0E1116]">
+                              {uni.visaSuccessRate}%
+                            </span>
                           </span>
                         </div>
 
@@ -511,7 +556,13 @@ export default function CountryDetailContent({
         {/* ────────────────────── VISA INFO ────────────────────── */}
         {visaInfo && (
           <section className="relative overflow-hidden bg-[#0C1220] py-20 text-white lg:py-28">
-            <div className="pointer-events-none absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '26px 26px' }} />
+            <div
+              className="pointer-events-none absolute inset-0 opacity-[0.04]"
+              style={{
+                backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
+                backgroundSize: '26px 26px',
+              }}
+            />
             <div className="relative mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
               <div className="grid gap-12 lg:grid-cols-2 lg:gap-20">
                 <div>
@@ -549,7 +600,10 @@ export default function CountryDetailContent({
                       style={{ background: RED }}
                     >
                       Get Visa Guidance
-                      <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight
+                        size={17}
+                        className="transition-transform group-hover:translate-x-0.5"
+                      />
                     </Link>
                   </FadeUp>
                 </div>
@@ -600,7 +654,9 @@ export default function CountryDetailContent({
                         <div className="font-display text-5xl font-semibold tracking-tight text-[#0E1116]">
                           ${country.costOfLiving.toLocaleString()}
                         </div>
-                        <div className="mt-2 text-sm text-[#6b7280]">average monthly living cost</div>
+                        <div className="mt-2 text-sm text-[#6b7280]">
+                          average monthly living cost
+                        </div>
                       </div>
                     )}
                   </FadeUp>
@@ -661,8 +717,13 @@ export default function CountryDetailContent({
                     {lifePoints.map((point) => (
                       <FadeUpItem key={point}>
                         <div className="flex items-start gap-3">
-                          <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: RED }} />
-                          <span className="text-[15px] leading-relaxed text-[#3f4752]">{point}</span>
+                          <span
+                            className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: RED }}
+                          />
+                          <span className="text-[15px] leading-relaxed text-[#3f4752]">
+                            {point}
+                          </span>
                         </div>
                       </FadeUpItem>
                     ))}
@@ -707,7 +768,9 @@ export default function CountryDetailContent({
                           <div className="font-semibold text-[#0E1116]">{stories[0].name}</div>
                           <div className="text-sm text-[#6b7280]">
                             {stories[0].university}
-                            {stories[0].scholarship > 0 ? ` · ${stories[0].scholarship}% scholarship` : ''}
+                            {stories[0].scholarship > 0
+                              ? ` · ${stories[0].scholarship}% scholarship`
+                              : ''}
                           </div>
                         </div>
                       </figcaption>
@@ -736,7 +799,9 @@ export default function CountryDetailContent({
                               className="h-11 w-11 rounded-full object-cover"
                             />
                             <div>
-                              <div className="text-sm font-semibold text-[#0E1116]">{story.name}</div>
+                              <div className="text-sm font-semibold text-[#0E1116]">
+                                {story.name}
+                              </div>
                               <div className="text-sm text-[#6b7280]">{story.university}</div>
                             </div>
                           </figcaption>
@@ -762,7 +827,12 @@ export default function CountryDetailContent({
               </FadeUp>
               <div className="mt-10 border-t border-black/10">
                 {faqs.map((faq, i) => (
-                  <FaqItem key={faq.question} question={faq.question} answer={faq.answer} index={i} />
+                  <FaqItem
+                    key={faq.question}
+                    question={faq.question}
+                    answer={faq.answer}
+                    index={i}
+                  />
                 ))}
               </div>
             </div>
@@ -804,7 +874,10 @@ export default function CountryDetailContent({
                   className="group inline-flex w-full items-center justify-center gap-2 rounded-full bg-white px-8 py-4 text-[15px] font-semibold text-[#08090C] transition-all hover:-translate-y-0.5 hover:bg-gray-100 sm:w-auto"
                 >
                   Start Your Application
-                  <ArrowRight size={17} className="transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight
+                    size={17}
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
                 </Link>
                 <Link
                   href="/about"

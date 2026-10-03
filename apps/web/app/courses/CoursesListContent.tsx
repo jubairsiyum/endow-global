@@ -1,19 +1,33 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ArrowRight,
+  Award,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  GraduationCap,
+  Heart,
+  MapPin,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react'
 import Link from 'next/link'
-import { Search, MapPin, Clock, GraduationCap, Award, ChevronLeft, ChevronRight, ChevronDown, ArrowRight, SlidersHorizontal, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FaBookOpen } from 'react-icons/fa6'
 
-import { Navbar } from '@/components/layout/Navbar'
+import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import { Footer } from '@/components/layout/Footer'
+import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/button'
+import { useSession } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc-client'
-import { formatCurrency } from '@/lib/utils'
-import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
+import { useRouter } from 'next/navigation'
 import { CourseFilters, FilterPanel } from './CourseFilters'
-import { EMPTY_FILTERS, countActiveFilters, serializeFilters } from './filter-utils'
 import type { CourseFilters as Filters } from './filter-utils'
+import { EMPTY_FILTERS, countActiveFilters, serializeFilters } from './filter-utils'
 
 const levelLabels: Record<string, string> = {
   UNDERGRADUATE: 'Undergraduate',
@@ -24,11 +38,16 @@ const levelLabels: Record<string, string> = {
   FOUNDATION: 'Foundation',
 }
 
-function formatTuitionDisplay(amount: number | null | undefined, currency: string | null | undefined): { display: string | null; code: string | null } {
+function formatTuitionDisplay(
+  amount: number | null | undefined,
+  currency: string | null | undefined
+): { display: string | null; code: string | null } {
   if (amount == null || amount === 0) return { display: null, code: null }
   const code = (currency || 'USD').toUpperCase()
   try {
-    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: code }).format(amount)
+    const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: code }).format(
+      amount
+    )
     return { display: formatted.replace(/\.00$/, ''), code }
   } catch {
     return { display: `${code} ${amount.toLocaleString()}`, code }
@@ -94,7 +113,12 @@ type CoursesListContentProps = {
   initialSort?: SortValue
 }
 
-export default function CoursesListContent({ initialData, initialFilters, initialQuery, initialSort }: CoursesListContentProps) {
+export default function CoursesListContent({
+  initialData,
+  initialFilters,
+  initialQuery,
+  initialSort,
+}: CoursesListContentProps) {
   const [page, setPage] = useState(initialData.page)
 
   const [search, setSearch] = useState(initialQuery ?? '')
@@ -103,6 +127,9 @@ export default function CoursesListContent({ initialData, initialFilters, initia
   const [sort, setSort] = useState<SortValue>(initialSort ?? 'recommended')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [filtersTouched, setFiltersTouched] = useState(false)
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [favorites, setFavorites] = useState<Record<string, boolean>>({})
 
   const resultsRef = useRef<HTMLDivElement>(null)
   const prevPageRef = useRef(page)
@@ -132,7 +159,11 @@ export default function CoursesListContent({ initialData, initialFilters, initia
       const params = serializeFilters(filtersRef.current)
       if (sortRef.current !== 'recommended') params.set('sort', sortRef.current)
       if (debouncedSearch) params.set('query', debouncedSearch)
-      window.history.replaceState(window.history.state, '', `/courses${params.toString() ? `?${params.toString()}` : ''}`)
+      window.history.replaceState(
+        window.history.state,
+        '',
+        `/courses${params.toString() ? `?${params.toString()}` : ''}`
+      )
     }
   }, [debouncedSearch])
 
@@ -170,7 +201,12 @@ export default function CoursesListContent({ initialData, initialFilters, initia
   const { data: popularSearches } = trpc.course.getPopularSearches.useQuery(undefined)
 
   const syncUrl = useCallback(
-    (nextPage: number, nextFilters: Filters, nextSort: SortValue, nextSearch: string = debouncedSearch) => {
+    (
+      nextPage: number,
+      nextFilters: Filters,
+      nextSort: SortValue,
+      nextSearch: string = debouncedSearch
+    ) => {
       const params = serializeFilters(nextFilters)
       if (nextSort !== 'recommended') params.set('sort', nextSort)
       if (nextSearch) params.set('query', nextSearch)
@@ -249,7 +285,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
       chips.push({
         key: `country-${c}`,
         label: c,
-        remove: () => updateFilters({ ...filters, countries: filters.countries.filter((x) => x !== c) }),
+        remove: () =>
+          updateFilters({ ...filters, countries: filters.countries.filter((x) => x !== c) }),
       })
     )
     filters.cities.forEach((c) =>
@@ -270,7 +307,8 @@ export default function CoursesListContent({ initialData, initialFilters, initia
       chips.push({
         key: `subject-${s}`,
         label: s,
-        remove: () => updateFilters({ ...filters, subjects: filters.subjects.filter((x) => x !== s) }),
+        remove: () =>
+          updateFilters({ ...filters, subjects: filters.subjects.filter((x) => x !== s) }),
       })
     )
     filters.institutionIds.forEach((id) => {
@@ -279,7 +317,10 @@ export default function CoursesListContent({ initialData, initialFilters, initia
         key: `inst-${id}`,
         label: inst?.name ?? id,
         remove: () =>
-          updateFilters({ ...filters, institutionIds: filters.institutionIds.filter((x) => x !== id) }),
+          updateFilters({
+            ...filters,
+            institutionIds: filters.institutionIds.filter((x) => x !== id),
+          }),
       })
     })
     if (filters.expressOffer) {
@@ -307,8 +348,25 @@ export default function CoursesListContent({ initialData, initialFilters, initia
     return chips
   }, [filters, filterOptions, updateFilters])
 
+  const handleToggleFavorite = (e: React.MouseEvent, courseId: string) => {
+    e.preventDefault() // Link-e click hoye page redirect hoba theke rokhar jonno
+    e.stopPropagation()
+
+    // Jodi user login kora na thake, tahole login page-e redirect kore din
+    if (!session) {
+      router.push('/login')
+      return
+    }
+
+    // Login thakle toggle hobe (ekhane apnar tRPC mutation ba API call thakbe)
+    setFavorites((prev) => ({
+      ...prev,
+      [courseId]: !prev[courseId],
+    }))
+  }
+
   return (
-    <div className="w-full flex flex-col overflow-x-clip">
+    <div className="flex w-full flex-col overflow-x-clip">
       {/* Hero */}
       <section className="relative overflow-hidden bg-gradient-to-b from-white via-[#FDFDFF] to-[#F4F6FB]">
         <div className="pointer-events-none absolute inset-0">
@@ -318,7 +376,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
         </div>
 
         <div className="relative z-10 mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
-          <div className="pt-4 pb-6 lg:pb-8">
+          <div className="pb-6 pt-4 lg:pb-8">
             <Navbar />
           </div>
 
@@ -391,7 +449,9 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                           key={term}
                           aria-pressed={isActive}
                           onClick={() => {
-                            const nextSubjects = isActive ? filters.subjects.filter((s) => s !== term) : [...filters.subjects, term]
+                            const nextSubjects = isActive
+                              ? filters.subjects.filter((s) => s !== term)
+                              : [...filters.subjects, term]
                             updateFilters({ ...filters, subjects: nextSubjects })
                           }}
                           className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
@@ -412,7 +472,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
             {/* Trust stats */}
             <FadeUp>
               <div className="mx-auto mt-12 max-w-3xl rounded-2xl border border-gray-200/70 bg-white px-4 py-8 shadow-[0_1px_2px_rgba(17,24,39,0.04),0_16px_40px_-26px_rgba(17,24,39,0.22)] sm:px-8">
-                <div className="flex items-stretch divide-x divide-gray-100">
+                <div className="flex flex-wrap items-stretch gap-4 divide-gray-100 md:flex-nowrap md:divide-x">
                   {[
                     { value: `${displayData?.total ?? initialData.total}`, label: 'Courses' },
                     { value: `${filterOptions?.institutions.length ?? 0}`, label: 'Universities' },
@@ -421,13 +481,15 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                   ].map((s, i) => (
                     <div key={i} className="flex-1 px-3 text-center">
                       <p
-                        className={`text-[26px] font-extrabold leading-none tracking-tight tabular-nums sm:text-[32px] ${
+                        className={`text-2xl font-extrabold tabular-nums leading-none tracking-tight sm:text-3xl ${
                           i === 3 ? 'text-[#C41E3A]' : 'text-gray-900'
                         }`}
                       >
                         {s.value}
                       </p>
-                      <p className="mt-3 text-[13px] font-medium uppercase tracking-[0.12em] text-gray-500 sm:text-sm">{s.label}</p>
+                      <p className="text-md mt-3 font-medium uppercase tracking-[0.12em] text-gray-500 sm:text-sm">
+                        {s.label}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -447,7 +509,10 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                 <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_12px_36px_-18px_rgba(17,24,39,0.22)]">
                   <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
                     <h3 className="flex items-center gap-2.5 text-lg font-bold tracking-tight text-gray-900">
-                      <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]" aria-hidden="true" />
+                      <span
+                        className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]"
+                        aria-hidden="true"
+                      />
                       Filters
                     </h3>
                     {activeFilterCount > 0 && (
@@ -459,7 +524,10 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                       </button>
                     )}
                   </div>
-                  <div data-lenis-prevent className="filter-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2">
+                  <div
+                    data-lenis-prevent
+                    className="filter-scroll min-h-0 flex-1 overflow-y-auto px-4 py-2"
+                  >
                     <FilterPanel
                       filters={filters}
                       onChange={updateFilters}
@@ -485,20 +553,31 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                 <div className="mb-6">
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between gap-3 border-b border-gray-200 pb-4">
-                      <h2 className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-gray-900 sm:text-[22px]" aria-live="polite">
-                        <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]" aria-hidden="true" />
+                      <h2
+                        className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-gray-900 sm:text-[22px]"
+                        aria-live="polite"
+                      >
+                        <span
+                          className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]"
+                          aria-hidden="true"
+                        />
                         <span>
                           {displayData
                             ? `${displayData.total} ${displayData.total === 1 ? 'course' : 'courses'} found`
                             : 'Courses'}
                           {isFetching && !isLoading && (
-                            <span className="ml-2 text-base font-normal text-[#C41E3A]">Updating…</span>
+                            <span className="ml-2 text-base font-normal text-[#C41E3A]">
+                              Updating…
+                            </span>
                           )}
                         </span>
                       </h2>
                       {/* Desktop sort */}
                       <div className="hidden items-center gap-2 lg:flex">
-                        <label htmlFor="sort-desktop" className="text-base font-medium text-gray-500">
+                        <label
+                          htmlFor="sort-desktop"
+                          className="text-base font-medium text-gray-500"
+                        >
                           Sort:
                         </label>
                         <div className="relative">
@@ -514,7 +593,11 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                               </option>
                             ))}
                           </select>
-                          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                          <ChevronDown
+                            size={16}
+                            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                            aria-hidden="true"
+                          />
                         </div>
                       </div>
                     </div>
@@ -550,7 +633,11 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                             </option>
                           ))}
                         </select>
-                        <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden="true" />
+                        <ChevronDown
+                          size={16}
+                          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                          aria-hidden="true"
+                        />
                       </div>
                     </div>
 
@@ -569,7 +656,7 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                         ))}
                         <button
                           onClick={clearFilters}
-                          className="text-sm font-semibold text-[#C41E3A] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1 rounded"
+                          className="rounded text-sm font-semibold text-[#C41E3A] transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-1"
                         >
                           Clear all
                         </button>
@@ -578,254 +665,317 @@ export default function CoursesListContent({ initialData, initialFilters, initia
                   </div>
                 </div>
 
-            {/* Results Grid */}
-            <div ref={resultsRef} className="scroll-mt-24">
-              {isError ? (
-                <div className="mx-auto max-w-xl rounded-2xl border border-red-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
-                    <X size={26} aria-hidden="true" />
-                  </div>
-                  <h3 className="mt-5 text-[22px] font-bold tracking-tight text-gray-900">Unable to load courses</h3>
-                  <p className="mx-auto mt-2.5 max-w-md text-base leading-7 text-gray-500">
-                    Something went wrong while loading the course catalog. Please try again.
-                  </p>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="mt-7 inline-flex items-center justify-center rounded-full bg-[#C41E3A] px-7 py-3 text-base font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
-                  >
-                    Try again
-                  </button>
-                </div>
-              ) : isLoading ? (
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <div key={i} className="flex flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white">
-                      <div className="p-5">
-                        <div className="flex items-start gap-3.5">
-                          <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-gray-100" />
-                          <div className="flex-1 space-y-2">
-                            <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
-                            <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                {/* Results Grid */}
+                <div ref={resultsRef} className="scroll-mt-24">
+                  {isError ? (
+                    <div className="mx-auto max-w-xl rounded-2xl border border-red-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+                        <X size={26} aria-hidden="true" />
+                      </div>
+                      <h3 className="mt-5 text-[22px] font-bold tracking-tight text-gray-900">
+                        Unable to load courses
+                      </h3>
+                      <p className="mx-auto mt-2.5 max-w-md text-base leading-7 text-gray-500">
+                        Something went wrong while loading the course catalog. Please try again.
+                      </p>
+                      <button
+                        onClick={() => window.location.reload()}
+                        className="mt-7 inline-flex items-center justify-center rounded-full bg-[#C41E3A] px-7 py-3 text-base font-semibold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  ) : isLoading ? (
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                          key={i}
+                          className="flex flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white"
+                        >
+                          <div className="p-5">
+                            <div className="flex items-start gap-3.5">
+                              <div className="h-12 w-12 shrink-0 animate-pulse rounded-xl bg-gray-100" />
+                              <div className="flex-1 space-y-2">
+                                <div className="h-4 w-3/4 animate-pulse rounded bg-gray-100" />
+                                <div className="h-3 w-1/2 animate-pulse rounded bg-gray-100" />
+                              </div>
+                              <div className="h-7 w-16 animate-pulse rounded-md bg-gray-100" />
+                            </div>
+                            <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-gray-100" />
+                            <div className="mt-2 h-5 w-1/2 animate-pulse rounded bg-gray-100" />
+                            <div className="mt-4 flex gap-2">
+                              <div className="h-7 w-20 animate-pulse rounded-md bg-gray-100" />
+                              <div className="h-7 w-16 animate-pulse rounded-md bg-gray-100" />
+                            </div>
+                            <div className="mt-auto border-t border-gray-100 pt-5">
+                              <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
+                              <div className="mt-2.5 h-7 w-32 animate-pulse rounded bg-gray-100" />
+                              <div className="mt-4 h-11 animate-pulse rounded-lg bg-gray-100" />
+                            </div>
                           </div>
-                          <div className="h-7 w-16 animate-pulse rounded-md bg-gray-100" />
                         </div>
-                        <div className="mt-4 h-5 w-3/4 animate-pulse rounded bg-gray-100" />
-                        <div className="mt-2 h-5 w-1/2 animate-pulse rounded bg-gray-100" />
-                        <div className="mt-4 flex gap-2">
-                          <div className="h-7 w-20 animate-pulse rounded-md bg-gray-100" />
-                          <div className="h-7 w-16 animate-pulse rounded-md bg-gray-100" />
-                        </div>
-                        <div className="mt-auto border-t border-gray-100 pt-5">
-                          <div className="h-4 w-24 animate-pulse rounded bg-gray-100" />
-                          <div className="mt-2.5 h-7 w-32 animate-pulse rounded bg-gray-100" />
-                          <div className="mt-4 h-11 animate-pulse rounded-lg bg-gray-100" />
-                        </div>
+                      ))}
+                    </div>
+                  ) : displayData?.hits.length === 0 ? (
+                    <div className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
+                      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#C41E3A]/10 bg-rose-50 text-[#C41E3A]">
+                        <GraduationCap className="h-8 w-8" />
+                      </div>
+                      <h3 className="mt-5 text-[22px] font-bold tracking-tight text-gray-900">
+                        No courses match your criteria
+                      </h3>
+                      <p className="mx-auto mt-2.5 max-w-md text-base leading-7 text-gray-500">
+                        Try adjusting your filters or explore our popular study subjects below.
+                      </p>
+
+                      <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+                        {['Computer Science', 'Business', 'Engineering', 'Healthcare'].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => {
+                              setSearch('')
+                              updateFilters({ ...filters, subjects: [s] })
+                            }}
+                            className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                        <button
+                          onClick={() => {
+                            setSearch('')
+                            clearFilters()
+                          }}
+                          className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-200"
+                        >
+                          Clear All Filters
+                        </button>
+                      </div>
+
+                      <div className="border-[#C41E3A]/12 mt-9 rounded-2xl border bg-gradient-to-br from-rose-50/70 to-white p-6">
+                        <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#C41E3A]">
+                          Need Direct Assistance?
+                        </p>
+                        <p className="mx-auto mt-2 max-w-sm text-base font-medium leading-7 text-gray-800">
+                          Our advisors can find & match courses directly for you in South Korea &
+                          Australia.
+                        </p>
+                        <Link
+                          href="/register"
+                          className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830]"
+                        >
+                          Get Free Course Matching <ArrowRight size={15} />
+                        </Link>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : displayData?.hits.length === 0 ? (
-                <div className="mx-auto max-w-2xl rounded-3xl border border-gray-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
-                  <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-[#C41E3A]/10 bg-rose-50 text-[#C41E3A]">
-                    <GraduationCap className="h-8 w-8" />
-                  </div>
-                  <h3 className="mt-5 text-[22px] font-bold tracking-tight text-gray-900">No courses match your criteria</h3>
-                  <p className="mx-auto mt-2.5 max-w-md text-base leading-7 text-gray-500">
-                    Try adjusting your filters or explore our popular study subjects below.
-                  </p>
-
-                  <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
-                    {['Computer Science', 'Business', 'Engineering', 'Healthcare'].map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => { setSearch(''); updateFilters({ ...filters, subjects: [s] }) }}
-                        className="rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:border-[#C41E3A] hover:bg-rose-50 hover:text-[#C41E3A]"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => { setSearch(''); clearFilters() }}
-                      className="rounded-full bg-gray-100 px-4 py-2 text-sm font-semibold text-gray-600 transition-colors hover:bg-gray-200"
+                  ) : (
+                    <FadeUpStagger
+                      className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
+                      amount={0.08}
                     >
-                      Clear All Filters
-                    </button>
-                  </div>
-
-                  <div className="mt-9 rounded-2xl border border-[#C41E3A]/12 bg-gradient-to-br from-rose-50/70 to-white p-6">
-                    <p className="text-sm font-bold uppercase tracking-[0.14em] text-[#C41E3A]">Need Direct Assistance?</p>
-                    <p className="mx-auto mt-2 max-w-sm text-base font-medium leading-7 text-gray-800">Our advisors can find & match courses directly for you in South Korea & Australia.</p>
-                    <Link
-                      href="/register"
-                      className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#C41E3A] px-6 py-3 text-sm font-bold text-white shadow-[0_4px_16px_rgba(196,30,58,0.28)] transition-colors hover:bg-[#A01830]"
-                    >
-                      Get Free Course Matching <ArrowRight size={15} />
-                    </Link>
-                  </div>
-                </div>
-              ) : (
-                <FadeUpStagger className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3" amount={0.08}>
-                  {displayData?.hits.map((course) => {
-                    const courseUrl = course.universitySlug
-                      ? `/institutions/${course.universitySlug}/${(course.level || 'postgraduate').toLowerCase()}/${course.slug}`
-                      : `/courses/${course.slug}`
-                    const tuition = formatTuitionDisplay(course.tuitionFee as unknown as number, course.currency)
-                    const hasTuition = tuition.display !== null
-                    return (
-                      <FadeUpItem key={course.id} className="flex">
-                        <Link
-                          href={courseUrl}
-                          aria-label={`View ${course.name} at ${course.universityName}`}
-                          className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-[0_20px_40px_-18px_rgba(17,24,39,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
-                        >
-                          {/* Header: logo + university + location */}
-                          <div className="flex items-start gap-3.5 p-5 pb-3">
-                            {course.universityLogo ? (
-                              <img
-                                src={course.universityLogo}
-                                alt=""
-                                aria-hidden="true"
-                                className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2 shadow-[0_1px_3px_rgba(17,24,39,0.06)]"
-                                loading="lazy"
-                              />
-                            ) : (
-                              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400" aria-hidden="true">
-                                <GraduationCap size={20} />
-                              </div>
-                            )}
-                            <div className="min-w-0 flex-1 pt-0.5">
-                              <p className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-gray-700">
-                                {course.universityName || 'University'}
-                              </p>
-                              <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-5 text-gray-500">
-                                <MapPin size={13} className="shrink-0 text-gray-400" aria-hidden="true" />
-                                <span className="truncate">
-                                  {course.universityCity ? `${course.universityCity}, ` : ''}
-                                  {course.universityCountry || 'International'}
-                                </span>
-                              </p>
-                              <span className="mt-2.5 inline-flex rounded-md border border-[#B8934A]/25 bg-[#B8934A]/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A6034]">
-                                {levelLabels[course.level] ?? course.level}
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Body */}
-                          <div className="flex flex-1 flex-col p-5 pt-0">
-                            <h3 className="min-h-[3.4rem] line-clamp-2 break-words text-[17px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
-                              {course.name}
-                            </h3>
-
-                            <div className="mt-3 flex flex-wrap gap-2">
-                              {course.duration ? (
-                                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
-                                  <Clock size={13} aria-hidden="true" />
-                                  {course.duration} {course.durationUnit?.toLowerCase() || 'year'}
-                                </span>
-                              ) : null}
-                              {course.language && (
-                                <span className="inline-flex items-center rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
-                                  {course.language}
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="mt-auto pt-5">
-                              <div className="border-t border-gray-100 pt-4">
-                                <div className="flex items-end justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">Annual tuition</p>
-                                    {hasTuition ? (
-                                      <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
-                                        <span className="text-[19px] font-bold leading-none tracking-tight text-gray-900">{tuition.display}</span>
-                                        {tuition.code && (
-                                          <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-500">{tuition.code}</span>
-                                        )}
-                                      </p>
-                                    ) : (
-                                      <p className="mt-1.5 text-base font-medium text-gray-500">Contact university</p>
-                                    )}
+                      {displayData?.hits.map((course) => {
+                        const courseUrl = course.universitySlug
+                          ? `/institutions/${course.universitySlug}/${(course.level || 'postgraduate').toLowerCase()}/${course.slug}`
+                          : `/courses/${course.slug}`
+                        const tuition = formatTuitionDisplay(
+                          course.tuitionFee as unknown as number,
+                          course.currency
+                        )
+                        const hasTuition = tuition.display !== null
+                        return (
+                          <FadeUpItem key={course.id} className="flex">
+                            <Link
+                              href={courseUrl}
+                              aria-label={`View ${course.name} at ${course.universityName}`}
+                              className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-[0_20px_40px_-18px_rgba(17,24,39,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
+                            >
+                              {/* Header: logo + university + location */}
+                              <div className="flex items-start gap-3.5 p-5 pb-3">
+                                {course.universityLogo ? (
+                                  <img
+                                    src={course.universityLogo}
+                                    alt=""
+                                    aria-hidden="true"
+                                    className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2 shadow-[0_1px_3px_rgba(17,24,39,0.06)]"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div
+                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400"
+                                    aria-hidden="true"
+                                  >
+                                    <GraduationCap size={20} />
                                   </div>
-                                  {course.hasScholarship && (
-                                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-700">
-                                      <Award size={13} aria-hidden="true" />
-                                      Scholarship
+                                )}
+                                {/* Heart Icon */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleToggleFavorite(e, course.id)}
+                                  aria-label="Save to shortlist"
+                                  className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur transition-colors hover:text-[#C41E3A]"
+                                >
+                                  <Heart
+                                    size={18}
+                                    className={
+                                      favorites[course.id]
+                                        ? 'fill-[#C41E3A] text-[#C41E3A]'
+                                        : 'text-gray-400'
+                                    }
+                                  />
+                                </button>
+                                <div className="min-w-0 flex-1 pt-0.5">
+                                  <p className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-gray-700">
+                                    {course.universityName || 'University'}
+                                  </p>
+                                  <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-5 text-gray-500">
+                                    <MapPin
+                                      size={13}
+                                      className="shrink-0 text-gray-400"
+                                      aria-hidden="true"
+                                    />
+                                    <span className="truncate">
+                                      {course.universityCity ? `${course.universityCity}, ` : ''}
+                                      {course.universityCountry || 'International'}
                                     </span>
-                                  )}
+                                  </p>
+                                  <span className="mt-2.5 inline-flex rounded-md border border-[#B8934A]/25 bg-[#B8934A]/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A6034]">
+                                    {levelLabels[course.level] ?? course.level}
+                                  </span>
                                 </div>
                               </div>
 
-                              <div className="mt-4">
-                                <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#C41E3A]/20 bg-[#C41E3A]/[0.05] py-3 text-[15px] font-semibold text-[#C41E3A] transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
-                                  View Details
-                                  <ArrowRight size={16} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
-                                </span>
+                              {/* Body */}
+                              <div className="flex flex-1 flex-col p-5 pt-0">
+                                <h3 className="line-clamp-2 min-h-[3.4rem] break-words text-[17px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
+                                  {course.name}
+                                </h3>
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {course.duration ? (
+                                    <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
+                                      <Clock size={13} aria-hidden="true" />
+                                      {course.duration}{' '}
+                                      {course.durationUnit?.toLowerCase() || 'year'}
+                                    </span>
+                                  ) : null}
+                                  {course.language && (
+                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
+                                      {course.language}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div className="mt-auto pt-5">
+                                  <div className="border-t border-gray-100 pt-4">
+                                    <div className="flex items-end justify-between gap-3">
+                                      <div className="min-w-0">
+                                        <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">
+                                          Annual tuition
+                                        </p>
+                                        {hasTuition ? (
+                                          <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
+                                            <span className="text-[19px] font-bold leading-none tracking-tight text-gray-900">
+                                              {tuition.display}
+                                            </span>
+                                            {tuition.code && (
+                                              <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-500">
+                                                {tuition.code}
+                                              </span>
+                                            )}
+                                          </p>
+                                        ) : (
+                                          <p className="mt-1.5 text-base font-medium text-gray-500">
+                                            Contact university
+                                          </p>
+                                        )}
+                                      </div>
+                                      {course.hasScholarship && (
+                                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-700">
+                                          <Award size={13} aria-hidden="true" />
+                                          Scholarship
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-4">
+                                    <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#C41E3A]/20 bg-[#C41E3A]/[0.05] py-3 text-[15px] font-semibold text-[#C41E3A] transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
+                                      View Details
+                                      <ArrowRight
+                                        size={16}
+                                        aria-hidden="true"
+                                        className="transition-transform group-hover:translate-x-0.5"
+                                      />
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
-                            </div>
-                          </div>
-                        </Link>
-                      </FadeUpItem>
-                    )
-                  })}
-                </FadeUpStagger>
-              )}
-            </div>
-
-            {/* Pagination */}
-            {displayData && displayData.totalPages > 1 && (
-              <FadeUp>
-                <div className="mt-12 flex flex-col items-center gap-3">
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-11 w-11 p-0"
-                      onClick={() => goToPage(page - 1)}
-                      disabled={page === 1 || isFetching}
-                      aria-label="Previous page"
-                    >
-                      <ChevronLeft size={18} />
-                    </Button>
-
-                    {getPageItems(page, displayData.totalPages).map((item, index) =>
-                      item === '...' ? (
-                        <span key={`ellipsis-${index}`} className="px-2 text-base font-medium text-gray-500">
-                          …
-                        </span>
-                      ) : (
-                        <Button
-                          key={item}
-                          variant={item === page ? 'default' : 'outline'}
-                          size="sm"
-                          className="h-11 min-w-11 px-4 text-base"
-                          onClick={() => goToPage(item)}
-                          disabled={isFetching}
-                          aria-current={item === page ? 'page' : undefined}
-                        >
-                          {item}
-                        </Button>
-                      )
-                    )}
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-11 w-11 p-0"
-                      onClick={() => goToPage(page + 1)}
-                      disabled={page === displayData.totalPages || isFetching}
-                      aria-label="Next page"
-                    >
-                      <ChevronRight size={18} />
-                    </Button>
-                  </div>
-
-                  <p className="text-base text-gray-500">
-                    Page {page} of {displayData.totalPages}
-                    {isFetching && <span className="ml-2 text-[#C41E3A]">Loading…</span>}
-                  </p>
+                            </Link>
+                          </FadeUpItem>
+                        )
+                      })}
+                    </FadeUpStagger>
+                  )}
                 </div>
-              </FadeUp>
-            )}
+
+                {/* Pagination */}
+                {displayData && displayData.totalPages > 1 && (
+                  <FadeUp>
+                    <div className="mt-12 flex flex-col items-center gap-3">
+                      <div className="flex flex-wrap items-center justify-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-11 w-11 p-0"
+                          onClick={() => goToPage(page - 1)}
+                          disabled={page === 1 || isFetching}
+                          aria-label="Previous page"
+                        >
+                          <ChevronLeft size={18} />
+                        </Button>
+
+                        {getPageItems(page, displayData.totalPages).map((item, index) =>
+                          item === '...' ? (
+                            <span
+                              key={`ellipsis-${index}`}
+                              className="px-2 text-base font-medium text-gray-500"
+                            >
+                              …
+                            </span>
+                          ) : (
+                            <Button
+                              key={item}
+                              variant={item === page ? 'default' : 'outline'}
+                              size="sm"
+                              className="h-11 min-w-11 px-4 text-base"
+                              onClick={() => goToPage(item)}
+                              disabled={isFetching}
+                              aria-current={item === page ? 'page' : undefined}
+                            >
+                              {item}
+                            </Button>
+                          )
+                        )}
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-11 w-11 p-0"
+                          onClick={() => goToPage(page + 1)}
+                          disabled={page === displayData.totalPages || isFetching}
+                          aria-label="Next page"
+                        >
+                          <ChevronRight size={18} />
+                        </Button>
+                      </div>
+
+                      <p className="text-base text-gray-500">
+                        Page {page} of {displayData.totalPages}
+                        {isFetching && <span className="ml-2 text-[#C41E3A]">Loading…</span>}
+                      </p>
+                    </div>
+                  </FadeUp>
+                )}
               </div>
             </div>
           </div>
@@ -838,7 +988,17 @@ export default function CoursesListContent({ initialData, initialFilters, initia
         filters={filters}
         onChange={updateFilters}
         onClear={clearFilters}
-        options={filterOptions ?? { countries: [], cities: [], institutions: [], subjects: [], levels: [], startYears: [], feeMax: 0 }}
+        options={
+          filterOptions ?? {
+            countries: [],
+            cities: [],
+            institutions: [],
+            subjects: [],
+            levels: [],
+            startYears: [],
+            feeMax: 0,
+          }
+        }
         resultsCount={displayData?.total ?? 0}
       />
 

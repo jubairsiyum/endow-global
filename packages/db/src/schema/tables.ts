@@ -12,6 +12,7 @@ import {
   index,
   timestamp,
 } from 'drizzle-orm/mysql-core'
+import { sql } from 'drizzle-orm'
 
 function genId() {
   // 25 chars: fits every varchar(25) primary-key/foreign-key column in this schema.
@@ -53,8 +54,8 @@ export const accounts = mysqlTable(
     accessToken: text('access_token'),
     refreshToken: text('refresh_token'),
     idToken: text('id_token'),
-    accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }),
-    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }).default(sql`NULL`),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }).default(sql`NULL`),
     scope: varchar('scope', { length: 255 }),
     password: varchar('password', { length: 255 }),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),

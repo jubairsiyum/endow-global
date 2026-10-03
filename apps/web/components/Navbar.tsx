@@ -1,17 +1,25 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { usePathname, useRouter } from 'next/navigation'
+import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
+import { authClient, useSession } from '@/lib/auth-client'
 import { AnimatePresence, motion } from 'framer-motion'
 import { ArrowRight, ChevronDown, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
-import { authClient, useSession } from '@/lib/auth-client'
-import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
+import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 
 const countries = [
-  { label: 'South Korea', href: '/universities/country/south-korea', flag: 'https://flagcdn.com/w40/kr.png' },
-  { label: 'Australia', href: '/universities/country/australia', flag: 'https://flagcdn.com/w40/au.png' },
+  {
+    label: 'South Korea',
+    href: '/universities/country/south-korea',
+    flag: 'https://flagcdn.com/w40/kr.png',
+  },
+  {
+    label: 'Australia',
+    href: '/universities/country/australia',
+    flag: 'https://flagcdn.com/w40/au.png',
+  },
 ] as const
 
 const navItems = [
@@ -31,6 +39,7 @@ export function Navbar() {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCountriesOpen, setIsCountriesOpen] = useState(false)
+  const [isMobileCountriesOpen, setIsMobileCountriesOpen] = useState(false)
   const [isSigningOut, setIsSigningOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -73,10 +82,21 @@ export function Navbar() {
 
   const isCountriesActive = pathname.startsWith('/universities/country/')
   const role = (session?.user as { role?: string } | undefined)?.role
-  const portalHref = role === 'COUNSELOR' ? '/counselor' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? '/admin' : '/dashboard'
-  const portalLabel = role === 'COUNSELOR' ? 'Counselor portal' : role === 'ADMIN' || role === 'SUPER_ADMIN' ? 'Admin portal' : 'Student portal'
+  const portalHref =
+    role === 'COUNSELOR'
+      ? '/counselor'
+      : role === 'ADMIN' || role === 'SUPER_ADMIN'
+        ? '/admin'
+        : '/dashboard'
+  const portalLabel =
+    role === 'COUNSELOR'
+      ? 'Counselor portal'
+      : role === 'ADMIN' || role === 'SUPER_ADMIN'
+        ? 'Admin portal'
+        : 'Student portal'
   const userName = session?.user?.name || 'Account'
-  const userImage = avatarImage ?? (session?.user as { image?: string | null } | undefined)?.image ?? null
+  const userImage =
+    avatarImage ?? (session?.user as { image?: string | null } | undefined)?.image ?? null
   const userInitials = userName
     .split(' ')
     .map((part) => part[0])
@@ -103,14 +123,18 @@ export function Navbar() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          className={`flex w-full max-w-7xl min-h-[64px] items-center justify-between gap-4 rounded-xl px-4 py-2.5 transition-all duration-300 sm:px-6 sm:py-3 ${
+          className={`flex min-h-[64px] w-full max-w-7xl items-center justify-between gap-4 rounded-xl px-4 py-2.5 transition-all duration-300 sm:px-6 sm:py-3 ${
             isScrolled
-              ? 'bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.8] ring-1 ring-black/[0.04]'
-              : 'bg-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.04)] backdrop-blur-sm backdrop-saturate-[1.5] ring-1 ring-white/40'
+              ? 'bg-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.04] backdrop-blur-sm backdrop-saturate-[1.8]'
+              : 'bg-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] ring-1 ring-white/40 backdrop-blur-sm backdrop-saturate-[1.5]'
           }`}
         >
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5" aria-label="Endow Global Education home">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5"
+            aria-label="Endow Global Education home"
+          >
             <Image
               src="/logo/endoedu.svg"
               alt="Endow Global Education"
@@ -123,7 +147,7 @@ export function Navbar() {
               <span className="block text-sm font-bold tracking-tight text-gray-900">
                 Endow Global
               </span>
-              <span className="block text-xs font-semibold tracking-[0.22em] text-gray-400 uppercase">
+              <span className="block text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">
                 Education
               </span>
             </div>
@@ -144,9 +168,7 @@ export function Navbar() {
                     <button
                       onClick={() => setIsCountriesOpen(!isCountriesOpen)}
                       className={`relative flex items-center gap-1 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
-                        isCountriesActive
-                          ? 'text-[#C41E3A]'
-                          : 'text-gray-500 hover:text-gray-900'
+                        isCountriesActive ? 'text-[#C41E3A]' : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
                       {item.label}
@@ -180,9 +202,16 @@ export function Navbar() {
                                 href={country.href}
                                 className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 hover:text-gray-900"
                               >
-                                <img src={country.flag} alt="" className="h-5 w-7 rounded-sm object-cover" />
+                                <img
+                                  src={country.flag}
+                                  alt=""
+                                  className="h-5 w-7 rounded-sm object-cover"
+                                />
                                 <span>{country.label}</span>
-                                <ArrowRight size={14} className="ml-auto text-gray-300 transition-transform group-hover:translate-x-0.5" />
+                                <ArrowRight
+                                  size={14}
+                                  className="ml-auto text-gray-300 transition-transform group-hover:translate-x-0.5"
+                                />
                               </Link>
                             ))}
                           </div>
@@ -193,11 +222,13 @@ export function Navbar() {
                 )
               }
 
-              const isActive = item.href === '/'
-                ? pathname === '/'
-                : item.href === '/universities'
-                  ? pathname.startsWith('/universities') && !pathname.startsWith('/universities/country/')
-                  : pathname.startsWith(item.href)
+              const isActive =
+                item.href === '/'
+                  ? pathname === '/'
+                  : item.href === '/universities'
+                    ? pathname.startsWith('/universities') &&
+                      !pathname.startsWith('/universities/country/')
+                    : pathname.startsWith(item.href)
               return (
                 <Link
                   key={item.href}
@@ -205,9 +236,7 @@ export function Navbar() {
                   prefetch={true}
                   aria-current={isActive ? 'page' : undefined}
                   className={`relative flex items-center gap-1 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'text-[#C41E3A]'
-                      : 'text-gray-500 hover:text-gray-900'
+                    isActive ? 'text-[#C41E3A]' : 'text-gray-500 hover:text-gray-900'
                   }`}
                 >
                   {item.label}
@@ -231,7 +260,7 @@ export function Navbar() {
               <>
                 <Link
                   href={portalHref}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#C41E3A] px-4 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#C41E3A] px-4 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:-translate-y-0.5 hover:bg-[#A01830]"
                 >
                   <LayoutDashboard size={14} />
                   {portalLabel}
@@ -258,10 +287,13 @@ export function Navbar() {
                 <Link
                   href="/register"
                   prefetch={true}
-                  className="group inline-flex items-center gap-1.5 rounded-lg bg-[#C41E3A] px-5 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)] hover:-translate-y-0.5"
+                  className="group inline-flex items-center gap-1.5 rounded-lg bg-[#C41E3A] px-5 py-2 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.3)] transition-all hover:-translate-y-0.5 hover:bg-[#A01830] hover:shadow-[0_4px_20px_rgba(196,30,58,0.35)]"
                 >
                   Get Started
-                  <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight
+                    size={14}
+                    className="transition-transform group-hover:translate-x-0.5"
+                  />
                 </Link>
               </>
             )}
@@ -277,7 +309,11 @@ export function Navbar() {
                 aria-label={portalLabel}
                 className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-full bg-[#263238] text-xs font-bold text-white"
               >
-                {userImage ? <img src={userImage} alt="" className="h-full w-full object-cover" /> : userInitials}
+                {userImage ? (
+                  <img src={userImage} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  userInitials
+                )}
               </Link>
             ) : (
               <Link
@@ -298,166 +334,192 @@ export function Navbar() {
         </motion.header>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Menu & Backdrop */}
       <AnimatePresence>
         {isMobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="fixed inset-x-0 top-[72px] z-50 mx-4 max-h-[80vh] overflow-y-auto rounded-xl border border-white/50 bg-white/80 shadow-[0_16px_48px_rgba(0,0,0,0.1)] backdrop-blur-sm backdrop-saturate-[1.8] lg:hidden"
-          >
-            <div className="p-3">
-              <div className="flex flex-col gap-0.5">
-                {/* Home */}
-                <Link
-                  href="/"
-                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    pathname === '/'
-                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                  }`}
-                >
-                  Home
-                </Link>
+          <>
+            {/* 1. Backdrop Overlay  */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileOpen(false)}
+              className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] lg:hidden"
+            />
 
-                {/* Universities */}
-                <Link
-                  href="/universities"
-                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    pathname === '/universities'
-                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                  }`}
-                >
-                  Universities
-                </Link>
-
-                {/* Countries */}
-                <div className="rounded-xl bg-gray-50/50">
-                  <button
-                    onClick={() => setIsCountriesOpen(!isCountriesOpen)}
-                    className={`flex w-full items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
-                      isCountriesActive
+            {/* 2. Mobile Menu Box */}
+            <motion.div
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -6, scale: 0.98 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="fixed inset-x-0 top-[75px] z-50 mx-4 max-h-[80vh] overflow-y-auto rounded-xl border border-white/50 bg-white/95 shadow-[0_16px_48px_rgba(0,0,0,0.15)] backdrop-blur-md lg:hidden"
+            >
+              <div className="p-3">
+                <div className="flex flex-col gap-0.5">
+                  {/* Home */}
+                  <Link
+                    href="/"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      pathname === '/'
                         ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
                     }`}
                   >
-                    <span className="flex items-center gap-2">
-                      Countries
-                    </span>
-                    <ChevronDown
-                      size={16}
-                      className={`text-gray-400 transition-transform duration-200 ${isCountriesOpen ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  <AnimatePresence>
-                    {isCountriesOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pb-1 pl-4">
-                          {countries.map((country) => (
-                            <Link
-                              key={country.href}
-                              href={country.href}
-                              className={`flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
-                                pathname === country.href
-                                  ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                                  : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                              }`}
-                            >
-                              <img src={country.flag} alt="" className="h-5 w-7 rounded-sm object-cover" />
-                              {country.label}
-                            </Link>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                    Home
+                  </Link>
+
+                  {/* Universities */}
+                  <Link
+                    href="/universities"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      pathname === '/universities'
+                        ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                        : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                    }`}
+                  >
+                    Universities
+                  </Link>
+
+                  {/* Countries  */}
+                  <div className="rounded-xl bg-gray-50/50">
+                    <button
+                      onClick={() => setIsMobileCountriesOpen(!isMobileCountriesOpen)}
+                      className={`flex w-full items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${
+                        isCountriesActive
+                          ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">Countries</span>
+                      <ChevronDown
+                        size={16}
+                        className={`text-gray-400 transition-transform duration-200 ${isMobileCountriesOpen ? 'rotate-180' : ''}`}
+                      />
+                    </button>
+                    <AnimatePresence>
+                      {isMobileCountriesOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pb-1 pl-4">
+                            {countries.map((country) => (
+                              <Link
+                                key={country.href}
+                                href={country.href}
+                                onClick={() => setIsMobileOpen(false)}
+                                className={`flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                                  pathname === country.href
+                                    ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                                    : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                                }`}
+                              >
+                                <img
+                                  src={country.flag}
+                                  alt=""
+                                  className="h-5 w-7 rounded-sm object-cover"
+                                />
+                                {country.label}
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Courses */}
+                  <Link
+                    href="/courses"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      pathname.startsWith('/courses')
+                        ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                        : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                    }`}
+                  >
+                    Courses
+                  </Link>
+
+                  {/* Resources */}
+                  <Link
+                    href="/blog"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      pathname.startsWith('/blog')
+                        ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                        : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                    }`}
+                  >
+                    Resources
+                  </Link>
+
+                  {/* Contact */}
+                  <Link
+                    href="/contact"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      pathname.startsWith('/contact')
+                        ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                        : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                    }`}
+                  >
+                    Contact
+                  </Link>
                 </div>
 
-                {/* Courses */}
-                <Link
-                  href="/courses"
-                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    pathname.startsWith('/courses')
-                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                  }`}
-                >
-                  Courses
-                </Link>
-
-                {/* Resources */}
-                <Link
-                  href="/blog"
-                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    pathname.startsWith('/blog')
-                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                  }`}
-                >
-                  Resources
-                </Link>
-
-                {/* Contact */}
-                <Link
-                  href="/contact"
-                  className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
-                    pathname.startsWith('/contact')
-                      ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
-                      : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
-                  }`}
-                >
-                  Contact
-                </Link>
+                <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3">
+                  {sessionPending ? (
+                    <div className="h-10 animate-pulse rounded-xl bg-gray-100" aria-hidden />
+                  ) : session ? (
+                    <>
+                      <Link
+                        href={portalHref}
+                        onClick={() => setIsMobileOpen(false)}
+                        className="flex items-center justify-center gap-2 rounded-xl bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
+                      >
+                        <LayoutDashboard size={15} /> {portalLabel}
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleSignOut()
+                          setIsMobileOpen(false)
+                        }}
+                        disabled={isSigningOut}
+                        className="flex items-center justify-center gap-2 rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        <LogOut size={15} /> {isSigningOut ? 'Signing out…' : 'Sign out'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        onClick={() => setIsMobileOpen(false)}
+                        className="flex items-center justify-center rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                      >
+                        Sign in
+                      </Link>
+                      <Link
+                        href="/register"
+                        onClick={() => setIsMobileOpen(false)}
+                        className="flex items-center justify-center rounded-xl bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
+                      >
+                        Get Started
+                      </Link>
+                    </>
+                  )}
+                </div>
               </div>
-
-              <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3">
-                {sessionPending ? (
-                  <div className="h-10 animate-pulse rounded-xl bg-gray-100" aria-hidden />
-                ) : session ? (
-                  <>
-                    <Link
-                      href={portalHref}
-                      className="flex items-center justify-center gap-2 rounded-xl bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
-                    >
-                      <LayoutDashboard size={15} /> {portalLabel}
-                    </Link>
-                    <button
-                      type="button"
-                      onClick={handleSignOut}
-                      disabled={isSigningOut}
-                      className="flex items-center justify-center gap-2 rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-50"
-                    >
-                      <LogOut size={15} /> {isSigningOut ? 'Signing out…' : 'Sign out'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/login"
-                      className="flex items-center justify-center rounded-xl border border-gray-200/80 bg-white/60 px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-                    >
-                      Sign in
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="flex items-center justify-center rounded-xl bg-[#C41E3A] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
-                    >
-                      Get Started
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </>
