@@ -8,6 +8,7 @@ import PremiumCTA from '@/components/home/PremiumCTA'
 import PremiumHero from '@/components/home/PremiumHero'
 import Testimonials from '@/components/home/Testimonials'
 import TrendingCourses from '@/components/home/TrendingCourses'
+import { UniversitiesSection } from '@/components/home/UniversitiesSection'
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import ApplicationRoadmap from '@/components/universities/application-roadmap'
@@ -180,6 +181,7 @@ export default function HomePage() {
           <FeaturedEvents />
           <CountryCards />
           <ApplicationRoadmap />
+          <UniversitiesSection />
           <Testimonials />
           <FAQAccordion />
           <PremiumCTA />
