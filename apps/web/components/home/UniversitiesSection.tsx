@@ -7,8 +7,29 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
+type CategoryKey = 'bachelors' | 'language' | 'eap'
+
+type StaticUniversityCard = {
+  id: string
+  name: string
+  slug: string
+  logo: string
+  website: string
+  isStatic: true
+}
+
+type DbUniversityCard = {
+  id: string
+  name: string
+  slug: string
+  logo: string
+  isStatic: false
+}
+
+type UniversityCardItem = StaticUniversityCard | DbUniversityCard
+
 // Static categories data matching your public/universities folder exactly
-const staticUniversitiesData = {
+const staticUniversitiesData: Record<CategoryKey, StaticUniversityCard[]> = {
   bachelors: [
     {
       id: '1',
@@ -120,8 +141,6 @@ const staticUniversitiesData = {
   eap: [],
 }
 
-type CategoryKey = 'bachelors' | 'language' | 'eap'
-
 export function UniversitiesSection() {
   const [activeTab, setActiveTab] = useState<CategoryKey>('bachelors')
 
@@ -134,13 +153,12 @@ export function UniversitiesSection() {
   // Check if we have database data, otherwise fallback to static data
   const hasDbData = dbUniversities.length > 0
 
-  const rawList = hasDbData
+  const rawList: UniversityCardItem[] = hasDbData
     ? dbUniversities.map((uni) => ({
         id: uni.id,
         name: uni.name,
         slug: uni.slug,
         logo: uni.logo || '/logo/endoedu.svg',
-        website: uni.website || '#',
         isStatic: false,
       }))
     : staticUniversitiesData[activeTab] || []
