@@ -103,9 +103,9 @@ export default function UniversityDetailPage() {
           {uni.coverImage ? (
             <img src={uni.coverImage} alt="" className="h-full w-full object-cover" />
           ) : (
-            <div className="h-full w-full bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950" />
+            <div className="h-full w-full bg-gradient-to-br from-red-800 via-red-900 to-slate-950" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/60 to-[#0f172a]/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/95 via-[#0f172a]/75 to-[#0f172a]/35" />
         </div>
 
         <div className="relative mx-auto max-w-7xl px-5 pb-12 pt-[180px] sm:px-6 sm:pb-16 sm:pt-[200px] lg:px-8">
