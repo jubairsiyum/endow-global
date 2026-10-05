@@ -1,12 +1,39 @@
 'use client'
 
+import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import { trpc } from '@/lib/trpc-client'
-import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
 
 const fallbackStories = [
-  { name: 'Priya Sharma', university: 'Kyung Hee University', program: 'MBA', country: 'South Korea', quote: "Endow Global made my dream of studying in Korea a reality. The counselors helped me navigate scholarships I didn't even know existed.", rating: 5, initials: 'PS' },
-  { name: 'Maria Santos', university: 'Univ. of Melbourne', program: 'Data Science', country: 'Australia', quote: 'The counselor support was incredible. They reviewed my SOP three times and helped me ace the visa interview.', rating: 5, initials: 'MS' },
-  { name: 'Jun-seo Park', university: 'Yonsei University', program: 'International Business', country: 'South Korea', quote: "From university selection to visa prep, every step was handled professionally. The AI matching found programs I hadn't considered.", rating: 5, initials: 'JP' },
+  {
+    name: 'Priya Sharma',
+    university: 'Kyung Hee University',
+    program: 'MBA',
+    country: 'South Korea',
+    quote:
+      "Endow Global made my dream of studying in Korea a reality. The counselors helped me navigate scholarships I didn't even know existed.",
+    rating: 5,
+    initials: 'PS',
+  },
+  {
+    name: 'Maria Santos',
+    university: 'Univ. of Melbourne',
+    program: 'Data Science',
+    country: 'Australia',
+    quote:
+      'The counselor support was incredible. They reviewed my SOP three times and helped me ace the visa interview.',
+    rating: 5,
+    initials: 'MS',
+  },
+  {
+    name: 'Jun-seo Park',
+    university: 'Yonsei University',
+    program: 'International Business',
+    country: 'South Korea',
+    quote:
+      "From university selection to visa prep, every step was handled professionally. The AI matching found programs I hadn't considered.",
+    rating: 5,
+    initials: 'JP',
+  },
 ]
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -23,17 +50,18 @@ function Eyebrow({ children }: { children: React.ReactNode }) {
 export default function Testimonials() {
   const { data } = trpc.testimonial.published.useQuery()
 
-  const stories = data && data.length > 0
-    ? data.map((t) => ({
-        name: t.name,
-        university: t.university,
-        program: t.program,
-        country: t.country,
-        quote: t.quote,
-        rating: t.rating,
-        initials: t.initials,
-      }))
-    : fallbackStories
+  const stories =
+    data && data.length > 0
+      ? data.map((t) => ({
+          name: t.name,
+          university: t.university,
+          program: t.program,
+          country: t.country,
+          quote: t.quote,
+          rating: t.rating,
+          initials: t.initials,
+        }))
+      : fallbackStories
 
   const featured = stories[0]
   const rest = stories.slice(1, 3)
@@ -43,7 +71,10 @@ export default function Testimonials() {
       <div className="mx-auto max-w-[1200px] px-6 sm:px-8 lg:px-10">
         <FadeUp>
           <div className="max-w-2xl">
-            <Eyebrow>Student stories</Eyebrow>
+            {/* <Eyebrow>Student stories</Eyebrow> */}
+            <span className="mb-3 inline-block rounded-full bg-[#C41E3A]/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#C41E3A]">
+              Student stories
+            </span>
             <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
               Trusted by students <span style={{ color: '#C41E3A' }}>worldwide</span>
             </h2>
@@ -96,9 +127,7 @@ export default function Testimonials() {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-[#0E1116]">{story.name}</div>
-                        <div className="text-sm text-[#6b7280]">
-                          {story.university}
-                        </div>
+                        <div className="text-sm text-[#6b7280]">{story.university}</div>
                       </div>
                     </figcaption>
                   </figure>

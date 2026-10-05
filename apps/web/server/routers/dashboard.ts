@@ -1,25 +1,21 @@
+import { createBooking } from '@/lib/booking'
+import { applicantLevelFromEducation, DOCUMENT_REQUIREMENTS, requirementKey } from '@/lib/documents'
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
 import {
-  eq as _eq,
   and as _and,
-  sql as _sql,
-  inArray as _inArray,
-  ne as _ne,
-  desc as _desc,
   asc as _asc,
+  desc as _desc,
+  eq as _eq,
   gte as _gte,
-  or as _or,
+  inArray as _inArray,
   isNull as _isNull,
+  ne as _ne,
+  or as _or,
+  sql as _sql,
 } from 'drizzle-orm'
 import { z } from 'zod'
 import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
-import {
-  applicantLevelFromEducation,
-  DOCUMENT_REQUIREMENTS,
-  requirementKey,
-} from '@/lib/documents'
-import { createBooking } from '@/lib/booking'
 
 const eq = _eq as any
 const and = _and as any
@@ -78,7 +74,15 @@ function assertLeadTime(date: Date) {
 
 // Reject any overlapping SCHEDULED session for the same student or the same
 // counselor within a minute of the requested window.
-async function assertNoConflict(ctx: any, { studentId, counselorId, scheduledAt, duration }: { studentId: string; counselorId: string; scheduledAt: Date; duration: number }) {
+async function assertNoConflict(
+  ctx: any,
+  {
+    studentId,
+    counselorId,
+    scheduledAt,
+    duration,
+  }: { studentId: string; counselorId: string; scheduledAt: Date; duration: number }
+) {
   const requestedStart = scheduledAt.getTime()
   const requestedEnd = requestedStart + duration * 60 * 1000
 
@@ -109,7 +113,8 @@ async function assertNoConflict(ctx: any, { studentId, counselorId, scheduledAt,
   })
 
   if (conflict) {
-    if (conflict.studentId === studentId) throw new Error('You already have an overlapping session at this time')
+    if (conflict.studentId === studentId)
+      throw new Error('You already have an overlapping session at this time')
     throw new Error('This counselor already has a session at that time')
   }
 }
@@ -202,7 +207,12 @@ async function computeStudentMatches(ctx: any, profile: any) {
           tuitionFee: row.tuitionFee,
           currency: row.currency,
           hasScholarship: row.hasScholarship,
-          university: { id: row.universityId, name: row.universityName, country: row.universityCountry, city: row.universityCity },
+          university: {
+            id: row.universityId,
+            name: row.universityName,
+            country: row.universityCountry,
+            city: row.universityCity,
+          },
         },
         university: {
           id: row.universityId,
@@ -224,7 +234,11 @@ async function computeStudentMatches(ctx: any, profile: any) {
     const uniId = match.university.id
     if (!uniId) continue
     if (!universityMap.has(uniId)) {
-      universityMap.set(uniId, { ...match.university, courseScores: [] as number[], topCourse: match.course })
+      universityMap.set(uniId, {
+        ...match.university,
+        courseScores: [] as number[],
+        topCourse: match.course,
+      })
     }
     const entry = universityMap.get(uniId)
     entry.courseScores.push(match.score)
@@ -299,72 +313,120 @@ export const dashboardRouter = createTRPCRouter({
 
     const now = new Date()
 
-    const [applicationRows, intakeRows, shortlistRows, matchData, sessionRows, documents, notifications, counselorRows, unreadNotifications] = await Promise.all([
-      ctx.db.select({
-        id: schema.applications.id,
-        studentId: schema.applications.studentId,
-        courseId: schema.applications.courseId,
-        counselorId: schema.applications.counselorId,
-        status: schema.applications.status,
-        currentStep: schema.applications.currentStep,
-        totalSteps: schema.applications.totalSteps,
-        documentsUrls: schema.applications.documentsUrls,
-        submittedAt: schema.applications.submittedAt,
-        counselorNotes: schema.applications.counselorNotes,
-        createdAt: schema.applications.createdAt,
-        updatedAt: schema.applications.updatedAt,
-        courseName: schema.courses.name,
-        courseSlug: schema.courses.slug,
-        courseDeadline: schema.courses.applicationDeadline,
-        universityName: schema.universities.name,
-        universityCountry: schema.universities.country,
-      }).from(schema.applications)
+    const [
+      applicationRows,
+      intakeRows,
+      shortlistRows,
+      matchData,
+      sessionRows,
+      documents,
+      notifications,
+      counselorRows,
+      unreadNotifications,
+    ] = await Promise.all([
+      ctx.db
+        .select({
+          id: schema.applications.id,
+          studentId: schema.applications.studentId,
+          courseId: schema.applications.courseId,
+          counselorId: schema.applications.counselorId,
+          status: schema.applications.status,
+          currentStep: schema.applications.currentStep,
+          totalSteps: schema.applications.totalSteps,
+          documentsUrls: schema.applications.documentsUrls,
+          submittedAt: schema.applications.submittedAt,
+          counselorNotes: schema.applications.counselorNotes,
+          createdAt: schema.applications.createdAt,
+          updatedAt: schema.applications.updatedAt,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          courseDeadline: schema.courses.applicationDeadline,
+          universityName: schema.universities.name,
+          universityCountry: schema.universities.country,
+        })
+        .from(schema.applications)
         .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
         .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
         .where(eq(schema.applications.studentId, studentId))
         .orderBy(desc(schema.applications.updatedAt)),
-      ctx.db.select().from(schema.platformCourseIntakes).where(inArray(schema.platformCourseIntakes.courseId, ctx.db.select({ id: schema.applications.courseId }).from(schema.applications).where(eq(schema.applications.studentId, studentId)))),
-      ctx.db.select({
-        id: schema.shortlistedCourses.id,
-        studentId: schema.shortlistedCourses.studentId,
-        courseId: schema.shortlistedCourses.courseId,
-        notes: schema.shortlistedCourses.notes,
-        createdAt: schema.shortlistedCourses.createdAt,
-        courseName: schema.courses.name,
-        courseSlug: schema.courses.slug,
-        subject: schema.courses.subject,
-        level: schema.courses.level,
-        duration: schema.courses.duration,
-        tuitionFee: schema.courses.tuitionFee,
-        currency: schema.courses.currency,
-        hasScholarship: schema.courses.hasScholarship,
-        universityName: schema.universities.name,
-        universityCountry: schema.universities.country,
-        universityCity: schema.universities.city,
-      }).from(schema.shortlistedCourses)
+      ctx.db
+        .select()
+        .from(schema.platformCourseIntakes)
+        .where(
+          inArray(
+            schema.platformCourseIntakes.courseId,
+            ctx.db
+              .select({ id: schema.applications.courseId })
+              .from(schema.applications)
+              .where(eq(schema.applications.studentId, studentId))
+          )
+        ),
+      ctx.db
+        .select({
+          id: schema.shortlistedCourses.id,
+          studentId: schema.shortlistedCourses.studentId,
+          courseId: schema.shortlistedCourses.courseId,
+          notes: schema.shortlistedCourses.notes,
+          createdAt: schema.shortlistedCourses.createdAt,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          subject: schema.courses.subject,
+          level: schema.courses.level,
+          duration: schema.courses.duration,
+          tuitionFee: schema.courses.tuitionFee,
+          currency: schema.courses.currency,
+          hasScholarship: schema.courses.hasScholarship,
+          universityName: schema.universities.name,
+          universityCountry: schema.universities.country,
+          universityCity: schema.universities.city,
+        })
+        .from(schema.shortlistedCourses)
         .leftJoin(schema.courses, eq(schema.courses.id, schema.shortlistedCourses.courseId))
         .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
         .where(eq(schema.shortlistedCourses.studentId, studentId))
         .orderBy(desc(schema.shortlistedCourses.createdAt)),
       computeStudentMatches(ctx, profile),
-      ctx.db.select({
-        id: schema.bookingSessions.id,
-        studentId: schema.bookingSessions.studentId,
-        counselorId: schema.bookingSessions.counselorId,
-        scheduledAt: schema.bookingSessions.scheduledAt,
-        duration: schema.bookingSessions.duration,
-        status: schema.bookingSessions.status,
-        meetingUrl: schema.bookingSessions.meetingUrl,
-        notes: schema.bookingSessions.notes,
-        counselorName: schema.users.name,
-      }).from(schema.bookingSessions)
-        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+      ctx.db
+        .select({
+          id: schema.bookingSessions.id,
+          studentId: schema.bookingSessions.studentId,
+          counselorId: schema.bookingSessions.counselorId,
+          scheduledAt: schema.bookingSessions.scheduledAt,
+          duration: schema.bookingSessions.duration,
+          status: schema.bookingSessions.status,
+          meetingUrl: schema.bookingSessions.meetingUrl,
+          notes: schema.bookingSessions.notes,
+          counselorName: schema.users.name,
+        })
+        .from(schema.bookingSessions)
+        .leftJoin(
+          schema.counselorProfiles,
+          eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId)
+        )
         .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
-        .where(and(eq(schema.bookingSessions.studentId, studentId), eq(schema.bookingSessions.status, 'SCHEDULED'), gte(schema.bookingSessions.scheduledAt, now)))
+        .where(
+          and(
+            eq(schema.bookingSessions.studentId, studentId),
+            eq(schema.bookingSessions.status, 'SCHEDULED'),
+            gte(schema.bookingSessions.scheduledAt, now)
+          )
+        )
         .orderBy(asc(schema.bookingSessions.scheduledAt)),
       ensureDocumentChecklist(ctx, studentId).then((r) => r.items),
-      ctx.db.query.notifications.findMany({ where: (n: any, { eq }: any) => eq(n.userId, userId), orderBy: (n: any, { desc }: any) => [desc(n.createdAt)], limit: 10 }),
-      ctx.db.select({ id: schema.counselorProfiles.id, name: schema.users.name, rating: schema.counselorProfiles.rating }).from(schema.counselorProfiles).leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId)).where(eq(schema.counselorProfiles.id, profile.assignedCounselorId as string)),
+      ctx.db.query.notifications.findMany({
+        where: (n: any, { eq }: any) => eq(n.userId, userId),
+        orderBy: (n: any, { desc }: any) => [desc(n.createdAt)],
+        limit: 10,
+      }),
+      ctx.db
+        .select({
+          id: schema.counselorProfiles.id,
+          name: schema.users.name,
+          rating: schema.counselorProfiles.rating,
+        })
+        .from(schema.counselorProfiles)
+        .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
+        .where(eq(schema.counselorProfiles.id, profile.assignedCounselorId as string)),
       ctx.db
         .select({ c: sql<number>`count(*)` })
         .from(schema.notifications)
@@ -377,22 +439,44 @@ export const dashboardRouter = createTRPCRouter({
     const recommendedUniversities = matchData.universities ?? []
     const applications = (applicationRows as any[]).map((row) => ({
       ...row,
-      course: row.courseId ? {
-        name: row.courseName,
-        slug: row.courseSlug,
-        applicationDeadline: row.courseDeadline,
-        university: { name: row.universityName, country: row.universityCountry },
-        intakes: intakesByCourse[row.courseId] ?? [],
-      } : null,
+      course: row.courseId
+        ? {
+            name: row.courseName,
+            slug: row.courseSlug,
+            applicationDeadline: row.courseDeadline,
+            university: { name: row.universityName, country: row.universityCountry },
+            intakes: intakesByCourse[row.courseId] ?? [],
+          }
+        : null,
     }))
     const shortlisted = (shortlistRows as any[]).map((row) => ({
       ...row,
-      course: { id: row.courseId, name: row.courseName, slug: row.courseSlug, subject: row.subject, level: row.level, duration: row.duration, tuitionFee: row.tuitionFee, currency: row.currency, hasScholarship: row.hasScholarship, university: { name: row.universityName, country: row.universityCountry, city: row.universityCity } },
+      course: {
+        id: row.courseId,
+        name: row.courseName,
+        slug: row.courseSlug,
+        subject: row.subject,
+        level: row.level,
+        duration: row.duration,
+        tuitionFee: row.tuitionFee,
+        currency: row.currency,
+        hasScholarship: row.hasScholarship,
+        university: {
+          name: row.universityName,
+          country: row.universityCountry,
+          city: row.universityCity,
+        },
+      },
     }))
-    const upcomingSessions = (sessionRows as any[]).map((row) => ({ ...row, counselor: { user: { name: row.counselorName } } }))
+    const upcomingSessions = (sessionRows as any[]).map((row) => ({
+      ...row,
+      counselor: { user: { name: row.counselorName } },
+    }))
 
     const documentsTotal = documents.length
-    const documentsUploaded = documents.filter((d: any) => d.status === 'VERIFIED' || d.status === 'UPLOADED').length
+    const documentsUploaded = documents.filter(
+      (d: any) => d.status === 'VERIFIED' || d.status === 'UPLOADED'
+    ).length
 
     // Application progress: average of step progress across applications
     let applicationProgress = profile?.completionPercent ?? 0
@@ -549,7 +633,12 @@ export const dashboardRouter = createTRPCRouter({
             uploadedAt: new Date(),
             rejectionReason: null,
           })
-          .where(and(eq(schema.studentDocuments.id, input.id), eq(schema.studentDocuments.studentId, studentId)))
+          .where(
+            and(
+              eq(schema.studentDocuments.id, input.id),
+              eq(schema.studentDocuments.studentId, studentId)
+            )
+          )
         return { success: true }
       }),
     remove: protectedProcedure
@@ -560,7 +649,12 @@ export const dashboardRouter = createTRPCRouter({
         if (!studentId) throw new Error('No student profile found')
         await ctx.db
           .delete(schema.studentDocuments)
-          .where(and(eq(schema.studentDocuments.id, input.id), eq(schema.studentDocuments.studentId, studentId)))
+          .where(
+            and(
+              eq(schema.studentDocuments.id, input.id),
+              eq(schema.studentDocuments.studentId, studentId)
+            )
+          )
         return { success: true }
       }),
   }),
@@ -571,21 +665,26 @@ export const dashboardRouter = createTRPCRouter({
       const user = await resolveStudent(ctx)
       const studentId = user?.studentProfile?.id
       if (!studentId) return []
-      const rows = await ctx.db.select({
-        id: schema.bookingSessions.id,
-        studentId: schema.bookingSessions.studentId,
-        counselorId: schema.bookingSessions.counselorId,
-        scheduledAt: schema.bookingSessions.scheduledAt,
-        duration: schema.bookingSessions.duration,
-        status: schema.bookingSessions.status,
-        meetingUrl: schema.bookingSessions.meetingUrl,
-        notes: schema.bookingSessions.notes,
-        createdAt: schema.bookingSessions.createdAt,
-        counselorName: schema.users.name,
-        counselorImage: schema.users.image,
-        counselorRating: schema.counselorProfiles.rating,
-      }).from(schema.bookingSessions)
-        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+      const rows = await ctx.db
+        .select({
+          id: schema.bookingSessions.id,
+          studentId: schema.bookingSessions.studentId,
+          counselorId: schema.bookingSessions.counselorId,
+          scheduledAt: schema.bookingSessions.scheduledAt,
+          duration: schema.bookingSessions.duration,
+          status: schema.bookingSessions.status,
+          meetingUrl: schema.bookingSessions.meetingUrl,
+          notes: schema.bookingSessions.notes,
+          createdAt: schema.bookingSessions.createdAt,
+          counselorName: schema.users.name,
+          counselorImage: schema.users.image,
+          counselorRating: schema.counselorProfiles.rating,
+        })
+        .from(schema.bookingSessions)
+        .leftJoin(
+          schema.counselorProfiles,
+          eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId)
+        )
         .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
         .where(eq(schema.bookingSessions.studentId, studentId))
         .orderBy(desc(schema.bookingSessions.scheduledAt))
@@ -599,18 +698,20 @@ export const dashboardRouter = createTRPCRouter({
       }))
     }),
     counselors: protectedProcedure.query(async ({ ctx }) => {
-      const rows = await ctx.db.select({
-        id: schema.counselorProfiles.id,
-        name: schema.users.name,
-        image: schema.users.image,
-        bio: schema.counselorProfiles.bio,
-        rating: schema.counselorProfiles.rating,
-        expertiseCountries: schema.counselorProfiles.expertiseCountries,
-        expertiseSubjects: schema.counselorProfiles.expertiseSubjects,
-        languages: schema.counselorProfiles.languages,
-        sessionRate: schema.counselorProfiles.sessionRate,
-        isAvailable: schema.counselorProfiles.isAvailable,
-      }).from(schema.counselorProfiles)
+      const rows = await ctx.db
+        .select({
+          id: schema.counselorProfiles.id,
+          name: schema.users.name,
+          image: schema.users.image,
+          bio: schema.counselorProfiles.bio,
+          rating: schema.counselorProfiles.rating,
+          expertiseCountries: schema.counselorProfiles.expertiseCountries,
+          expertiseSubjects: schema.counselorProfiles.expertiseSubjects,
+          languages: schema.counselorProfiles.languages,
+          sessionRate: schema.counselorProfiles.sessionRate,
+          isAvailable: schema.counselorProfiles.isAvailable,
+        })
+        .from(schema.counselorProfiles)
         .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
         .where(eq(schema.counselorProfiles.isAvailable, true))
       return rows.map((c: any) => ({
@@ -644,7 +745,14 @@ export const dashboardRouter = createTRPCRouter({
         .where(eq(schema.counselorProfiles.id, assignedId))
         .limit(1)
       return counselor
-        ? { id: counselor.id, name: counselor.name ?? 'Counselor', image: counselor.image, rating: counselor.rating, expertiseCountries: counselor.expertiseCountries, sessionRate: counselor.sessionRate }
+        ? {
+            id: counselor.id,
+            name: counselor.name ?? 'Counselor',
+            image: counselor.image,
+            rating: counselor.rating,
+            expertiseCountries: counselor.expertiseCountries,
+            sessionRate: counselor.sessionRate,
+          }
         : null
     }),
     book: protectedProcedure
@@ -697,18 +805,34 @@ export const dashboardRouter = createTRPCRouter({
         if (!studentId) throw new Error('No student profile found')
 
         const [session] = await ctx.db
-          .select({ id: schema.bookingSessions.id, counselorId: schema.bookingSessions.counselorId, status: schema.bookingSessions.status, duration: schema.bookingSessions.duration })
+          .select({
+            id: schema.bookingSessions.id,
+            counselorId: schema.bookingSessions.counselorId,
+            status: schema.bookingSessions.status,
+            duration: schema.bookingSessions.duration,
+          })
           .from(schema.bookingSessions)
-          .where(and(eq(schema.bookingSessions.id, input.id), eq(schema.bookingSessions.studentId, studentId)))
+          .where(
+            and(
+              eq(schema.bookingSessions.id, input.id),
+              eq(schema.bookingSessions.studentId, studentId)
+            )
+          )
           .limit(1)
         if (!session) throw new Error('Session not found')
-        if (session.status !== 'SCHEDULED') throw new Error('Only scheduled sessions can be rescheduled')
+        if (session.status !== 'SCHEDULED')
+          throw new Error('Only scheduled sessions can be rescheduled')
 
         const scheduledAt = normalizeScheduledAt(input.scheduledAt)
         assertFutureDate(scheduledAt)
         assertLeadTime(scheduledAt)
 
-        await assertNoConflict(ctx, { studentId, counselorId: session.counselorId, scheduledAt, duration: session.duration ?? 60 })
+        await assertNoConflict(ctx, {
+          studentId,
+          counselorId: session.counselorId,
+          scheduledAt,
+          duration: session.duration ?? 60,
+        })
 
         await ctx.db
           .update(schema.bookingSessions)
@@ -726,10 +850,16 @@ export const dashboardRouter = createTRPCRouter({
         const [session] = await ctx.db
           .select({ id: schema.bookingSessions.id, status: schema.bookingSessions.status })
           .from(schema.bookingSessions)
-          .where(and(eq(schema.bookingSessions.id, input.id), eq(schema.bookingSessions.studentId, studentId)))
+          .where(
+            and(
+              eq(schema.bookingSessions.id, input.id),
+              eq(schema.bookingSessions.studentId, studentId)
+            )
+          )
           .limit(1)
         if (!session) throw new Error('Session not found')
-        if (session.status !== 'SCHEDULED') throw new Error('Only scheduled sessions can be cancelled')
+        if (session.status !== 'SCHEDULED')
+          throw new Error('Only scheduled sessions can be cancelled')
 
         await ctx.db
           .update(schema.bookingSessions)
@@ -807,7 +937,10 @@ export const dashboardRouter = createTRPCRouter({
         .select({ c: sql<number>`count(*)` })
         .from(schema.notifications)
         .where(
-          and(eq(schema.notifications.userId, ctx.session.user.id), eq(schema.notifications.isRead, false))
+          and(
+            eq(schema.notifications.userId, ctx.session.user.id),
+            eq(schema.notifications.isRead, false)
+          )
         )
       return Number(r[0]?.c ?? 0)
     }),
@@ -817,7 +950,12 @@ export const dashboardRouter = createTRPCRouter({
         await ctx.db
           .update(schema.notifications)
           .set({ isRead: true })
-          .where(and(eq(schema.notifications.id, input.id), eq(schema.notifications.userId, ctx.session.user.id)))
+          .where(
+            and(
+              eq(schema.notifications.id, input.id),
+              eq(schema.notifications.userId, ctx.session.user.id)
+            )
+          )
         return { success: true }
       }),
     markAllRead: protectedProcedure.mutation(async ({ ctx }) => {
@@ -835,29 +973,60 @@ export const dashboardRouter = createTRPCRouter({
       const user = await resolveStudent(ctx)
       const studentId = user?.studentProfile?.id
       if (!studentId) return []
-      const rows = await ctx.db.select({
-        id: schema.shortlistedCourses.id,
-        studentId: schema.shortlistedCourses.studentId,
-        courseId: schema.shortlistedCourses.courseId,
-        notes: schema.shortlistedCourses.notes,
-        createdAt: schema.shortlistedCourses.createdAt,
-        courseName: schema.courses.name,
-        courseSlug: schema.courses.slug,
-        subject: schema.courses.subject,
-        level: schema.courses.level,
-        duration: schema.courses.duration,
-        tuitionFee: schema.courses.tuitionFee,
-        currency: schema.courses.currency,
-        hasScholarship: schema.courses.hasScholarship,
-        universityName: schema.universities.name,
-        universityCountry: schema.universities.country,
-        universityCity: schema.universities.city,
-      }).from(schema.shortlistedCourses)
+      const rows = await ctx.db
+        .select({
+          id: schema.shortlistedCourses.id,
+          studentId: schema.shortlistedCourses.studentId,
+          courseId: schema.shortlistedCourses.courseId,
+          notes: schema.shortlistedCourses.notes,
+          createdAt: schema.shortlistedCourses.createdAt,
+          courseName: schema.courses.name,
+          courseSlug: schema.courses.slug,
+          subject: schema.courses.subject,
+          level: schema.courses.level,
+          duration: schema.courses.duration,
+          tuitionFee: schema.courses.tuitionFee,
+          currency: schema.courses.currency,
+          hasScholarship: schema.courses.hasScholarship,
+          universityName: schema.universities.name,
+          universityCountry: schema.universities.country,
+          universityCity: schema.universities.city,
+        })
+        .from(schema.shortlistedCourses)
         .leftJoin(schema.courses, eq(schema.courses.id, schema.shortlistedCourses.courseId))
         .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
         .where(eq(schema.shortlistedCourses.studentId, studentId))
         .orderBy(desc(schema.shortlistedCourses.createdAt))
-      return rows.map((row: any) => ({ ...row, course: { id: row.courseId, name: row.courseName, slug: row.courseSlug, subject: row.subject, level: row.level, duration: row.duration, tuitionFee: row.tuitionFee, currency: row.currency, hasScholarship: row.hasScholarship, university: { name: row.universityName, country: row.universityCountry, city: row.universityCity } } }))
+      return rows.map((row: any) => ({
+        ...row,
+        course: {
+          id: row.courseId,
+          name: row.courseName,
+          slug: row.courseSlug,
+          subject: row.subject,
+          level: row.level,
+          duration: row.duration,
+          tuitionFee: row.tuitionFee,
+          currency: row.currency,
+          hasScholarship: row.hasScholarship,
+          university: {
+            name: row.universityName,
+            country: row.universityCountry,
+            city: row.universityCity,
+          },
+        },
+      }))
+    }),
+
+    ids: protectedProcedure.query(async ({ ctx }) => {
+      const user = await resolveStudent(ctx)
+      const studentId = user?.studentProfile?.id
+      if (!studentId) return []
+      const rows = await ctx.db
+        .select({ courseId: schema.shortlistedCourses.courseId })
+        .from(schema.shortlistedCourses)
+        .where(eq(schema.shortlistedCourses.studentId, studentId))
+      return rows.map((r) => r.courseId)
     }),
     add: protectedProcedure
       .input(z.object({ courseId: z.string().min(1), notes: z.string().max(500).optional() }))
@@ -885,7 +1054,12 @@ export const dashboardRouter = createTRPCRouter({
         if (!studentId) throw new Error('No student profile found')
         await ctx.db
           .delete(schema.shortlistedCourses)
-          .where(and(eq(schema.shortlistedCourses.studentId, studentId), eq(schema.shortlistedCourses.courseId, input.courseId)))
+          .where(
+            and(
+              eq(schema.shortlistedCourses.studentId, studentId),
+              eq(schema.shortlistedCourses.courseId, input.courseId)
+            )
+          )
         return { success: true }
       }),
   }),

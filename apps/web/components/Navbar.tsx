@@ -28,6 +28,7 @@ const navItems = [
   { label: 'Countries', href: '/universities', hasDropdown: true },
   { label: 'Courses', href: '/courses' },
   { label: 'Resources', href: '/blog' },
+  { label: 'Events', href: '/events' },
   { label: 'Contact', href: '/contact' },
 ] as const
 
@@ -167,7 +168,7 @@ export function Navbar() {
                   >
                     <button
                       onClick={() => setIsCountriesOpen(!isCountriesOpen)}
-                      className={`relative flex items-center gap-1 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
+                      className={`relative flex items-center gap-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
                         isCountriesActive ? 'text-[#C41E3A]' : 'text-gray-500 hover:text-gray-900'
                       }`}
                     >
@@ -235,8 +236,10 @@ export function Navbar() {
                   href={item.href}
                   prefetch={true}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex items-center gap-1 rounded-lg px-6 py-2.5 text-sm font-medium transition-colors ${
-                    isActive ? 'text-[#C41E3A]' : 'text-gray-500 hover:text-gray-900'
+                  className={`relative flex items-center gap-1 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'text-[#C41E3A]'
+                      : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
                   {item.label}

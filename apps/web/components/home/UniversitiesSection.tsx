@@ -251,7 +251,10 @@ export function UniversitiesSection() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50/60 py-20 lg:py-28">
+    <section
+      aria-labelledby="Partner-Institutions-title"
+      className="relative overflow-hidden bg-gradient-to-b from-gray-50 via-white to-gray-50/60 py-20 lg:py-28"
+    >
       {/* Custom Theme Color Scrollbar (#C41E3A) for Mobile/Tablet */}
       <style jsx global>{`
         .custom-horizontal-scroll::-webkit-scrollbar {
@@ -279,15 +282,16 @@ export function UniversitiesSection() {
           transition={{ duration: 0.8 }}
           className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between"
         >
-          <div className="max-w-2xl">
+          <div className="max-w-xl">
             <span className="mb-3 inline-block rounded-full bg-[#C41E3A]/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#C41E3A]">
               Partner Institutions
             </span>
-            <h2 className="text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl lg:text-5xl">
+
+            <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
               Universities we apply to <span className="text-[#C41E3A]">South Korea</span>
             </h2>
           </div>
-          <p className="max-w-md text-base leading-relaxed text-gray-600">
+          <p className="max-w-sm text-base leading-relaxed text-gray-600">
             We have direct partnerships with leading universities across all program levels.
           </p>
         </motion.div>
@@ -436,7 +440,6 @@ export function UniversitiesSection() {
           className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-gray-200/80 pt-6 text-sm text-gray-500 sm:flex-row"
         >
           <p className="flex items-center gap-2">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-[#C41E3A]" />
             Click any university logo to view details or visit official website
           </p>
           <Link

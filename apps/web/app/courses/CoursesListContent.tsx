@@ -17,6 +17,7 @@ import {
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FaBookOpen } from 'react-icons/fa6'
+import { toast } from 'sonner'
 
 import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import { Footer } from '@/components/layout/Footer'
@@ -131,6 +132,24 @@ export default function CoursesListContent({
   const router = useRouter()
   const [favorites, setFavorites] = useState<Record<string, boolean>>({})
 
+  const { data: shortlistedIds } = trpc.dashboard.shortlist.ids.useQuery(undefined, {
+    enabled: !!session,
+  })
+
+  const addShortlist = trpc.dashboard.shortlist.add.useMutation()
+  const removeShortlist = trpc.dashboard.shortlist.remove.useMutation()
+  const utils = trpc.useUtils()
+
+  useEffect(() => {
+    if (shortlistedIds) {
+      const map: Record<string, boolean> = {}
+      shortlistedIds.forEach((id: string) => {
+        map[id] = true
+      })
+      setFavorites(map)
+    }
+  }, [shortlistedIds])
+
   const resultsRef = useRef<HTMLDivElement>(null)
   const prevPageRef = useRef(page)
   const filtersRef = useRef(filters)
@@ -147,7 +166,6 @@ export default function CoursesListContent({
     return () => clearTimeout(t)
   }, [search])
 
-  // Sync URL and reset page when debounced search changes (after debounce)
   const prevDebouncedRef = useRef(debouncedSearch)
   useEffect(() => {
     if (prevDebouncedRef.current !== debouncedSearch) {
@@ -197,7 +215,6 @@ export default function CoursesListContent({
   )
 
   const { data: filterOptions } = trpc.course.getFilterOptions.useQuery(undefined)
-
   const { data: popularSearches } = trpc.course.getPopularSearches.useQuery(undefined)
 
   const syncUrl = useCallback(
@@ -253,13 +270,6 @@ export default function CoursesListContent({
     },
     [syncUrl, filters]
   )
-
-  const resetPage = useCallback(() => {
-    if (page !== 1) {
-      setPage(1)
-      syncUrl(1, filters, sort)
-    }
-  }, [page, syncUrl, filters, sort])
 
   useEffect(() => {
     if (prevPageRef.current !== page) {
@@ -348,21 +358,40 @@ export default function CoursesListContent({
     return chips
   }, [filters, filterOptions, updateFilters])
 
-  const handleToggleFavorite = (e: React.MouseEvent, courseId: string) => {
-    e.preventDefault() // Link-e click hoye page redirect hoba theke rokhar jonno
+  const handleToggleFavorite = async (e: React.MouseEvent, courseId: string) => {
+    e.preventDefault()
     e.stopPropagation()
 
-    // Jodi user login kora na thake, tahole login page-e redirect kore din
     if (!session) {
       router.push('/login')
       return
     }
 
-    // Login thakle toggle hobe (ekhane apnar tRPC mutation ba API call thakbe)
+    const isCurrentlyFav = favorites[courseId]
+
+    // Optimistic UI update
     setFavorites((prev) => ({
       ...prev,
-      [courseId]: !prev[courseId],
+      [courseId]: !isCurrentlyFav,
     }))
+
+    try {
+      if (isCurrentlyFav) {
+        await removeShortlist.mutateAsync({ courseId })
+        toast.success('Removed from shortlist')
+      } else {
+        await addShortlist.mutateAsync({ courseId })
+        toast.success('Saved to shortlist')
+      }
+      await utils.dashboard.shortlist.list.invalidate()
+    } catch (error: unknown) {
+      // Revert state if error occurs
+      setFavorites((prev) => ({
+        ...prev,
+        [courseId]: isCurrentlyFav,
+      }))
+      toast.error(error instanceof Error ? error.message : 'Could not update shortlist')
+    }
   }
 
   return (
@@ -784,133 +813,136 @@ export default function CoursesListContent({
                         const hasTuition = tuition.display !== null
                         return (
                           <FadeUpItem key={course.id} className="flex">
-                            <Link
-                              href={courseUrl}
-                              aria-label={`View ${course.name} at ${course.universityName}`}
-                              className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-[0_20px_40px_-18px_rgba(17,24,39,0.22)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
-                            >
-                              {/* Header: logo + university + location */}
-                              <div className="flex items-start gap-3.5 p-5 pb-3">
-                                {course.universityLogo ? (
-                                  <img
-                                    src={course.universityLogo}
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2 shadow-[0_1px_3px_rgba(17,24,39,0.06)]"
-                                    loading="lazy"
-                                  />
-                                ) : (
-                                  <div
-                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400"
-                                    aria-hidden="true"
-                                  >
-                                    <GraduationCap size={20} />
-                                  </div>
-                                )}
-                                {/* Heart Icon */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => handleToggleFavorite(e, course.id)}
-                                  aria-label="Save to shortlist"
-                                  className="absolute right-4 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur transition-colors hover:text-[#C41E3A]"
-                                >
-                                  <Heart
-                                    size={18}
-                                    className={
-                                      favorites[course.id]
-                                        ? 'fill-[#C41E3A] text-[#C41E3A]'
-                                        : 'text-gray-400'
-                                    }
-                                  />
-                                </button>
-                                <div className="min-w-0 flex-1 pt-0.5">
-                                  <p className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-gray-700">
-                                    {course.universityName || 'University'}
-                                  </p>
-                                  <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-5 text-gray-500">
-                                    <MapPin
-                                      size={13}
-                                      className="shrink-0 text-gray-400"
+                            <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-[0_20px_40px_-18px_rgba(17,24,39,0.22)]">
+                              {/* Heart Icon Button */}
+                              <button
+                                type="button"
+                                onClick={(e) => handleToggleFavorite(e, course.id)}
+                                aria-label="Save to shortlist"
+                                className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur transition-colors hover:text-[#C41E3A]"
+                              >
+                                <Heart
+                                  size={18}
+                                  className={
+                                    favorites[course.id]
+                                      ? 'fill-[#C41E3A] text-[#C41E3A]'
+                                      : 'text-gray-400'
+                                  }
+                                />
+                              </button>
+
+                              <Link
+                                href={courseUrl}
+                                aria-label={`View ${course.name} at ${course.universityName}`}
+                                className="flex h-full w-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
+                              >
+                                {/* Header: logo + university + location */}
+                                <div className="flex items-start gap-3.5 p-5 pb-3 pr-14">
+                                  {course.universityLogo ? (
+                                    <img
+                                      src={course.universityLogo}
+                                      alt=""
                                       aria-hidden="true"
+                                      className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2 shadow-[0_1px_3px_rgba(17,24,39,0.06)]"
+                                      loading="lazy"
                                     />
-                                    <span className="truncate">
-                                      {course.universityCity ? `${course.universityCity}, ` : ''}
-                                      {course.universityCountry || 'International'}
-                                    </span>
-                                  </p>
-                                  <span className="mt-2.5 inline-flex rounded-md border border-[#B8934A]/25 bg-[#B8934A]/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A6034]">
-                                    {levelLabels[course.level] ?? course.level}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Body */}
-                              <div className="flex flex-1 flex-col p-5 pt-0">
-                                <h3 className="line-clamp-2 min-h-[3.4rem] break-words text-[17px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
-                                  {course.name}
-                                </h3>
-
-                                <div className="mt-3 flex flex-wrap gap-2">
-                                  {course.duration ? (
-                                    <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
-                                      <Clock size={13} aria-hidden="true" />
-                                      {course.duration}{' '}
-                                      {course.durationUnit?.toLowerCase() || 'year'}
-                                    </span>
-                                  ) : null}
-                                  {course.language && (
-                                    <span className="inline-flex items-center rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
-                                      {course.language}
-                                    </span>
+                                  ) : (
+                                    <div
+                                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400"
+                                      aria-hidden="true"
+                                    >
+                                      <GraduationCap size={20} />
+                                    </div>
                                   )}
+                                  <div className="min-w-0 flex-1 pt-0.5">
+                                    <p className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-gray-700">
+                                      {course.universityName || 'University'}
+                                    </p>
+                                    <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-5 text-gray-500">
+                                      <MapPin
+                                        size={13}
+                                        className="shrink-0 text-gray-400"
+                                        aria-hidden="true"
+                                      />
+                                      <span className="truncate">
+                                        {course.universityCity ? `${course.universityCity}, ` : ''}
+                                        {course.universityCountry || 'International'}
+                                      </span>
+                                    </p>
+                                    <span className="mt-2.5 inline-flex rounded-md border border-[#B8934A]/25 bg-[#B8934A]/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A6034]">
+                                      {levelLabels[course.level] ?? course.level}
+                                    </span>
+                                  </div>
                                 </div>
 
-                                <div className="mt-auto pt-5">
-                                  <div className="border-t border-gray-100 pt-4">
-                                    <div className="flex items-end justify-between gap-3">
-                                      <div className="min-w-0">
-                                        <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">
-                                          Annual tuition
-                                        </p>
-                                        {hasTuition ? (
-                                          <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
-                                            <span className="text-[19px] font-bold leading-none tracking-tight text-gray-900">
-                                              {tuition.display}
-                                            </span>
-                                            {tuition.code && (
-                                              <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-500">
-                                                {tuition.code}
+                                {/* Body */}
+                                <div className="flex flex-1 flex-col p-5 pt-0">
+                                  <h3 className="line-clamp-2 min-h-[3.4rem] break-words text-[17px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
+                                    {course.name}
+                                  </h3>
+
+                                  <div className="mt-3 flex flex-wrap gap-2">
+                                    {course.duration ? (
+                                      <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
+                                        <Clock size={13} aria-hidden="true" />
+                                        {course.duration}{' '}
+                                        {course.durationUnit?.toLowerCase() || 'year'}
+                                      </span>
+                                    ) : null}
+                                    {course.language && (
+                                      <span className="inline-flex items-center rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
+                                        {course.language}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="mt-auto pt-5">
+                                    <div className="border-t border-gray-100 pt-4">
+                                      <div className="flex items-end justify-between gap-3">
+                                        <div className="min-w-0">
+                                          <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">
+                                            Annual tuition
+                                          </p>
+                                          {hasTuition ? (
+                                            <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
+                                              <span className="text-[19px] font-bold leading-none tracking-tight text-gray-900">
+                                                {tuition.display}
                                               </span>
-                                            )}
-                                          </p>
-                                        ) : (
-                                          <p className="mt-1.5 text-base font-medium text-gray-500">
-                                            Contact university
-                                          </p>
+                                              {tuition.code && (
+                                                <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-500">
+                                                  {tuition.code}
+                                                </span>
+                                              )}
+                                            </p>
+                                          ) : (
+                                            <p className="mt-1.5 text-base font-medium text-gray-500">
+                                              Contact university
+                                            </p>
+                                          )}
+                                        </div>
+                                        {course.hasScholarship && (
+                                          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-700">
+                                            <Award size={13} aria-hidden="true" />
+                                            Scholarship
+                                          </span>
                                         )}
                                       </div>
-                                      {course.hasScholarship && (
-                                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-700">
-                                          <Award size={13} aria-hidden="true" />
-                                          Scholarship
-                                        </span>
-                                      )}
+                                    </div>
+
+                                    <div className="mt-4">
+                                      <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#C41E3A]/20 bg-[#C41E3A]/[0.05] py-3 text-[15px] font-semibold text-[#C41E3A] transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
+                                        View Details
+                                        <ArrowRight
+                                          size={16}
+                                          aria-hidden="true"
+                                          className="transition-transform group-hover:translate-x-0.5"
+                                        />
+                                      </span>
                                     </div>
                                   </div>
-
-                                  <div className="mt-4">
-                                    <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#C41E3A]/20 bg-[#C41E3A]/[0.05] py-3 text-[15px] font-semibold text-[#C41E3A] transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
-                                      View Details
-                                      <ArrowRight
-                                        size={16}
-                                        aria-hidden="true"
-                                        className="transition-transform group-hover:translate-x-0.5"
-                                      />
-                                    </span>
-                                  </div>
                                 </div>
-                              </div>
-                            </Link>
+                              </Link>
+                            </div>
                           </FadeUpItem>
                         )
                       })}
