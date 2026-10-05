@@ -347,7 +347,7 @@ export function UniversitiesSection() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.3 }}
-          className="custom-horizontal-scroll mt-8 grid grid-flow-col grid-rows-2 gap-5 overflow-x-auto pb-4 pt-1 lg:grid-flow-row lg:grid-cols-5 lg:overflow-visible"
+          className="custom-horizontal-scroll mt-8 grid grid-flow-col grid-rows-2 gap-5 overflow-x-auto pb-4 pt-4 lg:grid-flow-row lg:grid-cols-5 lg:overflow-visible"
         >
           {currentList.map((uni) => {
             const cardContent = (
