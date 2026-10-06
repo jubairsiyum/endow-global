@@ -1,6 +1,14 @@
-import { createTRPCRouter, counselorProcedure } from '@/lib/trpc'
+import { counselorProcedure, createTRPCRouter } from '@/lib/trpc'
 import { schema } from '@endow/db'
-import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql } from 'drizzle-orm'
+import {
+  and as _and,
+  count as _count,
+  desc as _desc,
+  eq as _eq,
+  like as _like,
+  or as _or,
+  sql as _sql,
+} from 'drizzle-orm'
 import { alias } from 'drizzle-orm/mysql-core'
 import { z } from 'zod'
 
@@ -32,7 +40,11 @@ function parseArrayField(value: unknown): string[] {
 
 async function resolveCounselorProfile(ctx: any) {
   const userId = ctx.session.user.id
-  const [profile] = await ctx.db.select().from(schema.counselorProfiles).where(eq(schema.counselorProfiles.userId, userId)).limit(1)
+  const [profile] = await ctx.db
+    .select()
+    .from(schema.counselorProfiles)
+    .where(eq(schema.counselorProfiles.userId, userId))
+    .limit(1)
   return profile ?? null
 }
 
@@ -40,12 +52,33 @@ export const counselorRouter = createTRPCRouter({
   // ── Dashboard stats ────────────────────────────────────────────
   getDashboardStats: counselorProcedure.query(async ({ ctx }) => {
     const profile = await resolveCounselorProfile(ctx)
-    if (!profile) return { students: 0, applications: 0, sessions: 0, sessionsWeek: 0, avgRating: null, recentStudents: [], upcomingSessions: [], applicationsByStatus: [] }
+    if (!profile)
+      return {
+        students: 0,
+        applications: 0,
+        sessions: 0,
+        sessionsWeek: 0,
+        avgRating: null,
+        recentStudents: [],
+        upcomingSessions: [],
+        applicationsByStatus: [],
+      }
 
     const studentUser = alias(schema.users as any, 'student_user')
 
-    const [studentCount, appRows, sessionCount, weekSessions, ratingRow, recentStudents, upcomingSessions] = await Promise.all([
-      ctx.db.select({ value: count() as any }).from(schema.studentProfiles).where(eq(schema.studentProfiles.assignedCounselorId, profile.id)),
+    const [
+      studentCount,
+      appRows,
+      sessionCount,
+      weekSessions,
+      ratingRow,
+      recentStudents,
+      upcomingSessions,
+    ] = await Promise.all([
+      ctx.db
+        .select({ value: count() as any })
+        .from(schema.studentProfiles)
+        .where(eq(schema.studentProfiles.assignedCounselorId, profile.id)),
       ctx.db
         .select({ status: schema.applications.status, count: count() as any })
         .from(schema.applications)
@@ -53,11 +86,19 @@ export const counselorRouter = createTRPCRouter({
         .groupBy(schema.applications.status)
         .then((r: any[]) => r)
         .catch(() => []),
-      ctx.db.select({ value: count() as any }).from(schema.bookingSessions).where(eq(schema.bookingSessions.counselorId, profile.id)),
       ctx.db
         .select({ value: count() as any })
         .from(schema.bookingSessions)
-        .where(and(eq(schema.bookingSessions.counselorId, profile.id), sql`${schema.bookingSessions.scheduledAt} >= NOW() AND ${schema.bookingSessions.scheduledAt} < DATE_ADD(NOW(), INTERVAL 7 DAY)` as any))
+        .where(eq(schema.bookingSessions.counselorId, profile.id)),
+      ctx.db
+        .select({ value: count() as any })
+        .from(schema.bookingSessions)
+        .where(
+          and(
+            eq(schema.bookingSessions.counselorId, profile.id),
+            sql`${schema.bookingSessions.scheduledAt} >= NOW() AND ${schema.bookingSessions.scheduledAt} < DATE_ADD(NOW(), INTERVAL 7 DAY)` as any
+          )
+        )
         .then((r: any) => Number(r[0]?.value ?? 0))
         .catch(() => 0),
       Promise.resolve(profile.rating),
@@ -85,16 +126,27 @@ export const counselorRouter = createTRPCRouter({
           studentName: studentUser.name,
         })
         .from(schema.bookingSessions)
-        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.bookingSessions.studentId))
+        .leftJoin(
+          schema.studentProfiles,
+          eq(schema.studentProfiles.id, schema.bookingSessions.studentId)
+        )
         .leftJoin(studentUser as any, eq((studentUser as any).id, schema.studentProfiles.userId))
-        .where(and(eq(schema.bookingSessions.counselorId, profile.id), eq(schema.bookingSessions.status, 'SCHEDULED')))
+        .where(
+          and(
+            eq(schema.bookingSessions.counselorId, profile.id),
+            eq(schema.bookingSessions.status, 'SCHEDULED')
+          )
+        )
         .orderBy(schema.bookingSessions.scheduledAt)
         .limit(5),
     ])
 
     return {
       students: Number(studentCount[0]?.value ?? 0),
-      applications: (appRows as any[]).reduce((acc: number, r: any) => acc + Number(r.count ?? 0), 0),
+      applications: (appRows as any[]).reduce(
+        (acc: number, r: any) => acc + Number(r.count ?? 0),
+        0
+      ),
       applicationsByStatus: appRows,
       sessions: Number(sessionCount[0]?.value ?? 0),
       sessionsWeek: Number(weekSessions ?? 0),
@@ -118,7 +170,15 @@ export const counselorRouter = createTRPCRouter({
   }),
 
   getAssignedStudents: counselorProcedure
-    .input(z.object({ search: z.string().optional(), limit: z.number().min(1).max(100).default(20), cursor: z.string().nullish() }).optional())
+    .input(
+      z
+        .object({
+          search: z.string().optional(),
+          limit: z.number().min(1).max(100).default(20),
+          cursor: z.string().nullish(),
+        })
+        .optional()
+    )
     .query(async ({ ctx, input }) => {
       const profile = await resolveCounselorProfile(ctx)
       if (!profile) return { items: [], nextCursor: undefined }
@@ -126,7 +186,10 @@ export const counselorRouter = createTRPCRouter({
       const limit = input?.limit ?? 20
       const cursor = input?.cursor
       const conditions: any[] = [eq(schema.studentProfiles.assignedCounselorId, profile.id)]
-      if (search) conditions.push(or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`)))
+      if (search)
+        conditions.push(
+          or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`))
+        )
       if (cursor) conditions.push(sql`${schema.users.id} < ${cursor}` as any)
 
       const studentUser = alias(schema.users as any, 'student_user')
@@ -171,7 +234,16 @@ export const counselorRouter = createTRPCRouter({
     }),
 
   getApplications: counselorProcedure
-    .input(z.object({ search: z.string().optional(), status: z.string().optional(), limit: z.number().min(1).max(100).default(20), cursor: z.string().nullish() }).optional())
+    .input(
+      z
+        .object({
+          search: z.string().optional(),
+          status: z.string().optional(),
+          limit: z.number().min(1).max(100).default(20),
+          cursor: z.string().nullish(),
+        })
+        .optional()
+    )
     .query(async ({ ctx, input }) => {
       const profile = await resolveCounselorProfile(ctx)
       if (!profile) return { items: [], nextCursor: undefined }
@@ -193,7 +265,10 @@ export const counselorRouter = createTRPCRouter({
           studentName: studentUser.name,
         } as any)
         .from(schema.applications)
-        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
+        .leftJoin(
+          schema.studentProfiles,
+          eq(schema.studentProfiles.id, schema.applications.studentId)
+        )
         .leftJoin(studentUser as any, eq((studentUser as any).id, schema.studentProfiles.userId))
         .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
         .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
@@ -210,13 +285,25 @@ export const counselorRouter = createTRPCRouter({
       // Simple client-side search on course/student name
       if (input?.search) {
         const s = input.search.toLowerCase()
-        items = items.filter((a: any) => (a.courseName?.toLowerCase().includes(s) || a.studentName?.toLowerCase().includes(s) || a.universityName?.toLowerCase().includes(s)))
+        items = items.filter(
+          (a: any) =>
+            a.courseName?.toLowerCase().includes(s) ||
+            a.studentName?.toLowerCase().includes(s) ||
+            a.universityName?.toLowerCase().includes(s)
+        )
       }
       return { items, nextCursor }
     }),
 
   getSessions: counselorProcedure
-    .input(z.object({ status: z.enum(['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']).optional(), limit: z.number().min(1).max(100).default(20) }).optional())
+    .input(
+      z
+        .object({
+          status: z.enum(['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW']).optional(),
+          limit: z.number().min(1).max(100).default(20),
+        })
+        .optional()
+    )
     .query(async ({ ctx, input }) => {
       const profile = await resolveCounselorProfile(ctx)
       if (!profile) return []
@@ -236,7 +323,10 @@ export const counselorRouter = createTRPCRouter({
           studentEmail: studentUser.email,
         })
         .from(schema.bookingSessions)
-        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.bookingSessions.studentId))
+        .leftJoin(
+          schema.studentProfiles,
+          eq(schema.studentProfiles.id, schema.bookingSessions.studentId)
+        )
         .leftJoin(studentUser as any, eq((studentUser as any).id, schema.studentProfiles.userId))
         .where(and(...conditions))
         .orderBy(desc(schema.bookingSessions.scheduledAt))
@@ -247,10 +337,32 @@ export const counselorRouter = createTRPCRouter({
   getProfile: counselorProcedure.query(async ({ ctx }) => {
     const profile = await resolveCounselorProfile(ctx)
     if (!profile) return null
-    const [user] = await ctx.db.select({ name: schema.users.name, email: schema.users.email, image: schema.users.image }).from(schema.users).where(eq(schema.users.id, ctx.session.user.id)).limit(1)
-    return { ...profile, user, _raw: profile }
-  }),
 
+    const [user] = await ctx.db
+      .select({ name: schema.users.name, email: schema.users.email, image: schema.users.image })
+      .from(schema.users)
+      .where(eq(schema.users.id, ctx.session.user.id))
+      .limit(1)
+
+    const parseJsonArray = (val: any) => {
+      if (!val) return []
+      if (Array.isArray(val)) return val
+      try {
+        return JSON.parse(val)
+      } catch {
+        return []
+      }
+    }
+
+    return {
+      ...profile,
+      expertiseCountries: parseJsonArray(profile.expertiseCountries),
+      expertiseSubjects: parseJsonArray(profile.expertiseSubjects),
+      languages: parseJsonArray(profile.languages),
+      user,
+      _raw: profile,
+    }
+  }),
   updateProfile: counselorProcedure
     .input(
       z.object({
@@ -304,15 +416,20 @@ export const counselorRouter = createTRPCRouter({
       } else {
         const updates: Record<string, unknown> = {}
         if (input.bio !== undefined) updates.bio = input.bio
-        if (input.expertiseCountries !== undefined) updates.expertiseCountries = JSON.stringify(input.expertiseCountries)
-        if (input.expertiseSubjects !== undefined) updates.expertiseSubjects = JSON.stringify(input.expertiseSubjects)
+        if (input.expertiseCountries !== undefined)
+          updates.expertiseCountries = JSON.stringify(input.expertiseCountries)
+        if (input.expertiseSubjects !== undefined)
+          updates.expertiseSubjects = JSON.stringify(input.expertiseSubjects)
         if (input.languages !== undefined) updates.languages = JSON.stringify(input.languages)
         if (input.calUsername !== undefined) updates.calUsername = input.calUsername
         if (input.sessionRate !== undefined) updates.sessionRate = input.sessionRate
         if (input.isAvailable !== undefined) updates.isAvailable = input.isAvailable
 
         if (Object.keys(updates).length > 0) {
-          await ctx.db.update(schema.counselorProfiles).set(updates as any).where(eq(schema.counselorProfiles.id, profile.id))
+          await ctx.db
+            .update(schema.counselorProfiles)
+            .set(updates as any)
+            .where(eq(schema.counselorProfiles.id, profile.id))
         }
       }
 

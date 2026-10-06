@@ -1,35 +1,32 @@
 'use client'
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { toast } from 'sonner'
 import {
   Bell,
+  Briefcase,
+  CalendarClock,
   Camera,
   Check,
-  CheckCircle2,
-  ChevronDown,
+  DollarSign,
   Eye,
   EyeOff,
+  Globe,
   KeyRound,
   LockKeyhole,
   Mail,
-  UserRound,
-  Briefcase,
-  Globe,
-  Languages,
-  DollarSign,
-  CalendarClock,
   ShieldCheck,
+  UserRound,
   X,
 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
-import { trpc } from '@/lib/trpc-client'
-import { authClient, useSession } from '@/lib/auth-client'
 import { DashboardError, DashboardLoading } from '@/components/dashboard/DashboardState'
 import { studentPanel } from '@/components/dashboard/StudentPageHeader'
 import { btnPrimary, btnSecondary, input } from '@/components/dashboard/ui'
-import { cn, asStringArray } from '@/lib/utils'
+import { authClient, useSession } from '@/lib/auth-client'
+import { trpc } from '@/lib/trpc-client'
+import { asStringArray, cn } from '@/lib/utils'
 
 type Tab = 'profile' | 'expertise' | 'availability' | 'security'
 type SaveState = 'idle' | 'saving' | 'success'
@@ -68,23 +65,67 @@ const SUBJECTS = [
   'Biology',
 ]
 
-const LANGUAGES = ['English', 'Bengali', 'Hindi', 'Arabic', 'Vietnamese', 'Korean', 'Japanese', 'French', 'German', 'Spanish', 'Urdu']
+const LANGUAGES = [
+  'English',
+  'Bengali',
+  'Hindi',
+  'Arabic',
+  'Vietnamese',
+  'Korean',
+  'Japanese',
+  'French',
+  'German',
+  'Spanish',
+  'Urdu',
+]
 
-function ProfileRing({ progress, image, initials }: { progress: number; image?: string | null; initials?: string }) {
+function ProfileRing({
+  progress,
+  image,
+  initials,
+}: {
+  progress: number
+  image?: string | null
+  initials?: string
+}) {
   const radius = 37
   const circumference = 2 * Math.PI * radius
   const offset = circumference - (Math.min(progress, 100) / 100) * circumference
   return (
-    <div className="relative h-24 w-24 shrink-0" aria-label={`${progress}% profile complete`} role="img">
+    <div
+      className="relative h-24 w-24 shrink-0"
+      aria-label={`${progress}% profile complete`}
+      role="img"
+    >
       <svg className="h-full w-full -rotate-90" viewBox="0 0 88 88" aria-hidden="true">
-        <circle cx="44" cy="44" r={radius} fill="none" strokeWidth="7" className="stroke-gray-100" />
-        <circle cx="44" cy="44" r={radius} fill="none" strokeWidth="7" strokeLinecap="round" stroke="#E8A33D" strokeDasharray={circumference} strokeDashoffset={offset} className="transition-[stroke-dashoffset] duration-700 ease-out" />
+        <circle
+          cx="44"
+          cy="44"
+          r={radius}
+          fill="none"
+          strokeWidth="7"
+          className="stroke-gray-100"
+        />
+        <circle
+          cx="44"
+          cy="44"
+          r={radius}
+          fill="none"
+          strokeWidth="7"
+          strokeLinecap="round"
+          stroke="#E8A33D"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-[stroke-dashoffset] duration-700 ease-out"
+        />
       </svg>
       <div className="absolute inset-[6px] overflow-hidden rounded-full">
         {image ? (
           <img src={image} alt="" className="h-full w-full object-cover" />
         ) : (
-          <span className="flex h-full w-full items-center justify-center bg-gray-50 text-lg font-bold text-gray-900">{initials || `${progress}%`}</span>
+          <span className="flex h-full w-full items-center justify-center bg-gray-50 text-lg font-bold text-gray-900">
+            {initials || `${progress}%`}
+          </span>
         )}
       </div>
     </div>
@@ -92,10 +133,22 @@ function ProfileRing({ progress, image, initials }: { progress: number; image?: 
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
-  return <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">{children}</span>
+  return (
+    <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">
+      {children}
+    </span>
+  )
 }
 
-function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
+function Field({
+  label,
+  hint,
+  children,
+}: {
+  label: string
+  hint?: string
+  children: React.ReactNode
+}) {
   return (
     <div className="space-y-2">
       <SectionLabel>{label}</SectionLabel>
@@ -105,7 +158,17 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
   )
 }
 
-function Chip({ label, selected, onToggle, disabled }: { label: string; selected: boolean; onToggle: () => void; disabled?: boolean }) {
+function Chip({
+  label,
+  selected,
+  onToggle,
+  disabled,
+}: {
+  label: string
+  selected: boolean
+  onToggle: () => void
+  disabled?: boolean
+}) {
   return (
     <button
       type="button"
@@ -114,7 +177,9 @@ function Chip({ label, selected, onToggle, disabled }: { label: string; selected
       onClick={onToggle}
       className={cn(
         'inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition',
-        selected ? 'border-amber-500 bg-amber-50 text-amber-800' : 'border-gray-200 bg-white text-gray-600 hover:border-amber-300 hover:bg-amber-50',
+        selected
+          ? 'border-amber-500 bg-amber-50 text-amber-800'
+          : 'border-gray-200 bg-white text-gray-600 hover:border-amber-300 hover:bg-amber-50',
         disabled && 'cursor-not-allowed opacity-50'
       )}
     >
@@ -141,7 +206,11 @@ function CounselorSettingsContent() {
   const utils = trpc.useUtils()
 
   const tabParam = searchParams.get('tab') as Tab | null
-  const [activeTab, setActiveTab] = useState<Tab>(() => (tabParam && ['profile', 'expertise', 'availability', 'security'].includes(tabParam) ? (tabParam as Tab) : 'profile'))
+  const [activeTab, setActiveTab] = useState<Tab>(() =>
+    tabParam && ['profile', 'expertise', 'availability', 'security'].includes(tabParam)
+      ? (tabParam as Tab)
+      : 'profile'
+  )
 
   const selectTab = useCallback((tab: Tab) => {
     setActiveTab(tab)
@@ -149,7 +218,11 @@ function CounselorSettingsContent() {
     if (tab === 'profile') params.delete('tab')
     else params.set('tab', tab)
     const qs = params.toString()
-    window.history.replaceState(window.history.state, '', `/counselor/settings${qs ? `?${qs}` : ''}`)
+    window.history.replaceState(
+      window.history.state,
+      '',
+      `/counselor/settings${qs ? `?${qs}` : ''}`
+    )
   }, [])
 
   // Form state
@@ -175,16 +248,29 @@ function CounselorSettingsContent() {
   // Populate from profile
   useEffect(() => {
     if (profileData) {
+      console.log(profileData)
       const user: any = (profileData as any).user || {}
       const p: any = profileData as any
+
       setName(user.name || session?.user?.name || '')
       setEmail(user.email || session?.user?.email || '')
       setImage(user.image || (session?.user as any)?.image || null)
       setImagePreview(user.image || (session?.user as any)?.image || null)
       setBio(p.bio || '')
-      setExpertiseCountries(asStringArray(p.expertiseCountries))
-      setExpertiseSubjects(asStringArray(p.expertiseSubjects))
-      setLanguages(asStringArray(p.languages).length ? asStringArray(p.languages) : ['English'])
+
+      setExpertiseCountries(
+        Array.isArray(p.expertiseCountries)
+          ? p.expertiseCountries
+          : asStringArray(p.expertiseCountries)
+      )
+      setExpertiseSubjects(
+        Array.isArray(p.expertiseSubjects)
+          ? p.expertiseSubjects
+          : asStringArray(p.expertiseSubjects)
+      )
+
+      setLanguages(Array.isArray(p.languages) && p.languages.length ? p.languages : ['English'])
+
       setCalUsername(p.calUsername || '')
       setSessionRate(p.sessionRate != null ? String(p.sessionRate) : '')
       setIsAvailable(p.isAvailable ?? true)
@@ -192,11 +278,32 @@ function CounselorSettingsContent() {
   }, [profileData, session])
 
   const userName = name || session?.user?.name || 'Counselor'
-  const userInitials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+  const userInitials = userName
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
   const completion = useMemo(() => {
-    const filled = [name.trim(), email.trim(), bio.trim(), expertiseCountries.length, expertiseSubjects.length, languages.length, image].filter(Boolean).length
+    const filled = [
+      name.trim(),
+      email.trim(),
+      bio.trim(),
+      expertiseCountries.length,
+      expertiseSubjects.length,
+      languages.length,
+      image,
+    ].filter(Boolean).length
     return Math.round((filled / 7) * 100)
-  }, [name, email, bio, expertiseCountries.length, expertiseSubjects.length, languages.length, image])
+  }, [
+    name,
+    email,
+    bio,
+    expertiseCountries.length,
+    expertiseSubjects.length,
+    languages.length,
+    image,
+  ])
 
   async function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -317,8 +424,18 @@ function CounselorSettingsContent() {
     }
   }
 
-  function toggleArray(setter: React.Dispatch<React.SetStateAction<string[]>>, value: string, max = 10) {
-    setter((cur) => (cur.includes(value) ? cur.filter((v) => v !== value) : cur.length < max ? [...cur, value] : cur))
+  function toggleArray(
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    value: string,
+    max = 10
+  ) {
+    setter((cur) =>
+      cur.includes(value)
+        ? cur.filter((v) => v !== value)
+        : cur.length < max
+          ? [...cur, value]
+          : cur
+    )
   }
 
   if (isLoading) return <DashboardLoading rows={5} className="mx-auto max-w-[1200px]" />
@@ -328,9 +445,15 @@ function CounselorSettingsContent() {
     <div className="mx-auto max-w-[1200px] space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">Counselor settings</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-[28px]">Settings</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage your profile, expertise and availability.</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-gray-500">
+            Counselor settings
+          </p>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight text-gray-900 sm:text-[28px]">
+            Settings
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Manage your profile, expertise and availability.
+          </p>
         </div>
         <button
           type="button"
@@ -342,8 +465,16 @@ function CounselorSettingsContent() {
           disabled={saveState === 'saving'}
           className={cn(btnPrimary, 'min-w-[140px]')}
         >
-          {saveState === 'saving' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : saveState === 'success' ? <Check size={17} /> : null}
-          {saveState === 'saving' ? 'Saving...' : saveState === 'success' ? 'Saved' : 'Save changes'}
+          {saveState === 'saving' ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          ) : saveState === 'success' ? (
+            <Check size={17} />
+          ) : null}
+          {saveState === 'saving'
+            ? 'Saving...'
+            : saveState === 'success'
+              ? 'Saved'
+              : 'Save changes'}
         </button>
       </div>
 
@@ -356,10 +487,22 @@ function CounselorSettingsContent() {
                 <ProfileRing progress={completion} image={imagePreview} initials={userInitials} />
                 <label className="absolute -bottom-0.5 -right-0.5 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 border-white bg-amber-500 text-white shadow-md hover:bg-amber-600">
                   <Camera size={14} />
-                  <input type="file" accept="image/*" className="sr-only" onChange={handleImageSelect} disabled={uploading} aria-label="Upload photo" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    onChange={handleImageSelect}
+                    disabled={uploading}
+                    aria-label="Upload photo"
+                  />
                 </label>
                 {imagePreview && (
-                  <button type="button" onClick={removeImage} className="absolute -right-0.5 -top-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-600 text-white shadow-md hover:bg-gray-700" aria-label="Remove photo">
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute -right-0.5 -top-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-gray-600 text-white shadow-md hover:bg-gray-700"
+                    aria-label="Remove photo"
+                  >
                     <X size={12} />
                   </button>
                 )}
@@ -376,8 +519,12 @@ function CounselorSettingsContent() {
               </div>
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs">
-              <span className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-              <span className={isAvailable ? 'text-emerald-700 font-medium' : 'text-gray-500'}>{isAvailable ? 'Available for students' : 'Unavailable'}</span>
+              <span
+                className={`h-2 w-2 rounded-full ${isAvailable ? 'bg-emerald-500' : 'bg-gray-300'}`}
+              />
+              <span className={isAvailable ? 'font-medium text-emerald-700' : 'text-gray-500'}>
+                {isAvailable ? 'Available for students' : 'Unavailable'}
+              </span>
             </div>
           </div>
 
@@ -392,9 +539,19 @@ function CounselorSettingsContent() {
                   role="tab"
                   aria-selected={active}
                   onClick={() => selectTab(tab.id)}
-                  className={cn('relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors', active ? 'bg-amber-50 text-amber-800' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900')}
+                  className={cn(
+                    'relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors',
+                    active
+                      ? 'bg-amber-50 text-amber-800'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  )}
                 >
-                  {active && <span className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-amber-500" aria-hidden />}
+                  {active && (
+                    <span
+                      className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-amber-500"
+                      aria-hidden
+                    />
+                  )}
                   <Icon size={18} aria-hidden />
                   <span>{tab.label}</span>
                 </button>
@@ -405,7 +562,10 @@ function CounselorSettingsContent() {
 
         {/* Main */}
         <main className="min-w-0">
-          <div className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border bg-white p-1.5 shadow-sm" role="tablist">
+          <div
+            className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border bg-white p-1.5 shadow-sm"
+            role="tablist"
+          >
             {TABS.map((tab) => (
               <button
                 key={tab.id}
@@ -413,7 +573,12 @@ function CounselorSettingsContent() {
                 role="tab"
                 aria-selected={activeTab === tab.id}
                 onClick={() => selectTab(tab.id)}
-                className={cn('whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition-colors sm:px-4 sm:text-sm', activeTab === tab.id ? 'bg-amber-500 text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900')}
+                className={cn(
+                  'whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition-colors sm:px-4 sm:text-sm',
+                  activeTab === tab.id
+                    ? 'bg-amber-500 text-white'
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                )}
               >
                 {tab.label}
               </button>
@@ -423,25 +588,51 @@ function CounselorSettingsContent() {
           {activeTab === 'profile' && (
             <section className={`${studentPanel} p-5 sm:p-6`} role="tabpanel">
               <div className="mb-6 flex items-start gap-3">
-                <div className="rounded-lg bg-amber-50 p-2.5 text-amber-700"><UserRound size={18} /></div>
+                <div className="rounded-lg bg-amber-50 p-2.5 text-amber-700">
+                  <UserRound size={18} />
+                </div>
                 <div>
                   <h2 className="text-lg font-bold text-gray-900">Profile</h2>
-                  <p className="mt-1 text-sm text-gray-500">Your public counselor profile seen by students.</p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Your public counselor profile seen by students.
+                  </p>
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Field label="Full name">
-                  <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className={input} maxLength={100} />
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    className={input}
+                    maxLength={100}
+                  />
                 </Field>
                 <Field label="Email address" hint="Contact support to change email if needed.">
                   <div className="relative">
-                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-                    <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="email@example.com" className={cn(input, 'pl-10')} />
+                    <Mail
+                      size={16}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                      aria-hidden
+                    />
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="email@example.com"
+                      className={cn(input, 'pl-10')}
+                    />
                   </div>
                 </Field>
                 <div className="md:col-span-2">
                   <Field label="Bio" hint="Short introduction for students (max 2000 chars).">
-                    <textarea value={bio} onChange={(e) => setBio(e.target.value)} placeholder="Experienced counselor passionate about guiding students..." rows={4} maxLength={2000} className={cn(input, 'h-auto min-h-[100px] resize-none py-3')} />
+                    <textarea
+                      value={bio}
+                      onChange={(e) => setBio(e.target.value)}
+                      placeholder="Experienced counselor passionate about guiding students..."
+                      rows={4}
+                      maxLength={2000}
+                      className={cn(input, 'h-auto min-h-[100px] resize-none py-3')}
+                    />
                     <span className="text-[11px] text-gray-400">{bio.length}/2000</span>
                   </Field>
                 </div>
@@ -452,12 +643,27 @@ function CounselorSettingsContent() {
           {activeTab === 'expertise' && (
             <section className="space-y-6" role="tabpanel">
               <div className={`${studentPanel} p-5 sm:p-6`}>
-                <div className="mb-6 flex items-start gap-3"><div className="rounded-lg bg-amber-50 p-2.5 text-amber-700"><Globe size={18} /></div><div><h2 className="text-lg font-bold text-gray-900">Expertise</h2><p className="mt-1 text-sm text-gray-500">Choose countries, subjects and languages you support.</p></div></div>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-amber-50 p-2.5 text-amber-700">
+                    <Globe size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Expertise</h2>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Choose countries, subjects and languages you support.
+                    </p>
+                  </div>
+                </div>
 
                 <Field label="Expertise countries" hint="Select up to 10.">
                   <div className="flex flex-wrap gap-2">
                     {COUNTRIES.map((c) => (
-                      <Chip key={c} label={c} selected={expertiseCountries.includes(c)} onToggle={() => toggleArray(setExpertiseCountries, c, 10)} />
+                      <Chip
+                        key={c}
+                        label={c}
+                        selected={expertiseCountries.includes(c)}
+                        onToggle={() => toggleArray(setExpertiseCountries, c, 10)}
+                      />
                     ))}
                   </div>
                 </Field>
@@ -466,7 +672,12 @@ function CounselorSettingsContent() {
                   <Field label="Expertise subjects" hint="Select up to 10.">
                     <div className="flex flex-wrap gap-2">
                       {SUBJECTS.map((s) => (
-                        <Chip key={s} label={s} selected={expertiseSubjects.includes(s)} onToggle={() => toggleArray(setExpertiseSubjects, s, 10)} />
+                        <Chip
+                          key={s}
+                          label={s}
+                          selected={expertiseSubjects.includes(s)}
+                          onToggle={() => toggleArray(setExpertiseSubjects, s, 10)}
+                        />
                       ))}
                     </div>
                   </Field>
@@ -476,7 +687,12 @@ function CounselorSettingsContent() {
                   <Field label="Languages" hint="Select up to 10.">
                     <div className="flex flex-wrap gap-2">
                       {LANGUAGES.map((l) => (
-                        <Chip key={l} label={l} selected={languages.includes(l)} onToggle={() => toggleArray(setLanguages, l, 10)} />
+                        <Chip
+                          key={l}
+                          label={l}
+                          selected={languages.includes(l)}
+                          onToggle={() => toggleArray(setLanguages, l, 10)}
+                        />
                       ))}
                     </div>
                   </Field>
@@ -487,36 +703,82 @@ function CounselorSettingsContent() {
 
           {activeTab === 'availability' && (
             <section className={`${studentPanel} p-5 sm:p-6`} role="tabpanel">
-              <div className="mb-6 flex items-start gap-3"><div className="rounded-lg bg-amber-50 p-2.5 text-amber-700"><CalendarClock size={18} /></div><div><h2 className="text-lg font-bold text-gray-900">Availability & rates</h2><p className="mt-1 text-sm text-gray-500">Manage how students book you.</p></div></div>
+              <div className="mb-6 flex items-start gap-3">
+                <div className="rounded-lg bg-amber-50 p-2.5 text-amber-700">
+                  <CalendarClock size={18} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">Availability & rates</h2>
+                  <p className="mt-1 text-sm text-gray-500">Manage how students book you.</p>
+                </div>
+              </div>
 
               <div className="space-y-6">
                 <div className="flex items-center justify-between gap-4 rounded-xl border p-4">
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">Available for new students</p>
-                    <p className="text-xs text-gray-500">When off, you will not be auto-assigned new students and students see you as unavailable.</p>
+                    <p className="text-sm font-semibold text-gray-900">
+                      Available for new students
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      When off, you will not be auto-assigned new students and students see you as
+                      unavailable.
+                    </p>
                   </div>
                   <button
                     type="button"
                     role="switch"
                     aria-checked={isAvailable}
                     onClick={() => setIsAvailable((v) => !v)}
-                    className={cn('relative h-6 w-11 shrink-0 rounded-full transition-colors', isAvailable ? 'bg-amber-500' : 'bg-gray-200')}
+                    className={cn(
+                      'relative h-6 w-11 shrink-0 rounded-full transition-colors',
+                      isAvailable ? 'bg-amber-500' : 'bg-gray-200'
+                    )}
                   >
-                    <span className={cn('absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform', isAvailable ? 'translate-x-5' : 'translate-x-0')} />
+                    <span
+                      className={cn(
+                        'absolute left-1 top-1 h-4 w-4 rounded-full bg-white shadow-sm transition-transform',
+                        isAvailable ? 'translate-x-5' : 'translate-x-0'
+                      )}
+                    />
                   </button>
                 </div>
 
-                <Field label="Cal.com username" hint="Used to generate your scheduling link (e.g. https://cal.com/yourname).">
+                <Field
+                  label="Cal.com username"
+                  hint="Used to generate your scheduling link (e.g. https://cal.com/yourname)."
+                >
                   <div className="relative">
-                    <CalendarClock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-                    <input value={calUsername} onChange={(e) => setCalUsername(e.target.value)} placeholder="your-cal-username" className={cn(input, 'pl-10')} />
+                    <CalendarClock
+                      size={16}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                      aria-hidden
+                    />
+                    <input
+                      value={calUsername}
+                      onChange={(e) => setCalUsername(e.target.value)}
+                      placeholder="your-cal-username"
+                      className={cn(input, 'pl-10')}
+                    />
                   </div>
                 </Field>
 
-                <Field label="Session rate" hint="In your local currency, per 60-min session. 0 = free.">
+                <Field
+                  label="Session rate"
+                  hint="In your local currency, per 60-min session. 0 = free."
+                >
                   <div className="relative">
-                    <DollarSign size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-                    <input value={sessionRate} onChange={(e) => setSessionRate(e.target.value.replace(/[^0-9]/g, ''))} placeholder="e.g. 2500" inputMode="numeric" className={cn(input, 'pl-10')} />
+                    <DollarSign
+                      size={16}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                      aria-hidden
+                    />
+                    <input
+                      value={sessionRate}
+                      onChange={(e) => setSessionRate(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="e.g. 2500"
+                      inputMode="numeric"
+                      className={cn(input, 'pl-10')}
+                    />
                   </div>
                 </Field>
               </div>
@@ -526,29 +788,76 @@ function CounselorSettingsContent() {
           {activeTab === 'security' && (
             <section className="space-y-6" role="tabpanel">
               <div className={`${studentPanel} p-5 sm:p-6`}>
-                <div className="mb-6 flex items-start gap-3"><div className="rounded-lg bg-amber-50 p-2.5 text-amber-700"><ShieldCheck size={18} /></div><div><h2 className="text-lg font-bold text-gray-900">Security</h2><p className="mt-1 text-sm text-gray-500">Update your password.</p></div></div>
-                <form onSubmit={handlePasswordSubmit} className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-amber-50 p-2.5 text-amber-700">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900">Security</h2>
+                    <p className="mt-1 text-sm text-gray-500">Update your password.</p>
+                  </div>
+                </div>
+                <form
+                  onSubmit={handlePasswordSubmit}
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2"
+                >
                   <Field label="New password" hint="At least 8 characters.">
                     <div className="relative">
-                      <KeyRound size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-                      <input type={showPassword ? 'text' : 'password'} value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Create a new password" className={cn(input, 'pl-10 pr-10')} />
-                      <button type="button" onClick={() => setShowPassword((v) => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">{showPassword ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+                      <KeyRound
+                        size={16}
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"
+                        aria-hidden
+                      />
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder="Create a new password"
+                        className={cn(input, 'pl-10 pr-10')}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
                     </div>
                   </Field>
                   <Field label="Confirm password">
-                    <input type={showPassword ? 'text' : 'password'} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Repeat password" className={input} />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Repeat password"
+                      className={input}
+                    />
                   </Field>
                   <div className="md:col-span-2">
-                    <button type="submit" disabled={setPassword.isPending || !newPassword || !confirmPassword} className={cn(btnSecondary)}>
-                      {setPassword.isPending ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" /> : <LockKeyhole size={15} />} {setPassword.isPending ? 'Updating...' : 'Update password'}
+                    <button
+                      type="submit"
+                      disabled={setPassword.isPending || !newPassword || !confirmPassword}
+                      className={cn(btnSecondary)}
+                    >
+                      {setPassword.isPending ? (
+                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-amber-500/30 border-t-amber-500" />
+                      ) : (
+                        <LockKeyhole size={15} />
+                      )}{' '}
+                      {setPassword.isPending ? 'Updating...' : 'Update password'}
                     </button>
                   </div>
                 </form>
               </div>
 
               <div className={`${studentPanel} p-5 sm:p-6`}>
-                <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900"><Bell size={16} className="text-amber-600" /> Notifications</h3>
-                <p className="mt-1 text-xs text-gray-500">You will receive email notifications for new assigned students and booked sessions (via SMTP).</p>
+                <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900">
+                  <Bell size={16} className="text-amber-600" /> Notifications
+                </h3>
+                <p className="mt-1 text-xs text-gray-500">
+                  You will receive email notifications for new assigned students and booked sessions
+                  (via SMTP).
+                </p>
               </div>
             </section>
           )}
