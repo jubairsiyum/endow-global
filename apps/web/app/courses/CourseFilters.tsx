@@ -1,26 +1,26 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import type { ReactNode } from 'react'
 import {
-  Search,
-  X,
-  Check,
-  RotateCcw,
-  ChevronDown,
-  Globe,
-  MapPin,
-  Building2,
-  GraduationCap,
   BookOpen,
-  Zap,
-  Clock,
+  Building2,
   CalendarDays,
+  Check,
+  ChevronDown,
+  Clock,
   DollarSign,
   FileCheck2,
+  Globe,
+  GraduationCap,
+  MapPin,
+  RotateCcw,
+  Search,
+  X,
+  Zap,
 } from 'lucide-react'
-import { FEE_MAX_LIMIT, countActiveFilters } from './filter-utils'
+import type { ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { CourseFilters } from './filter-utils'
+import { FEE_MAX_LIMIT, countActiveFilters } from './filter-utils'
 
 export type FilterOptions = {
   countries: string[]
@@ -100,7 +100,9 @@ function Section({
         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#C41E3A]/[0.07] text-[#C41E3A]">
           {icon}
         </span>
-        <span className={`flex-1 text-[15px] font-semibold ${count > 0 ? 'text-[#C41E3A]' : 'text-gray-800'}`}>
+        <span
+          className={`flex-1 text-[15px] font-semibold ${count > 0 ? 'text-[#C41E3A]' : 'text-gray-800'}`}
+        >
           {title}
         </span>
         {count > 0 && (
@@ -122,7 +124,9 @@ function CheckIndicator({ checked }: { checked: boolean }) {
   return (
     <span
       className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
-        checked ? 'border-[#C41E3A] bg-gradient-to-br from-[#C41E3A] to-[#A01830]' : 'border-gray-300 bg-white'
+        checked
+          ? 'border-[#C41E3A] bg-gradient-to-br from-[#C41E3A] to-[#A01830]'
+          : 'border-gray-300 bg-white'
       }`}
     >
       {checked && <Check size={14} strokeWidth={3} className="text-white" />}
@@ -145,7 +149,12 @@ function CheckboxRow({
         checked ? 'bg-rose-50' : 'hover:bg-gray-50'
       }`}
     >
-      <input type="checkbox" className="sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <input
+        type="checkbox"
+        className="sr-only"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+      />
       <CheckIndicator checked={checked} />
       <span
         className={`min-w-0 flex-1 text-[15px] leading-6 ${checked ? 'font-semibold text-[#C41E3A]' : 'text-gray-700'}`}
@@ -181,8 +190,14 @@ function ToggleRow({
         {icon}
       </span>
       <span className="min-w-0 flex-1">
-        <span className={`block text-[15px] font-semibold ${checked ? 'text-[#C41E3A]' : 'text-gray-800'}`}>{label}</span>
-        {description && <span className="block text-[13px] leading-5 text-gray-500">{description}</span>}
+        <span
+          className={`block text-[14px] font-semibold ${checked ? 'text-[#C41E3A]' : 'text-gray-800'}`}
+        >
+          {label}
+        </span>
+        {description && (
+          <span className="block text-[12px] leading-5 text-gray-500">{description}</span>
+        )}
       </span>
       <span
         aria-hidden="true"
@@ -242,7 +257,11 @@ function SearchableMultiSelect({
           className="w-full bg-transparent text-base text-gray-700 outline-none placeholder:text-gray-500"
         />
         {search && (
-          <button type="button" onClick={() => setSearch('')} className="text-gray-400 hover:text-gray-600">
+          <button
+            type="button"
+            onClick={() => setSearch('')}
+            className="text-gray-400 hover:text-gray-600"
+          >
             <X size={16} />
           </button>
         )}
@@ -284,7 +303,9 @@ function SearchableMultiSelect({
             </label>
           )
         })}
-        {filtered.length === 0 && <p className="px-2 py-3 text-base text-gray-500">No matches found</p>}
+        {filtered.length === 0 && (
+          <p className="px-2 py-3 text-base text-gray-500">No matches found</p>
+        )}
       </div>
 
       {selected.length > 0 && (
@@ -304,7 +325,11 @@ function SearchableMultiSelect({
                   />
                 )}
                 {option?.label ?? value}
-                <button type="button" onClick={() => toggle(value)} className="text-[#C41E3A]/60 hover:text-[#C41E3A]">
+                <button
+                  type="button"
+                  onClick={() => toggle(value)}
+                  className="text-[#C41E3A]/60 hover:text-[#C41E3A]"
+                >
                   <X size={13} />
                 </button>
               </span>
@@ -386,17 +411,25 @@ export function FilterPanel({
               checked={filters.levels.includes(l.value)}
               onChange={(checked) =>
                 set({
-                  levels: checked ? [...filters.levels, l.value] : filters.levels.filter((v) => v !== l.value),
+                  levels: checked
+                    ? [...filters.levels, l.value]
+                    : filters.levels.filter((v) => v !== l.value),
                 })
               }
               label={l.label}
             />
           ))}
         </div>
-        {levelOptions.length === 0 && <p className="px-2 py-3 text-base text-gray-500">No levels available</p>}
+        {levelOptions.length === 0 && (
+          <p className="px-2 py-3 text-base text-gray-500">No levels available</p>
+        )}
       </Section>
 
-      <Section icon={<Building2 size={15} />} title="Institution" count={filters.institutionIds.length}>
+      <Section
+        icon={<Building2 size={15} />}
+        title="Institution"
+        count={filters.institutionIds.length}
+      >
         <SearchableMultiSelect
           label="Institution"
           options={institutionOptions}
@@ -426,10 +459,16 @@ export function FilterPanel({
         />
       </Section>
 
-      <Section icon={<DollarSign size={15} />} title="Tuition Fee" count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}>
+      <Section
+        icon={<DollarSign size={15} />}
+        title="Tuition Fee"
+        count={filters.feeMin !== null || filters.feeMax !== null ? 1 : 0}
+      >
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="mb-1 block text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">Min ($)</label>
+            <label className="mb-1 block text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">
+              Min ($)
+            </label>
             <input
               type="number"
               min={0}
@@ -437,11 +476,13 @@ export function FilterPanel({
               value={filters.feeMin ?? ''}
               onChange={(e) => set({ feeMin: e.target.value ? Number(e.target.value) : null })}
               placeholder="0"
-              className="w-full rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-base text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
             />
           </div>
           <div>
-            <label className="mb-1 block text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">Max ($)</label>
+            <label className="mb-1 block text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">
+              Max ($)
+            </label>
             <input
               type="number"
               min={0}
@@ -449,12 +490,18 @@ export function FilterPanel({
               value={filters.feeMax ?? ''}
               onChange={(e) => set({ feeMax: e.target.value ? Number(e.target.value) : null })}
               placeholder={feeMax.toLocaleString()}
-              className="w-full rounded-lg border border-gray-200 bg-white py-2.5 px-3 text-base text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
+              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-base text-gray-700 outline-none transition-colors focus:border-[#C41E3A] focus:ring-1 focus:ring-[#C41E3A]/10"
             />
           </div>
         </div>
         {feeMax > 0 && (
-          <p className="mt-2.5 text-sm text-gray-500">Up to {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(feeMax).replace(/\.00$/, '')} max</p>
+          <p className="mt-2.5 text-sm text-gray-500">
+            Up to{' '}
+            {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+              .format(feeMax)
+              .replace(/\.00$/, '')}{' '}
+            max
+          </p>
         )}
       </Section>
 
@@ -466,7 +513,9 @@ export function FilterPanel({
               checked={filters.durations.includes(d.value)}
               onChange={(checked) =>
                 set({
-                  durations: checked ? [...filters.durations, d.value] : filters.durations.filter((v) => v !== d.value),
+                  durations: checked
+                    ? [...filters.durations, d.value]
+                    : filters.durations.filter((v) => v !== d.value),
                 })
               }
               label={d.label}
@@ -475,7 +524,11 @@ export function FilterPanel({
         </div>
       </Section>
 
-      <Section icon={<CalendarDays size={15} />} title="Start Year" count={filters.startYears.length}>
+      <Section
+        icon={<CalendarDays size={15} />}
+        title="Start Year"
+        count={filters.startYears.length}
+      >
         {startYears.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {startYears.map((year) => {
@@ -507,7 +560,9 @@ export function FilterPanel({
       </Section>
 
       <div className="space-y-0 border-t border-gray-100 pt-1">
-        <p className="px-2 pb-1.5 pt-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-gray-500">Additional Options</p>
+        <p className="px-2 pb-1.5 pt-3 text-[13px] font-semibold uppercase tracking-[0.12em] text-gray-500">
+          Additional Options
+        </p>
         <ToggleRow
           icon={<Zap size={15} />}
           label="Express Offer"
@@ -572,7 +627,10 @@ export function CourseFilters({
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
           <div className="flex items-center gap-2.5">
-            <span className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]" aria-hidden="true" />
+            <span
+              className="h-5 w-1 rounded-full bg-gradient-to-b from-[#C41E3A] to-[#B8934A]"
+              aria-hidden="true"
+            />
             <h3 className="text-lg font-bold tracking-tight text-gray-900">Filters</h3>
             {activeCount > 0 && (
               <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-r from-[#C41E3A] to-[#A01830] px-2 text-[13px] font-bold text-white">

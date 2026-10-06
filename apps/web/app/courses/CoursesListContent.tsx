@@ -531,9 +531,9 @@ export default function CoursesListContent({
       <main className="flex-grow bg-gray-50">
         {/* Filters (sidebar) + Results */}
         <section className="py-8 lg:py-12">
-          <div className="mx-auto max-w-[1320px] px-4 sm:px-6 lg:px-8">
-            <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-8">
-              {/* Filters sidebar (desktop) */}
+          <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <div className="lg:grid lg:grid-cols-[270px_minmax(0,1fr)] lg:items-start lg:gap-6">
+              {/* Filters sidebar (desktop) - Made slightly narrower */}
               <aside className="sticky top-24 hidden lg:block">
                 <div className="flex max-h-[calc(100vh-6rem)] flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-[0_12px_36px_-18px_rgba(17,24,39,0.22)]">
                   <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
@@ -576,7 +576,7 @@ export default function CoursesListContent({
                 </div>
               </aside>
 
-              {/* Results */}
+              {/* Results - Expanded width */}
               <div className="min-w-0">
                 {/* Results toolbar */}
                 <div className="mb-6">
@@ -694,7 +694,7 @@ export default function CoursesListContent({
                   </div>
                 </div>
 
-                {/* Results Grid */}
+                {/* Results Grid - Adjusted columns for better card width */}
                 <div ref={resultsRef} className="scroll-mt-24">
                   {isError ? (
                     <div className="mx-auto max-w-xl rounded-2xl border border-red-100 bg-white p-10 text-center shadow-[0_16px_44px_-22px_rgba(17,24,39,0.25)]">
@@ -715,7 +715,7 @@ export default function CoursesListContent({
                       </button>
                     </div>
                   ) : isLoading ? (
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
                       {Array.from({ length: 6 }).map((_, i) => (
                         <div
                           key={i}
@@ -799,7 +799,7 @@ export default function CoursesListContent({
                     </div>
                   ) : (
                     <FadeUpStagger
-                      className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3"
+                      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
                       amount={0.08}
                     >
                       {displayData?.hits.map((course) => {
@@ -813,20 +813,23 @@ export default function CoursesListContent({
                         const hasTuition = tuition.display !== null
                         return (
                           <FadeUpItem key={course.id} className="flex">
-                            <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/70 bg-white shadow-[0_1px_2px_rgba(17,24,39,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-gray-300 hover:shadow-[0_20px_40px_-18px_rgba(17,24,39,0.22)]">
+                            <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#C41E3A]/40 hover:shadow-[0_18px_40px_rgba(196,30,58,0.08)]">
+                              {/* Top Accent Gradient Line */}
+                              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
                               {/* Heart Icon Button */}
                               <button
                                 type="button"
                                 onClick={(e) => handleToggleFavorite(e, course.id)}
                                 aria-label="Save to shortlist"
-                                className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur transition-colors hover:text-[#C41E3A]"
+                                className="absolute right-4 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur-md transition-transform duration-200 hover:scale-110 hover:text-[#C41E3A]"
                               >
                                 <Heart
                                   size={18}
                                   className={
                                     favorites[course.id]
                                       ? 'fill-[#C41E3A] text-[#C41E3A]'
-                                      : 'text-gray-400'
+                                      : 'text-gray-400 group-hover:text-[#C41E3A]'
                                   }
                                 />
                               </button>
@@ -836,32 +839,35 @@ export default function CoursesListContent({
                                 aria-label={`View ${course.name} at ${course.universityName}`}
                                 className="flex h-full w-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C41E3A] focus-visible:ring-offset-2"
                               >
-                                {/* Header: logo + university + location */}
-                                <div className="flex items-start gap-3.5 p-5 pb-3 pr-14">
+                                {/* Header: Logo + University + Location */}
+                                <div className="flex items-start gap-4 p-6 pb-4 pr-14">
                                   {course.universityLogo ? (
-                                    <img
-                                      src={course.universityLogo}
-                                      alt=""
-                                      aria-hidden="true"
-                                      className="h-12 w-12 shrink-0 rounded-xl border border-gray-100 bg-white object-contain p-2 shadow-[0_1px_3px_rgba(17,24,39,0.06)]"
-                                      loading="lazy"
-                                    />
+                                    <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-100 bg-gray-50/80 p-2.5 shadow-sm">
+                                      <img
+                                        src={course.universityLogo}
+                                        alt=""
+                                        aria-hidden="true"
+                                        className="h-full w-full object-contain"
+                                        loading="lazy"
+                                      />
+                                    </div>
                                   ) : (
                                     <div
-                                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-400"
+                                      className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-gray-100 bg-rose-50 text-[#C41E3A]"
                                       aria-hidden="true"
                                     >
-                                      <GraduationCap size={20} />
+                                      <GraduationCap size={24} />
                                     </div>
                                   )}
+
                                   <div className="min-w-0 flex-1 pt-0.5">
-                                    <p className="line-clamp-2 break-words text-[17px] font-semibold leading-snug tracking-tight text-gray-700">
+                                    <p className="line-clamp-1 text-sm font-bold uppercase tracking-wider text-gray-400">
                                       {course.universityName || 'University'}
                                     </p>
-                                    <p className="mt-1.5 flex items-center gap-1.5 text-sm leading-5 text-gray-500">
+                                    <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-gray-600">
                                       <MapPin
                                         size={13}
-                                        className="shrink-0 text-gray-400"
+                                        className="shrink-0 text-[#C41E3A]"
                                         aria-hidden="true"
                                       />
                                       <span className="truncate">
@@ -869,73 +875,80 @@ export default function CoursesListContent({
                                         {course.universityCountry || 'International'}
                                       </span>
                                     </p>
-                                    <span className="mt-2.5 inline-flex rounded-md border border-[#B8934A]/25 bg-[#B8934A]/10 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.1em] text-[#7A6034]">
-                                      {levelLabels[course.level] ?? course.level}
-                                    </span>
+                                    <div className="mt-2.5">
+                                      <span className="inline-flex rounded-full bg-rose-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-[#C41E3A]">
+                                        {levelLabels[course.level] ?? course.level}
+                                      </span>
+                                    </div>
                                   </div>
                                 </div>
 
-                                {/* Body */}
-                                <div className="flex flex-1 flex-col p-5 pt-0">
-                                  <h3 className="line-clamp-2 min-h-[3.4rem] break-words text-[17px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A] group-focus-visible:text-[#C41E3A]">
+                                {/* Body: Course Name & Meta */}
+                                <div className="flex flex-1 flex-col px-6 pb-6 pt-2">
+                                  <h3 className="line-clamp-2 min-h-[3.6rem] text-[18px] font-bold leading-snug text-gray-900 transition-colors group-hover:text-[#C41E3A]">
                                     {course.name}
                                   </h3>
 
-                                  <div className="mt-3 flex flex-wrap gap-2">
+                                  <div className="mt-4 flex flex-wrap gap-2">
                                     {course.duration ? (
-                                      <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
-                                        <Clock size={13} aria-hidden="true" />
+                                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100/70 px-3 py-1.5 text-xs font-semibold text-gray-700">
+                                        <Clock
+                                          size={13}
+                                          className="text-gray-400"
+                                          aria-hidden="true"
+                                        />
                                         {course.duration}{' '}
                                         {course.durationUnit?.toLowerCase() || 'year'}
                                       </span>
                                     ) : null}
                                     {course.language && (
-                                      <span className="inline-flex items-center rounded-md bg-gray-50 px-2.5 py-1.5 text-[13px] font-medium text-gray-700">
+                                      <span className="inline-flex items-center rounded-lg bg-gray-100/70 px-3 py-1.5 text-xs font-semibold text-gray-700">
                                         {course.language}
                                       </span>
                                     )}
                                   </div>
 
-                                  <div className="mt-auto pt-5">
-                                    <div className="border-t border-gray-100 pt-4">
-                                      <div className="flex items-end justify-between gap-3">
-                                        <div className="min-w-0">
-                                          <p className="text-[13px] font-medium uppercase tracking-[0.08em] text-gray-500">
-                                            Annual tuition
-                                          </p>
-                                          {hasTuition ? (
-                                            <p className="mt-1.5 flex flex-wrap items-baseline gap-1.5">
-                                              <span className="text-[19px] font-bold leading-none tracking-tight text-gray-900">
-                                                {tuition.display}
+                                  {/* Footer: Tuition & Action */}
+                                  <div className="mt-auto pt-6">
+                                    <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                                      <div className="min-w-0">
+                                        <p className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                                          Annual tuition
+                                        </p>
+                                        {hasTuition ? (
+                                          <p className="mt-1 flex items-baseline gap-1.5">
+                                            <span className="text-[20px] font-extrabold tracking-tight text-gray-900">
+                                              {tuition.display}
+                                            </span>
+                                            {tuition.code && (
+                                              <span className="text-xs font-bold text-gray-400">
+                                                {tuition.code}
                                               </span>
-                                              {tuition.code && (
-                                                <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-500">
-                                                  {tuition.code}
-                                                </span>
-                                              )}
-                                            </p>
-                                          ) : (
-                                            <p className="mt-1.5 text-base font-medium text-gray-500">
-                                              Contact university
-                                            </p>
-                                          )}
-                                        </div>
-                                        {course.hasScholarship && (
-                                          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[13px] font-semibold text-emerald-700">
-                                            <Award size={13} aria-hidden="true" />
-                                            Scholarship
-                                          </span>
+                                            )}
+                                          </p>
+                                        ) : (
+                                          <p className="mt-1 text-sm font-semibold text-gray-600">
+                                            Contact university
+                                          </p>
                                         )}
                                       </div>
+
+                                      {course.hasScholarship && (
+                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
+                                          <Award size={12} aria-hidden="true" />
+                                          Scholarship
+                                        </span>
+                                      )}
                                     </div>
 
-                                    <div className="mt-4">
-                                      <span className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-[#C41E3A]/20 bg-[#C41E3A]/[0.05] py-3 text-[15px] font-semibold text-[#C41E3A] transition-colors group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white group-focus-visible:border-[#C41E3A] group-focus-visible:bg-[#C41E3A] group-focus-visible:text-white">
-                                        View Details
+                                    {/* Action Button */}
+                                    <div className="mt-5">
+                                      <span className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-[#C41E3A] group-hover:shadow-[0_4px_16px_rgba(196,30,58,0.25)]">
+                                        View Course Details
                                         <ArrowRight
-                                          size={16}
+                                          size={15}
                                           aria-hidden="true"
-                                          className="transition-transform group-hover:translate-x-0.5"
+                                          className="transition-transform duration-300 group-hover:translate-x-1"
                                         />
                                       </span>
                                     </div>
