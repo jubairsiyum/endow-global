@@ -58,7 +58,7 @@ export function UniversityCard({ uni }: { uni: UniversityCardData }) {
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="line-clamp-2 text-lg font-bold leading-snug text-[#111827]">
+              <h3 className="line-clamp-2 text-lg font-bold leading-snug text-[#111827] group-hover:text-[#C41E3A]">
                 {uni.name}
               </h3>
               <p className="mt-1 text-sm font-medium text-slate-600">

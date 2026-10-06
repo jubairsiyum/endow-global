@@ -799,7 +799,7 @@ export default function CoursesListContent({
                     </div>
                   ) : (
                     <FadeUpStagger
-                      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
+                      className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3"
                       amount={0.08}
                     >
                       {displayData?.hits.map((course) => {
@@ -813,16 +813,13 @@ export default function CoursesListContent({
                         const hasTuition = tuition.display !== null
                         return (
                           <FadeUpItem key={course.id} className="flex">
-                            <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1.5 hover:border-[#C41E3A]/40 hover:shadow-[0_18px_40px_rgba(196,30,58,0.08)]">
-                              {/* Top Accent Gradient Line */}
-                              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#C41E3A] via-[#B8934A] to-[#C41E3A] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
+                            <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)]">
                               {/* Heart Icon Button */}
                               <button
                                 type="button"
                                 onClick={(e) => handleToggleFavorite(e, course.id)}
                                 aria-label="Save to shortlist"
-                                className="absolute right-4 top-5 z-10 flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur-md transition-transform duration-200 hover:scale-110 hover:text-[#C41E3A]"
+                                className="absolute right-4 top-5 flex h-10 w-10 items-center justify-center rounded-full border border-gray-100 bg-white/90 text-gray-500 shadow-sm backdrop-blur-md transition-transform duration-200 hover:scale-110 hover:text-[#C41E3A]"
                               >
                                 <Heart
                                   size={18}
