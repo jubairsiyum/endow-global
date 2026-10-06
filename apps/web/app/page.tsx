@@ -178,10 +178,10 @@ export default function HomePage() {
           <DiagnosticUniversityMarquee universities={universityLogos} />
           {/* <HeroScrollDemo /> */}
           <TrendingCourses />
-          <FeaturedEvents />
           <CountryCards />
           <ApplicationRoadmap />
           <UniversitiesSection />
+          <FeaturedEvents />
           <Testimonials />
           <FAQAccordion />
           <PremiumCTA />

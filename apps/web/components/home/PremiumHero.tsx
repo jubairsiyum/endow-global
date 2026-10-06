@@ -263,11 +263,11 @@ export default function PremiumHero() {
 
             {/* Stacked background cards */}
             <div
-              className="absolute h-[324px] w-[250px] rotate-6 rounded-2xl bg-gray-200 opacity-30 shadow-xl sm:h-[403px] sm:w-[310px]"
+              className="absolute h-[324px] w-[250px] rotate-6 rounded-2xl bg-gray-200 opacity-30 shadow-md sm:h-[403px] sm:w-[310px]"
               aria-hidden="true"
             />
             <div
-              className="absolute h-[324px] w-[250px] -rotate-3 rounded-2xl bg-gray-200 opacity-20 shadow-xl sm:h-[403px] sm:w-[310px]"
+              className="absolute h-[324px] w-[250px] -rotate-3 rounded-2xl bg-gray-200 opacity-20 shadow-md sm:h-[403px] sm:w-[310px]"
               aria-hidden="true"
             />
 
