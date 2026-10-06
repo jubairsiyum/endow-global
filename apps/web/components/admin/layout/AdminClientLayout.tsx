@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
 import { Sidebar } from '@/components/admin/layout/Sidebar'
 import { Topbar } from '@/components/admin/layout/Topbar'
 import { UserRole } from '@endow/types'
+import { useState } from 'react'
 
 export function AdminClientLayout({
   children,
@@ -17,7 +17,7 @@ export function AdminClientLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ background: '#f8fafc' }}>
+    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900 dark:bg-gray-950 dark:text-gray-100">
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/60 lg:hidden"

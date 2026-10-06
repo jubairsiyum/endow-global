@@ -1,38 +1,38 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { useSession } from '@/lib/auth-client'
 import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
+import { useSession } from '@/lib/auth-client'
+import { hasPermission, parsePermissionsJSON, type Permission } from '@/lib/rbac'
+import { cn } from '@/lib/utils'
+import { UserRole } from '@endow/types'
+import { motion } from 'framer-motion'
 import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  GraduationCap,
-  MessageSquare,
+  Activity,
+  Award,
   BarChart3,
   Bell,
-  Settings,
-  Star,
   BookOpen,
-  UserCog,
-  Globe,
-  Award,
-  Mail,
-  Shield,
-  Activity,
-  DollarSign,
-  Upload,
   Building2,
-  FileCheck2,
   CalendarClock,
   CalendarDays,
+  DollarSign,
+  FileCheck2,
+  FileText,
+  Globe,
+  GraduationCap,
   ImagePlus,
+  LayoutDashboard,
+  Mail,
+  MessageSquare,
+  Settings,
+  Shield,
+  Star,
+  Upload,
+  UserCog,
+  Users,
 } from 'lucide-react'
-import { UserRole } from '@endow/types'
-import { cn } from '@/lib/utils'
-import { hasPermission, parsePermissionsJSON, type Permission } from '@/lib/rbac'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permission }> = [
   { name: 'Dashboard', icon: LayoutDashboard, href: '/admin', perm: 'dashboard:view' },
@@ -41,7 +41,12 @@ const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permi
   { name: 'Applications', icon: FileText, href: '/admin/applications', perm: 'applications:view' },
   { name: 'Documents', icon: FileCheck2, href: '/admin/documents', perm: 'documents:view' },
   { name: 'Deadlines', icon: CalendarClock, href: '/admin/deadlines', perm: 'deadlines:view' },
-  { name: 'Universities', icon: GraduationCap, href: '/admin/universities', perm: 'universities:view' },
+  {
+    name: 'Universities',
+    icon: GraduationCap,
+    href: '/admin/universities',
+    perm: 'universities:view',
+  },
   { name: 'Courses', icon: BookOpen, href: '/admin/courses', perm: 'courses:view' },
   { name: 'Scholarships', icon: Award, href: '/admin/scholarships', perm: 'scholarships:view' },
   { name: 'Countries', icon: Globe, href: '/admin/countries', perm: 'countries:view' },
@@ -80,7 +85,6 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
     image: avatarImage ?? (session?.user as any)?.image ?? null,
   }
 
-  // Resolve effective permissions: explicit prop (even empty) > session > fallback []
   const effectivePerms: string[] = (() => {
     if (permissions !== undefined) return permissions
     return parsePermissionsJSON((session?.user as any)?.permissions)
@@ -88,12 +92,13 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
 
   const can = (perm: Permission) => {
     if (isSuperAdmin) return true
-    // Always allow dashboard for any authenticated admin — avoids blank sidebar for legacy accounts
     if (perm === 'dashboard:view') return true
     return hasPermission(effectivePerms, perm, userRole)
   }
 
-  const filteredAdminItems = isSuperAdmin ? adminMenuItems : adminMenuItems.filter((it) => can(it.perm))
+  const filteredAdminItems = isSuperAdmin
+    ? adminMenuItems
+    : adminMenuItems.filter((it) => can(it.perm))
   const filteredSuperItems = isSuperAdmin
     ? superAdminExtraItems
     : superAdminExtraItems.filter((it) => can(it.perm))
@@ -106,10 +111,7 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
   const roleInitials = isSuperAdmin ? 'SA' : 'AD'
 
   return (
-    <aside
-      className="relative flex h-screen w-[220px] flex-col border-r"
-      style={{ background: '#f8fafc', borderColor: '#e5e7eb' }}
-    >
+    <aside className="relative flex h-screen w-[220px] flex-col border-r border-gray-200 bg-slate-50 dark:border-gray-800 dark:bg-gray-900">
       {/* Ambient glow */}
       <div
         className="pointer-events-none absolute inset-0 opacity-30"
@@ -120,13 +122,10 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       />
 
       {/* Logo */}
-      <div
-        className="flex shrink-0 items-center justify-between border-b px-3 h-[52px]"
-        style={{ borderColor: '#e5e7eb' }}
-      >
+      <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-gray-800">
         <span
-          className="text-sm font-bold tracking-tight"
-          style={{ color: '#111827', fontFamily: "'Space Grotesk', sans-serif" }}
+          className="text-sm font-bold tracking-tight text-gray-900 dark:text-white"
+          style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {isSuperAdmin ? (
             <>
@@ -148,14 +147,19 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       >
         <div className="space-y-0.5 px-2">
           {menuItems.length === 0 ? (
-            <div className="rounded-lg border border-dashed px-3 py-6 text-center" style={{ borderColor: '#e5e7eb', background: '#fff' }}>
-              <p className="text-xs font-medium" style={{ color: '#6b7280' }}>No modules assigned</p>
-              <p className="mt-1 text-[11px]" style={{ color: '#9ca3af' }}>Contact a Super Admin to grant permissions.</p>
+            <div className="rounded-lg border border-dashed border-gray-200 bg-white px-3 py-6 text-center dark:border-gray-800 dark:bg-gray-800/50">
+              <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                No modules assigned
+              </p>
+              <p className="mt-1 text-[11px] text-gray-400 dark:text-gray-500">
+                Contact a Super Admin to grant permissions.
+              </p>
             </div>
           ) : (
             menuItems.map((item) => {
               const Icon = item.icon
-              const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
+              const isActive =
+                pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
 
               return (
                 <Link
@@ -164,16 +168,15 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
                   aria-current={isActive ? 'page' : undefined}
                   className={cn(
                     'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
-                    isActive ? '' : 'hover:bg-white/[0.04]'
+                    isActive
+                      ? 'bg-gray-200/50 font-semibold text-gray-900 dark:bg-gray-800/80 dark:text-white'
+                      : 'text-gray-600 hover:bg-gray-200/40 dark:text-gray-400 dark:hover:bg-gray-800/40'
                   )}
-                  style={{
-                    color: isActive ? '#111827' : '#6b7280',
-                  }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="admin-active"
-                      className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r-full"
+                      className="absolute bottom-1.5 left-0 top-1.5 w-[2px] rounded-r-full"
                       style={{ background: '#E8A33D' }}
                       transition={{ type: 'spring', stiffness: 380, damping: 32 }}
                     />
@@ -181,7 +184,7 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
                   <Icon
                     size={16}
                     className="shrink-0"
-                    style={{ color: isActive ? '#E8A33D' : '#6b7280' }}
+                    style={{ color: isActive ? '#E8A33D' : undefined }}
                   />
                   <span className="truncate">{item.name}</span>
                 </Link>
@@ -192,28 +195,23 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       </nav>
 
       {/* User */}
-      <div className="shrink-0 border-t p-2" style={{ borderColor: '#e5e7eb' }}>
-        <div
-          className="group flex items-center gap-2.5 rounded-lg px-2 py-2 transition-colors hover:bg-[#F1F1EF]"
-          style={{ background: '#F8F8F6' }}
-        >
+      <div className="shrink-0 border-t border-gray-200 p-2 dark:border-gray-800">
+        <div className="group flex items-center gap-2.5 rounded-lg bg-gray-100/80 px-2 py-2 transition-colors hover:bg-gray-200/60 dark:bg-gray-800/60 dark:hover:bg-gray-800">
           <div
-            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md text-[11px] font-bold"
-            style={{
-              background: '#F7F7F5',
-              color: '#6b7280',
-            }}
+            className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-200 text-[11px] font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300"
             suppressHydrationWarning
           >
-            {user?.image ? <img src={user.image} alt="" className="h-full w-full object-cover" /> : roleInitials}
+            {user?.image ? (
+              <img src={user.image} alt="" className="h-full w-full object-cover" />
+            ) : (
+              roleInitials
+            )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[12px] font-semibold" style={{ color: '#111827' }}>
+            <p className="truncate text-[12px] font-semibold text-gray-900 dark:text-white">
               {user?.name || roleLabel}
             </p>
-            <p className="truncate text-[10px]" style={{ color: '#6b7280' }}>
-              endow.global
-            </p>
+            <p className="truncate text-[10px] text-gray-500 dark:text-gray-400">endow.global</p>
           </div>
         </div>
       </div>

@@ -1,11 +1,20 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import { MODULES, type Permission } from '@/lib/rbac'
-import { Search, Eye, ShieldCheck, ShieldOff, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { Check, Eye, Search, ShieldCheck, ShieldOff } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-const GROUP_ORDER = ['Core', 'People', 'Workflow', 'Catalog', 'Content', 'Communication', 'Insights', 'System'] as const
+const GROUP_ORDER = [
+  'Core',
+  'People',
+  'Workflow',
+  'Catalog',
+  'Content',
+  'Communication',
+  'Insights',
+  'System',
+] as const
 
 type Level = 'none' | 'view' | 'manage'
 
@@ -36,7 +45,7 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
 }
 
 function groupModules() {
-  const map = new Map<string, typeof MODULES[number][]>()
+  const map = new Map<string, (typeof MODULES)[number][]>()
   for (const m of MODULES) {
     const g = (m as any).group ?? 'Other'
     if (!map.has(g)) map.set(g, [])
@@ -66,7 +75,7 @@ function setLevel(value: string[], modId: string, level: Level): string[] {
   const without = value.filter((v) => v !== view && v !== manage)
   if (level === 'none') return without
   if (level === 'view') return [...without, view]
-  return [...without, view, manage] // manage includes view for storage
+  return [...without, view, manage]
 }
 
 export function PermissionEditor({
@@ -85,12 +94,25 @@ export function PermissionEditor({
     if (!search.trim()) return groups
     const q = search.toLowerCase()
     return groups
-      .map(([g, mods]) => [g, mods.filter((m) => m.label.toLowerCase().includes(q) || m.id.toLowerCase().includes(q) || (MODULE_DESCRIPTIONS[m.id] ?? '').toLowerCase().includes(q))] as const)
+      .map(
+        ([g, mods]) =>
+          [
+            g,
+            mods.filter(
+              (m) =>
+                m.label.toLowerCase().includes(q) ||
+                m.id.toLowerCase().includes(q) ||
+                (MODULE_DESCRIPTIONS[m.id] ?? '').toLowerCase().includes(q)
+            ),
+          ] as const
+      )
       .filter(([, mods]) => mods.length > 0) as typeof groups
   }, [groups, search])
 
   const counts = useMemo(() => {
-    let view = 0, manage = 0, none = 0
+    let view = 0,
+      manage = 0,
+      none = 0
     for (const m of MODULES) {
       const l = getLevel(value, m.id)
       if (l === 'manage') manage++
@@ -100,14 +122,17 @@ export function PermissionEditor({
     return { view, manage, none, total: MODULES.length }
   }, [value])
 
-  const setGroupLevel = (mods: typeof MODULES[number][], level: Level) => {
+  const setGroupLevel = (mods: (typeof MODULES)[number][], level: Level) => {
     let next = [...value]
     for (const m of mods) next = setLevel(next, m.id, level)
     onChange(Array.from(new Set(next)))
   }
 
   const setAll = (level: Level) => {
-    if (level === 'none') { onChange([]); return }
+    if (level === 'none') {
+      onChange([])
+      return
+    }
     let next: string[] = []
     for (const m of MODULES) next = setLevel(next, m.id, level)
     onChange(Array.from(new Set(next)))
@@ -116,42 +141,72 @@ export function PermissionEditor({
   return (
     <div className="space-y-4">
       {/* Summary bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border bg-[#f8fafc] px-3 py-2" style={{ borderColor: '#e5e7eb' }}>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-gray-200 bg-slate-50 px-3 py-2 dark:border-gray-800 dark:bg-gray-900">
         <div className="flex flex-wrap gap-1.5 text-[11px]">
-          <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 font-medium" style={{ color: '#E8A33D', border: '1px solid #fde68a' }}>
+          <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-white px-2 py-0.5 font-medium text-amber-600 dark:border-amber-500/30 dark:bg-gray-800 dark:text-amber-400">
             <ShieldCheck size={12} /> {counts.manage} Full access
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 font-medium" style={{ color: '#2563eb', border: '1px solid #bfdbfe' }}>
+          <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-white px-2 py-0.5 font-medium text-blue-600 dark:border-blue-500/30 dark:bg-gray-800 dark:text-blue-400">
             <Eye size={12} /> {counts.view} View only
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 font-medium" style={{ color: '#6b7280', border: '1px solid #e5e7eb' }}>
+          <span className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 font-medium text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
             <ShieldOff size={12} /> {counts.none} No access
           </span>
         </div>
         <div className="flex gap-1">
-          <button type="button" onClick={() => setAll('none')} disabled={disabled} className="rounded-md px-2 py-1 text-[11px] font-medium hover:bg-white" style={{ color: '#6b7280', border: '1px solid #e5e7eb' }}>Clear</button>
-          <button type="button" onClick={() => setAll('view')} disabled={disabled} className="rounded-md px-2 py-1 text-[11px] font-medium hover:bg-white" style={{ color: '#2563eb', border: '1px solid #bfdbfe' }}>View all</button>
-          <button type="button" onClick={() => setAll('manage')} disabled={disabled} className="rounded-md bg-[#E8A33D] px-2 py-1 text-[11px] font-medium text-white hover:bg-[#c48b2e]">Full access all</button>
+          <button
+            type="button"
+            onClick={() => setAll('none')}
+            disabled={disabled}
+            className="rounded-md border border-gray-200 bg-white px-2 py-1 text-[11px] font-medium text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            Clear
+          </button>
+          <button
+            type="button"
+            onClick={() => setAll('view')}
+            disabled={disabled}
+            className="rounded-md border border-blue-200 bg-white px-2 py-1 text-[11px] font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-900 dark:bg-gray-800 dark:text-blue-400 dark:hover:bg-blue-950/50"
+          >
+            View all
+          </button>
+          <button
+            type="button"
+            onClick={() => setAll('manage')}
+            disabled={disabled}
+            className="rounded-md bg-[#E8A33D] px-2 py-1 text-[11px] font-medium text-white hover:bg-[#c48b2e]"
+          >
+            Full access all
+          </button>
         </div>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search size={14} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: '#9ca3af' }} />
+        <Search
+          size={14}
+          className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400"
+        />
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search modules (e.g. Resources, Students…)"
-          className="w-full rounded-lg border py-2 pl-8 pr-3 text-[13px] outline-none placeholder:text-gray-400 focus:border-[#E8A33D] focus:ring-1 focus:ring-[#E8A33D]/20"
-          style={{ borderColor: '#e5e7eb' }}
+          className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-8 pr-3 text-[13px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-[#E8A33D] focus:ring-1 focus:ring-[#E8A33D]/20 dark:border-gray-800 dark:bg-gray-900 dark:text-white dark:placeholder-gray-500"
         />
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-3 rounded-md border border-dashed bg-white px-3 py-2 text-[11px]" style={{ borderColor: '#e5e7eb' }}>
-        <span className="inline-flex items-center gap-1.5"><span className="h-2 w-2 rounded-full" style={{ background: '#9ca3af' }} /> No access — hidden from menu</span>
-        <span className="inline-flex items-center gap-1.5"><Eye size={11} style={{ color: '#2563eb' }} /> View — can see & search</span>
-        <span className="inline-flex items-center gap-1.5"><ShieldCheck size={11} style={{ color: '#E8A33D' }} /> Manage — view + create / edit / delete</span>
+      <div className="flex flex-wrap gap-3 rounded-md border border-dashed border-gray-200 bg-white px-3 py-2 text-[11px] text-gray-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
+        <span className="inline-flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-gray-400" /> No access — hidden from menu
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Eye size={11} className="text-blue-600 dark:text-blue-400" /> View — can see & search
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck size={11} className="text-amber-600 dark:text-amber-400" /> Manage — view +
+          create / edit / delete
+        </span>
       </div>
 
       {/* Groups */}
@@ -163,18 +218,45 @@ export function PermissionEditor({
             <div key={group}>
               <div className="mb-2 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-[11px] font-bold uppercase tracking-wider" style={{ color: '#111827' }}>{group}</h4>
-                  <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium" style={{ color: '#6b7280' }}>{mods.length}</span>
+                  <h4 className="text-[11px] font-bold uppercase tracking-wider text-gray-900 dark:text-white">
+                    {group}
+                  </h4>
+                  <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                    {mods.length}
+                  </span>
                   {(groupManageCount > 0 || groupViewCount > 0) && (
-                    <span className="text-[10px]" style={{ color: '#6b7280' }}>
-                      · {groupManageCount ? `${groupManageCount} manage` : ''} {groupManageCount && groupViewCount ? '·' : ''} {groupViewCount ? `${groupViewCount} view` : ''}
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                      · {groupManageCount ? `${groupManageCount} manage` : ''}{' '}
+                      {groupManageCount && groupViewCount ? '·' : ''}{' '}
+                      {groupViewCount ? `${groupViewCount} view` : ''}
                     </span>
                   )}
                 </div>
                 <div className="flex gap-1">
-                  <button type="button" onClick={() => setGroupLevel(mods as any, 'none')} disabled={disabled} className="rounded px-1.5 py-0.5 text-[10px] font-medium hover:bg-gray-50" style={{ color: '#6b7280' }}>None</button>
-                  <button type="button" onClick={() => setGroupLevel(mods as any, 'view')} disabled={disabled} className="rounded px-1.5 py-0.5 text-[10px] font-medium hover:bg-blue-50" style={{ color: '#2563eb' }}>View all</button>
-                  <button type="button" onClick={() => setGroupLevel(mods as any, 'manage')} disabled={disabled} className="rounded px-1.5 py-0.5 text-[10px] font-medium hover:bg-amber-50" style={{ color: '#d97706' }}>Manage all</button>
+                  <button
+                    type="button"
+                    onClick={() => setGroupLevel(mods as any, 'none')}
+                    disabled={disabled}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-medium text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                  >
+                    None
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGroupLevel(mods as any, 'view')}
+                    disabled={disabled}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40"
+                  >
+                    View all
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGroupLevel(mods as any, 'manage')}
+                    disabled={disabled}
+                    className="rounded px-1.5 py-0.5 text-[10px] font-medium text-amber-600 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-950/40"
+                  >
+                    Manage all
+                  </button>
                 </div>
               </div>
 
@@ -186,32 +268,57 @@ export function PermissionEditor({
                       key={m.id}
                       className={cn(
                         'flex flex-col gap-2 rounded-xl border p-3 transition-colors sm:flex-row sm:items-center sm:justify-between',
-                        level === 'none' ? 'bg-white' : level === 'view' ? 'bg-blue-50/40' : 'bg-amber-50/40'
+                        level === 'none'
+                          ? 'border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900'
+                          : level === 'view'
+                            ? 'border-blue-200 bg-blue-50/40 dark:border-blue-900/50 dark:bg-blue-950/20'
+                            : 'border-amber-200 bg-amber-50/40 dark:border-amber-900/50 dark:bg-amber-950/20'
                       )}
-                      style={{ borderColor: level === 'none' ? '#e5e7eb' : level === 'view' ? '#bfdbfe' : '#fde68a' }}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-semibold" style={{ color: '#111827' }}>{m.label}</span>
-                          {level === 'view' && <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold" style={{ color: '#2563eb' }}><Eye size={10} /> View</span>}
-                          {level === 'manage' && <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold" style={{ color: '#92400e' }}><ShieldCheck size={10} /> Manage</span>}
-                          {level === 'none' && <span className="inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-bold" style={{ color: '#6b7280' }}><ShieldOff size={10} /> None</span>}
+                          <span className="text-[13px] font-semibold text-gray-900 dark:text-white">
+                            {m.label}
+                          </span>
+                          {level === 'view' && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-bold text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                              <Eye size={10} /> View
+                            </span>
+                          )}
+                          {level === 'manage' && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                              <ShieldCheck size={10} /> Manage
+                            </span>
+                          )}
+                          {level === 'none' && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-bold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                              <ShieldOff size={10} /> None
+                            </span>
+                          )}
                         </div>
-                        <p className="mt-0.5 text-[11px]" style={{ color: '#6b7280' }}>{MODULE_DESCRIPTIONS[m.id] ?? m.id}</p>
-                        <p className="mt-0.5 hidden text-[10px] sm:block" style={{ color: '#9ca3af', fontFamily: "'JetBrains Mono', monospace" }}>{m.id}:view / {m.id}:manage</p>
+                        <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                          {MODULE_DESCRIPTIONS[m.id] ?? m.id}
+                        </p>
+                        <p
+                          className="mt-0.5 hidden text-[10px] text-gray-400 dark:text-gray-500 sm:block"
+                          style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                        >
+                          {m.id}:view / {m.id}:manage
+                        </p>
                       </div>
 
                       {/* Segmented control */}
                       <div
                         role="group"
                         aria-label={`${m.label} permission`}
-                        className="flex shrink-0 overflow-hidden rounded-full border bg-white p-0.5"
-                        style={{ borderColor: '#e5e7eb' }}
+                        className="flex shrink-0 overflow-hidden rounded-full border border-gray-200 bg-white p-0.5 dark:border-gray-700 dark:bg-gray-800"
                       >
                         {(['none', 'view', 'manage'] as Level[]).map((lvl) => {
                           const active = level === lvl
-                          const label = lvl === 'none' ? 'No access' : lvl === 'view' ? 'View' : 'Manage'
-                          const Icon = lvl === 'none' ? ShieldOff : lvl === 'view' ? Eye : ShieldCheck
+                          const label =
+                            lvl === 'none' ? 'No access' : lvl === 'view' ? 'View' : 'Manage'
+                          const Icon =
+                            lvl === 'none' ? ShieldOff : lvl === 'view' ? Eye : ShieldCheck
                           return (
                             <button
                               key={lvl}
@@ -228,11 +335,11 @@ export function PermissionEditor({
                                 'inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-colors',
                                 active
                                   ? lvl === 'none'
-                                    ? 'bg-gray-900 text-white shadow-sm'
+                                    ? 'bg-gray-900 text-white shadow-sm dark:bg-gray-700'
                                     : lvl === 'view'
                                       ? 'bg-blue-600 text-white shadow-sm'
                                       : 'bg-[#E8A33D] text-white shadow-sm'
-                                  : 'text-gray-500 hover:bg-gray-50'
+                                  : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700/50'
                               )}
                             >
                               <Icon size={11} />
@@ -250,7 +357,7 @@ export function PermissionEditor({
           )
         })}
         {filteredGroups.length === 0 && (
-          <div className="rounded-lg border border-dashed bg-white py-8 text-center text-[13px]" style={{ borderColor: '#e5e7eb', color: '#6b7280' }}>
+          <div className="rounded-lg border border-dashed border-gray-200 bg-white py-8 text-center text-[13px] text-gray-500 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
             No modules match “{search}”
           </div>
         )}
