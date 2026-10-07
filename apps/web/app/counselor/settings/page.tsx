@@ -246,33 +246,38 @@ function CounselorSettingsContent() {
   const [uploading, setUploading] = useState(false)
 
   // Populate from profile
+
   useEffect(() => {
     if (profileData) {
       console.log(profileData)
       const user: any = (profileData as any).user || {}
-      const p: any = profileData as any
+      const p: any = (profileData as any) || profileData
 
-      setName(user.name || session?.user?.name || '')
-      setEmail(user.email || session?.user?.email || '')
-      setImage(user.image || (session?.user as any)?.image || null)
-      setImagePreview(user.image || (session?.user as any)?.image || null)
-      setBio(p.bio || '')
+      setName((prev) => prev || user.name || session?.user?.name || '')
+      setEmail((prev) => prev || user.email || session?.user?.email || '')
+      setImage((prev) => prev ?? user.image ?? (session?.user as any)?.image ?? null)
+      setImagePreview((prev) => prev ?? user.image ?? (session?.user as any)?.image ?? null)
+      setBio((prev) => prev || p.bio || '')
 
-      setExpertiseCountries(
-        Array.isArray(p.expertiseCountries)
-          ? p.expertiseCountries
-          : asStringArray(p.expertiseCountries)
+      setExpertiseCountries((prev) =>
+        prev.length > 0
+          ? prev
+          : Array.isArray(p.expertiseCountries)
+            ? p.expertiseCountries
+            : asStringArray(p.expertiseCountries)
       )
-      setExpertiseSubjects(
-        Array.isArray(p.expertiseSubjects)
-          ? p.expertiseSubjects
-          : asStringArray(p.expertiseSubjects)
+      setExpertiseSubjects((prev) =>
+        prev.length > 0
+          ? prev
+          : Array.isArray(p.expertiseSubjects)
+            ? p.expertiseSubjects
+            : asStringArray(p.expertiseSubjects)
       )
 
-      setLanguages(Array.isArray(p.languages) && p.languages.length ? p.languages : ['English'])
+      setLanguages(Array.isArray(p.languages) && p.languages.length > 0 ? p.languages : ['English'])
 
-      setCalUsername(p.calUsername || '')
-      setSessionRate(p.sessionRate != null ? String(p.sessionRate) : '')
+      setCalUsername((prev) => prev || p.calUsername || '')
+      setSessionRate((prev) => prev || (p.sessionRate != null ? String(p.sessionRate) : ''))
       setIsAvailable(p.isAvailable ?? true)
     }
   }, [profileData, session])

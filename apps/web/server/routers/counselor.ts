@@ -344,14 +344,27 @@ export const counselorRouter = createTRPCRouter({
       .where(eq(schema.users.id, ctx.session.user.id))
       .limit(1)
 
-    const parseJsonArray = (val: any) => {
+    const parseJsonArray = (val: any): string[] => {
       if (!val) return []
       if (Array.isArray(val)) return val
-      try {
-        return JSON.parse(val)
-      } catch {
-        return []
+
+      if (typeof val === 'string') {
+        try {
+          const parsed = JSON.parse(val)
+          if (Array.isArray(parsed)) return parsed
+
+          if (typeof parsed === 'string') {
+            const parsedAgain = JSON.parse(parsed)
+            if (Array.isArray(parsedAgain)) return parsedAgain
+          }
+        } catch {
+          return val
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
+        }
       }
+      return []
     }
 
     return {
