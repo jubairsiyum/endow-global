@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { format } from 'date-fns'
-import { trpc } from '@/lib/trpc-client'
-import PageHeader from '@/components/ui/PageHeader'
 import AdminTable from '@/components/ui/AdminTable'
-import { Pencil, Trash2, X, Search, CalendarClock, TriangleAlert, RefreshCw } from 'lucide-react'
+import PageHeader from '@/components/ui/PageHeader'
+import { trpc } from '@/lib/trpc-client'
+import { format } from 'date-fns'
+import { CalendarClock, Pencil, RefreshCw, Search, Trash2, TriangleAlert, X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 type DeadlineCategory = 'APPLICATION' | 'DOCUMENT' | 'VISA' | 'SCHOLARSHIP' | 'EXAM' | 'OTHER'
 
@@ -19,7 +19,9 @@ const CATEGORIES: { value: DeadlineCategory; label: string }[] = [
   { value: 'OTHER', label: 'Other' },
 ]
 
-const CATEGORY_LABEL: Record<string, string> = Object.fromEntries(CATEGORIES.map((c) => [c.value, c.label]))
+const CATEGORY_LABEL: Record<string, string> = Object.fromEntries(
+  CATEGORIES.map((c) => [c.value, c.label])
+)
 
 interface DeadlineForm {
   title: string
@@ -69,14 +71,26 @@ export default function DeadlinesPage() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const utils = trpc.useUtils()
 
-  const { data: deadlines, isLoading, isError, refetch } = trpc.admin.deadlines.list.useQuery({
+  const {
+    data: deadlines,
+    isLoading,
+    isError,
+    refetch,
+  } = trpc.admin.deadlines.list.useQuery({
     search: debouncedSearch || undefined,
   })
-  const { data: students, isLoading: studentsLoading, isError: studentsError, refetch: refetchStudents } = trpc.admin.deadlines.students.useQuery()
+  const {
+    data: students,
+    isLoading: studentsLoading,
+    isError: studentsError,
+    refetch: refetchStudents,
+  } = trpc.admin.deadlines.students.useQuery()
 
   const createMutation = trpc.admin.deadlines.create.useMutation({
     onSuccess: () => {
@@ -188,7 +202,7 @@ export default function DeadlinesPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by title or student..."
-          className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all focus:border-primary"
+          className="focus:border-primary w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all"
         />
       </div>
 
@@ -207,10 +221,13 @@ export default function DeadlinesPage() {
           {isLoading ? (
             <div className="py-10">
               <div className="flex justify-center pb-4">
-                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+                <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
               </div>
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="grid min-w-[860px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5">
+                <div
+                  key={i}
+                  className="grid min-w-[860px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5"
+                >
                   <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
                   <div className="h-6 w-16 animate-pulse rounded-full bg-gray-200" />
                   <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
@@ -221,7 +238,10 @@ export default function DeadlinesPage() {
               ))}
             </div>
           ) : isError ? (
-            <div className="flex flex-col items-center justify-center px-6 py-16 text-center" role="alert">
+            <div
+              className="flex flex-col items-center justify-center px-6 py-16 text-center"
+              role="alert"
+            >
               <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 text-red-500">
                 <TriangleAlert size={22} />
               </div>
@@ -249,15 +269,19 @@ export default function DeadlinesPage() {
               >
                 <div className="min-w-0 pr-4">
                   <p className="truncate font-medium text-gray-900">{d.title}</p>
-                  {d.relatedUniversity && <p className="truncate text-xs text-gray-400">{d.relatedUniversity}</p>}
+                  {d.relatedUniversity && (
+                    <p className="truncate text-xs text-gray-400">{d.relatedUniversity}</p>
+                  )}
                 </div>
                 <div>
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${categoryBadge(d.category)}`}>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${categoryBadge(d.category)}`}
+                  >
                     {CATEGORY_LABEL[d.category] || d.category}
                   </span>
                 </div>
                 <div className="text-sm text-gray-600">
-                  {d.studentId ? (d.studentName || 'Student') : 'All students'}
+                  {d.studentId ? d.studentName || 'Student' : 'All students'}
                 </div>
                 <div className="text-sm font-medium text-gray-700">
                   {d.dueAt ? format(new Date(d.dueAt), 'MMM d, yyyy · h:mm a') : '—'}
@@ -312,90 +336,206 @@ export default function DeadlinesPage() {
       </AdminTable>
 
       {/* CREATE / EDIT MODAL */}
-      {showModal && mounted && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
-          <div className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-              <h2 className="text-xl font-bold text-gray-900">
-                {editingId ? 'Edit Deadline' : 'Add Deadline'}
-              </h2>
-              <button onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600">
-                <X size={18} />
-              </button>
+      {showModal &&
+        mounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
+            <div className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white shadow-2xl">
+              <div className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {editingId ? 'Edit Deadline' : 'Add Deadline'}
+                </h2>
+                <button
+                  onClick={() => {
+                    setShowModal(false)
+                    setEditingId(null)
+                    setForm(emptyForm)
+                  }}
+                  className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Title *</label>
+                  <input
+                    required
+                    value={form.title}
+                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                    placeholder="e.g. Semester 1 application deadline"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Category *
+                    </label>
+                    <select
+                      value={form.category}
+                      onChange={(e) =>
+                        setForm({ ...form, category: e.target.value as DeadlineCategory })
+                      }
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                    >
+                      {CATEGORIES.map((c) => (
+                        <option key={c.value} value={c.value}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Audience
+                    </label>
+                    <select
+                      value={form.studentId}
+                      onChange={(e) => setForm({ ...form, studentId: e.target.value })}
+                      disabled={studentsLoading || studentsError}
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none disabled:bg-gray-50 disabled:text-gray-400"
+                    >
+                      <option value="">All students</option>
+                      {(students || []).map((s: any) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name}
+                        </option>
+                      ))}
+                    </select>
+                    {studentsError && (
+                      <button
+                        type="button"
+                        onClick={() => refetchStudents()}
+                        className="mt-1 text-xs text-red-500 underline"
+                      >
+                        Students unavailable — retry
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Due date &amp; time *
+                  </label>
+                  <input
+                    required
+                    type="datetime-local"
+                    value={form.dueAt}
+                    onChange={(e) => setForm({ ...form, dueAt: e.target.value })}
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Related university
+                    </label>
+                    <input
+                      value={form.relatedUniversity}
+                      onChange={(e) => setForm({ ...form, relatedUniversity: e.target.value })}
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      placeholder="e.g. Seoul National University"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Related course
+                    </label>
+                    <input
+                      value={form.relatedCourse}
+                      onChange={(e) => setForm({ ...form, relatedCourse: e.target.value })}
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      placeholder="e.g. BSc Computer Science"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    Description
+                  </label>
+                  <textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    rows={2}
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                    placeholder="Optional details for the student"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 items-center gap-4">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      Remind (days before)
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={365}
+                      value={form.remindDaysBefore}
+                      onChange={(e) =>
+                        setForm({ ...form, remindDaysBefore: Number(e.target.value) })
+                      }
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-6">
+                    <input
+                      type="checkbox"
+                      id="isActiveCheckbox"
+                      checked={form.isActive}
+                      onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+                      className="h-4 w-4 cursor-pointer rounded border-gray-300"
+                      style={{
+                        appearance: 'auto',
+                        WebkitAppearance: 'auto',
+                        accentColor: '#AD0819',
+                      }}
+                    />
+                    <label
+                      htmlFor="isActiveCheckbox"
+                      className="cursor-pointer select-none text-sm font-medium text-gray-700"
+                    >
+                      Active
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowModal(false)
+                      setEditingId(null)
+                      setForm(emptyForm)
+                    }}
+                    className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createMutation.isPending || updateMutation.isPending}
+                    style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }}
+                    className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 hover:shadow-lg disabled:opacity-50"
+                  >
+                    {createMutation.isPending || updateMutation.isPending
+                      ? 'Saving...'
+                      : editingId
+                        ? 'Update'
+                        : 'Create'}
+                  </button>
+                </div>
+              </form>
             </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4 px-6 py-6">
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Title *</label>
-                <input required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" placeholder="e.g. Semester 1 application deadline" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Category *</label>
-                  <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as DeadlineCategory })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary">
-                    {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Audience</label>
-                  <select value={form.studentId} onChange={(e) => setForm({ ...form, studentId: e.target.value })} disabled={studentsLoading || studentsError} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary disabled:bg-gray-50 disabled:text-gray-400">
-                    <option value="">All students</option>
-                    {(students || []).map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                  </select>
-                  {studentsError && (
-                    <button type="button" onClick={() => refetchStudents()} className="mt-1 text-xs text-red-500 underline">
-                      Students unavailable — retry
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Due date &amp; time *</label>
-                <input required type="datetime-local" value={form.dueAt} onChange={(e) => setForm({ ...form, dueAt: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Related university</label>
-                  <input value={form.relatedUniversity} onChange={(e) => setForm({ ...form, relatedUniversity: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" placeholder="e.g. Seoul National University" />
-                </div>
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Related course</label>
-                  <input value={form.relatedCourse} onChange={(e) => setForm({ ...form, relatedCourse: e.target.value })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" placeholder="e.g. BSc Computer Science" />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1.5 block text-sm font-medium text-gray-700">Description</label>
-                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" placeholder="Optional details for the student" />
-              </div>
-
-              <div className="grid grid-cols-2 items-center gap-4">
-                <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Remind (days before)</label>
-                  <input type="number" min={0} max={365} value={form.remindDaysBefore} onChange={(e) => setForm({ ...form, remindDaysBefore: Number(e.target.value) })} className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-primary" />
-                </div>
-                <label className="flex items-center gap-2 cursor-pointer pt-6">
-                  <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="h-4 w-4 rounded border-gray-300 accent-primary" />
-                  <span className="text-sm font-medium text-gray-700">Active</span>
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button type="button" onClick={() => { setShowModal(false); setEditingId(null); setForm(emptyForm) }} className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  Cancel
-                </button>
-                <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }} className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 hover:shadow-lg disabled:opacity-50">
-                  {createMutation.isPending || updateMutation.isPending ? 'Saving...' : editingId ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>,
-        document.body
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   )
 }
