@@ -34,39 +34,89 @@ import {
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const adminMenuItems: Array<{ name: string; icon: any; href: string; perm: Permission }> = [
-  { name: 'Dashboard', icon: LayoutDashboard, href: '/admin', perm: 'dashboard:view' },
-  { name: 'Students', icon: Users, href: '/admin/students', perm: 'students:view' },
-  { name: 'Counselors', icon: UserCog, href: '/admin/counselors', perm: 'counselors:view' },
-  { name: 'Applications', icon: FileText, href: '/admin/applications', perm: 'applications:view' },
-  { name: 'Documents', icon: FileCheck2, href: '/admin/documents', perm: 'documents:view' },
-  { name: 'Deadlines', icon: CalendarClock, href: '/admin/deadlines', perm: 'deadlines:view' },
+interface NavItem {
+  name: string
+  icon: any
+  href: string
+  perm: Permission
+}
+
+interface NavSection {
+  title?: string
+  items: NavItem[]
+}
+
+// Logical categories
+const adminSections: NavSection[] = [
   {
-    name: 'Universities',
-    icon: GraduationCap,
-    href: '/admin/universities',
-    perm: 'universities:view',
+    items: [{ name: 'Dashboard', icon: LayoutDashboard, href: '/admin', perm: 'dashboard:view' }],
   },
-  { name: 'Courses', icon: BookOpen, href: '/admin/courses', perm: 'courses:view' },
-  { name: 'Scholarships', icon: Award, href: '/admin/scholarships', perm: 'scholarships:view' },
-  { name: 'Countries', icon: Globe, href: '/admin/countries', perm: 'countries:view' },
-  { name: 'Messages', icon: MessageSquare, href: '/admin/messages', perm: 'messages:view' },
-  { name: 'Resources', icon: Upload, href: '/admin/resources', perm: 'resources:view' },
-  { name: 'Analytics', icon: BarChart3, href: '/admin/analytics', perm: 'analytics:view' },
-  { name: 'Testimonials', icon: Star, href: '/admin/testimonials', perm: 'testimonials:view' },
-  { name: 'Notifications', icon: Bell, href: '/admin/notifications', perm: 'notifications:view' },
-  { name: 'Newsletters', icon: Mail, href: '/admin/newsletters', perm: 'newsletters:view' },
-  { name: 'Events', icon: CalendarDays, href: '/admin/events', perm: 'events:view' },
-  { name: 'Hero Images', icon: ImagePlus, href: '/admin/hero-images', perm: 'hero:view' },
-  { name: 'System Activity', icon: Activity, href: '/admin/activity', perm: 'activity:view' },
-  { name: 'Settings', icon: Settings, href: '/admin/settings', perm: 'settings:view' },
+  {
+    title: 'Student Management',
+    items: [
+      { name: 'Students', icon: Users, href: '/admin/students', perm: 'students:view' },
+      { name: 'Counselors', icon: UserCog, href: '/admin/counselors', perm: 'counselors:view' },
+      {
+        name: 'Applications',
+        icon: FileText,
+        href: '/admin/applications',
+        perm: 'applications:view',
+      },
+      { name: 'Documents', icon: FileCheck2, href: '/admin/documents', perm: 'documents:view' },
+      { name: 'Deadlines', icon: CalendarClock, href: '/admin/deadlines', perm: 'deadlines:view' },
+    ],
+  },
+  {
+    title: 'Configuration',
+    items: [
+      {
+        name: 'Universities',
+        icon: GraduationCap,
+        href: '/admin/universities',
+        perm: 'universities:view',
+      },
+      { name: 'Courses', icon: BookOpen, href: '/admin/courses', perm: 'courses:view' },
+      { name: 'Scholarships', icon: Award, href: '/admin/scholarships', perm: 'scholarships:view' },
+      { name: 'Countries', icon: Globe, href: '/admin/countries', perm: 'countries:view' },
+      { name: 'Resources', icon: Upload, href: '/admin/resources', perm: 'resources:view' },
+      { name: 'Hero Images', icon: ImagePlus, href: '/admin/hero-images', perm: 'hero:view' },
+    ],
+  },
+  {
+    title: 'Communication',
+    items: [
+      { name: 'Messages', icon: MessageSquare, href: '/admin/messages', perm: 'messages:view' },
+      {
+        name: 'Notifications',
+        icon: Bell,
+        href: '/admin/notifications',
+        perm: 'notifications:view',
+      },
+      { name: 'Newsletters', icon: Mail, href: '/admin/newsletters', perm: 'newsletters:view' },
+      { name: 'Events', icon: CalendarDays, href: '/admin/events', perm: 'events:view' },
+      { name: 'Testimonials', icon: Star, href: '/admin/testimonials', perm: 'testimonials:view' },
+    ],
+  },
+  {
+    title: 'System & Reports',
+    items: [
+      { name: 'Analytics', icon: BarChart3, href: '/admin/analytics', perm: 'analytics:view' },
+      { name: 'System Activity', icon: Activity, href: '/admin/activity', perm: 'activity:view' },
+      { name: 'Settings', icon: Settings, href: '/admin/settings', perm: 'settings:view' },
+    ],
+  },
 ]
 
-const superAdminExtraItems: Array<{ name: string; icon: any; href: string; perm: Permission }> = [
-  { name: 'Branches', icon: Building2, href: '/admin/branches', perm: 'branches:view' },
-  { name: 'Users', icon: Users, href: '/admin/users', perm: 'users:view' },
-  { name: 'Admin Management', icon: Shield, href: '/admin/admins', perm: 'admins:view' },
-  { name: 'Revenue', icon: DollarSign, href: '/admin/revenue', perm: 'revenue:view' },
+const superAdminExtraSections: NavSection[] = [
+  {
+    title: 'Administration',
+    items: [
+      { name: 'Branches', icon: Building2, href: '/admin/branches', perm: 'branches:view' },
+      { name: 'Users', icon: Users, href: '/admin/users', perm: 'users:view' },
+      { name: 'Admin Management', icon: Shield, href: '/admin/admins', perm: 'admins:view' },
+      { name: 'Revenue', icon: DollarSign, href: '/admin/revenue', perm: 'revenue:view' },
+    ],
+  },
 ]
 
 interface SidebarProps {
@@ -96,19 +146,27 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
     return hasPermission(effectivePerms, perm, userRole)
   }
 
-  const filteredAdminItems = isSuperAdmin
-    ? adminMenuItems
-    : adminMenuItems.filter((it) => can(it.perm))
-  const filteredSuperItems = isSuperAdmin
-    ? superAdminExtraItems
-    : superAdminExtraItems.filter((it) => can(it.perm))
+  // Filter sections based on permissions
+  const filterSections = (sections: NavSection[]) => {
+    return sections
+      .map((section) => ({
+        ...section,
+        items: isSuperAdmin ? section.items : section.items.filter((it) => can(it.perm)),
+      }))
+      .filter((section) => section.items.length > 0)
+  }
 
-  const menuItems = isSuperAdmin
-    ? [...filteredAdminItems, ...filteredSuperItems]
-    : filteredAdminItems
+  const filteredAdminSections = filterSections(adminSections)
+  const filteredSuperSections = filterSections(superAdminExtraSections)
+
+  const allSections = isSuperAdmin
+    ? [...filteredAdminSections, ...filteredSuperSections]
+    : filteredAdminSections
 
   const roleLabel = isSuperAdmin ? 'Super Admin' : 'Admin'
   const roleInitials = isSuperAdmin ? 'SA' : 'AD'
+
+  const totalVisibleItems = allSections.reduce((acc, s) => acc + s.items.length, 0)
 
   return (
     <aside className="relative flex h-screen w-[220px] flex-col border-r border-gray-200 bg-slate-50 dark:border-gray-800 dark:bg-gray-900">
@@ -124,7 +182,7 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       {/* Logo */}
       <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-gray-800">
         <span
-          className="text-sm font-bold tracking-tight text-gray-900 dark:text-white"
+          className="text-lg font-bold tracking-tight text-gray-900 dark:text-white"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
         >
           {isSuperAdmin ? (
@@ -145,8 +203,8 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
         aria-label="Admin navigation"
         style={{ scrollbarWidth: 'none' }}
       >
-        <div className="space-y-0.5 px-2">
-          {menuItems.length === 0 ? (
+        <div className="space-y-4 px-2">
+          {totalVisaBleItemsCheck(totalVisibleItems) ? (
             <div className="rounded-lg border border-dashed border-gray-200 bg-white px-3 py-6 text-center dark:border-gray-800 dark:bg-gray-800/50">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 No modules assigned
@@ -156,40 +214,50 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
               </p>
             </div>
           ) : (
-            menuItems.map((item) => {
-              const Icon = item.icon
-              const isActive =
-                pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href))
+            allSections.map((section, sectionIdx) => (
+              <div key={sectionIdx} className="space-y-0.5">
+                {section.title && (
+                  <h4 className="px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-[#E8A33D]/80 dark:text-gray-500">
+                    {section.title}
+                  </h4>
+                )}
+                {section.items.map((item) => {
+                  const Icon = item.icon
+                  const isActive =
+                    pathname === item.href ||
+                    (item.href !== '/admin' && pathname.startsWith(item.href))
 
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={cn(
-                    'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
-                    isActive
-                      ? 'bg-gray-200/50 font-semibold text-gray-900 dark:bg-gray-800/80 dark:text-white'
-                      : 'text-gray-600 hover:bg-gray-200/40 dark:text-gray-400 dark:hover:bg-gray-800/40'
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="admin-active"
-                      className="absolute bottom-1.5 left-0 top-1.5 w-[2px] rounded-r-full"
-                      style={{ background: '#E8A33D' }}
-                      transition={{ type: 'spring', stiffness: 380, damping: 32 }}
-                    />
-                  )}
-                  <Icon
-                    size={16}
-                    className="shrink-0"
-                    style={{ color: isActive ? '#E8A33D' : undefined }}
-                  />
-                  <span className="truncate">{item.name}</span>
-                </Link>
-              )
-            })
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
+                        isActive
+                          ? 'bg-gray-200/50 font-semibold text-gray-900 dark:bg-gray-800/80 dark:text-white'
+                          : 'text-gray-600 hover:bg-gray-200/40 dark:text-gray-400 dark:hover:bg-gray-800/40'
+                      )}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="admin-active"
+                          className="absolute bottom-1.5 left-0 top-1.5 w-[2px] rounded-r-full"
+                          style={{ background: '#E8A33D' }}
+                          transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                        />
+                      )}
+                      <Icon
+                        size={16}
+                        className="shrink-0"
+                        style={{ color: isActive ? '#E8A33D' : undefined }}
+                      />
+                      <span className="truncate">{item.name}</span>
+                    </Link>
+                  )
+                })}
+              </div>
+            ))
           )}
         </div>
       </nav>
@@ -223,4 +291,8 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       `}</style>
     </aside>
   )
+}
+
+function totalVisaBleItemsCheck(count: number) {
+  return count === 0
 }
