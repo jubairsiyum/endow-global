@@ -365,7 +365,6 @@ export default function TestimonialsPage() {
                     {/* Checkmark icon overlay */}
                     <span className="pointer-events-none absolute left-1 top-1 text-white opacity-0 transition-opacity peer-checked:opacity-100">
                       <svg
-                        size={12}
                         width="12"
                         height="12"
                         viewBox="0 0 12 10"

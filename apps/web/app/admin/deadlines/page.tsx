@@ -493,7 +493,7 @@ export default function DeadlinesPage() {
                       className="h-4 w-4 cursor-pointer rounded border-gray-300"
                       style={{
                         appearance: 'auto',
-                        WebkitAppearance: 'auto',
+                        WebkitAppearance: 'auto' as any,
                         accentColor: '#AD0819',
                       }}
                     />
