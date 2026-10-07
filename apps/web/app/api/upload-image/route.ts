@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
-import { getLocalFileUrl, writeLocalFile } from '@/lib/local-storage'
 import { db } from '@/lib/db'
+import { getLocalFileUrl, writeLocalFile } from '@/lib/local-storage'
+import { NextRequest, NextResponse } from 'next/server'
 
 const ALLOWED_TYPES: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -22,7 +22,11 @@ export async function POST(req: NextRequest) {
       where: (table, operators) => operators.eq(table.id, session.user.id),
       columns: { role: true },
     })
-    if (!user || (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN')) {
+
+    if (
+      !user ||
+      (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'COUNSELOR')
+    ) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -30,13 +34,15 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     if (file.size === 0) return NextResponse.json({ error: 'Empty file' }, { status: 400 })
-    if (file.size > MAX_SIZE) return NextResponse.json({ error: 'Image too large (max 4 MB)' }, { status: 413 })
+    if (file.size > MAX_SIZE)
+      return NextResponse.json({ error: 'Image too large (max 4 MB)' }, { status: 413 })
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
     const ext = file.name.split('.').pop()?.toLowerCase() || 'png'
-    if (!ALLOWED_TYPES[ext]) return NextResponse.json({ error: 'Unsupported image type' }, { status: 415 })
+    if (!ALLOWED_TYPES[ext])
+      return NextResponse.json({ error: 'Unsupported image type' }, { status: 415 })
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
     const key = `public/images/${filename}`
 
