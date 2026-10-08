@@ -4,6 +4,8 @@ import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import { Footer } from '@/components/layout/Footer'
 import { Navbar } from '@/components/layout/Navbar'
 import { trpc } from '@/lib/trpc-client'
+import { motion } from 'framer-motion'
+
 import { ArrowRight, CalendarDays, Globe, MapPin, Search, SlidersHorizontal } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -72,35 +74,61 @@ export default function EventsPage() {
       <Navbar />
       <main className="flex-grow">
         {/* Hero */}
-        <section
-          className="relative overflow-hidden py-20 sm:py-28"
-          style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%)' }}
-        >
-          <div className="pointer-events-none absolute inset-0">
+        <section className="relative overflow-hidden bg-[#0b0f19] py-24 sm:py-32">
+          {/* Background Glow Effects */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div
-              className="absolute -right-32 -top-32 h-[500px] w-[500px] rounded-full opacity-50"
-              style={{ background: 'radial-gradient(circle, #C41E3A 0%, transparent 70%)' }}
+              className="absolute -right-40 -top-40 h-[550px] w-[550px] rounded-full opacity-40 blur-3xl"
+              style={{
+                background: 'radial-gradient(circle, rgba(196,30,58,0.35) 0%, transparent 70%)',
+              }}
             />
             <div
-              className="absolute -bottom-20 -left-20 h-[500px] w-[500px] rounded-full opacity-50"
-              style={{ background: 'radial-gradient(circle, #3b82f6 0%, transparent 70%)' }}
+              className="absolute -bottom-32 -left-32 h-[550px] w-[550px] rounded-full opacity-30 blur-3xl"
+              style={{
+                background: 'radial-gradient(circle, rgba(196,30,58,0.35) 0%, transparent 70%)',
+              }}
             />
+            {/* Subtle Grid Pattern Overlay */}
+            <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
           </div>
+
           <div className="relative mx-auto max-w-[1180px] px-5 text-center sm:px-8">
             <FadeUp>
-              <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/60 backdrop-blur-sm">
-                <CalendarDays size={12} />
-                Events &amp; News
-              </span>
-              <h1
-                className="mb-4 text-4xl font-bold text-white sm:text-5xl"
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+                className="inline-block"
+              >
+                <span className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white/80 shadow-inner backdrop-blur-md">
+                  <CalendarDays size={13} style={{ color: '#C41E3A' }} />
+                  Events &amp; News
+                </span>
+              </motion.div>
+
+              <motion.h1
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="mb-5 text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl"
                 style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
-                Upcoming <span style={{ color: '#C41E3A' }}>Events</span>
-              </h1>
-              <p className="mx-auto max-w-xl text-lg text-white/60">
-                Education fairs, webinars, scholarship deadlines and more — stay in the loop.
-              </p>
+                Upcoming{' '}
+                <span className="bg-gradient-to-r from-[#C41E3A] to-[#df2342] bg-clip-text text-transparent">
+                  Events
+                </span>
+              </motion.h1>
+
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+                className="mx-auto max-w-2xl text-base leading-relaxed text-white/60 sm:text-lg"
+              >
+                Education fairs, interactive webinars, crucial scholarship deadlines, and global
+                admissions updates — stay fully in the loop.
+              </motion.p>
             </FadeUp>
           </div>
         </section>

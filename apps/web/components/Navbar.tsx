@@ -463,6 +463,19 @@ export function Navbar() {
                     Resources
                   </Link>
 
+                  {/* Events */}
+                  <Link
+                    href="/events"
+                    onClick={() => setIsMobileOpen(false)}
+                    className={`rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
+                      pathname.startsWith('/blog')
+                        ? 'bg-[#C41E3A]/[0.06] text-[#C41E3A]'
+                        : 'text-gray-600 hover:bg-gray-100/60 hover:text-gray-900'
+                    }`}
+                  >
+                    Events
+                  </Link>
+
                   {/* Contact */}
                   <Link
                     href="/contact"

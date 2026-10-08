@@ -408,7 +408,7 @@ export function UniversitiesSection() {
           })}
 
           {/* Profile Match Highlight Card */}
-          <Link href="/contact" className="block h-full">
+          <Link href="/login" className="block h-full">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
