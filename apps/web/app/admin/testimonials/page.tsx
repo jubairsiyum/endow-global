@@ -2,7 +2,7 @@
 
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
-import { Eye, EyeOff, Pencil, Star, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Eye, EyeOff, Pencil, Star, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -15,6 +15,10 @@ interface TestimonialForm {
   rating: number
   initials: string
   isPublished: boolean
+}
+
+interface TestimonialItem extends TestimonialForm {
+  id: string
 }
 
 const emptyForm: TestimonialForm = {
@@ -32,7 +36,7 @@ export default function TestimonialsPage() {
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<TestimonialForm>(emptyForm)
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -40,7 +44,7 @@ export default function TestimonialsPage() {
   }, [])
 
   const utils = trpc.useUtils()
-  const { data: testimonials, isLoading } = trpc.testimonial.admin.list.useQuery()
+  const { data: testimonialsData, isLoading } = trpc.testimonial.admin.list.useQuery()
 
   const createMutation = trpc.testimonial.admin.create.useMutation({
     onSuccess: () => {
@@ -65,7 +69,7 @@ export default function TestimonialsPage() {
     onSuccess: () => {
       utils.testimonial.admin.list.invalidate()
       utils.testimonial.published.invalidate()
-      setDeleteConfirm(null)
+      setDeleteId(null)
     },
   })
 
@@ -76,23 +80,15 @@ export default function TestimonialsPage() {
     },
   })
 
+  const testimonials: TestimonialItem[] = (testimonialsData as TestimonialItem[]) || []
+
   function openCreate() {
     setEditingId(null)
     setForm(emptyForm)
     setShowModal(true)
   }
 
-  function openEdit(t: {
-    id: string
-    name: string
-    program: string
-    university: string
-    country: string
-    quote: string
-    rating: number
-    initials: string
-    isPublished: boolean
-  }) {
+  function openEdit(t: TestimonialItem) {
     setEditingId(t.id)
     setForm({
       name: t.name,
@@ -115,10 +111,6 @@ export default function TestimonialsPage() {
     }
   }
 
-  function handleDelete(id: string) {
-    deleteMutation.mutate({ id })
-  }
-
   function handleTogglePublish(id: string, current: boolean) {
     togglePublishMutation.mutate({ id, isPublished: !current })
   }
@@ -133,20 +125,28 @@ export default function TestimonialsPage() {
       />
 
       {/* TABLE */}
-      <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-6 py-4 font-semibold text-gray-600">Student</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">University</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">Country</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">Rating</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">Status</th>
-                <th className="px-6 py-4 font-semibold text-gray-600">Actions</th>
+              <tr className="border-b border-gray-200 bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b]/80">
+                <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">
+                  Student
+                </th>
+                <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">
+                  University
+                </th>
+                <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">
+                  Country
+                </th>
+                <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">Rating</th>
+                <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">Status</th>
+                <th className="px-6 py-4 font-semibold text-gray-700 dark:text-gray-300">
+                  Actions
+                </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100 dark:divide-white/[0.06]">
               {isLoading && (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
@@ -154,28 +154,31 @@ export default function TestimonialsPage() {
                   </td>
                 </tr>
               )}
-              {!isLoading && testimonials?.length === 0 && (
+              {!isLoading && testimonials.length === 0 && (
                 <tr>
                   <td colSpan={6} className="px-6 py-8 text-center text-gray-400">
                     No testimonials yet. Add one to get started.
                   </td>
                 </tr>
               )}
-              {testimonials?.map((t) => (
-                <tr key={t.id} className="/50 border-b border-gray-50 last:border-0">
+              {testimonials.map((t) => (
+                <tr
+                  key={t.id}
+                  className="transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-pink-500 text-xs font-bold text-white">
+                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#c41e3a] to-[#a01830] text-xs font-bold text-white">
                         {t.initials}
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900">{t.name}</div>
-                        <div className="text-xs text-gray-400">{t.program}</div>
+                        <div className="font-medium text-gray-900 dark:text-white">{t.name}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">{t.program}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{t.university}</td>
-                  <td className="px-6 py-4 text-gray-600">{t.country}</td>
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{t.university}</td>
+                  <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{t.country}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-0.5">
                       {Array.from({ length: t.rating }).map((_, i) => (
@@ -188,8 +191,8 @@ export default function TestimonialsPage() {
                       onClick={() => handleTogglePublish(t.id, t.isPublished)}
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                         t.isPublished
-                          ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400'
-                          : 'bg-gray-200 text-gray-500 hover:bg-gray-200 dark:bg-gray-800'
+                          ? 'bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-950/60 dark:text-green-300'
+                          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400'
                       }`}
                     >
                       {t.isPublished ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -200,33 +203,16 @@ export default function TestimonialsPage() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => openEdit(t)}
-                        className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 hover:text-gray-600 dark:hover:bg-gray-800"
+                        className="rounded-xl border border-gray-200 bg-white p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                       >
                         <Pencil size={14} />
                       </button>
-                      {deleteConfirm === t.id ? (
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleDelete(t.id)}
-                            className="rounded-lg bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600"
-                          >
-                            Confirm
-                          </button>
-                          <button
-                            onClick={() => setDeleteConfirm(null)}
-                            className="rounded-lg bg-gray-200 px-2 py-1 text-xs text-gray-600 hover:bg-gray-300"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setDeleteConfirm(t.id)}
-                          className="rounded-lg p-1.5 text-gray-400 hover:bg-red-200 hover:text-red-500"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setDeleteId(t.id)}
+                        className="rounded-xl border border-red-200 bg-red-50 p-2 text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -236,14 +222,14 @@ export default function TestimonialsPage() {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* CREATE / EDIT MODAL */}
       {showModal &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                   {editingId ? 'Edit Testimonial' : 'Add Testimonial'}
                 </h3>
                 <button
@@ -252,7 +238,7 @@ export default function TestimonialsPage() {
                     setEditingId(null)
                     setForm(emptyForm)
                   }}
-                  className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800"
+                  className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-300"
                 >
                   <X size={18} />
                 </button>
@@ -261,24 +247,26 @@ export default function TestimonialsPage() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Name</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Name
+                    </label>
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       placeholder="Priya Sharma"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Initials
                     </label>
                     <input
                       type="text"
                       value={form.initials}
                       onChange={(e) => setForm({ ...form, initials: e.target.value.slice(0, 4) })}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       placeholder="PS"
                       maxLength={4}
                     />
@@ -287,26 +275,26 @@ export default function TestimonialsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Program
                     </label>
                     <input
                       type="text"
                       value={form.program}
                       onChange={(e) => setForm({ ...form, program: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       placeholder="MBA"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       University
                     </label>
                     <input
                       type="text"
                       value={form.university}
                       onChange={(e) => setForm({ ...form, university: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       placeholder="Kyung Hee University"
                     />
                   </div>
@@ -314,24 +302,26 @@ export default function TestimonialsPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Country
                     </label>
                     <input
                       type="text"
                       value={form.country}
                       onChange={(e) => setForm({ ...form, country: e.target.value })}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       placeholder="South Korea"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Rating</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Rating
+                    </label>
                     <select
                       aria-label="Rating"
                       value={form.rating}
                       onChange={(e) => setForm({ ...form, rating: Number(e.target.value) })}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     >
                       {[5, 4, 3, 2, 1].map((r) => (
                         <option key={r} value={r}>
@@ -343,44 +333,26 @@ export default function TestimonialsPage() {
                 </div>
 
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-gray-700">Quote</label>
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Quote
+                  </label>
                   <textarea
                     value={form.quote}
                     onChange={(e) => setForm({ ...form, quote: e.target.value })}
                     rows={3}
-                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm outline-none focus:border-rose-300 focus:ring-2 focus:ring-rose-100"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     placeholder="What the student said..."
                   />
                 </div>
 
                 <div className="flex items-center gap-3 pt-1">
-                  <label className="relative flex cursor-pointer items-center gap-2.5">
+                  <label className="flex cursor-pointer select-none items-center gap-3">
                     <input
                       type="checkbox"
-                      id="isPublished"
                       checked={form.isPublished}
                       onChange={(e) => setForm({ ...form, isPublished: e.target.checked })}
-                      className="peer h-5 w-5 cursor-pointer appearance-none rounded-md border border-gray-300 bg-white transition-all checked:border-[#C41E3A] checked:bg-[#C41E3A] hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C41E3A]/20"
                     />
-                    {/* Checkmark icon overlay */}
-                    <span className="pointer-events-none absolute left-1 top-1 text-white opacity-0 transition-opacity peer-checked:opacity-100">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 10"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M1 5.5L4.5 9L11 1.5"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                    <span className="select-none text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Published on homepage
                     </span>
                   </label>
@@ -394,20 +366,60 @@ export default function TestimonialsPage() {
                     setEditingId(null)
                     setForm(emptyForm)
                   }}
-                  className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmit}
                   disabled={createMutation.isPending || updateMutation.isPending}
-                  className="rounded-xl bg-[#C41E3A] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#A01830] disabled:opacity-50"
+                  style={{ background: '#c41e3a', boxShadow: '0 4px 12px rgba(196,30,58,0.2)' }}
+                  className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
                 >
                   {createMutation.isPending || updateMutation.isPending
                     ? 'Saving...'
                     : editingId
                       ? 'Update'
                       : 'Create'}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deleteId &&
+        mounted &&
+        createPortal(
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400">
+                  <AlertTriangle size={20} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Delete Testimonial?
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={() => setDeleteId(null)}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => deleteMutation.mutate({ id: deleteId })}
+                  disabled={deleteMutation.isPending}
+                  className="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

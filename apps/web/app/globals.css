@@ -2,7 +2,7 @@
 
 @layer base {
   *::selection {
-    background-color: #C41E3A !important;
+    background-color: #c41e3a !important;
     color: #ffffff !important;
     -webkit-text-fill-color: #ffffff !important;
   }
@@ -16,13 +16,13 @@
 ======================== */
 
 ::selection {
-  background: #C41E3A !important;
+  background: #c41e3a !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
 
 ::-moz-selection {
-  background: #C41E3A !important;
+  background: #c41e3a !important;
   color: #ffffff !important;
 }
 
@@ -44,8 +44,8 @@
 :root {
   --background: #ffffff;
   --foreground: #09090b;
-  --brand: #C41E3A;
-  --brand-dark: #A01830;
+  --brand: #c41e3a;
+  --brand-dark: #a01830;
   --brand-light: #fef2f4;
   --surface-0: #ffffff;
   --surface-50: #fafafa;
@@ -130,19 +130,36 @@ html.lenis body {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-family:
+    'IBM Plex Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Display',
+    'SF Pro Text',
+    system-ui,
+    sans-serif;
   overflow-x: hidden;
   text-rendering: optimizeLegibility;
 }
@@ -150,7 +167,14 @@ body {
 /* Keep the university discovery experience comfortable to read without
    changing typography on the rest of the application. */
 .universities-page {
-  font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+  font-family:
+    'IBM Plex Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'SF Pro Display',
+    'SF Pro Text',
+    system-ui,
+    sans-serif;
   font-size: 1rem;
 }
 
@@ -263,9 +287,9 @@ body {
   --sa-border: #e5e7eb;
   --sa-text-primary: #111827;
   --sa-text-secondary: #6b7280;
-  --sa-route: #E8A33D;
-  --sa-success: #4FD1A5;
-  --sa-alert: #F0625B;
+  --sa-route: #e8a33d;
+  --sa-success: #4fd1a5;
+  --sa-alert: #f0625b;
 }
 
 .sa-radar-grid {
@@ -281,26 +305,48 @@ body {
 
 button,
 a {
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 input,
 select,
 textarea {
-  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 /* Eradicate any browser user-agent or default focus ring inner borders on input elements */
-input[type="text"],
-input[type="search"],
+/* input[type='text'],
+input[type='search'],
 input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+} */
+
+/* Eradicate any browser user-agent or default focus ring inner borders on text inputs */
+input[type='text'],
+input[type='search'],
+input[type='email'],
+input[type='password'],
+input[type='number'],
+input[type='url'] {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
 }
 
-input[type="text"]:focus,
-input[type="search"]:focus,
+input[type='text']:focus,
+input[type='search']:focus,
 input:focus,
 input:focus-visible {
   outline: 0 !important;
@@ -312,6 +358,68 @@ input:focus-visible {
 }
 
 /* =========================
+   GLOBAL CUSTOM CHECKBOX
+======================== */
+
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  width: 1.15rem;
+  height: 1.15rem;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 0.375rem; /* rounded-md */
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+input[type='checkbox']:hover {
+  border-color: #c41e3a;
+}
+
+input[type='checkbox']:checked {
+  background-color: #c41e3a;
+  border-color: #c41e3a;
+}
+
+/* Checkmark icon via background SVG */
+input[type='checkbox']:checked::after {
+  content: '';
+  width: 0.65rem;
+  height: 0.35rem;
+  border-left: 2px solid #ffffff;
+  border-bottom: 2px solid #ffffff;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+input[type='checkbox']:focus-visible {
+  outline: 2px solid #c41e3a;
+  outline-offset: 2px;
+}
+
+/* Dark mode support for global checkboxes */
+.dark input[type='checkbox'] {
+  background-color: #09090b;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.dark input[type='checkbox']:hover {
+  border-color: #c41e3a;
+}
+
+.dark input[type='checkbox']:checked {
+  background-color: #c41e3a;
+  border-color: #c41e3a;
+}
+
+/* =========================
    PREMIUM GLASS EFFECTS
 ======================== */
 
@@ -320,13 +428,17 @@ input:focus-visible {
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .dark .glass {
   background: rgba(24, 24, 27, 0.72);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-strong {
@@ -334,13 +446,17 @@ input:focus-visible {
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
   border: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .dark .glass-strong {
   background: rgba(24, 24, 27, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .glass-dark {
@@ -372,14 +488,7 @@ input:focus-visible {
   inset: 0;
   border-radius: inherit;
   padding: var(--shine-border, 2px);
-  background: conic-gradient(
-    from var(--shine-angle),
-    #C41E3A,
-    #A01830,
-    #e4e4e7,
-    #18181b,
-    #C41E3A
-  );
+  background: conic-gradient(from var(--shine-angle), #c41e3a, #a01830, #e4e4e7, #18181b, #c41e3a);
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
     linear-gradient(#fff 0 0);
@@ -410,25 +519,35 @@ input:focus-visible {
   background: #ffffff;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.03);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark .card-premium {
   background: #18181b;
   border-color: rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.2),
+    0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .card-premium:hover {
   border-color: rgba(196, 30, 58, 0.12);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(196, 30, 58, 0.06);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.04),
+    0 12px 32px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(196, 30, 58, 0.06);
   transform: translateY(-2px);
 }
 
 .dark .card-premium:hover {
   border-color: rgba(196, 30, 58, 0.2);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 12px 32px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(196, 30, 58, 0.1);
+  box-shadow:
+    0 4px 6px rgba(0, 0, 0, 0.2),
+    0 12px 32px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(196, 30, 58, 0.1);
 }
 
 /* =========================
@@ -436,7 +555,7 @@ input:focus-visible {
 ======================== */
 
 .text-gradient-brand {
-  background: linear-gradient(135deg, #C41E3A 0%, #E05266 100%);
+  background: linear-gradient(135deg, #c41e3a 0%, #e05266 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -524,8 +643,12 @@ img {
 }
 
 @keyframes marqueeScroll {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-100%, 0, 0); }
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
 }
 
 .university-marquee {
@@ -542,7 +665,7 @@ img {
   animation-play-state: paused;
 }
 
-.university-marquee[data-animation="off"] {
+.university-marquee[data-animation='off'] {
   animation: none;
 }
 
@@ -567,8 +690,13 @@ img {
 ======================= */
 
 @keyframes gradient-pulse {
-  0%, 100% { filter: hue-rotate(0deg) saturate(1); }
-  50% { filter: hue-rotate(8deg) saturate(1.15); }
+  0%,
+  100% {
+    filter: hue-rotate(0deg) saturate(1);
+  }
+  50% {
+    filter: hue-rotate(8deg) saturate(1.15);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -586,7 +714,9 @@ img {
   justify-content: center;
   opacity: 0.82;
   transform: translate3d(0, 0, 0);
-  transition: opacity 180ms ease, transform 180ms ease;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
   backface-visibility: hidden;
 }
 
@@ -600,8 +730,12 @@ img {
 }
 
 @keyframes universityScroll {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-50%, 0, 0); }
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 /* =========================
@@ -633,18 +767,18 @@ img {
 ======================== */
 
 *:focus-visible {
-  outline: 2px solid #C41E3A;
+  outline: 2px solid #c41e3a;
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-a[href]:focus-visible:not([class*="focus-visible"]),
-button:focus-visible:not([class*="focus-visible"]),
-input:focus-visible:not([class*="focus-visible"]),
-select:focus-visible:not([class*="focus-visible"]),
-textarea:focus-visible:not([class*="focus-visible"]),
-[tabindex]:focus-visible:not([class*="focus-visible"]) {
-  outline: 2px solid #C41E3A;
+a[href]:focus-visible:not([class*='focus-visible']),
+button:focus-visible:not([class*='focus-visible']),
+input:focus-visible:not([class*='focus-visible']),
+select:focus-visible:not([class*='focus-visible']),
+textarea:focus-visible:not([class*='focus-visible']),
+[tabindex]:focus-visible:not([class*='focus-visible']) {
+  outline: 2px solid #c41e3a;
   outline-offset: 2px;
 }
 

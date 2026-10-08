@@ -169,7 +169,7 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
   const totalVisibleItems = allSections.reduce((acc, s) => acc + s.items.length, 0)
 
   return (
-    <aside className="relative flex h-screen w-[220px] flex-col border-r border-gray-200 bg-slate-50 dark:border-gray-800 dark:bg-gray-900">
+    <aside className="relative flex h-screen w-[220px] flex-col border-r border-gray-200 bg-slate-50 transition-colors duration-200 dark:border-white/[0.08] dark:bg-[#09090b]">
       {/* Ambient glow */}
       <div
         className="pointer-events-none absolute inset-0 opacity-30"
@@ -180,7 +180,7 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       />
 
       {/* Logo */}
-      <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-gray-800">
+      <div className="flex h-[52px] shrink-0 items-center justify-between border-b border-gray-200 px-3 dark:border-white/[0.08]">
         <span
           className="text-lg font-bold tracking-tight text-gray-900 dark:text-white"
           style={{ fontFamily: "'Space Grotesk', sans-serif" }}
@@ -204,8 +204,8 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
         style={{ scrollbarWidth: 'none' }}
       >
         <div className="space-y-4 px-2">
-          {totalVisaBleItemsCheck(totalVisibleItems) ? (
-            <div className="rounded-lg border border-dashed border-gray-200 bg-white px-3 py-6 text-center dark:border-gray-800 dark:bg-gray-800/50">
+          {totalVisibleItems === 0 ? (
+            <div className="rounded-lg border border-dashed border-gray-200 bg-white px-3 py-6 text-center dark:border-white/[0.08] dark:bg-[#18181b]/50">
               <p className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 No modules assigned
               </p>
@@ -235,8 +235,8 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
                       className={cn(
                         'group relative flex items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors',
                         isActive
-                          ? 'bg-gray-200/50 font-semibold text-gray-900 dark:bg-gray-800/80 dark:text-white'
-                          : 'text-gray-600 hover:bg-gray-200/40 dark:text-gray-400 dark:hover:bg-gray-800/40'
+                          ? 'bg-gray-200/50 font-semibold text-gray-900 dark:bg-[#18181b] dark:text-white'
+                          : 'text-gray-600 hover:bg-gray-200/40 dark:text-gray-400 dark:hover:bg-[#18181b]/40'
                       )}
                     >
                       {isActive && (
@@ -263,8 +263,8 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       </nav>
 
       {/* User */}
-      <div className="shrink-0 border-t border-gray-200 p-2 dark:border-gray-800">
-        <div className="group flex items-center gap-2.5 rounded-lg bg-gray-100/80 px-2 py-2 transition-colors hover:bg-gray-200/60 dark:bg-gray-800/60 dark:hover:bg-gray-800">
+      <div className="shrink-0 border-t border-gray-200 p-2 dark:border-white/[0.08]">
+        <div className="group flex items-center gap-2.5 rounded-lg bg-gray-100/80 px-2 py-2 transition-colors hover:bg-gray-200/60 dark:bg-[#18181b]/60 dark:hover:bg-[#18181b]">
           <div
             className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-md bg-gray-200 text-[11px] font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300"
             suppressHydrationWarning
@@ -291,8 +291,4 @@ export function Sidebar({ userRole, permissions }: SidebarProps) {
       `}</style>
     </aside>
   )
-}
-
-function totalVisaBleItemsCheck(count: number) {
-  return count === 0
 }

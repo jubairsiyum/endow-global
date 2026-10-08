@@ -90,6 +90,58 @@ const emptyForm: CourseForm = {
   expressOffer: false,
 }
 
+interface UniversityItem {
+  id: string
+  name: string
+}
+
+interface CourseItem {
+  id: string
+  name?: string | null
+  slug?: string | null
+  subject?: string | null
+  level?: string | null
+  duration?: number | null
+  durationUnit?: string | null
+  tuitionFee?: number | null
+  currency?: string | null
+  language?: string | null
+  description?: string | null
+  isActive?: boolean | null
+  campus?: string | null
+  modeOfStudy?: string | null
+  highlights?: unknown
+  professionalAccreditation?: string | null
+  offerResponseTime?: string | null
+  applicationFee?: number | null
+  applicationFeeCurrency?: string | null
+  brochureUrl?: string | null
+  applicationDeadline?: string | Date | null
+  startDate?: string | Date | null
+  hasScholarship?: boolean | null
+  scholarshipDetails?: string | null
+  backlogsAccepted?: boolean | null
+  gapYearsAccepted?: boolean | null
+  englishTestWaiver?: boolean | null
+  expressOffer?: boolean | null
+  universityId?: string | null
+  university?: {
+    name?: string | null
+  } | null
+  requirements?: unknown
+}
+
+interface RequirementItem {
+  cat: string
+  title: string
+  desc: string
+}
+
+interface SessionUser {
+  role?: UserRole
+  permissions?: string | string[]
+}
+
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
   useEffect(() => {
@@ -99,9 +151,6 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue
 }
 
-// Normalize a "list" value (array, JSON string, or plain string) into a
-// newline-separated text for the textarea. Handles single- and double-encoded
-// JSON strings so editing always renders one item per line.
 function highlightsToText(value: unknown): string {
   if (Array.isArray(value)) return value.filter((v) => typeof v === 'string').join('\n')
   if (typeof value !== 'string') return ''
@@ -127,8 +176,6 @@ function hasRichTextContent(value: string): boolean {
   )
 }
 
-const is = { background: '#fff', borderColor: '#e5e7eb', color: '#111827' }
-
 export default function CoursesPage() {
   const { data: session } = useSession()
   const [search, setSearch] = useState('')
@@ -137,7 +184,7 @@ export default function CoursesPage() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState<CourseForm>(emptyForm)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [reqItems, setReqItems] = useState<{ cat: string; title: string; desc: string }[]>([])
+  const [reqItems, setReqItems] = useState<RequirementItem[]>([])
   const [levelFilter, setLevelFilter] = useState('')
   const [universityFilter, setUniversityFilter] = useState('')
   const [mounted, setMounted] = useState(false)
@@ -147,17 +194,23 @@ export default function CoursesPage() {
   }, [])
 
   const utils = trpc.useUtils()
-  const role = (session?.user as any)?.role as UserRole | undefined
-  const permissions = parsePermissionsJSON((session?.user as any)?.permissions)
+  const sessionUser = session?.user as SessionUser | undefined
+  const role = sessionUser?.role
+  const permissions = parsePermissionsJSON(sessionUser?.permissions)
   const canManage =
     role === UserRole.SUPER_ADMIN || hasPermission(permissions, 'courses:manage', role)
-  const { data: courses, isLoading } = trpc.admin.courses.list.useQuery({
+
+  const { data: coursesData, isLoading } = trpc.admin.courses.list.useQuery({
     search: debouncedSearch || undefined,
-    level: (levelFilter as any) || undefined,
+    level: levelFilter ? (levelFilter as any) : undefined,
     universityId: universityFilter || undefined,
   })
-  const { data: universities } = trpc.admin.universities.list.useQuery({})
-  const { data: subjects } = trpc.admin.courses.getSubjects.useQuery()
+  const { data: universitiesData } = trpc.admin.universities.list.useQuery({})
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { data: _subjects } = trpc.admin.courses.getSubjects.useQuery()
+
+  const courses: CourseItem[] = (coursesData as CourseItem[]) || []
+  const universities: UniversityItem[] = (universitiesData as UniversityItem[]) || []
 
   const createMutation = trpc.admin.courses.create.useMutation({
     onSuccess: () => {
@@ -166,8 +219,10 @@ export default function CoursesPage() {
       setShowModal(false)
       setForm(emptyForm)
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (e: any) => toast.error(e?.message || 'Failed to create course'),
   })
+
   const updateMutation = trpc.admin.courses.update.useMutation({
     onSuccess: () => {
       toast.success('Course updated')
@@ -176,27 +231,32 @@ export default function CoursesPage() {
       setEditingId(null)
       setForm(emptyForm)
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (e: any) => toast.error(e?.message || 'Failed to update course'),
   })
+
   const deleteMutation = trpc.admin.courses.delete.useMutation({
     onSuccess: () => {
       toast.success('Course deleted')
       utils.admin.courses.list.invalidate()
       setDeleteConfirm(null)
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (e: any) => toast.error(e?.message || 'Failed to delete course'),
   })
 
-  function setF(key: string, value: any) {
+  function setF(key: string, value: unknown) {
     setForm((p) => ({ ...p, [key]: value }))
   }
+
   function openCreate() {
     setEditingId(null)
     setForm(emptyForm)
     setReqItems([])
     setShowModal(true)
   }
-  function openEdit(c: any) {
+
+  function openEdit(c: CourseItem) {
     setEditingId(c.id)
     setForm({
       universityId: c.universityId || '',
@@ -231,7 +291,8 @@ export default function CoursesPage() {
       expressOffer: c.expressOffer || false,
     })
     setShowModal(true)
-    // Parse existing requirements
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const existingReqs: any[] = Array.isArray(c.requirements)
       ? c.requirements
       : typeof c.requirements === 'string'
@@ -243,9 +304,11 @@ export default function CoursesPage() {
             }
           })()
         : []
+
     setReqItems(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       existingReqs.map((r: any) => {
-        if (typeof r === 'object' && r.title) return r
+        if (typeof r === 'object' && r && r.title) return r
         const str = typeof r === 'string' ? r : String(r)
         const match = str.match(/^([^:]+):\s*(.+?)(?:\s*\(([^)]+)\))?$/)
         return match
@@ -264,6 +327,8 @@ export default function CoursesPage() {
       toast.error('Course description is required')
       return
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const data: any = {
       ...form,
       duration: parseInt(form.duration) || 1,
@@ -283,12 +348,13 @@ export default function CoursesPage() {
       offerResponseTime: form.offerResponseTime || undefined,
       professionalAccreditation: form.professionalAccreditation || undefined,
       campus: form.campus || undefined,
-      modeOfStudy: form.modeOfStudy as any,
+      modeOfStudy: form.modeOfStudy,
       requirements: reqItems
         .filter((r) => r.title.trim())
         .map((r) => `${r.cat}: ${r.title}${r.desc ? ` (${r.desc})` : ''}`),
       scholarshipDetails: form.scholarshipDetails || undefined,
     }
+
     if (editingId) updateMutation.mutate({ id: editingId, ...data })
     else createMutation.mutate(data)
   }
@@ -309,13 +375,13 @@ export default function CoursesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or subject…"
-            className="focus:border-primary w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all"
+            className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#18181b] dark:text-white dark:placeholder-gray-500"
           />
         </div>
         <select
           value={levelFilter}
           onChange={(e) => setLevelFilter(e.target.value)}
-          className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none lg:w-44"
+          className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 lg:w-44"
         >
           <option value="">All Levels</option>
           {LEVELS.map((l) => (
@@ -327,10 +393,10 @@ export default function CoursesPage() {
         <select
           value={universityFilter}
           onChange={(e) => setUniversityFilter(e.target.value)}
-          className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none lg:w-48"
+          className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 lg:w-48"
         >
           <option value="">All Universities</option>
-          {(universities || []).map((u: any) => (
+          {universities.map((u) => (
             <option key={u.id} value={u.id}>
               {u.name}
             </option>
@@ -338,111 +404,119 @@ export default function CoursesPage() {
         </select>
       </div>
 
-      <AdminTable>
-        <div className="overflow-x-auto">
-          <div className="grid min-w-[900px] grid-cols-7 border-b border-gray-100 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-600">
-            <div>Course</div>
-            <div>University</div>
-            <div>Level</div>
-            <div>Mode</div>
-            <div>Fee</div>
-            <div>Status</div>
-            <div>Actions</div>
-          </div>
-          {isLoading ? (
-            <div className="py-10">
-              <div className="flex justify-center pb-4">
-                <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
+      <div className="shadow-xs overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/[0.08] dark:bg-[#18181b]">
+        <AdminTable>
+          <div className="overflow-x-auto">
+            <div className="grid min-w-[900px] grid-cols-7 border-b border-gray-200 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-700 dark:border-white/[0.08] dark:bg-[#18181b]/80 dark:text-gray-300">
+              <div>Course</div>
+              <div>University</div>
+              <div>Level</div>
+              <div>Mode</div>
+              <div>Fee</div>
+              <div>Status</div>
+              <div>Actions</div>
+            </div>
+            {isLoading ? (
+              <div className="py-10">
+                <div className="flex justify-center pb-4">
+                  <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#c41e3a]" />
+                </div>
+                {Array(5)
+                  .fill(0)
+                  .map((_, i) => (
+                    <div
+                      key={i}
+                      className="grid min-w-[900px] grid-cols-7 items-center border-b border-gray-100 px-6 py-5 dark:border-white/[0.06]"
+                    >
+                      <div className="h-4 w-40 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-6 w-20 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-4 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+                      <div className="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                    </div>
+                  ))}
               </div>
-              {Array(5)
-                .fill(0)
-                .map((_, i) => (
-                  <div
-                    key={i}
-                    className="grid min-w-[900px] grid-cols-7 items-center border-b border-gray-100 px-6 py-5"
-                  >
-                    <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
-                    <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
-                    <div className="h-6 w-20 animate-pulse rounded-full bg-gray-200" />
-                    <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
-                    <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
-                    <div className="h-6 w-16 animate-pulse rounded-full bg-gray-200" />
-                    <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
+            ) : courses.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                <BookOpen size={48} className="mb-3 text-gray-400 dark:text-gray-600" />
+                <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                  No courses found
+                </p>
+                <p className="text-sm text-gray-500 dark:text-gray-500">
+                  Add your first course to get started.
+                </p>
+              </div>
+            ) : (
+              courses.map((c) => (
+                <div
+                  key={c.id}
+                  className="grid min-w-[900px] grid-cols-7 items-center border-b border-gray-100 px-6 py-5 transition-colors hover:bg-gray-50 dark:border-white/[0.06] dark:hover:bg-white/[0.02]"
+                >
+                  <div>
+                    <div className="font-semibold text-gray-900 dark:text-white">{c.name}</div>
+                    <div className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                      {c.subject}
+                      {c.campus ? ` · ${c.campus}` : ''}
+                    </div>
                   </div>
-                ))}
-            </div>
-          ) : !courses?.length ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-              <BookOpen size={48} className="mb-3" />
-              <p className="text-lg font-semibold text-gray-500">No courses found</p>
-              <p className="text-sm">Add your first course to get started.</p>
-            </div>
-          ) : (
-            courses.map((c: any) => (
-              <div
-                key={c.id}
-                className="grid min-w-[900px] grid-cols-7 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50"
-              >
-                <div>
-                  <div className="font-semibold text-gray-900">{c.name}</div>
-                  <div className="mt-0.5 text-xs text-gray-400">
-                    {c.subject}
-                    {c.campus ? ` · ${c.campus}` : ''}
+                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                    {c.university?.name || '—'}
                   </div>
-                </div>
-                <div className="text-sm text-gray-700">{c.university?.name || '—'}</div>
-                <div>
-                  <span className="inline-flex items-center rounded-full bg-[#C41E3A]/10 px-2.5 py-0.5 text-xs font-semibold text-[#C41E3A]">
-                    {c.level?.replace(/_/g, ' ') || '—'}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-500">
-                  {c.modeOfStudy ? c.modeOfStudy.replace(/_/g, ' ') : '—'}
-                </div>
-                <div className="text-sm font-medium text-gray-900">
-                  {c.currency} {c.tuitionFee?.toLocaleString()}
-                </div>
-                <div>
-                  {c.isActive ? (
-                    <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
-                      Active
+                  <div>
+                    <span className="inline-flex items-center rounded-full bg-[#c41e3a]/10 px-2.5 py-0.5 text-xs font-semibold text-[#c41e3a] dark:bg-[#c41e3a]/20 dark:text-[#e05266]">
+                      {c.level?.replace(/_/g, ' ') || '—'}
                     </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-500">
-                      <EyeOff size={11} />
-                      Hidden
-                    </span>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {c.modeOfStudy ? c.modeOfStudy.replace(/_/g, ' ') : '—'}
+                  </div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    {c.currency} {c.tuitionFee?.toLocaleString()}
+                  </div>
+                  <div>
+                    {c.isActive ? (
+                      <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                        <EyeOff size={11} />
+                        Hidden
+                      </span>
+                    )}
+                  </div>
+                  {canManage && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openEdit(c)}
+                        className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
+                      >
+                        <Pencil size={14} />
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirm(c.id)}
+                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   )}
                 </div>
-                {canManage && (
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openEdit(c)}
-                      className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(c.id)}
-                      className="rounded-xl bg-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-200"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </AdminTable>
+              ))
+            )}
+          </div>
+        </AdminTable>
+      </div>
 
       {showModal &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
-            <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
-              <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5">
-                <h2 className="text-xl font-bold text-gray-900">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+            <div className="relative flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-white/[0.08]">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   {editingId ? 'Edit Course' : 'Add Course'}
                 </h2>
                 <button
@@ -451,7 +525,7 @@ export default function CoursesPage() {
                     setEditingId(null)
                     setForm(emptyForm)
                   }}
-                  className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                  className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-300"
                 >
                   <X size={18} />
                 </button>
@@ -460,23 +534,22 @@ export default function CoursesPage() {
                 <div className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2">
                   {/* Basic Info */}
                   <div className="mb-1 sm:col-span-2">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                      <BookOpen size={15} className="text-[#C41E3A]" />
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                      <BookOpen size={15} className="text-[#c41e3a]" />
                       Basic Information
                     </h3>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       University *
                     </label>
                     <select
                       value={form.universityId}
                       onChange={(e) => setF('universityId', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     >
                       <option value="">Select…</option>
-                      {(universities || []).map((u: any) => (
+                      {universities.map((u) => (
                         <option key={u.id} value={u.id}>
                           {u.name}
                         </option>
@@ -503,7 +576,7 @@ export default function CoursesPage() {
                     },
                   ].map((f) => (
                     <div key={f.k}>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         {f.l}
                       </label>
                       <input
@@ -511,31 +584,28 @@ export default function CoursesPage() {
                         onChange={(e) =>
                           f.onCh ? f.onCh(e.target.value) : setF(f.k, e.target.value)
                         }
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                        style={is}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       />
                     </div>
                   ))}
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       URL Slug *
                     </label>
                     <input
                       value={form.slug}
                       onChange={(e) => setF('slug', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 font-mono text-sm font-medium text-gray-900 outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 font-mono text-sm font-medium text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Subject
                     </label>
                     <input
                       value={form.subject}
                       onChange={(e) => setF('subject', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
                   {[
@@ -553,14 +623,13 @@ export default function CoursesPage() {
                     },
                   ].map((f) => (
                     <div key={f.k}>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         {f.l}
                       </label>
                       <select
                         value={(form as any)[f.k]}
                         onChange={(e) => setF(f.k, e.target.value)}
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                        style={is}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                       >
                         {f.options.map((o) => (
                           <option key={o.v} value={o.v}>
@@ -571,17 +640,18 @@ export default function CoursesPage() {
                     </div>
                   ))}
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Campus</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Campus
+                    </label>
                     <input
                       value={form.campus}
                       onChange={(e) => setF('campus', e.target.value)}
                       placeholder="e.g. Aston Birmingham Campus"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Description *
                     </label>
                     <QuillEditor
@@ -594,8 +664,8 @@ export default function CoursesPage() {
 
                   {/* Study Details */}
                   <div className="mb-1 sm:col-span-2">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                      <DollarSign size={15} className="text-[#C41E3A]" />
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                      <DollarSign size={15} className="text-[#c41e3a]" />
                       Study Details
                     </h3>
                   </div>
@@ -613,14 +683,13 @@ export default function CoursesPage() {
                   ].map((f) =>
                     f.type === 'select' ? (
                       <div key={f.k}>
-                        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                           {f.l}
                         </label>
                         <select
                           value={(form as any)[f.k]}
                           onChange={(e) => setF(f.k, e.target.value)}
-                          className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                          style={is}
+                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                         >
                           {f.options.map((o) => (
                             <option key={o.v} value={o.v}>
@@ -631,53 +700,50 @@ export default function CoursesPage() {
                       </div>
                     ) : (
                       <div key={f.k}>
-                        <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                        <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                           {f.l}
                         </label>
                         <input
                           type={f.t || 'text'}
                           value={(form as any)[f.k]}
                           onChange={(e) => setF(f.k, e.target.value)}
-                          className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                          style={is}
+                          className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                         />
                       </div>
                     )
                   )}
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Start Date
                     </label>
                     <input
                       type="date"
                       value={form.startDate}
                       onChange={(e) => setF('startDate', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Apply By
                     </label>
                     <input
                       type="date"
                       value={form.applicationDeadline}
                       onChange={(e) => setF('applicationDeadline', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
 
                   {/* Admission */}
                   <div className="mb-1 sm:col-span-2">
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                      <GraduationCap size={15} className="text-[#C41E3A]" />
+                    <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                      <GraduationCap size={15} className="text-[#c41e3a]" />
                       Admission & Offers
                     </h3>
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Application Fee
                     </label>
                     <input
@@ -687,19 +753,17 @@ export default function CoursesPage() {
                       value={form.applicationFee}
                       onChange={(e) => setF('applicationFee', e.target.value)}
                       placeholder="e.g. 100"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Application Fee Currency
                     </label>
                     <select
                       value={form.applicationFeeCurrency}
                       onChange={(e) => setF('applicationFeeCurrency', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     >
                       {CURRENCIES.map((c) => (
                         <option key={c} value={c}>
@@ -718,7 +782,7 @@ export default function CoursesPage() {
                     { l: 'Brochure URL', k: 'brochureUrl', p: 'https://…' },
                   ].map((f) => (
                     <div key={f.k}>
-                      <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                      <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                         {f.l}
                       </label>
                       <input
@@ -726,8 +790,7 @@ export default function CoursesPage() {
                         value={(form as any)[f.k]}
                         onChange={(e) => setF(f.k, e.target.value)}
                         placeholder={f.p}
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                        style={is}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                       />
                     </div>
                   ))}
@@ -742,10 +805,16 @@ export default function CoursesPage() {
                         type="button"
                         key={k}
                         onClick={() => setF(k, !(form as any)[k])}
-                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${(form as any)[k] ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                        className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                          (form as any)[k]
+                            ? 'border-green-300 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/40 dark:text-green-300'
+                            : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 dark:border-white/[0.08] dark:bg-[#09090b] dark:text-gray-400'
+                        }`}
                       >
                         <span
-                          className={`h-2 w-2 rounded-full ${(form as any)[k] ? 'bg-green-500' : 'bg-gray-300'}`}
+                          className={`h-2 w-2 rounded-full ${
+                            (form as any)[k] ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-700'
+                          }`}
                         />
                         {l}
                       </button>
@@ -754,7 +823,7 @@ export default function CoursesPage() {
 
                   {/* Highlights */}
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Key Highlights (one per line)
                     </label>
                     <textarea
@@ -762,16 +831,15 @@ export default function CoursesPage() {
                       onChange={(e) => setF('highlights', e.target.value)}
                       rows={4}
                       placeholder="Recognised for quality: Triple accreditation&#10;Top 5% globally (QS World Rankings)"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
-                      style={is}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
 
                   {/* Requirements */}
                   <div className="sm:col-span-2">
                     <div className="mb-2 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                        <FileText size={15} className="text-[#C41E3A]" />
+                      <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                        <FileText size={15} className="text-[#c41e3a]" />
                         Requirements
                       </h3>
                       <button
@@ -779,16 +847,16 @@ export default function CoursesPage() {
                         onClick={() =>
                           setReqItems((p) => [...p, { cat: 'ACADEMIC', title: '', desc: '' }])
                         }
-                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                        className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                       >
                         <Plus size={12} />
                         Add Requirement
                       </button>
                     </div>
                     {reqItems.length === 0 ? (
-                      <div className="rounded-lg border border-dashed border-gray-200 py-4 text-center">
+                      <div className="rounded-xl border border-dashed border-gray-200 py-4 text-center dark:border-white/[0.08]">
                         <p className="text-xs text-gray-400">
-                          No requirements added yet. Click "Add Requirement" to start.
+                          No requirements added yet. Click &quot;Add Requirement&quot; to start.
                         </p>
                       </div>
                     ) : (
@@ -802,8 +870,7 @@ export default function CoursesPage() {
                                   p.map((x, j) => (j === i ? { ...x, cat: e.target.value } : x))
                                 )
                               }
-                              className="focus:border-primary w-[140px] shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs outline-none"
-                              style={is}
+                              className="w-[140px] shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                             >
                               {[
                                 'ACADEMIC',
@@ -826,8 +893,7 @@ export default function CoursesPage() {
                                 )
                               }
                               placeholder="Requirement title"
-                              className="focus:border-primary flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs outline-none"
-                              style={is}
+                              className="flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-xs text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                             />
                             <input
                               value={r.desc}
@@ -837,13 +903,12 @@ export default function CoursesPage() {
                                 )
                               }
                               placeholder="Min. %"
-                              className="focus:border-primary w-[100px] shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs outline-none"
-                              style={is}
+                              className="w-[100px] shrink-0 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                             />
                             <button
                               type="button"
                               onClick={() => setReqItems((p) => p.filter((_, j) => j !== i))}
-                              className="shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                              className="shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/40"
                             >
                               <X size={14} />
                             </button>
@@ -858,20 +923,32 @@ export default function CoursesPage() {
                     <button
                       type="button"
                       onClick={() => setF('isActive', !form.isActive)}
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${form.isActive ? 'border-green-300 bg-green-50 text-green-700' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        form.isActive
+                          ? 'border-green-300 bg-green-50 text-green-700 dark:border-green-900/40 dark:bg-green-950/40 dark:text-green-300'
+                          : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 dark:border-white/[0.08] dark:bg-[#09090b] dark:text-gray-400'
+                      }`}
                     >
                       <span
-                        className={`h-2 w-2 rounded-full ${form.isActive ? 'bg-green-500' : 'bg-gray-300'}`}
+                        className={`h-2 w-2 rounded-full ${
+                          form.isActive ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-700'
+                        }`}
                       />
                       Active / Published
                     </button>
                     <button
                       type="button"
                       onClick={() => setF('hasScholarship', !form.hasScholarship)}
-                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${form.hasScholarship ? 'border-amber-300 bg-amber-50 text-amber-700' : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300'}`}
+                      className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-all ${
+                        form.hasScholarship
+                          ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300'
+                          : 'border-gray-200 bg-white text-gray-500 hover:border-gray-300 dark:border-white/[0.08] dark:bg-[#09090b] dark:text-gray-400'
+                      }`}
                     >
                       <span
-                        className={`h-2 w-2 rounded-full ${form.hasScholarship ? 'bg-amber-500' : 'bg-gray-300'}`}
+                        className={`h-2 w-2 rounded-full ${
+                          form.hasScholarship ? 'bg-amber-500' : 'bg-gray-300 dark:bg-gray-700'
+                        }`}
                       />
                       Has Scholarship
                     </button>
@@ -880,8 +957,7 @@ export default function CoursesPage() {
                         value={form.scholarshipDetails}
                         onChange={(e) => setF('scholarshipDetails', e.target.value)}
                         placeholder="Scholarship details…"
-                        className="focus:border-primary min-w-[200px] flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm outline-none"
-                        style={is}
+                        className="min-w-[200px] flex-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                       />
                     )}
                   </div>
@@ -894,7 +970,7 @@ export default function CoursesPage() {
                         setEditingId(null)
                         setForm(emptyForm)
                       }}
-                      className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                     >
                       Cancel
                     </button>
@@ -902,8 +978,8 @@ export default function CoursesPage() {
                       type="button"
                       onClick={onSave}
                       disabled={createMutation.isPending || updateMutation.isPending}
-                      style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }}
-                      className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                      style={{ background: '#c41e3a', boxShadow: '0 4px 12px rgba(196,30,58,0.2)' }}
+                      className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-95 disabled:opacity-50"
                     >
                       {createMutation.isPending || updateMutation.isPending
                         ? 'Saving...'
@@ -923,17 +999,17 @@ export default function CoursesPage() {
       {deleteConfirm &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
-            <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
-              <h3 className="text-lg font-bold text-gray-900">Delete Course?</h3>
-              <p className="text-gray-505 mt-2 text-sm">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/[0.08] dark:bg-[#18181b]">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">Delete Course?</h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 This action cannot be undone. The course will be permanently removed from the
                 catalog.
               </p>
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                 >
                   Cancel
                 </button>

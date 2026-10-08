@@ -23,6 +23,11 @@ interface Props {
   onMenuClick: () => void
 }
 
+interface SessionUser {
+  name?: string | null
+  image?: string | null
+}
+
 function StatusDot() {
   return (
     <span className="relative flex h-2 w-2" aria-label="System operational">
@@ -50,10 +55,13 @@ export function Topbar({ onMenuClick }: Props) {
   const [loggingOut, setLoggingOut] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
+  const sessionUser = session?.user as SessionUser | undefined
+
   const user = {
-    name: session?.user?.name || 'Admin',
-    image: avatarImage ?? (session?.user as any)?.image ?? null,
+    name: sessionUser?.name || 'Admin',
+    image: avatarImage ?? sessionUser?.image ?? null,
   }
+
   const initials = (user.name || 'AD')
     .split(' ')
     .map((n: string) => n[0])
@@ -90,11 +98,11 @@ export function Topbar({ onMenuClick }: Props) {
   }
 
   return (
-    <header className="flex h-[52px] shrink-0 items-center justify-between border-b border-gray-200 bg-slate-50 px-3 dark:border-gray-800 dark:bg-gray-900">
+    <header className="flex h-[52px] shrink-0 items-center justify-between border-b border-gray-200 bg-slate-50 px-3 transition-colors duration-200 dark:border-white/[0.08] dark:bg-[#09090b]">
       <div className="flex items-center gap-3">
         <button
           onClick={onMenuClick}
-          className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-300 lg:hidden"
+          className="flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-[#18181b] lg:hidden"
           aria-label="Open navigation"
         >
           <Menu size={16} />
@@ -116,7 +124,7 @@ export function Topbar({ onMenuClick }: Props) {
           New
         </button>
 
-        <div className="hidden items-center gap-2 rounded-md border border-gray-200 bg-emerald-500/5 px-3 py-1.5 dark:border-gray-800 sm:flex">
+        <div className="hidden items-center gap-2 rounded-md border border-gray-200 bg-emerald-500/5 px-3 py-1.5 dark:border-white/[0.08] sm:flex">
           <StatusDot />
           <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
             Systems Normal
@@ -125,7 +133,7 @@ export function Topbar({ onMenuClick }: Props) {
 
         <button
           onClick={() => router.push('/admin/notifications')}
-          className="relative flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-200/50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+          className="relative flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 transition-colors hover:bg-gray-200/50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-[#18181b]"
           aria-label="Notifications"
         >
           <Bell size={15} />
@@ -139,7 +147,7 @@ export function Topbar({ onMenuClick }: Props) {
         <div className="relative" ref={menuRef}>
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="group flex items-center gap-2 rounded-md bg-gray-100 px-2 py-1 text-gray-900 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+            className="group flex items-center gap-2 rounded-md bg-gray-100 px-2 py-1 text-gray-900 transition-colors hover:bg-gray-200 dark:bg-[#18181b] dark:text-white dark:hover:bg-[#18181b]/80"
             aria-expanded={menuOpen}
             aria-haspopup="true"
           >
@@ -165,10 +173,10 @@ export function Topbar({ onMenuClick }: Props) {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
                 transition={{ duration: 0.15 }}
-                className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-900"
+                className="absolute right-0 top-full mt-1 w-48 rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-white/[0.08] dark:bg-[#18181b]"
                 style={{ zIndex: 60 }}
               >
-                <div className="border-b border-gray-200 px-3 py-2 dark:border-gray-800">
+                <div className="border-b border-gray-200 px-3 py-2 dark:border-white/[0.08]">
                   <p className="text-[12px] font-semibold text-gray-900 dark:text-white">Admin</p>
                   <p className="text-[10px] text-gray-500 dark:text-gray-400">
                     Platform Management
@@ -180,7 +188,7 @@ export function Topbar({ onMenuClick }: Props) {
                     setMenuOpen(false)
                     router.push('/profile')
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] text-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] text-gray-900 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/[0.06]"
                 >
                   <User size={14} className="text-gray-500 dark:text-gray-400" />
                   Profile
@@ -191,18 +199,18 @@ export function Topbar({ onMenuClick }: Props) {
                     setMenuOpen(false)
                     router.push('/admin/settings')
                   }}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] text-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-800"
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] text-gray-900 transition-colors hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-white/[0.06]"
                 >
                   <KeyRound size={14} className="text-gray-500 dark:text-gray-400" />
                   Settings
                 </button>
 
-                <div className="my-1 border-t border-gray-200 dark:border-gray-800" />
+                <div className="my-1 border-t border-gray-200 dark:border-white/[0.08]" />
 
                 <button
                   onClick={handleLogout}
                   disabled={loggingOut}
-                  className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] text-[#F0625B] hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-gray-800"
+                  className="flex w-full items-center gap-2.5 px-3 py-2 text-[13px] text-[#F0625B] transition-colors hover:bg-gray-100 disabled:opacity-50 dark:hover:bg-white/[0.06]"
                 >
                   <LogOut size={14} />
                   {loggingOut ? 'Signing out...' : 'Sign Out'}

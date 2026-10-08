@@ -1,135 +1,158 @@
 'use client'
 
+import { motion, type Variants } from 'framer-motion'
+import { ArrowRight, BookOpen, Building2, Users, Zap } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { ArrowRight, Zap } from 'lucide-react'
 
-export function BlogHero({ featured }: { featured: any | null }) {
-  const containerVariants = {
+interface FeaturedArticle {
+  slug: string
+  title: string
+  description?: string | null
+  coverImage?: string | null
+  author?: string | null
+  category?: string | null
+}
+
+interface BlogHeroProps {
+  featured: FeaturedArticle | null
+}
+
+export function BlogHero({ featured }: BlogHeroProps) {
+  const containerVariants: Variants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.1,
+      },
+    },
   }
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 16 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] },
+    },
   }
+
+  const safeCoverImage =
+    featured?.coverImage?.trim().startsWith('http') || featured?.coverImage?.trim().startsWith('/')
+      ? featured.coverImage.trim()
+      : null
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#FAFAFA] via-[#F8F9FB] to-white pb-10 pt-32 lg:pb-14 lg:pt-36">
-      {/* BACKGROUND GLOW */}
-      <div className="pointer-events-none absolute right-0 top-0 -mr-48 -mt-48 h-[420px] w-[420px] rounded-full bg-[#FEF2F2] opacity-40 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-0 -mb-48 -ml-48 h-[420px] w-[420px] rounded-full bg-[#F8FAFC] opacity-60 blur-3xl" />
-      <div className="bg-[#C41E3A]/4 absolute left-1/2 top-32 h-[380px] w-[380px] -translate-x-1/2 rounded-full blur-[120px]" />
+    <section className="relative overflow-hidden bg-white pb-12 pt-32 lg:pb-16 lg:pt-36">
+      {/* Background Glows (Matching Main Hero) */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-1/2 top-0 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-red-50/60 blur-[140px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_0%,rgba(196,30,58,0.04),transparent_60%)]" />
+      </div>
+
       <div className="relative z-10 mx-auto max-w-[1380px] px-6 lg:px-10 xl:px-12">
         <motion.div
           variants={containerVariants}
           initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.2 }}
-          className="grid grid-cols-1 items-start gap-12 lg:grid-cols-[42%_58%] xl:gap-16"
+          animate="show"
+          className="grid grid-cols-1 items-center gap-12 lg:grid-cols-[45%_55%] xl:gap-16"
         >
           {/* LEFT CONTENT */}
           <div>
-            <motion.div variants={itemVariants} className="mb-4">
-              <div className="inline-block">
-                <div className="flex h-9 items-center gap-2 rounded-full border border-[#E5E7EB] bg-[#FEF2F2] px-3.5">
-                  <Zap className="h-3.5 w-3.5 text-[#C41E3A]" />
-                  <span className="text-xs font-semibold tracking-wide text-[#C41E3A]">
-                    Education Knowledge Hub
-                  </span>
-                </div>
+            {/* Badge */}
+            <motion.div variants={itemVariants} className="mb-5">
+              <div className="inline-flex items-center gap-1.5 rounded-full bg-[#C41E3A]/[0.06] px-3.5 py-1">
+                <Zap className="h-3.5 w-3.5 text-[#C41E3A]" />
+                <span className="text-xs font-semibold text-[#C41E3A]">
+                  Education Knowledge Hub
+                </span>
               </div>
             </motion.div>
 
-            <motion.h1
-              variants={itemVariants}
-              className="mb-4 max-w-[700px] text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]"
-            >
-              <div className="mb-4 h-1 w-24 rounded-full bg-gradient-to-r from-[#C41E3A] to-[#EF4444]" />
-              <div className="text-gray-950">Global Education</div>
-              <div className="bg-gradient-to-r from-[#C41E3A] to-[#EF4444] bg-clip-text text-transparent">
-                Insights &amp; Guides
-              </div>
-            </motion.h1>
+            {/* Heading */}
+            <motion.div variants={itemVariants}>
+              <h1 className="text-4xl font-extrabold leading-[1.1] tracking-tight text-gray-900 sm:text-5xl lg:text-[3.4rem]">
+                Global Education <br />
+                <span className="text-[#C41E3A]">Insights &amp; Guides</span>
+              </h1>
+            </motion.div>
 
-            <motion.p
-              variants={itemVariants}
-              className="mb-7 max-w-[520px] text-base leading-relaxed text-gray-500"
-            >
-              Study abroad guides, scholarship opportunities, visa updates, university insights, and
-              real student success journeys.
-            </motion.p>
+            {/* Description */}
+            <motion.div variants={itemVariants}>
+              <p className="mt-5 max-w-[520px] text-lg leading-relaxed text-gray-600">
+                Study abroad guides, scholarship opportunities, visa updates, university insights,
+                and real student success journeys.
+              </p>
+            </motion.div>
 
-            {/* STATISTICS */}
-            <motion.div variants={itemVariants} className="grid max-w-[580px] grid-cols-3 gap-4">
-              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
-                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
-                <p className="text-xl font-bold text-[#111827]">500+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">Expert Articles</p>
-              </div>
-              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
-                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
-                <p className="text-xl font-bold text-[#111827]">25K+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">Monthly Readers</p>
-              </div>
-              <div className="min-h-[95px] rounded-2xl border border-[#ECECEC] bg-white p-4 shadow-[0_6px_16px_rgba(15,23,42,0.05)] transition-all hover:shadow-md">
-                <div className="mb-3 h-0.5 w-8 rounded-full bg-[#C41E3A]" />
-                <p className="text-xl font-bold text-[#111827]">20+</p>
-                <p className="mt-1.5 text-xs font-medium uppercase tracking-wider text-[#6B7280]">Partner Universities</p>
-              </div>
+            {/* STATISTICS (Aligned with Main Hero Style) */}
+            <motion.div
+              variants={itemVariants}
+              className="mt-8 grid max-w-[560px] grid-cols-3 gap-4"
+            >
+              {[
+                { icon: BookOpen, value: '500+', label: 'Expert Articles' },
+                { icon: Users, value: '25K+', label: 'Monthly Readers' },
+                { icon: Building2, value: '20+', label: 'Partner Unis' },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="rounded-2xl border border-gray-200 bg-white p-4 shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all hover:border-[#C41E3A]/30 hover:shadow-md"
+                >
+                  <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-[#C41E3A]/[0.06]">
+                    <stat.icon size={16} className="text-[#C41E3A]" />
+                  </div>
+                  <p className="text-xl font-bold text-gray-900">{stat.value}</p>
+                  <p className="mt-0.5 text-xs font-medium text-gray-500">{stat.label}</p>
+                </div>
+              ))}
             </motion.div>
           </div>
 
           {/* RIGHT - FEATURED ARTICLE CARD */}
-          {featured && (() => {
-            const safeCoverImage = featured.coverImage?.trim().startsWith('http') || featured.coverImage?.trim().startsWith('/') 
-              ? featured.coverImage.trim() 
-              : null;
-              
-            return (
-            <motion.div variants={itemVariants} whileHover={{ y: -8 }} className="relative ml-auto w-full">
-              <Link href={`/blog/${featured.slug}`} className="group block overflow-hidden rounded-3xl border border-[#ECECEC] bg-white shadow-[0_20px_60px_rgba(15,23,42,0.1)] transition-all duration-500 hover:shadow-[0_30px_80px_rgba(15,23,42,0.15)]">
-                <div className="relative h-[220px] w-full overflow-hidden bg-[#F8FAFC] lg:h-[300px]">
+          {featured && (
+            <motion.div variants={itemVariants} whileHover={{ y: -6 }} className="w-full">
+              <Link
+                href={`/blog/${featured.slug}`}
+                className="group block overflow-hidden rounded-3xl border border-gray-200 bg-white p-2 shadow-[0_12px_32px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-[#C41E3A]/30 hover:shadow-[0_20px_48px_rgba(196,30,58,0.12)]"
+              >
+                <div className="relative h-[220px] w-full overflow-hidden rounded-2xl bg-gray-50 lg:h-[280px]">
                   {safeCoverImage ? (
                     <Image
                       src={safeCoverImage}
                       alt={featured.title || 'Featured Article'}
                       fill
                       priority
-                      className="object-cover object-center transition-transform duration-700 group-hover:scale-[1.02]"
+                      className="object-cover object-center transition-transform duration-700 group-hover:scale-105"
                     />
                   ) : (
                     <div className="flex h-full w-full items-center justify-center text-6xl font-bold text-gray-200">
                       {featured.title?.charAt(0)?.toUpperCase() || 'E'}
                     </div>
                   )}
+                  {featured.category && (
+                    <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-900 backdrop-blur-md">
+                      {featured.category}
+                    </span>
+                  )}
                 </div>
 
-                <div className="p-4">
-                  <h3 className="mb-2.5 line-clamp-2 text-[20px] font-bold leading-snug text-[#111827]">
+                <div className="p-5">
+                  <h3 className="mb-2 line-clamp-2 text-xl font-bold tracking-tight text-gray-900 transition-colors group-hover:text-[#C41E3A]">
                     {featured.title}
                   </h3>
 
-                  <p className="mb-3 line-clamp-2 text-sm leading-relaxed text-[#6B7280]">
+                  <p className="mb-4 line-clamp-2 text-sm leading-relaxed text-gray-600">
                     {featured.description || ''}
                   </p>
 
-                  <div className="flex items-center justify-between border-t border-[#E5E7EB] pt-4 text-xs text-[#6B7280]">
-                    <div className="flex items-center gap-3">
-                      {featured.author && <span>By {featured.author}</span>}
-                      {featured.category && (
-                        <>
-                          <span>•</span>
-                          <span>{featured.category}</span>
-                        </>
-                      )}
+                  <div className="flex items-center justify-between border-t border-gray-100 pt-4 text-xs text-gray-500">
+                    <div className="flex items-center gap-2">
+                      {featured.author && <span className="font-medium">By {featured.author}</span>}
                     </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <span className="flex h-11 items-center gap-2 rounded-full bg-[#C41E3A] px-4 text-sm font-semibold text-white transition-all hover:bg-[#B11A33]">
+                    <span className="inline-flex items-center gap-1.5 font-semibold text-[#C41E3A] transition-transform group-hover:translate-x-1">
                       Read Article
                       <ArrowRight className="h-3.5 w-3.5" />
                     </span>
@@ -137,8 +160,7 @@ export function BlogHero({ featured }: { featured: any | null }) {
                 </div>
               </Link>
             </motion.div>
-            )
-          })()}
+          )}
         </motion.div>
       </div>
     </section>

@@ -53,6 +53,27 @@ const emptyForm: UniForm = {
   isActive: true,
 }
 
+interface UniversityItem {
+  id: string
+  name?: string | null
+  slug?: string | null
+  country?: string | null
+  city?: string | null
+  description?: string | null
+  logo?: string | null
+  coverImage?: string | null
+  ranking?: string | number | null
+  koreaRanking?: number | null
+  website?: string | null
+  established?: number | null
+  totalStudents?: number | null
+  internationalStudents?: number | null
+  isActive?: boolean | null
+  programCount?: number | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  courses?: any[] | null
+}
+
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value)
   useEffect(() => {
@@ -79,7 +100,7 @@ export default function UniversitiesPage() {
   const utils = trpc.useUtils()
 
   const {
-    data: universities,
+    data: universitiesData,
     isLoading,
     isError,
     error: universitiesError,
@@ -87,6 +108,8 @@ export default function UniversitiesPage() {
     search: debouncedSearch || undefined,
     country: countryFilter || undefined,
   })
+
+  const universities = (universitiesData as UniversityItem[]) || []
 
   const createMutation = trpc.admin.universities.create.useMutation({
     onSuccess: () => {
@@ -113,8 +136,8 @@ export default function UniversitiesPage() {
   })
 
   const countries = Array.from(
-    new Set((universities || []).map((u: any) => u.country).filter(Boolean))
-  ).sort()
+    new Set(universities.map((u) => u.country).filter(Boolean))
+  ).sort() as string[]
 
   function openCreate() {
     createMutation.reset()
@@ -124,7 +147,7 @@ export default function UniversitiesPage() {
     setShowModal(true)
   }
 
-  function openEdit(u: any) {
+  function openEdit(u: UniversityItem) {
     createMutation.reset()
     updateMutation.reset()
     setEditingId(u.id)
@@ -170,6 +193,7 @@ export default function UniversitiesPage() {
     if (editingId) {
       updateMutation.mutate({ id: editingId, ...data })
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       createMutation.mutate(data as any)
     }
   }
@@ -196,13 +220,13 @@ export default function UniversitiesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search by name or city..."
-            className="focus:border-primary w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all"
+            className="w-full rounded-2xl border border-gray-200 bg-white py-3 pl-11 pr-5 text-gray-900 outline-none transition-all focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#18181b] dark:text-white dark:placeholder-gray-500"
           />
         </div>
         <select
           value={countryFilter}
           onChange={(e) => setCountryFilter(e.target.value)}
-          className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none lg:w-48"
+          className="rounded-2xl border border-gray-200 bg-white px-5 py-3 text-sm text-gray-700 outline-none transition-all focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 lg:w-48"
         >
           <option value="">All Countries</option>
           {countries.map((c) => (
@@ -216,7 +240,7 @@ export default function UniversitiesPage() {
       {isError && (
         <div
           role="alert"
-          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400"
         >
           Unable to load universities.{' '}
           {(universitiesError as { message?: string } | null)?.message ||
@@ -227,7 +251,7 @@ export default function UniversitiesPage() {
       {/* TABLE */}
       <AdminTable>
         <div className="overflow-x-auto">
-          <div className="grid min-w-[800px] grid-cols-6 border-b border-gray-100 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-600">
+          <div className="grid min-w-[800px] grid-cols-6 border-b border-gray-200 bg-gray-50 px-6 py-4 text-sm font-semibold text-gray-700 dark:border-white/[0.08] dark:bg-[#18181b]/80 dark:text-gray-300">
             <div>University</div>
             <div>Country / City</div>
             <div>Ranking</div>
@@ -239,59 +263,63 @@ export default function UniversitiesPage() {
           {isLoading ? (
             <div className="py-10">
               <div className="flex justify-center pb-4">
-                <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2" />
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-[#c41e3a]" />
               </div>
               {Array.from({ length: 5 }).map((_, i) => (
                 <div
                   key={i}
-                  className="grid min-w-[800px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5"
+                  className="grid min-w-[800px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5 dark:border-white/[0.06]"
                 >
                   <div className="space-y-2">
-                    <div className="h-4 w-32 animate-pulse rounded bg-gray-200" />
+                    <div className="h-4 w-32 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                   </div>
-                  <div className="h-4 w-24 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-16 animate-pulse rounded bg-gray-200" />
-                  <div className="h-4 w-12 animate-pulse rounded bg-gray-200" />
-                  <div className="h-6 w-16 animate-pulse rounded-full bg-gray-200" />
-                  <div className="h-8 w-20 animate-pulse rounded bg-gray-200" />
+                  <div className="h-4 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-4 w-16 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-4 w-12 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-6 w-16 animate-pulse rounded-full bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-800" />
                 </div>
               ))}
             </div>
           ) : isError ? (
             <div className="flex flex-col items-center justify-center py-16 text-red-400">
               <Building2 size={48} className="mb-3" />
-              <p className="text-lg font-semibold text-red-600">Unable to load universities</p>
+              <p className="text-lg font-semibold text-red-600 dark:text-red-400">
+                Unable to load universities
+              </p>
               <p className="text-sm text-red-500">
                 Use the error above to identify the configuration issue.
               </p>
             </div>
-          ) : (universities || []).length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-              <Building2 size={48} className="mb-3" />
-              <p className="text-lg font-semibold text-gray-500">No universities found</p>
+          ) : universities.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+              <Building2 size={48} className="mb-3 text-gray-400 dark:text-gray-600" />
+              <p className="text-lg font-semibold text-gray-700 dark:text-gray-300">
+                No universities found
+              </p>
               <p className="text-sm">Add your first university to get started.</p>
             </div>
           ) : (
-            (universities || []).map((u: any) => (
+            universities.map((u) => (
               <div
                 key={u.id}
-                className="grid min-w-[800px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5 transition-all hover:bg-gray-50"
+                className="grid min-w-[800px] grid-cols-6 items-center border-b border-gray-100 px-6 py-5 transition-colors hover:bg-gray-50 dark:border-white/[0.06] dark:hover:bg-white/[0.02]"
               >
                 <div>
-                  <div className="font-semibold text-gray-900">{u.name}</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{u.name}</div>
                   {u.website && (
                     <a
                       href={u.website}
                       target="_blank"
-                      rel="noopener"
-                      className="text-primary mt-0.5 flex items-center gap-1 text-xs hover:underline"
+                      rel="noopener noreferrer"
+                      className="mt-0.5 flex items-center gap-1 text-xs text-[#c41e3a] hover:underline"
                     >
                       <ExternalLink size={10} /> Website
                     </a>
                   )}
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5 text-gray-700">
+                  <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
                     <Globe size={13} className="text-gray-400" />
                     {u.country}
                   </div>
@@ -301,12 +329,12 @@ export default function UniversitiesPage() {
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {u.ranking ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">
                       <Hash size={11} /> QS {u.ranking}
                     </span>
                   ) : null}
                   {u.koreaRanking ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
                       <Hash size={11} /> KR #{u.koreaRanking}
                     </span>
                   ) : null}
@@ -314,7 +342,7 @@ export default function UniversitiesPage() {
                     <span className="text-xs text-gray-400">—</span>
                   )}
                 </div>
-                <div className="text-sm font-medium text-gray-700">
+                <div className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   {Number(u.programCount ?? (u.courses || []).length)}{' '}
                   {Number(u.programCount ?? (u.courses || []).length) === 1
                     ? 'program'
@@ -322,11 +350,11 @@ export default function UniversitiesPage() {
                 </div>
                 <div>
                   {u.isActive ? (
-                    <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
+                    <span className="inline-flex items-center rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-950/60 dark:text-green-300">
                       Active
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-500">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-gray-800 dark:text-gray-400">
                       <EyeOff size={11} /> Hidden
                     </span>
                   )}
@@ -334,13 +362,13 @@ export default function UniversitiesPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => openEdit(u)}
-                    className="rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-all hover:bg-gray-200"
+                    className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                   >
                     <Pencil size={14} />
                   </button>
                   <button
                     onClick={() => setDeleteConfirm(u.id)}
-                    className="rounded-xl bg-red-200 px-3 py-2 text-sm font-medium text-red-600 transition-all hover:bg-red-200"
+                    className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -355,10 +383,10 @@ export default function UniversitiesPage() {
       {showModal &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4">
-            <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl">
-              <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5">
-                <h2 className="text-xl font-bold text-gray-900">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+            <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-6 py-5 dark:border-white/[0.08]">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
                   {editingId ? 'Edit University' : 'Add University'}
                 </h2>
                 <button
@@ -367,7 +395,7 @@ export default function UniversitiesPage() {
                     setEditingId(null)
                     setForm(emptyForm)
                   }}
-                  className="rounded-xl p-2 text-gray-400 hover:bg-gray-200 hover:text-gray-600"
+                  className="rounded-xl p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/[0.06] dark:hover:text-gray-300"
                 >
                   <X size={18} />
                 </button>
@@ -377,7 +405,7 @@ export default function UniversitiesPage() {
                 {(createMutation.isError || updateMutation.isError) && (
                   <div
                     role="alert"
-                    className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                    className="mx-6 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400"
                   >
                     {(createMutation.error as { message?: string } | null)?.message ||
                       (updateMutation.error as { message?: string } | null)?.message ||
@@ -389,7 +417,7 @@ export default function UniversitiesPage() {
                   className="grid grid-cols-1 gap-4 px-6 py-6 sm:grid-cols-2"
                 >
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       University Name *
                     </label>
                     <input
@@ -405,20 +433,22 @@ export default function UniversitiesPage() {
                             .replace(/[^a-z0-9-]/g, '')
                         )
                       }}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">Slug *</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Slug *
+                    </label>
                     <input
                       required
                       value={form.slug}
                       onChange={(e) => updateField('slug', e.target.value)}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Country *
                     </label>
                     <input
@@ -426,21 +456,23 @@ export default function UniversitiesPage() {
                       value={form.country}
                       onChange={(e) => updateField('country', e.target.value)}
                       placeholder="e.g. South Korea"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">City *</label>
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                      City *
+                    </label>
                     <input
                       required
                       value={form.city}
                       onChange={(e) => updateField('city', e.target.value)}
                       placeholder="e.g. Seoul"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       QS Ranking
                     </label>
                     <input
@@ -449,11 +481,11 @@ export default function UniversitiesPage() {
                       onChange={(e) => updateField('ranking', e.target.value)}
                       placeholder="e.g. 1001-1100"
                       maxLength={50}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Ranking in Korea
                     </label>
                     <input
@@ -461,7 +493,7 @@ export default function UniversitiesPage() {
                       value={form.koreaRanking}
                       onChange={(e) => updateField('koreaRanking', e.target.value)}
                       placeholder="e.g. 5"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -473,18 +505,18 @@ export default function UniversitiesPage() {
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Website
                     </label>
                     <input
                       value={form.website}
                       onChange={(e) => updateField('website', e.target.value)}
                       placeholder="https://..."
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Established (Year)
                     </label>
                     <input
@@ -492,11 +524,11 @@ export default function UniversitiesPage() {
                       value={form.established}
                       onChange={(e) => updateField('established', e.target.value)}
                       placeholder="e.g. 1978"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Total Students
                     </label>
                     <input
@@ -504,11 +536,11 @@ export default function UniversitiesPage() {
                       value={form.totalStudents}
                       onChange={(e) => updateField('totalStudents', e.target.value)}
                       placeholder="e.g. 8500"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Intl. Students
                     </label>
                     <input
@@ -516,11 +548,11 @@ export default function UniversitiesPage() {
                       value={form.internationalStudents}
                       onChange={(e) => updateField('internationalStudents', e.target.value)}
                       placeholder="e.g. 250"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white dark:placeholder-gray-500"
                     />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium text-gray-700">
+                    <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                       Description *
                     </label>
                     <textarea
@@ -528,7 +560,7 @@ export default function UniversitiesPage() {
                       value={form.description}
                       onChange={(e) => updateField('description', e.target.value)}
                       rows={3}
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm outline-none"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -539,10 +571,12 @@ export default function UniversitiesPage() {
                       previewHeight={100}
                     />
                   </div>
-                  <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-3 sm:col-span-2">
+                  <div className="flex items-center justify-between gap-4 rounded-xl border border-gray-200 bg-gray-50/70 px-4 py-3 dark:border-white/[0.08] dark:bg-[#09090b]/50 sm:col-span-2">
                     <div>
-                      <p className="text-sm font-semibold text-gray-800">Frontend visibility</p>
-                      <p className="mt-0.5 text-xs text-gray-500">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                        Frontend visibility
+                      </p>
+                      <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                         {form.isActive
                           ? 'This university is visible to students.'
                           : 'This university is hidden from the frontend.'}
@@ -550,7 +584,9 @@ export default function UniversitiesPage() {
                     </div>
                     <label className="inline-flex shrink-0 cursor-pointer items-center gap-2.5">
                       <span
-                        className={`text-xs font-semibold ${form.isActive ? 'text-[#C41E3A]' : 'text-gray-500'}`}
+                        className={`text-xs font-semibold ${
+                          form.isActive ? 'text-[#c41e3a]' : 'text-gray-500'
+                        }`}
                       >
                         {form.isActive ? 'Active' : 'Hidden'}
                       </span>
@@ -563,7 +599,7 @@ export default function UniversitiesPage() {
                       />
                       <span
                         aria-hidden="true"
-                        className="relative h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:content-[''] peer-checked:bg-[#C41E3A] peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-[#C41E3A]/40 peer-focus-visible:ring-offset-2"
+                        className="relative h-6 w-11 rounded-full bg-gray-300 transition-colors after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-sm after:transition-transform after:content-[''] peer-checked:bg-[#c41e3a] peer-checked:after:translate-x-5 peer-focus-visible:ring-2 peer-focus-visible:ring-[#c41e3a]/40 peer-focus-visible:ring-offset-2 dark:bg-gray-700"
                       />
                     </label>
                   </div>
@@ -575,15 +611,15 @@ export default function UniversitiesPage() {
                         setEditingId(null)
                         setForm(emptyForm)
                       }}
-                      className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="rounded-xl border border-gray-200 px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={createMutation.isPending || updateMutation.isPending}
-                      style={{ background: '#AD0819', boxShadow: '0 4px 12px rgba(173,8,25,0.2)' }}
-                      className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 hover:shadow-lg disabled:opacity-50"
+                      style={{ background: '#c41e3a', boxShadow: '0 4px 12px rgba(196,30,58,0.2)' }}
+                      className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
                     >
                       {createMutation.isPending || updateMutation.isPending
                         ? 'Saving...'
@@ -603,16 +639,18 @@ export default function UniversitiesPage() {
       {deleteConfirm &&
         mounted &&
         createPortal(
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-4">
-            <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl">
-              <h3 className="text-lg font-bold text-gray-900">Delete University?</h3>
-              <p className="mt-2 text-sm text-gray-500">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 backdrop-blur-sm">
+            <div className="w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/[0.08] dark:bg-[#18181b]">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                Delete University?
+              </h3>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
                 This action cannot be undone. All associated courses will also be removed.
               </p>
               <div className="mt-6 flex justify-end gap-3">
                 <button
                   onClick={() => setDeleteConfirm(null)}
-                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:text-gray-300 dark:hover:bg-white/[0.06]"
                 >
                   Cancel
                 </button>

@@ -4,6 +4,7 @@ import { useSession } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc-client'
 import { UserRole } from '@endow/types'
 import { motion } from 'framer-motion'
+import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   ArrowUpRight,
@@ -18,29 +19,86 @@ import {
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
+interface SessionUser {
+  role?: UserRole
+}
+
+interface ApplicationStatusCount {
+  count: number
+}
+
+interface ActivityItem {
+  status?: string
+  student?: {
+    user?: {
+      name?: string | null
+    }
+  }
+  course?: {
+    name?: string | null
+    university?: {
+      name?: string | null
+    }
+  }
+  updatedAt?: string | Date | null
+}
+
+interface InquiryItem {
+  givenName?: string | null
+  surname?: string | null
+  targetUniversity?: string | null
+  targetCountry?: string | null
+  submittedAt?: string | Date | null
+}
+
+interface MetricData {
+  students?: number
+  counselors?: number
+  applicationsByStatus?: ApplicationStatusCount[]
+  upcomingConsultations?: unknown[]
+  recentActivity?: ActivityItem[]
+}
+
+interface PlatformStatsData {
+  totalUsers?: number
+  admins?: number
+  universities?: number
+}
+
+interface KPIItem {
+  label: string
+  value: number
+  sub: string
+  icon: LucideIcon
+  color: string
+  trend: string
+}
+
 export default function AdminPage() {
   const { data: session } = useSession()
-  const userRole = (session?.user as any)?.role as UserRole
-  // Cache metrics so revisits render instantly; only refetch on demand.
-  const { data: _metrics, isLoading } = trpc.admin.dashboard.getMetrics.useQuery(undefined, {
+  const sessionUser = session?.user as SessionUser | undefined
+  const userRole = sessionUser?.role
+
+  const { data: metricsData, isLoading } = trpc.admin.dashboard.getMetrics.useQuery(undefined, {
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   })
-  // getPlatformStats is a SUPER_ADMIN-only procedure (superAdminProcedure in
-  // lib/trpc.ts). Gate the query so a normal ADMIN never fires the request —
-  // the server still enforces RBAC and returns 403 for unauthorized users.
+
   const isSuperAdmin = userRole === UserRole.SUPER_ADMIN
-  const { data: _stats } = trpc.admin.super.getPlatformStats.useQuery(undefined, {
+  const { data: statsData } = trpc.admin.super.getPlatformStats.useQuery(undefined, {
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
     enabled: isSuperAdmin,
   })
-  const { data: inquiries } = trpc.endow.listInquiries.useQuery(undefined, {
+
+  const { data: inquiriesData } = trpc.endow.listInquiries.useQuery(undefined, {
     staleTime: 60 * 1000,
     refetchOnWindowFocus: false,
   })
-  const metrics = _metrics as any
-  const stats = _stats as any
+
+  const metrics = (metricsData as MetricData) || {}
+  const stats = (statsData as PlatformStatsData) || {}
+  const inquiries = (inquiriesData as InquiryItem[]) || []
 
   if (isLoading) {
     return (
@@ -56,17 +114,17 @@ export default function AdminPage() {
     )
   }
 
-  const totalStudents = metrics?.students || 0
-  const totalCounselors = metrics?.counselors || 0
+  const totalStudents = metrics.students || 0
+  const totalCounselors = metrics.counselors || 0
   const totalApplications =
-    metrics?.applicationsByStatus?.reduce((s: number, c: any) => s + c.count, 0) || 0
-  const totalInquiries = inquiries?.length || 0
-  const totalUsers = stats?.totalUsers || totalStudents + totalCounselors + 2
-  const totalAdmins = stats?.admins || 0
-  const totalUniversities = stats?.universities || 0
-  const upcomingSessions = metrics?.upcomingConsultations?.length || 0
+    metrics.applicationsByStatus?.reduce((s, c) => s + (c.count || 0), 0) || 0
+  const totalInquiries = inquiries.length || 0
+  const totalUsers = stats.totalUsers || totalStudents + totalCounselors + 2
+  const totalAdmins = stats.admins || 0
+  const totalUniversities = stats.universities || 0
+  const upcomingSessions = metrics.upcomingConsultations?.length || 0
 
-  const kpis = [
+  const kpis: KPIItem[] = [
     {
       label: 'Total Users',
       value: totalUsers,
@@ -117,7 +175,7 @@ export default function AdminPage() {
     },
   ]
 
-  const recentActivity = metrics?.recentActivity?.slice(0, 5) || []
+  const recentActivity: ActivityItem[] = metrics.recentActivity?.slice(0, 5) || []
 
   return (
     <div className="mx-auto max-w-[1440px] space-y-5">
@@ -159,10 +217,10 @@ export default function AdminPage() {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05, ease: EASE }}
-            className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-800 dark:bg-gray-900"
+            className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-white/[0.08] dark:bg-[#18181b]"
           >
             <div
-              className={`absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100`}
+              className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
               style={{ background: `linear-gradient(135deg, ${k.color}08, ${k.color}03)` }}
             />
             <div className="relative z-10 flex items-start justify-between">
@@ -190,7 +248,7 @@ export default function AdminPage() {
 
       {/* Activity Feed + Quick Stats */}
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900 lg:col-span-2">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 dark:text-white">
               <Activity size={18} className="text-gray-400" />
@@ -204,10 +262,10 @@ export default function AdminPage() {
             <div className="py-10 text-center text-sm text-gray-400">No recent activity yet.</div>
           ) : (
             <div className="space-y-0">
-              {recentActivity.map((app: any, i: number) => (
+              {recentActivity.map((app, i) => (
                 <div
                   key={i}
-                  className="flex items-center gap-3 border-b border-gray-50 py-2.5 last:border-0 dark:border-gray-800/60"
+                  className="flex items-center gap-3 border-b border-gray-50 py-2.5 last:border-0 dark:border-white/[0.06]"
                 >
                   <div
                     className="h-2 w-2 shrink-0 rounded-full"
@@ -247,7 +305,7 @@ export default function AdminPage() {
 
         <div className="space-y-4">
           {/* Quick Stats */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
             <h3 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
               Quick Stats
             </h3>
@@ -271,15 +329,15 @@ export default function AdminPage() {
             </div>
           </div>
           {/* Recent Inquiries */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-white">
               Recent Inquiries
             </h3>
-            {!inquiries?.length ? (
+            {inquiries.length === 0 ? (
               <p className="text-xs text-gray-400">No inquiries yet.</p>
             ) : (
               <div className="max-h-48 space-y-2 overflow-y-auto">
-                {(inquiries || []).slice(0, 5).map((inq: any, i: number) => (
+                {inquiries.slice(0, 5).map((inq, i) => (
                   <div key={i} className="text-xs">
                     <span className="font-medium text-gray-900 dark:text-gray-200">
                       {inq.givenName} {inq.surname}
@@ -288,12 +346,14 @@ export default function AdminPage() {
                       {inq.targetUniversity || inq.targetCountry}
                     </span>
                     <span className="mt-0.5 block text-[10px] text-gray-400">
-                      {new Date(inq.submittedAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {inq.submittedAt
+                        ? new Date(inq.submittedAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })
+                        : ''}
                     </span>
                   </div>
                 ))}
