@@ -5,7 +5,7 @@ import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUnivers
 import FAQAccordion from '@/components/home/FAQAccordion'
 import FeaturedEvents from '@/components/home/FeaturedEvents'
 import PremiumCTA from '@/components/home/PremiumCTA'
-import PremiumHero from '@/components/home/PremiumHero'
+import PremiumHeroCloudAnimation from '@/components/home/PremiumHeroCloudAnimation'
 import Testimonials from '@/components/home/Testimonials'
 import TrendingCourses from '@/components/home/TrendingCourses'
 import { UniversitiesSection } from '@/components/home/UniversitiesSection'
@@ -174,7 +174,8 @@ export default function HomePage() {
       <div className="flex min-h-screen flex-col">
         <Navbar />
         <main className="flex-grow">
-          <PremiumHero />
+          {/* <PremiumHero /> */}
+          <PremiumHeroCloudAnimation />
           <DiagnosticUniversityMarquee universities={universityLogos} />
           {/* <HeroScrollDemo /> */}
           <TrendingCourses />

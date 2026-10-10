@@ -3,10 +3,10 @@
 import { trpc } from '@/lib/trpc-client'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { Search } from 'lucide-react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useMemo, useRef, useState } from 'react'
 import Carousel, { CarouselItem } from './Carousel'
+import { CloudShader } from './cloud-shader'
 
 const BRAND_RED = '#C41E3A'
 const BRAND_NAVY = '#101B3D'
@@ -71,7 +71,7 @@ const LEVEL_VALUES: Record<string, string> = {
    Main PremiumHero Component
    ========================================================================== */
 
-export default function PremiumHero() {
+export default function PremiumHeroCloudAnimation() {
   const prefersReducedMotion = useReducedMotion()
   const [fCountry, setFCountry] = useState('')
   const [fLevel, setFLevel] = useState('')
@@ -129,68 +129,88 @@ export default function PremiumHero() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#F5F6F9] pb-8 pt-6 sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12"
+      className="relative overflow-hidden bg-gradient-to-b from-[#255e9c] via-[#4d86c4] to-[#88bbe8] pb-8 pt-6 sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12"
     >
-      <Image
-        src="/images/signin-bg.png"
-        alt=""
-        fill
-        priority
-        quality={100}
-        sizes="100vw"
-        className="pointer-events-none object-cover object-center opacity-25"
-        aria-hidden="true"
-      />
-      <div className="via-[#f5f6f9]/88 to-[#f5f6f9]/72 pointer-events-none absolute inset-0 bg-gradient-to-br from-[#fdf8f4]/95" />
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: 'radial-gradient(circle, #101B3D 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
-        }}
-      />
+      {/* Dynamic Atmospheric Cloud Shader Background */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Render at half-resolution and upscale 2x for smooth 60fps GPU performance */}
+        <motion.div
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.2, ease: 'easeOut' }}
+        >
+          <div className="absolute h-1/2 w-1/2 origin-top-left" style={{ transform: 'scale(2)' }}>
+            <CloudShader
+              speed={prefersReducedMotion ? 0 : 0.8}
+              count={5}
+              cloudColor="#ffffff"
+              skyTopColor="#205590"
+              skyBottomColor="#8cbfe8"
+              className="absolute inset-0"
+            />
+          </div>
+        </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-[1200px] px-5 sm:px-8">
-        <div className="mb-6 mt-20 grid grid-cols-1 items-center gap-6 sm:mb-8 sm:gap-8 lg:mb-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-8">
+        {/* Soft atmospheric top vignette */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0e2a4d]/30 to-transparent" />
+
+        {/* Bottom cloud mist gradient smoothly fading into the Boarding Pass ticket & #F5F6F9 */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#F5F6F9] via-[#F5F6F9]/85 to-transparent sm:h-64" />
+      </div>
+
+      {/* window-seat wing view with a gentle in-flight bob - anchored to true bottom-left corner */}
+      <motion.div
+        className="pointer-events-none absolute -bottom-6 left-0 z-10 w-[85%] max-w-[1150px] select-none sm:-bottom-10 sm:w-[75%] md:w-[68%] lg:w-[58%]"
+        animate={prefersReducedMotion ? {} : { y: [0, -12, 0] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <img
+          src="/plane-wing.png"
+          alt="Airplane wing above the clouds"
+          className="h-auto w-full object-cover drop-shadow-[0_30px_60px_rgba(10,25,50,0.55)]"
+        />
+      </motion.div>
+
+      <div className="relative z-20 mx-auto max-w-[1200px] px-5 sm:px-8">
+        <div className="relative mb-6 mt-20 grid grid-cols-1 items-center gap-6 sm:mb-8 sm:gap-8 lg:mb-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-8">
           {/* Left Hero Content */}
           <motion.div
+            className="relative z-10"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
             <div
-              className="mb-4 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em]"
+              className="mb-4 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] shadow-sm backdrop-blur-md"
               style={{
                 fontFamily: "'IBM Plex Mono',monospace",
-                color: BRAND_RED,
-                background: 'rgba(196,30,58,0.07)',
-                border: `1px solid rgba(196,30,58,0.2)`,
+                color: '#ffffff',
+                background: 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.35)',
               }}
             >
-              <span className="h-1.5 w-1.5 rounded-full" style={{ background: BRAND_RED }} />{' '}
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF4D6D] shadow-[0_2px_2px_#FF4D6D]" />{' '}
               Bangladesh&apos;s Trusted Partner
             </div>
             <h1
-              className="mb-3 max-w-[520px] text-4xl font-bold leading-[1.1] sm:mb-4 sm:text-[46px]"
-              style={{ fontFamily: "'Space Grotesk',sans-serif", color: BRAND_NAVY }}
+              className="mb-3 max-w-[540px] text-4xl font-extrabold leading-[1.1] text-white [text-shadow:0_2px_2px_rgba(10,25,50,0.45)] sm:mb-4 sm:text-[46px]"
+              style={{ fontFamily: "'Space Grotesk',sans-serif" }}
             >
-              Study abroad with <span style={{ color: BRAND_RED }}>Endow</span> guidance.
+              Study abroad with{' '}
+              <span className="text-[#ff133e] [text-shadow:0_2px_2px_rgba(0,0,0,0.3)]">Endow</span>{' '}
+              guidance.
             </h1>
-            <p
-              className="mb-4 max-w-[440px] text-base leading-relaxed sm:mb-5 sm:text-[16px]"
-              style={{ color: '#5b6070' }}
-            >
+            <p className="mb-4 max-w-[460px] text-base leading-relaxed text-white/95 [text-shadow:0_1px_6px_rgba(10,25,50,0.3)] sm:mb-5 sm:text-[16px]">
               Personalised counselling for South Korea — from university selection to the day your
               visa clears.
             </p>
             <div
-              className="mb-4 flex items-center gap-2 text-[12px] sm:mb-5"
-              style={{ fontFamily: "'IBM Plex Mono',monospace", color: '#5b6070' }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-black/10 px-3.5 py-1.5 text-[12px] text-white shadow-sm backdrop-blur-md"
+              style={{ fontFamily: "'IBM Plex Mono',monospace" }}
             >
-              <span className="tracking-[2px]" style={{ color: BRAND_GOLD, fontSize: '14px' }}>
-                ★★★★★
-              </span>
-              <span>
+              <span className="text-[13px] tracking-[2px] text-[#FFD700]">★★★★★</span>
+              <span className="text-white/95">
                 {avgRating
                   ? `${avgRating} rated by ${reviewCount.toLocaleString()} students`
                   : 'Trusted by students across South Korea & Australia'}
@@ -199,15 +219,14 @@ export default function PremiumHero() {
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/apply-now"
-                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/25 transition-all hover:scale-[1.02] hover:brightness-110 active:scale-[0.98]"
                 style={{ background: BRAND_RED }}
               >
                 Apply Now
               </Link>
               <Link
                 href="/universities"
-                className="inline-flex items-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-colors hover:bg-gray-50"
-                style={{ borderColor: 'rgba(16,27,61,0.2)', color: BRAND_NAVY }}
+                className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/90 px-6 py-3 text-sm font-semibold text-[#101B3D] shadow-md backdrop-blur-md transition-all hover:scale-[1.02] hover:bg-white active:scale-[0.98]"
               >
                 Explore Universities
               </Link>
@@ -221,18 +240,20 @@ export default function PremiumHero() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="relative flex w-full select-none items-center justify-center overflow-hidden"
           >
+            {/* Luminous atmospheric aura behind the 3D rotating cube carousel */}
+            <div className="pointer-events-none absolute h-[460px] w-[320px] rounded-full bg-white/15 blur-3xl" />
             <div
               style={{ height: '600px', position: 'relative' }}
               className="flex w-full items-center justify-center"
             >
               <Carousel
                 items={carouselItems}
-                baseWidth={300}
-                aspectRatio={0.7}
+                baseWidth={270}
+                aspectRatio={0.62}
                 effect="tilt"
                 indicator="bars"
                 frame={false}
-                arrows={true}
+                arrows={false}
                 loop
                 autoplay
                 autoplayDelay={5000}
