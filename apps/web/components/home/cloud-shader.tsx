@@ -299,11 +299,10 @@ export const CloudShader = ({
     ).matches;
 
     const resize = () => {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = canvas.clientWidth;
       const height = canvas.clientHeight;
-      const w = Math.max(1, Math.floor(width * dpr));
-      const h = Math.max(1, Math.floor(height * dpr));
+      const w = Math.max(1, Math.floor(width));
+      const h = Math.max(1, Math.floor(height));
       if (canvas.width !== w || canvas.height !== h) {
         canvas.width = w;
         canvas.height = h;
@@ -316,11 +315,37 @@ export const CloudShader = ({
     observer.observe(canvas);
     resize();
 
-    const start = performance.now();
+    let elapsed = 0;
+    let lastDraw = -1000;
+    let lastTime = performance.now();
+    let hasDrawnStatic = false;
+    let introBoost = 12;
+
     const draw = (now: number) => {
       if (!running) return;
+      frame = requestAnimationFrame(draw);
+
+      if (document.hidden) {
+        lastTime = now;
+        return;
+      }
       const p = paramsRef.current;
-      const elapsed = reduceMotion ? 0 : ((now - start) / 1000) * p.speed;
+      const isStatic = reduceMotion || p.speed === 0;
+
+      if (isStatic && hasDrawnStatic) return;
+      if (!isStatic && now - lastDraw < 30) return;
+
+      const dt = Math.min((now - lastTime) / 1000, 0.1);
+      lastTime = now;
+      lastDraw = now;
+      hasDrawnStatic = isStatic;
+
+      if (!isStatic) {
+        elapsed += dt * (p.speed + introBoost);
+        introBoost *= Math.pow(0.12, dt);
+        if (introBoost < 0.03) introBoost = 0;
+      }
+
       const cloud = parseHex(p.cloudColor);
       const skyTop = parseHex(p.skyTopColor);
       const skyBottom = parseHex(p.skyBottomColor);
@@ -331,7 +356,6 @@ export const CloudShader = ({
       gl.uniform3f(loc.skyTop, skyTop[0], skyTop[1], skyTop[2]);
       gl.uniform3f(loc.skyBottom, skyBottom[0], skyBottom[1], skyBottom[2]);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-      frame = requestAnimationFrame(draw);
     };
 
     frame = requestAnimationFrame(draw);

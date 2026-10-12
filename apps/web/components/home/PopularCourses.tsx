@@ -1,7 +1,7 @@
-import Link from 'next/link'
-import { ArrowRight, Clock, BookOpen } from 'lucide-react'
-import { FadeUp, FadeUpStagger, FadeUpItem } from '@/components/home/FadeUp'
+import { FadeUp, FadeUpItem, FadeUpStagger } from '@/components/home/FadeUp'
 import { TiltCard } from '@/components/ui/TiltCard'
+import { ArrowRight, BookOpen, Clock } from 'lucide-react'
+import Link from 'next/link'
 
 const courses = [
   {
@@ -84,7 +84,7 @@ export default function PopularCourses() {
             <FadeUpItem key={course.slug}>
               <TiltCard>
                 <Link href={`/courses/${course.slug}`}>
-                  <article className="group flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-300 hover:border-[#C41E3A]/15 hover:shadow-[0_12px_40px_rgba(196,30,58,0.08)] hover:-translate-y-1">
+                  <article className="group flex h-full flex-col rounded-2xl border border-gray-100 bg-white p-6 shadow-[0_4px_20px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-[#C41E3A]/15 hover:shadow-[0_12px_40px_rgba(196,30,58,0.08)]">
                     <div className="mb-4 flex items-center justify-between">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-bold ${course.color}`}

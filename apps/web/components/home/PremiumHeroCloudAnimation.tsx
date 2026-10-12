@@ -1,7 +1,7 @@
 'use client'
 
 import { trpc } from '@/lib/trpc-client'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useInView, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { Search } from 'lucide-react'
 import Link from 'next/link'
 import { useMemo, useRef, useState } from 'react'
@@ -80,12 +80,16 @@ export default function PremiumHeroCloudAnimation() {
 
   // Parallax setup for the boarding pass section
   const sectionRef = useRef<HTMLElement>(null)
+  const isHeroInView = useInView(sectionRef, { margin: '50px 0px 50px 0px', initial: true })
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ['start start', 'end start'],
   })
-  const ticketY = useTransform(scrollYProgress, [0, 1], [0, -200])
-  const ticketScale = useTransform(scrollYProgress, [0, 1], [1, 1.05])
+  const ticketY = useTransform(scrollYProgress, [0, 1], [0, -300])
+  const ticketScale = useTransform(scrollYProgress, [0, 1], [1, 1.1])
+  const skyY = useTransform(scrollYProgress, [0, 1], ['0%', '-25%'])
+  const wingX = useTransform(scrollYProgress, [0, 0.85], ['0%', '-115%'])
+  const wingRotate = useTransform(scrollYProgress, [0, 0.85], [0, -6])
 
   const { data: stats } = trpc.university.stats.useQuery()
   const { data: managedHeroImages } = trpc.university.heroImages.useQuery(undefined, {
@@ -129,20 +133,26 @@ export default function PremiumHeroCloudAnimation() {
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-gradient-to-b from-[#255e9c] via-[#4d86c4] to-[#88bbe8] pb-8 pt-6 sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12"
+      className="relative overflow-x-clip bg-gradient-to-b from-[#255e9c] via-[#4d86c4] to-[#88bbe8] pb-8 pt-6 [clip-path:inset(0)] sm:pb-14 sm:pt-10 lg:pb-16 lg:pt-12"
     >
-      {/* Dynamic Atmospheric Cloud Shader Background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        {/* Render at half-resolution and upscale 2x for smooth 60fps GPU performance */}
+      {/* Atmospheric Sky, Cloud Shader & Wing Background (clipped strictly to Hero section) */}
+      <div
+        aria-hidden="true"
+        className={`pointer-events-none fixed inset-0 z-0 overflow-hidden bg-gradient-to-b from-[#255e9c] via-[#4d86c4] to-[#88bbe8] ${
+          isHeroInView ? 'visible' : 'invisible'
+        }`}
+      >
+        {/* Sky & Cloud layer slowly rising upward on load & scroll */}
         <motion.div
-          className="absolute inset-0"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.2, ease: 'easeOut' }}
+          className="absolute inset-x-0 -bottom-[22%] top-0 will-change-transform"
+          style={{ y: prefersReducedMotion ? '0%' : skyY }}
+          initial={prefersReducedMotion ? false : { opacity: 0.45, y: 36 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
         >
           <div className="absolute h-1/2 w-1/2 origin-top-left" style={{ transform: 'scale(2)' }}>
             <CloudShader
-              speed={prefersReducedMotion ? 0 : 0.8}
+              speed={prefersReducedMotion || !isHeroInView ? 0 : 0.8}
               count={5}
               cloudColor="#ffffff"
               skyTopColor="#205590"
@@ -155,31 +165,49 @@ export default function PremiumHeroCloudAnimation() {
         {/* Soft atmospheric top vignette */}
         <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-[#0e2a4d]/30 to-transparent" />
 
-        {/* Bottom cloud mist gradient smoothly fading into the Boarding Pass ticket & #F5F6F9 */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#F5F6F9] via-[#F5F6F9]/85 to-transparent sm:h-64" />
+        {/* Soft horizon mist at bottom of viewport */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-[#F5F6F9]/90 via-[#F5F6F9]/50 to-transparent sm:h-64" />
+
+        {/* window-seat wing view: enters softly from outside-left on load + gentle in-flight bob + scroll fly-out to the left */}
+        <motion.div
+          className="pointer-events-none absolute -bottom-6 left-0 z-10 w-[85%] max-w-[1150px] origin-bottom-left select-none will-change-transform sm:-bottom-10 sm:w-[75%] md:w-[68%] lg:w-[58%]"
+          style={{
+            x: prefersReducedMotion ? '0%' : wingX,
+            rotate: prefersReducedMotion ? 0 : wingRotate,
+          }}
+        >
+          <motion.div
+            className="origin-bottom-left will-change-transform"
+            initial={prefersReducedMotion ? false : { x: '-75%', y: 16, rotate: -4, opacity: 0.05 }}
+            animate={{ x: '0%', y: 0, rotate: 0, opacity: 1 }}
+            transition={{
+              duration: 1.8,
+              ease: [0.22, 1, 0.36, 1],
+              opacity: { duration: 1.5, ease: 'easeOut' },
+            }}
+          >
+            <motion.img
+              src="/plane-wing.png"
+              alt="Airplane wing above the clouds"
+              className="h-auto w-full object-cover will-change-transform"
+              animate={prefersReducedMotion || !isHeroInView ? {} : { y: [0, -12, 0] }}
+              transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+        </motion.div>
       </div>
 
-      {/* window-seat wing view with a gentle in-flight bob - anchored to true bottom-left corner */}
-      <motion.div
-        className="pointer-events-none absolute -bottom-6 left-0 z-10 w-[85%] max-w-[1150px] select-none sm:-bottom-10 sm:w-[75%] md:w-[68%] lg:w-[58%]"
-        animate={prefersReducedMotion ? {} : { y: [0, -12, 0] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      >
-        <img
-          src="/plane-wing.png"
-          alt="Airplane wing above the clouds"
-          className="h-auto w-full object-cover drop-shadow-[0_30px_60px_rgba(10,25,50,0.55)]"
-        />
-      </motion.div>
+      {/* Bottom cloud mist gradient attached to section end, smoothly transitioning into the Marquee section */}
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-36 bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/75 to-transparent sm:h-48" />
 
-      <div className="relative z-20 mx-auto max-w-[1200px] px-5 sm:px-8">
+      <div className="relative z-10 mx-auto max-w-[1200px] px-5 sm:px-8">
         <div className="relative mb-6 mt-20 grid grid-cols-1 items-center gap-6 sm:mb-8 sm:gap-8 lg:mb-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-8">
           {/* Left Hero Content */}
           <motion.div
             className="relative z-10"
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 32 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
           >
             <div
               className="mb-4 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] shadow-sm backdrop-blur-md"
@@ -194,7 +222,7 @@ export default function PremiumHeroCloudAnimation() {
               Bangladesh&apos;s Trusted Partner
             </div>
             <h1
-              className="mb-3 max-w-[540px] text-4xl font-extrabold leading-[1.1] text-white [text-shadow:0_2px_2px_rgba(10,25,50,0.45)] sm:mb-4 sm:text-[46px]"
+              className="mb-3 max-w-[540px] text-4xl font-extrabold leading-[1.1] text-white [text-shadow:0_2px_2px_rgba(10,25,50,0.45)] sm:mb-4 sm:text-6xl"
               style={{ fontFamily: "'Space Grotesk',sans-serif" }}
             >
               Study abroad with{' '}
@@ -235,10 +263,10 @@ export default function PremiumHeroCloudAnimation() {
 
           {/* Right: Cube Carousel */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="relative flex w-full select-none items-center justify-center overflow-hidden"
+            initial={{ opacity: 0, x: 140, scale: 0.96 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            transition={{ duration: 1.35, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+            className="relative flex w-full select-none items-center justify-center"
           >
             {/* Luminous atmospheric aura behind the 3D rotating cube carousel */}
             <div className="pointer-events-none absolute h-[460px] w-[320px] rounded-full bg-white/15 blur-3xl" />
@@ -255,7 +283,7 @@ export default function PremiumHeroCloudAnimation() {
                 frame={false}
                 arrows={false}
                 loop
-                autoplay
+                autoplay={isHeroInView}
                 autoplayDelay={5000}
                 pauseOnHover
                 theme="light"
@@ -271,164 +299,170 @@ export default function PremiumHeroCloudAnimation() {
 
         {/* Boarding pass ticket with Parallax scroll & scale effect */}
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
           style={{
             y: prefersReducedMotion ? 0 : ticketY,
             scale: prefersReducedMotion ? 1 : ticketScale,
-            borderColor: 'rgba(16,27,61,0.13)',
           }}
-          className="z-999 overflow-hidden rounded-[20px] border bg-white shadow-[0_34px_70px_-30px_rgba(16,27,61,0.28)]"
+          className="z-999 relative"
         >
-          <div className="px-6 py-6 sm:px-8 sm:py-7">
-            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 text-[14px] font-semibold">
-                <div
-                  className="flex h-6 w-6 items-center justify-center rounded-md text-[13px]"
-                  style={{ background: 'rgba(196,30,58,0.1)', color: BRAND_RED }}
+          <motion.div
+            initial={{ opacity: 0, y: 120 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1.35, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              borderColor: 'rgba(16,27,61,0.13)',
+            }}
+            className="overflow-hidden rounded-[20px] border bg-white shadow-[0_34px_70px_-30px_rgba(16,27,61,0.28)]"
+          >
+            <div className="px-6 py-6 sm:px-8 sm:py-7">
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 text-[14px] font-semibold">
+                  <div
+                    className="flex h-6 w-6 items-center justify-center rounded-md text-[13px]"
+                    style={{ background: 'rgba(196,30,58,0.1)', color: BRAND_RED }}
+                  >
+                    <Search size={13} />
+                  </div>
+                  Find your university
+                </div>
+                <span
+                  className="rounded px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em]"
+                  style={{
+                    fontFamily: "'IBM Plex Mono',monospace",
+                    color: BRAND_GOLD,
+                    background: 'rgba(184,147,74,0.12)',
+                  }}
                 >
-                  <Search size={13} />
-                </div>
-                Find your university
+                  Search Class · All Routes
+                </span>
               </div>
-              <span
-                className="rounded px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.08em]"
-                style={{
-                  fontFamily: "'IBM Plex Mono',monospace",
-                  color: BRAND_GOLD,
-                  background: 'rgba(184,147,74,0.12)',
-                }}
+              <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-4 sm:gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
+                {[
+                  {
+                    label: 'Country',
+                    val: fCountry,
+                    set: setFCountry,
+                    opts: ['', 'South Korea', 'Australia', 'UK'],
+                    disabled: ['Australia', 'UK'],
+                  },
+                  {
+                    label: 'Degree',
+                    val: fLevel,
+                    set: setFLevel,
+                    opts: ['', "Bachelor's", "Master's", 'PhD', 'Diploma', 'Certificate'],
+                    disabled: [],
+                  },
+                  {
+                    label: 'Budget',
+                    val: fBudget,
+                    set: setFBudget,
+                    opts: ['Any budget', 'Under $5k', '$5k-$15k', '$15k+'],
+                    disabled: [],
+                  },
+                  {
+                    label: 'Intake',
+                    val: fIntake,
+                    set: setFIntake,
+                    opts: ['Any intake', 'Spring 2026', 'Fall 2026', 'Spring 2027'],
+                    disabled: [],
+                  },
+                ].map((f) => (
+                  <div key={f.label} className="w-full">
+                    <label
+                      className="mb-1.5 block text-[9px] font-medium uppercase tracking-[0.07em]"
+                      style={{ fontFamily: "'IBM Plex Mono',monospace", color: '#9299a8' }}
+                    >
+                      {f.label}
+                    </label>
+                    <select
+                      value={f.val || ''}
+                      onChange={(e) => f.set(e.target.value)}
+                      className="w-full rounded-lg border bg-[#F5F6F9] px-3 py-2.5 text-[13px] outline-none focus:border-[#C41E3A]"
+                      style={{
+                        fontFamily: "'IBM Plex Sans',sans-serif",
+                        borderColor: 'rgba(16,27,61,0.13)',
+                        color: BRAND_NAVY,
+                      }}
+                    >
+                      {f.opts.map((o) => {
+                        const isDisabled = f.disabled.includes(o)
+                        return (
+                          <option key={o} value={o} disabled={isDisabled}>
+                            {o || 'Any'}
+                            {isDisabled ? ' (coming soon)' : ''}
+                          </option>
+                        )
+                      })}
+                    </select>
+                  </div>
+                ))}
+                <Link
+                  href={buildSearchUrl()}
+                  className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+                  style={{ background: BRAND_RED }}
+                >
+                  <Search size={14} />
+                  Search
+                </Link>
+              </div>
+              <div
+                className="mt-4 flex flex-wrap items-center gap-2 text-[12px]"
+                style={{ color: '#9299a8' }}
               >
-                Search Class · All Routes
-              </span>
-            </div>
-            <div className="grid grid-cols-2 items-end gap-3 sm:grid-cols-4 sm:gap-4 lg:grid-cols-[1fr_1fr_1fr_auto]">
-              {[
-                {
-                  label: 'Country',
-                  val: fCountry,
-                  set: setFCountry,
-                  opts: ['', 'South Korea', 'Australia', 'UK'],
-                  disabled: ['Australia', 'UK'],
-                },
-                {
-                  label: 'Degree',
-                  val: fLevel,
-                  set: setFLevel,
-                  opts: ['', "Bachelor's", "Master's", 'PhD', 'Diploma', 'Certificate'],
-                  disabled: [],
-                },
-                {
-                  label: 'Budget',
-                  val: fBudget,
-                  set: setFBudget,
-                  opts: ['Any budget', 'Under $5k', '$5k-$15k', '$15k+'],
-                  disabled: [],
-                },
-                {
-                  label: 'Intake',
-                  val: fIntake,
-                  set: setFIntake,
-                  opts: ['Any intake', 'Spring 2026', 'Fall 2026', 'Spring 2027'],
-                  disabled: [],
-                },
-              ].map((f) => (
-                <div key={f.label} className="w-full">
-                  <label
-                    className="mb-1.5 block text-[9px] font-medium uppercase tracking-[0.07em]"
-                    style={{ fontFamily: "'IBM Plex Mono',monospace", color: '#9299a8' }}
+                Popular:{' '}
+                {['Computer Science', 'MBA', 'Engineering', 'Data Science'].map((t) => (
+                  <Link
+                    key={t}
+                    href={`/courses?subject=${encodeURIComponent(t)}`}
+                    className="rounded-full px-2.5 py-1 transition-colors hover:text-[#C41E3A]"
+                    style={{ background: '#F5F6F9', color: BRAND_NAVY }}
                   >
-                    {f.label}
-                  </label>
-                  <select
-                    value={f.val || ''}
-                    onChange={(e) => f.set(e.target.value)}
-                    className="w-full rounded-lg border bg-[#F5F6F9] px-3 py-2.5 text-[13px] outline-none focus:border-[#C41E3A]"
-                    style={{
-                      fontFamily: "'IBM Plex Sans',sans-serif",
-                      borderColor: 'rgba(16,27,61,0.13)',
-                      color: BRAND_NAVY,
-                    }}
-                  >
-                    {f.opts.map((o) => {
-                      const isDisabled = f.disabled.includes(o)
-                      return (
-                        <option key={o} value={o} disabled={isDisabled}>
-                          {o || 'Any'}
-                          {isDisabled ? ' (coming soon)' : ''}
-                        </option>
-                      )
-                    })}
-                  </select>
-                </div>
-              ))}
-              <Link
-                href={buildSearchUrl()}
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-5 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
-                style={{ background: BRAND_RED }}
-              >
-                <Search size={14} />
-                Search
-              </Link>
+                    {t}
+                  </Link>
+                ))}
+              </div>
             </div>
             <div
-              className="mt-4 flex flex-wrap items-center gap-2 text-[12px]"
-              style={{ color: '#9299a8' }}
+              className="relative mx-8 border-t-2 border-dashed"
+              style={{ borderColor: 'rgba(16,27,61,0.13)' }}
             >
-              Popular:{' '}
-              {['Computer Science', 'MBA', 'Engineering', 'Data Science'].map((t) => (
-                <Link
-                  key={t}
-                  href={`/courses?subject=${encodeURIComponent(t)}`}
-                  className="rounded-full px-2.5 py-1 transition-colors hover:text-[#C41E3A]"
-                  style={{ background: '#F5F6F9', color: BRAND_NAVY }}
-                >
-                  {t}
-                </Link>
+              <div className="absolute -left-[45px] -top-[11px] h-[22px] w-[22px] rounded-full bg-[#F5F6F9]" />
+              <div className="absolute -right-[45px] -top-[11px] h-[22px] w-[22px] rounded-full bg-[#F5F6F9]" />
+            </div>
+            <div className="grid grid-cols-2 bg-gradient-to-r from-[#EEF2FF] via-[#F4E8FF] to-[#FFE4F0] sm:grid-cols-4">
+              {[
+                { num: '2,000+', lbl: 'Students placed' },
+                { num: `${uniCount}+`, lbl: 'Partner universities' },
+                { num: `${countryCount}`, lbl: 'Countries' },
+                { num: '98%', lbl: 'Success rate' },
+              ].map((s, i) => (
+                <div key={i} className="relative px-4 py-5 text-center">
+                  {i < 3 && (
+                    <div className="absolute bottom-3 right-0 top-3 border-r-[1.5px] border-dashed border-[#101B3D]/15" />
+                  )}
+                  <div
+                    className="text-2xl font-semibold text-[#101B3D] sm:text-[26px]"
+                    style={{ fontFamily: "'IBM Plex Mono',monospace" }}
+                  >
+                    {s.num}
+                  </div>
+                  <div
+                    className="mt-1.5 text-[9px] uppercase tracking-[0.09em]"
+                    style={{ fontFamily: "'IBM Plex Mono',monospace", color: '#5b6070' }}
+                  >
+                    {s.lbl}
+                  </div>
+                  <div
+                    className="mx-auto mt-3 h-3 w-[70%] opacity-40"
+                    style={{
+                      background:
+                        'repeating-linear-gradient(90deg, rgba(16,27,61,0.5) 0 2px, transparent 2px 4px, rgba(16,27,61,0.5) 4px 5px, transparent 5px 8px)',
+                    }}
+                  />
+                </div>
               ))}
             </div>
-          </div>
-          <div
-            className="relative mx-8 border-t-2 border-dashed"
-            style={{ borderColor: 'rgba(16,27,61,0.13)' }}
-          >
-            <div className="absolute -left-[45px] -top-[11px] h-[22px] w-[22px] rounded-full bg-[#F5F6F9]" />
-            <div className="absolute -right-[45px] -top-[11px] h-[22px] w-[22px] rounded-full bg-[#F5F6F9]" />
-          </div>
-          <div className="grid grid-cols-2 bg-gradient-to-r from-[#EEF2FF] via-[#F4E8FF] to-[#FFE4F0] sm:grid-cols-4">
-            {[
-              { num: '2,000+', lbl: 'Students placed' },
-              { num: `${uniCount}+`, lbl: 'Partner universities' },
-              { num: `${countryCount}`, lbl: 'Countries' },
-              { num: '98%', lbl: 'Success rate' },
-            ].map((s, i) => (
-              <div key={i} className="relative px-4 py-5 text-center">
-                {i < 3 && (
-                  <div className="absolute bottom-3 right-0 top-3 border-r-[1.5px] border-dashed border-[#101B3D]/15" />
-                )}
-                <div
-                  className="text-2xl font-semibold text-[#101B3D] sm:text-[26px]"
-                  style={{ fontFamily: "'IBM Plex Mono',monospace" }}
-                >
-                  {s.num}
-                </div>
-                <div
-                  className="mt-1.5 text-[9px] uppercase tracking-[0.09em]"
-                  style={{ fontFamily: "'IBM Plex Mono',monospace", color: '#5b6070' }}
-                >
-                  {s.lbl}
-                </div>
-                <div
-                  className="mx-auto mt-3 h-3 w-[70%] opacity-40"
-                  style={{
-                    background:
-                      'repeating-linear-gradient(90deg, rgba(16,27,61,0.5) 0 2px, transparent 2px 4px, rgba(16,27,61,0.5) 4px 5px, transparent 5px 8px)',
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>
