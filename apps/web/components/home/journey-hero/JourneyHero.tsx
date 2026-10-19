@@ -7,6 +7,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import * as React from 'react'
 import { mergeConfig } from './defaults'
+import { HeroNoticeBoard } from './HeroNoticeBoard'
 import styles from './journey-hero.module.css'
 import { JourneyStage } from './JourneyStage'
 import type { DeepPartial, JourneyConfig, JourneyController } from './types'
@@ -175,7 +176,7 @@ export function JourneyHero({ config, controllerRef, className }: JourneyHeroPro
                 : 'Trusted by students across South Korea & Australia'}
             </span>
           </div>
-          <div className="flex flex-wrap gap-3">
+          <div className="mb-10 flex flex-wrap gap-3">
             <Link
               href="/apply-now"
               className="inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90"
@@ -191,6 +192,9 @@ export function JourneyHero({ config, controllerRef, className }: JourneyHeroPro
               Explore Universities
             </Link>
           </div>
+
+          {/* Dynamic University Admissions Notice Board */}
+          <HeroNoticeBoard />
         </motion.div>
 
         <motion.div

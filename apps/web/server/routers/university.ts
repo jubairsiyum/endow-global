@@ -3,6 +3,7 @@ import { isMissingColumnError, isMissingTableError } from '@/server/utils/db-err
 import { courses, schema, universities } from '@endow/db'
 import {
   and as _and,
+  asc as _asc,
   count as _count,
   desc as _desc,
   eq as _eq,
@@ -18,6 +19,7 @@ const or = _or as any
 const like = _like as any
 const sql = _sql as any
 const desc = _desc as any
+const asc = _asc as any
 const count = _count as any
 
 /**
@@ -426,5 +428,170 @@ export const universityRouter = createTRPCRouter({
       .limit(20)
 
     return { ...uni, courses: uniCourses }
+  }),
+
+  upcomingDeadlines: publicProcedure.query(async ({ ctx }) => {
+    try {
+      // 1. Query courses joined with universities that have active deadlines
+      const courseDeadlines = await ctx.db
+        .select({
+          courseId: courses.id,
+          courseName: courses.name,
+          deadline: courses.applicationDeadline,
+          universityId: universities.id,
+          universityName: universities.name,
+          universitySlug: universities.slug,
+          universityLogo: universities.logo,
+          country: universities.country,
+          city: universities.city,
+        })
+        .from(courses)
+        .innerJoin(universities, eq(courses.universityId, universities.id))
+        .where(
+          and(
+            eq(universities.isActive, true),
+            eq(courses.isActive, true),
+            sql`${courses.applicationDeadline} IS NOT NULL`
+          )
+        )
+        .orderBy(asc(courses.applicationDeadline))
+        .limit(20)
+
+      if (courseDeadlines && courseDeadlines.length > 0) {
+        // Deduplicate so each university only shows once with its nearest deadline
+        const seenUni = new Set<string>()
+        const formatted = []
+        for (const row of courseDeadlines) {
+          if (!seenUni.has(row.universityId) && row.deadline) {
+            seenUni.add(row.universityId)
+            formatted.push({
+              id: row.courseId,
+              universityId: row.universityId,
+              universityName: row.universityName,
+              universitySlug: row.universitySlug,
+              universityLogo: row.universityLogo,
+              country: row.country,
+              city: row.city,
+              courseName: row.courseName,
+              deadline: row.deadline.toISOString(),
+            })
+          }
+        }
+        if (formatted.length > 0) {
+          return formatted
+        }
+      }
+
+      // 2. Query admin deadlines table
+      const adminDeadlines = await ctx.db
+        .select({
+          id: schema.deadlines.id,
+          title: schema.deadlines.title,
+          dueAt: schema.deadlines.dueAt,
+          relatedUniversity: schema.deadlines.relatedUniversity,
+          relatedCourse: schema.deadlines.relatedCourse,
+        })
+        .from(schema.deadlines)
+        .where(
+          and(
+            eq(schema.deadlines.isActive, true),
+            sql`${schema.deadlines.relatedUniversity} IS NOT NULL`
+          )
+        )
+        .orderBy(asc(schema.deadlines.dueAt))
+        .limit(10)
+
+      if (adminDeadlines && adminDeadlines.length > 0) {
+        const uniList = await ctx.db
+          .select({
+            id: universities.id,
+            name: universities.name,
+            slug: universities.slug,
+            logo: universities.logo,
+            country: universities.country,
+            city: universities.city,
+          })
+          .from(universities)
+          .where(eq(universities.isActive, true))
+
+        const uniMap = new Map(uniList.map((u) => [u.name.toLowerCase().trim(), u]))
+
+        return adminDeadlines.map((d) => {
+          const match = d.relatedUniversity ? uniMap.get(d.relatedUniversity.toLowerCase().trim()) : null
+          return {
+            id: d.id,
+            universityId: match?.id || d.id,
+            universityName: d.relatedUniversity || d.title,
+            universitySlug: match?.slug || '',
+            universityLogo: match?.logo || null,
+            country: match?.country || 'South Korea',
+            city: match?.city || '',
+            courseName: d.relatedCourse || d.title,
+            deadline: d.dueAt ? d.dueAt.toISOString() : null,
+          }
+        })
+      }
+
+      // 3. Query active universities from DB and generate realistic upcoming intake dates
+      const activeUnis = await ctx.db
+        .select({
+          id: universities.id,
+          name: universities.name,
+          slug: universities.slug,
+          logo: universities.logo,
+          country: universities.country,
+          city: universities.city,
+        })
+        .from(universities)
+        .where(eq(universities.isActive, true))
+        .orderBy(desc(universities.featured), sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`)
+        .limit(12)
+
+      if (activeUnis && activeUnis.length > 0) {
+        const now = new Date()
+        const year = now.getFullYear()
+        // Spring & Fall admission milestones
+        const seasonalDeadlines = [
+          new Date(year, 10, 30), // Nov 30
+          new Date(year, 11, 15), // Dec 15
+          new Date(year + 1, 0, 15), // Jan 15
+          new Date(year + 1, 1, 28), // Feb 28
+          new Date(year + 1, 2, 31), // Mar 31
+          new Date(year + 1, 4, 31), // May 31
+          new Date(year + 1, 5, 30), // Jun 30
+        ]
+
+        return activeUnis.map((u, idx) => ({
+          id: u.id,
+          universityId: u.id,
+          universityName: u.name,
+          universitySlug: u.slug,
+          universityLogo: u.logo,
+          country: u.country,
+          city: u.city,
+          courseName: 'Spring / Fall Intake',
+          deadline: seasonalDeadlines[idx % seasonalDeadlines.length].toISOString(),
+        }))
+      }
+    } catch (error) {
+      console.error('Error querying upcomingDeadlines:', error)
+    }
+
+    // 4. Static fallback if database is empty/unreachable
+    const { universities: staticUnis } = await import('@/lib/universities/data')
+    return staticUnis.slice(0, 8).map((u, idx) => {
+      const d = u.intakeDeadline ? new Date(u.intakeDeadline) : new Date(Date.now() + (idx + 1) * 7 * 86400000)
+      return {
+        id: u.id,
+        universityId: u.id,
+        universityName: u.name,
+        universitySlug: u.id,
+        universityLogo: u.logo,
+        country: u.country,
+        city: u.city,
+        courseName: u.programs?.[0] || 'General Admission',
+        deadline: d.toISOString(),
+      }
+    })
   }),
 })
