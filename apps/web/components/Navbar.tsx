@@ -137,6 +137,8 @@ export function Navbar() {
             aria-label="Endow Global Education home"
           >
             <Image
+              id="navbar-brand-logo"
+              data-navbar-logo="true"
               src="/logo/endoedu.svg"
               alt="Endow Global Education"
               width={36}

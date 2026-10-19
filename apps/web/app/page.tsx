@@ -4,8 +4,8 @@ import CountryCards from '@/components/home/CountryCards'
 import { DiagnosticUniversityMarquee } from '@/components/home/DiagnosticUniversityMarquee'
 import FAQAccordion from '@/components/home/FAQAccordion'
 import FeaturedEvents from '@/components/home/FeaturedEvents'
+import KoreaJourneyHero from '@/components/home/KoreaJourneyHero'
 import PremiumCTA from '@/components/home/PremiumCTA'
-import PremiumHeroCloudAnimation from '@/components/home/PremiumHeroCloudAnimation'
 import Testimonials from '@/components/home/Testimonials'
 import TrendingCourses from '@/components/home/TrendingCourses'
 import { UniversitiesSection } from '@/components/home/UniversitiesSection'
@@ -174,10 +174,9 @@ export default function HomePage() {
       <div className="flex min-h-screen flex-col">
         <Navbar />
         <main className="flex-grow">
-          {/* <PremiumHero /> */}
-          <PremiumHeroCloudAnimation />
+          {/* Interactive Bangladesh -> South Korea Halftone Journey Hero */}
+          <KoreaJourneyHero />
           <DiagnosticUniversityMarquee universities={universityLogos} />
-          {/* <HeroScrollDemo /> */}
           <TrendingCourses />
           <CountryCards />
           <ApplicationRoadmap />
