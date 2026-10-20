@@ -1,6 +1,10 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+
+# Avoid pnpm's default release-age verification requests to npm's attestation API.
+minimumReleaseAge: 0
+
 allowBuilds:
   '@firebase/util': true
   '@prisma/client': true
