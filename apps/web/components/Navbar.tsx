@@ -28,8 +28,8 @@ const navItems = [
   { label: 'Countries', href: '/universities', hasDropdown: true },
   { label: 'Courses', href: '/courses' },
   { label: 'Resources', href: '/blog' },
-  { label: 'Events', href: '/events' },
-  { label: 'Contact', href: '/contact' },
+  // { label: 'Events', href: '/events' },
+  // { label: 'Contact', href: '/contact' },
 ] as const
 
 export function Navbar() {
