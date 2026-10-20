@@ -123,6 +123,7 @@ function Section({
 function CheckIndicator({ checked }: { checked: boolean }) {
   return (
     <span
+      aria-hidden="true"
       className={`flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border transition-colors ${
         checked
           ? 'border-[#C41E3A] bg-gradient-to-br from-[#C41E3A] to-[#A01830]'
