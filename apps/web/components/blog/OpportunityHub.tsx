@@ -1,9 +1,11 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Zap, Trophy, Users, Globe, Briefcase } from 'lucide-react'
+import { Trophy, Users, Globe, Briefcase, ArrowRight } from 'lucide-react'
+import Link from 'next/link'
+import { trpc } from '@/lib/trpc-client'
 
-const opportunities = [
+const defaultStats = [
   {
     icon: Trophy,
     title: 'Scholarships',
@@ -34,7 +36,61 @@ const opportunities = [
   },
 ]
 
+const statIcons: Record<string, typeof Trophy> = {
+  Scholarships: Trophy,
+  Internships: Briefcase,
+  Competitions: Users,
+  'Exchange Programs': Globe,
+}
+
+const defaultOpportunities = [
+  {
+    type: 'Scholarship',
+    title: 'Global Korea Scholarship (GKS) Degree Program',
+    description: 'Full tuition + monthly stipend for deserving international students',
+    deadline: 'Dec 15, 2026',
+    href: '/scholarships',
+  },
+  {
+    type: 'Internship',
+    title: 'Seoul Global Tech Company Summer Internship',
+    description: 'Paid corporate internship at leading Korean tech companies',
+    deadline: 'Jun 30, 2027',
+    href: '/blog',
+  },
+  {
+    type: 'Competition',
+    title: 'International Student Business Plan Challenge',
+    description: 'Win seed grant prizes and mentorship from Korean industry leaders',
+    deadline: 'Aug 15, 2027',
+    href: '/blog',
+  },
+  {
+    type: 'Exchange',
+    title: 'Partner University Semester Exchange',
+    description: 'Study for a credit-bearing semester at renowned universities with tuition waiver',
+    deadline: 'Jul 01, 2027',
+    href: '/universities',
+  },
+]
+
 export function OpportunityHub() {
+  const { data } = trpc.resource.published.opportunityHub.useQuery()
+
+  const stats = (data?.stats && data.stats.length > 0)
+    ? data.stats.map((s, idx) => ({
+        icon: statIcons[s.title] || defaultStats[idx % defaultStats.length].icon,
+        title: s.title,
+        count: s.count,
+        description: s.description,
+        color: defaultStats[idx % defaultStats.length].color,
+      }))
+    : defaultStats
+
+  const latestOpportunities = (data?.latestOpportunities && data.latestOpportunities.length > 0)
+    ? data.latestOpportunities
+    : defaultOpportunities
+
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -65,7 +121,7 @@ export function OpportunityHub() {
             Opportunity Hub
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
-            Explore thousands of opportunities for your growth
+            Explore scholarships, internships, and student exchange opportunities
           </p>
         </motion.div>
 
@@ -77,13 +133,13 @@ export function OpportunityHub() {
           viewport={{ once: true, amount: 0.2 }}
           className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4"
         >
-          {opportunities.map((opp, index) => {
+          {stats.map((opp, index) => {
             const Icon = opp.icon
             return (
               <motion.div
                 key={index}
                 variants={itemVariants}
-                whileHover={{ scale: 1.05, y: -8 }}
+                whileHover={{ scale: 1.03, y: -6 }}
                 className="group cursor-pointer overflow-hidden rounded-xl"
               >
                 {/* GRADIENT BACKGROUND */}
@@ -112,56 +168,49 @@ export function OpportunityHub() {
           })}
         </motion.div>
 
-        {/* FEATURED OPPORTUNITIES */}
+        {/* FEATURED / LATEST OPPORTUNITIES */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
           className="space-y-6"
         >
-          <h3 className="mb-8 text-2xl font-bold text-[#111827]">Latest Opportunities</h3>
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-2xl font-bold text-[#111827]">Latest Opportunities</h3>
+            <Link
+              href="/scholarships"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#C41E3A] hover:underline"
+            >
+              View All Scholarships
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {[
-              {
-                type: 'Scholarship',
-                title: 'Korean Government Scholarship 2024',
-                description: 'Full tuition + monthly stipend for deserving students',
-                deadline: 'Dec 15, 2024',
-              },
-              {
-                type: 'Internship',
-                title: 'Tech Company Summer Internship',
-                description: 'Paid internship at leading Korean tech companies',
-                deadline: 'Jun 30, 2024',
-              },
-              {
-                type: 'Competition',
-                title: 'Student Business Plan Competition',
-                description: 'Win cash prizes and mentorship from industry leaders',
-                deadline: 'Aug 15, 2024',
-              },
-              {
-                type: 'Exchange',
-                title: 'European University Exchange',
-                description: 'Study for a semester at partner universities in Europe',
-                deadline: 'Jul 01, 2024',
-              },
-            ].map((opp, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ x: 4 }}
-                className="rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-8 transition-all hover:border-red-200 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
-              >
-                <div className="mb-3 flex items-start justify-between">
-                  <span className="rounded-full border border-[#E5E7EB] bg-[#FEF2F2] px-3 py-1 text-xs font-semibold text-[#C41E3A]">
-                    {opp.type}
-                  </span>
-                  <span className="text-xs text-[#6B7280]">Deadline: {opp.deadline}</span>
-                </div>
-                <h4 className="mb-2 font-bold text-[#111827]">{opp.title}</h4>
-                <p className="text-sm text-[#6B7280]">{opp.description}</p>
-              </motion.div>
+            {latestOpportunities.map((opp, idx) => (
+              <Link key={idx} href={opp.href || '/scholarships'} className="block">
+                <motion.div
+                  whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                  className="group flex flex-col justify-between h-full rounded-xl border border-[#E5E7EB] bg-[#F8FAFC] p-8 transition-all hover:border-red-200 hover:bg-white hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
+                >
+                  <div>
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <span className="rounded-full border border-rose-100 bg-[#FEF2F2] px-3 py-1 text-xs font-semibold text-[#C41E3A]">
+                        {opp.type}
+                      </span>
+                      <span className="text-xs font-medium text-[#6B7280]">Deadline: {opp.deadline}</span>
+                    </div>
+                    <h4 className="mb-2 font-bold text-[#111827] group-hover:text-[#C41E3A] transition-colors">
+                      {opp.title}
+                    </h4>
+                    <p className="text-sm leading-relaxed text-[#6B7280]">{opp.description}</p>
+                  </div>
+
+                  <div className="mt-6 flex items-center gap-1 text-xs font-semibold text-[#C41E3A] group-hover:translate-x-1 transition-transform">
+                    Explore Opportunity <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </motion.div>

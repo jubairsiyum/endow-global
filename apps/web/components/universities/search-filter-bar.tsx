@@ -51,9 +51,9 @@ export default function SearchFilterBar() {
 
   const handleClear = () => {
     setQ(''); setCountry(''); setLevel('')
-    // clear both level and legacy degree param
+    // clear both level, legacy degree, and intake param
     const p = new URLSearchParams(searchParams.toString())
-    p.delete('q'); p.delete('country'); p.delete('level'); p.delete('degree')
+    p.delete('q'); p.delete('country'); p.delete('level'); p.delete('degree'); p.delete('intake')
     const qs = p.toString()
     router.push(qs ? `/universities/search?${qs}` : '/universities/search')
   }

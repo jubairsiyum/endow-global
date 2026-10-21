@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import { db, schema } from '@/lib/db'
-import { eq as _eq, and as _and, ne as _ne, desc as _desc } from 'drizzle-orm'
+import { eq as _eq, and as _and, ne as _ne, desc as _desc, sql } from 'drizzle-orm'
 import { BlogArticle } from '@/components/blog/BlogArticle'
 
 const eq = _eq as any
@@ -95,6 +95,22 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
   const post = await getBlog(params.slug)
   if (!post) notFound()
 
+  try {
+    await db
+      .update(schema.resources)
+      .set({
+        viewCount: sql`${schema.resources.viewCount} + 1` as any,
+      })
+      .where(eq(schema.resources.id, post.id))
+  } catch (err) {
+    console.error('Failed to increment viewCount:', err)
+  }
+
+  const updatedPost = {
+    ...post,
+    viewCount: (post.viewCount || 0) + 1,
+  }
+
   const relatedRows = await db
     .select()
     .from(schema.resources)
@@ -108,5 +124,5 @@ export default async function BlogPostPage({ params }: { params: { slug: string 
     .orderBy(desc(schema.resources.publishedAt))
     .limit(4)
 
-  return <BlogArticle post={serialize(post)} related={relatedRows.map(serialize)} />
+  return <BlogArticle post={serialize(updatedPost)} related={relatedRows.map(serialize)} />
 }

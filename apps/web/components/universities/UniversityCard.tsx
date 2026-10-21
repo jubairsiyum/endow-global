@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, type Variants } from 'framer-motion'
-import { ArrowRight, Building2, MapPin } from 'lucide-react'
+import { ArrowRight, Building2, Clock, MapPin } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -15,6 +15,7 @@ export type UniversityCardData = {
   ranking: string | null
   description: string | null
   slug: string
+  deadline?: string | null
 }
 
 export const cardVariants: Variants = {
@@ -82,8 +83,22 @@ export function UniversityCard({ uni }: { uni: UniversityCardData }) {
             )}
           </div>
 
-          <div className="mt-auto flex items-end justify-between border-t border-slate-100 pt-4">
-            <button className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all duration-300 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white">
+          <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                Application Deadline
+              </span>
+              <span className="mt-0.5 flex items-center gap-1.5 text-xs font-semibold text-[#C41E3A]">
+                <Clock className="h-3.5 w-3.5 shrink-0 text-[#C41E3A]" />
+                {uni.deadline || 'Rolling / Open'}
+              </span>
+            </div>
+
+            <button
+              type="button"
+              aria-label={`View ${uni.name}`}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-slate-200 text-slate-400 transition-all duration-300 group-hover:border-[#C41E3A] group-hover:bg-[#C41E3A] group-hover:text-white"
+            >
               <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
             </button>
           </div>

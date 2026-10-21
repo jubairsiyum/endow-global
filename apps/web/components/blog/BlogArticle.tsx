@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Navbar } from '@/components/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { ArticleSidebar, StudyWorkCTA } from '@/components/blog/ArticleSidebar'
+import { formatRelativeTime } from '@/lib/utils'
 
 type Post = {
   id: string
@@ -23,9 +24,9 @@ type Post = {
 }
 
 function formatDate(date?: string | null) {
-  if (!date) return 'Jun 16, 2026'
+  if (!date) return 'Recently'
   const d = new Date(date)
-  if (Number.isNaN(d.getTime())) return 'Jun 16, 2026'
+  if (Number.isNaN(d.getTime())) return 'Recently'
   return new Intl.DateTimeFormat('en', {
     month: 'short',
     day: '2-digit',
@@ -75,7 +76,7 @@ function MetaRow({ post }: { post: Post }) {
       <span>
         By <span className="font-semibold text-slate-700">{author}</span>
       </span>
-      <span>Updated on {formatDate(post.publishedAt)}</span>
+      <span>Published {formatRelativeTime(post.publishedAt)} ({formatDate(post.publishedAt)})</span>
       <span className="inline-flex items-center gap-1.5">
         <span className="inline-flex size-4 items-center justify-center rounded-full bg-emerald-100 text-[10px] text-emerald-600">
           ✓
@@ -83,7 +84,7 @@ function MetaRow({ post }: { post: Post }) {
         Fact checked
       </span>
       <span>{getReadTime(post)}</span>
-      {views && <span>{views}</span>}
+      {views && <span className="font-medium text-[#C41E3A]">{views}</span>}
     </div>
   )
 }

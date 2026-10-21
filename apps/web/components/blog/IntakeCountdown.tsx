@@ -1,48 +1,72 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Calendar, Clock, Lightbulb } from 'lucide-react'
+import { Calendar, Clock, Lightbulb, GraduationCap } from 'lucide-react'
+import Link from 'next/link'
+import { trpc } from '@/lib/trpc-client'
 
-const intakes = [
+type IntakeCardItem = {
+  key: string
+  season: string
+  month: string
+  deadline: string
+  status: string
+  daysLeft: number
+  universityCount?: number
+  color: string
+  bgColor: string
+}
+
+const defaultIntakes: IntakeCardItem[] = [
   {
+    key: 'march',
     season: 'March Intake',
-    month: 'March 2026',
-    deadline: 'December 15, 2025',
+    month: 'March 2027',
+    deadline: 'December 15, 2026',
     status: 'Applications Open',
-    daysLeft: 127,
+    daysLeft: 55,
+    universityCount: 9,
     color: 'bg-[#C41E3A]',
     bgColor: 'bg-rose-50',
   },
   {
+    key: 'june',
     season: 'June Intake',
-    month: 'June 2026',
-    deadline: 'March 31, 2026',
+    month: 'June 2027',
+    deadline: 'March 31, 2027',
     status: 'Open Now',
-    daysLeft: 89,
+    daysLeft: 161,
+    universityCount: 4,
     color: 'bg-[#C41E3A]',
     bgColor: 'bg-rose-50',
   },
   {
+    key: 'september',
     season: 'September Intake',
-    month: 'September 2026',
-    deadline: 'June 30, 2026',
+    month: 'September 2027',
+    deadline: 'June 30, 2027',
     status: 'Most Popular',
-    daysLeft: 45,
+    daysLeft: 252,
+    universityCount: 10,
     color: 'bg-[#C41E3A]',
     bgColor: 'bg-rose-50',
   },
   {
+    key: 'december',
     season: 'December Intake',
     month: 'December 2026',
     deadline: 'September 30, 2026',
     status: 'Limited Seats',
-    daysLeft: 152,
+    daysLeft: 12,
+    universityCount: 4,
     color: 'bg-[#C41E3A]',
     bgColor: 'bg-rose-50',
   },
 ]
 
 export function IntakeCountdown() {
+  const { data: dbIntakes } = trpc.university.intakeOverview.useQuery()
+  const displayIntakes = (dbIntakes && dbIntakes.length > 0) ? dbIntakes : defaultIntakes
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -97,7 +121,7 @@ export function IntakeCountdown() {
           viewport={{ once: true }}
           className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4"
         >
-          {intakes.map((intake, index) => (
+          {displayIntakes.map((intake, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
@@ -126,9 +150,17 @@ export function IntakeCountdown() {
                 {intake.season}
               </h3>
 
-              <div className="mb-8 flex items-center gap-2 text-sm text-[#6B7280]">
-                <Calendar className="h-4 w-4" />
-                {intake.month}
+              <div className="mb-8 flex items-center justify-between text-sm text-[#6B7280]">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4" />
+                  {intake.month}
+                </div>
+                {'universityCount' in intake && typeof intake.universityCount === 'number' && intake.universityCount > 0 && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-white/80 px-2 py-0.5 text-xs font-medium text-gray-700 shadow-2xs">
+                    <GraduationCap className="h-3.5 w-3.5 text-[#C41E3A]" />
+                    {intake.universityCount} {intake.universityCount === 1 ? 'University' : 'Universities'}
+                  </span>
+                )}
               </div>
 
               {/* COUNTDOWN */}
@@ -165,11 +197,12 @@ export function IntakeCountdown() {
                   </div>
                 </div>
 
-                <button
-                  className={`w-full rounded-xl py-3.5 font-semibold text-white transition-all duration-300 hover:scale-[1.02] ${intake.color}`}
+                <Link
+                  href={`/universities?intake=${intake.key}`}
+                  className={`block w-full text-center rounded-xl py-3.5 font-semibold text-white transition-all duration-300 hover:scale-[1.02] ${intake.color}`}
                 >
                   Apply Now
-                </button>
+                </Link>
               </div>
             </motion.div>
           ))}

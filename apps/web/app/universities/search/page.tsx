@@ -23,14 +23,15 @@ function SearchResultsContent() {
   const country = searchParams.get('country') || ''
   const levelRaw = searchParams.get('level') || searchParams.get('degree') || ''
   const level = levelRaw || ''
+  const intake = searchParams.get('intake') || ''
 
   const { data: universities, isLoading } = trpc.university.search.useQuery(
-    { q: q || undefined, country: country || undefined, level: level || undefined, limit: 48 },
+    { q: q || undefined, country: country || undefined, level: level || undefined, intake: intake || undefined, limit: 48 },
     { enabled: true },
   )
 
   const hasQuery = q.trim().length > 0
-  const hasFilters = Boolean(country || level)
+  const hasFilters = Boolean(country || level || intake)
   const hasActiveSearch = hasQuery || hasFilters
   const resultCount = universities?.length ?? 0
   const isEmpty = !isLoading && hasActiveSearch && resultCount === 0
@@ -82,6 +83,11 @@ function SearchResultsContent() {
                           {country}
                         </span>
                       )}
+                      {intake && (
+                        <span className="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700">
+                          {intake.charAt(0).toUpperCase() + intake.slice(1)} Intake
+                        </span>
+                      )}
                       <span className="hidden text-gray-300 sm:inline">—</span>
                       <span className="text-gray-900">
                         <span className="font-bold text-[#C41E3A]">{resultCount}</span>{' '}
@@ -99,6 +105,11 @@ function SearchResultsContent() {
                       {country && (
                         <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">
                           {country}
+                        </span>
+                      )}
+                      {intake && (
+                        <span className="inline-flex items-center rounded-full bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700">
+                          {intake.charAt(0).toUpperCase() + intake.slice(1)} Intake
                         </span>
                       )}
                       {level && (

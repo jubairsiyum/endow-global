@@ -19,6 +19,30 @@ export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOpt
   }).format(new Date(date))
 }
 
+export function formatRelativeTime(date: Date | string | null | undefined): string {
+  if (!date) return 'Recently'
+  const d = new Date(date)
+  if (Number.isNaN(d.getTime())) return 'Recently'
+  const now = Date.now()
+  const diffMs = now - d.getTime()
+  if (diffMs < 0) return formatDate(d, { month: 'short', day: 'numeric', year: 'numeric' })
+
+  const diffSec = Math.floor(diffMs / 1000)
+  if (diffSec < 60) return 'Just now'
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60) return `${diffMin}m ago`
+  const diffHours = Math.floor(diffMin / 60)
+  if (diffHours < 24) return `${diffHours}h ago`
+  const diffDays = Math.floor(diffHours / 24)
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  const diffWeeks = Math.floor(diffDays / 7)
+  if (diffWeeks < 4) return `${diffWeeks} ${diffWeeks === 1 ? 'week' : 'weeks'} ago`
+  const diffMonths = Math.floor(diffDays / 30)
+  if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`
+  return `${Math.floor(diffDays / 365)} years ago`
+}
+
 export function slugify(str: string): string {
   return str
     .toLowerCase()

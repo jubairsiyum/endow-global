@@ -73,7 +73,7 @@ export default function Testimonials() {
           <div className="max-w-2xl">
             {/* <Eyebrow>Student stories</Eyebrow> */}
             <span className="mb-3 inline-block rounded-full bg-[#C41E3A]/10 px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-[#C41E3A]">
-              Student stories
+              Student reviews
             </span>
             <h2 className="mt-6 font-display text-4xl font-semibold leading-[1.05] tracking-tight text-[#0E1116] sm:text-5xl">
               Trusted by students <span style={{ color: '#C41E3A' }}>worldwide</span>

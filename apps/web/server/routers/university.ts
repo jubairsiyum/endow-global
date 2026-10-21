@@ -7,6 +7,7 @@ import {
   count as _count,
   desc as _desc,
   eq as _eq,
+  inArray as _inArray,
   like as _like,
   or as _or,
   sql as _sql,
@@ -14,6 +15,7 @@ import {
 import { z } from 'zod'
 
 const eq = _eq as any
+const inArray = _inArray as any
 const and = _and as any
 const or = _or as any
 const like = _like as any
@@ -31,6 +33,107 @@ function normalizeCountryFilter(value?: string) {
   const normalized = value?.trim().toLowerCase().replace(/[-_]+/g, ' ').replace(/\s+/g, ' ')
 
   return normalized || undefined
+}
+
+function getIntakeFilter(intake: string | undefined | null) {
+  if (!intake) return null
+  const norm = intake.toLowerCase().trim()
+  if (norm.includes('mar') || norm.includes('spring')) {
+    return {
+      name: 'March Intake',
+      startMonths: [2, 3, 4],
+      dlMonths: [11, 12, 1, 2],
+      keywords: ['march', 'spring'],
+    }
+  }
+  if (norm.includes('jun') || norm.includes('summer')) {
+    return {
+      name: 'June Intake',
+      startMonths: [5, 6, 7],
+      dlMonths: [3, 4],
+      keywords: ['june', 'summer'],
+    }
+  }
+  if (norm.includes('sep') || norm.includes('fall') || norm.includes('autumn')) {
+    return {
+      name: 'September Intake',
+      startMonths: [8, 9, 10],
+      dlMonths: [5, 6, 7],
+      keywords: ['september', 'fall', 'autumn'],
+    }
+  }
+  if (norm.includes('dec') || norm.includes('winter')) {
+    return {
+      name: 'December Intake',
+      startMonths: [11, 12, 1],
+      dlMonths: [8, 9, 10],
+      keywords: ['december', 'winter'],
+    }
+  }
+  return null
+}
+
+function pickBestDeadline(
+  uniCourses: Array<{
+    universityId: string
+    applicationDeadline: Date | null
+    startDate?: Date | null
+  }>,
+  intakeFilter?: { startMonths: number[]; dlMonths: number[]; keywords?: string[] } | null
+): Map<string, string> {
+  const deadlineMap = new Map<string, string>()
+  const nowTime = Date.now()
+
+  const byUni = new Map<string, typeof uniCourses>()
+  for (const c of uniCourses) {
+    if (!c.applicationDeadline) continue
+    const list = byUni.get(c.universityId) || []
+    list.push(c)
+    byUni.set(c.universityId, list)
+  }
+
+  for (const [uniId, coursesList] of Array.from(byUni.entries())) {
+    let candidates = coursesList
+    if (intakeFilter) {
+      const intakeMatches = coursesList.filter((c: any) => {
+        const startM = c.startDate ? new Date(c.startDate).getMonth() + 1 : null
+        const dlM = c.applicationDeadline ? new Date(c.applicationDeadline).getMonth() + 1 : null
+        return (
+          (startM !== null && intakeFilter.startMonths.includes(startM)) ||
+          (dlM !== null && intakeFilter.dlMonths.includes(dlM))
+        )
+      })
+      if (intakeMatches.length > 0) {
+        candidates = intakeMatches
+      }
+    }
+
+    let bestIso: string | null = null
+    let bestTime = 0
+    for (const c of candidates) {
+      if (!c.applicationDeadline) continue
+      const dTime = new Date(c.applicationDeadline).getTime()
+      if (!bestIso) {
+        bestIso = c.applicationDeadline.toISOString()
+        bestTime = dTime
+      } else if (bestTime < nowTime && dTime >= nowTime) {
+        bestIso = c.applicationDeadline.toISOString()
+        bestTime = dTime
+      } else if (dTime >= nowTime && dTime < bestTime) {
+        bestIso = c.applicationDeadline.toISOString()
+        bestTime = dTime
+      } else if (bestTime < nowTime && dTime < nowTime && dTime > bestTime) {
+        bestIso = c.applicationDeadline.toISOString()
+        bestTime = dTime
+      }
+    }
+
+    if (bestIso) {
+      deadlineMap.set(uniId, bestIso)
+    }
+  }
+
+  return deadlineMap
 }
 
 export const universityRouter = createTRPCRouter({
@@ -62,6 +165,7 @@ export const universityRouter = createTRPCRouter({
         country: z.string().optional(),
         level: z.string().optional(),
         degree: z.string().optional(),
+        intake: z.string().optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -93,6 +197,26 @@ export const universityRouter = createTRPCRouter({
       const level =
         normalizedLevel && validLevels.includes(normalizedLevel) ? normalizedLevel : undefined
       const query = input.q?.trim()
+
+      const intakeFilter = getIntakeFilter(input.intake)
+      if (intakeFilter) {
+        const parts = [
+          sql`MONTH(${courses.startDate}) IN (${sql.raw(intakeFilter.startMonths.join(','))})`,
+          sql`MONTH(${courses.applicationDeadline}) IN (${sql.raw(intakeFilter.dlMonths.join(','))})`,
+        ]
+        for (const kw of intakeFilter.keywords) {
+          parts.push(sql`LOWER(${courses.name}) LIKE ${`%${kw}%`}`)
+          parts.push(sql`LOWER(${courses.description}) LIKE ${`%${kw}%`}`)
+        }
+        conditions.push(
+          sql`EXISTS (
+            SELECT 1 FROM ${courses}
+            WHERE ${courses.universityId} = ${universities.id}
+              AND ${courses.isActive} = 1
+              AND (${sql.join(parts, sql` OR `)})
+          )` as any
+        )
+      }
 
       if (level) {
         conditions.push(
@@ -158,8 +282,46 @@ export const universityRouter = createTRPCRouter({
 
       const total = Number(countResult[0]?.count ?? 0)
 
+      const uniIds = rows.map((r) => r.id)
+      let deadlineMap = new Map<string, string>()
+
+      if (uniIds.length > 0) {
+        const uniCourses = await ctx.db
+          .select({
+            universityId: courses.universityId,
+            applicationDeadline: courses.applicationDeadline,
+            startDate: courses.startDate,
+          })
+          .from(courses)
+          .where(
+            and(
+              inArray(courses.universityId, uniIds),
+              eq(courses.isActive, true),
+              sql`${courses.applicationDeadline} IS NOT NULL`
+            )
+          )
+
+        deadlineMap = pickBestDeadline(uniCourses, intakeFilter)
+      }
+
+      const formattedRows = rows.map((r) => {
+        const rawDl = deadlineMap.get(r.id)
+        let deadline: string | null = null
+        if (rawDl) {
+          deadline = new Date(rawDl).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        }
+        return {
+          ...r,
+          deadline,
+        }
+      })
+
       return {
-        universities: rows,
+        universities: formattedRows,
         total,
         page,
         perPage,
@@ -174,6 +336,7 @@ export const universityRouter = createTRPCRouter({
         country: z.string().optional(),
         level: z.string().optional(),
         degree: z.string().optional(),
+        intake: z.string().optional(),
         limit: z.number().min(1).max(50).default(24),
       })
     )
@@ -184,6 +347,26 @@ export const universityRouter = createTRPCRouter({
 
       if (country) {
         conditions.push(sql`LOWER(TRIM(${universities.country})) = ${country}`)
+      }
+
+      const intakeFilter = getIntakeFilter(input.intake)
+      if (intakeFilter) {
+        const parts = [
+          sql`MONTH(${courses.startDate}) IN (${sql.raw(intakeFilter.startMonths.join(','))})`,
+          sql`MONTH(${courses.applicationDeadline}) IN (${sql.raw(intakeFilter.dlMonths.join(','))})`,
+        ]
+        for (const kw of intakeFilter.keywords) {
+          parts.push(sql`LOWER(${courses.name}) LIKE ${`%${kw}%`}`)
+          parts.push(sql`LOWER(${courses.description}) LIKE ${`%${kw}%`}`)
+        }
+        conditions.push(
+          sql`EXISTS (
+            SELECT 1 FROM ${courses}
+            WHERE ${courses.universityId} = ${universities.id}
+              AND ${courses.isActive} = 1
+              AND (${sql.join(parts, sql` OR `)})
+          )` as any
+        )
       }
 
       const rawLevel = (input.level || (input as any).degree)?.trim().toUpperCase()
@@ -239,7 +422,7 @@ export const universityRouter = createTRPCRouter({
         )
       }
 
-      return ctx.db
+      const searchRows = await ctx.db
         .select({
           id: universities.id,
           name: universities.name,
@@ -257,10 +440,48 @@ export const universityRouter = createTRPCRouter({
           sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`
         )
         .limit(input.limit)
+
+      const searchUniIds = searchRows.map((r) => r.id)
+      let searchDeadlineMap = new Map<string, string>()
+
+      if (searchUniIds.length > 0) {
+        const uniCourses = await ctx.db
+          .select({
+            universityId: courses.universityId,
+            applicationDeadline: courses.applicationDeadline,
+            startDate: courses.startDate,
+          })
+          .from(courses)
+          .where(
+            and(
+              inArray(courses.universityId, searchUniIds),
+              eq(courses.isActive, true),
+              sql`${courses.applicationDeadline} IS NOT NULL`
+            )
+          )
+
+        searchDeadlineMap = pickBestDeadline(uniCourses, intakeFilter)
+      }
+
+      return searchRows.map((r) => {
+        const rawDl = searchDeadlineMap.get(r.id)
+        let deadline: string | null = null
+        if (rawDl) {
+          deadline = new Date(rawDl).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+          })
+        }
+        return {
+          ...r,
+          deadline,
+        }
+      })
     }),
 
   featured: publicProcedure.query(async ({ ctx }) => {
-    return ctx.db
+    const featRows = await ctx.db
       .select({
         id: universities.id,
         name: universities.name,
@@ -278,6 +499,191 @@ export const universityRouter = createTRPCRouter({
         sql`CAST(SUBSTRING_INDEX(${universities.ranking}, '-', 1) AS UNSIGNED)`
       )
       .limit(12)
+
+    const featIds = featRows.map((r) => r.id)
+    if (featIds.length === 0) return []
+
+    const uniCourses = await ctx.db
+      .select({
+        universityId: courses.universityId,
+        applicationDeadline: courses.applicationDeadline,
+        startDate: courses.startDate,
+      })
+      .from(courses)
+      .where(
+        and(
+          inArray(courses.universityId, featIds),
+          eq(courses.isActive, true),
+          sql`${courses.applicationDeadline} IS NOT NULL`
+        )
+      )
+
+    const featDeadlineMap = pickBestDeadline(uniCourses)
+
+    return featRows.map((r) => {
+      const rawDl = featDeadlineMap.get(r.id)
+      let deadline: string | null = null
+      if (rawDl) {
+        deadline = new Date(rawDl).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+      }
+      return {
+        ...r,
+        deadline,
+      }
+    })
+  }),
+
+  intakeOverview: publicProcedure.query(async ({ ctx }) => {
+    const now = new Date()
+    const currentYear = now.getFullYear()
+
+    const activeCourses = await ctx.db
+      .select({
+        universityId: courses.universityId,
+        name: courses.name,
+        description: courses.description,
+        startDate: courses.startDate,
+        applicationDeadline: courses.applicationDeadline,
+      })
+      .from(courses)
+      .where(eq(courses.isActive, true))
+
+    const intakeDefs = [
+      {
+        key: 'march',
+        season: 'March Intake',
+        term: 'Spring',
+        targetMonthName: 'March',
+        startMonth: 3,
+        startMonths: [2, 3, 4],
+        dlMonths: [11, 12, 1, 2],
+        keywords: ['march', 'spring'],
+        defaultDlMonth: 11, // Dec
+        defaultDlDay: 15,
+        badge: 'Applications Open',
+        color: 'bg-[#C41E3A]',
+        bgColor: 'bg-rose-50',
+      },
+      {
+        key: 'june',
+        season: 'June Intake',
+        term: 'Summer',
+        targetMonthName: 'June',
+        startMonth: 6,
+        startMonths: [5, 6, 7],
+        dlMonths: [3, 4],
+        keywords: ['june', 'summer'],
+        defaultDlMonth: 2, // March
+        defaultDlDay: 31,
+        badge: 'Open Now',
+        color: 'bg-[#C41E3A]',
+        bgColor: 'bg-rose-50',
+      },
+      {
+        key: 'september',
+        season: 'September Intake',
+        term: 'Fall',
+        targetMonthName: 'September',
+        startMonth: 9,
+        startMonths: [8, 9, 10],
+        dlMonths: [5, 6, 7],
+        keywords: ['september', 'fall', 'autumn'],
+        defaultDlMonth: 5, // June
+        defaultDlDay: 30,
+        badge: 'Most Popular',
+        color: 'bg-[#C41E3A]',
+        bgColor: 'bg-rose-50',
+      },
+      {
+        key: 'december',
+        season: 'December Intake',
+        term: 'Winter',
+        targetMonthName: 'December',
+        startMonth: 12,
+        startMonths: [11, 12, 1],
+        dlMonths: [8, 9, 10],
+        keywords: ['december', 'winter'],
+        defaultDlMonth: 8, // September
+        defaultDlDay: 30,
+        badge: 'Limited Seats',
+        color: 'bg-[#C41E3A]',
+        bgColor: 'bg-rose-50',
+      },
+    ]
+
+    return intakeDefs.map((def) => {
+      const matching = activeCourses.filter((c) => {
+        const startM = c.startDate ? new Date(c.startDate).getMonth() + 1 : null
+        const dlM = c.applicationDeadline ? new Date(c.applicationDeadline).getMonth() + 1 : null
+        const nameLower = (c.name || '').toLowerCase()
+        const descLower = (c.description || '').toLowerCase()
+        const matchesStart = startM && def.startMonths.includes(startM)
+        const matchesDl = dlM && def.dlMonths.includes(dlM)
+        const matchesKeyword = def.keywords.some((kw) => nameLower.includes(kw) || descLower.includes(kw))
+        return matchesStart || matchesDl || matchesKeyword
+      })
+
+      const uniqueUnis = new Set(matching.map((m) => m.universityId))
+      const universityCount = uniqueUnis.size
+
+      // Find future deadlines from matching courses
+      const validFutureDeadlines = matching
+        .map((m) => m.applicationDeadline)
+        .filter((d): d is Date => Boolean(d))
+        .map((d) => new Date(d))
+        .filter((d) => d.getTime() > now.getTime())
+        .sort((a, b) => a.getTime() - b.getTime())
+
+      let deadline = validFutureDeadlines[0]
+
+      if (!deadline) {
+        let targetYear = currentYear
+        const candidate = new Date(targetYear, def.defaultDlMonth, def.defaultDlDay, 23, 59, 59)
+        if (candidate.getTime() <= now.getTime()) {
+          targetYear += 1
+        }
+        deadline = new Date(targetYear, def.defaultDlMonth, def.defaultDlDay, 23, 59, 59)
+      }
+
+      const diffMs = deadline.getTime() - now.getTime()
+      const daysLeft = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)))
+
+      let intakeStartYear = deadline.getFullYear()
+      if (def.key === 'march' && deadline.getMonth() >= 10) {
+        intakeStartYear += 1
+      }
+      const monthLabel = `${def.targetMonthName} ${intakeStartYear}`
+
+      let status = def.badge
+      if (daysLeft < 30) {
+        status = 'Closing Soon'
+      } else if (daysLeft > 180) {
+        status = 'Upcoming'
+      }
+
+      const deadlineStr = deadline.toLocaleDateString('en-US', {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      })
+
+      return {
+        key: def.key,
+        season: def.season,
+        term: def.term,
+        month: monthLabel,
+        deadline: deadlineStr,
+        status,
+        daysLeft,
+        universityCount,
+        color: def.color,
+        bgColor: def.bgColor,
+      }
+    })
   }),
 
   stats: publicProcedure.query(async ({ ctx }) => {

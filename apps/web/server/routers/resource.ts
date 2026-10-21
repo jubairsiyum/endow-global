@@ -1,13 +1,14 @@
 import { z } from 'zod'
 import { createTRPCRouter, adminWithPermission, publicProcedure } from '@/lib/trpc'
 import { db, schema } from '@endow/db'
-import { eq as _eq, desc as _desc, and as _and, or as _or, like as _like } from 'drizzle-orm'
+import { eq as _eq, desc as _desc, and as _and, or as _or, like as _like, count as _count, sql } from 'drizzle-orm'
 
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
 const or = _or as any
 const like = _like as any
+const count = _count as any
 
 const safeUrlSchema = z.string().trim().refine((val) => {
   if (!val) return true
@@ -87,12 +88,179 @@ export const resourceRouter = createTRPCRouter({
         return row
       }),
 
+    incrementView: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .mutation(async ({ input }) => {
+        await db
+          .update(schema.resources)
+          .set({
+            viewCount: sql`${schema.resources.viewCount} + 1` as any,
+          })
+          .where(and(eq(schema.resources.type, 'BLOG'), eq(schema.resources.slug, input.slug)))
+        return { success: true }
+      }),
+
     files: publicProcedure.query(async () => {
       return db
         .select()
         .from(schema.resources)
         .where(and(eq(schema.resources.type, 'FILE'), eq(schema.resources.isPublished, true)))
         .orderBy(desc(schema.resources.publishedAt))
+    }),
+
+    opportunityHub: publicProcedure.query(async () => {
+      const dbScholarships = await db
+        .select({
+          id: schema.scholarships.id,
+          name: schema.scholarships.name,
+          description: schema.scholarships.description,
+          deadline: schema.scholarships.deadline,
+          coverageType: schema.scholarships.coverageType,
+          linkUrl: schema.scholarships.linkUrl,
+        })
+        .from(schema.scholarships)
+        .where(eq(schema.scholarships.isActive, true))
+        .orderBy(desc(schema.scholarships.id))
+        .limit(4)
+
+      const dbOpportunities = await db
+        .select({
+          id: schema.resources.id,
+          title: schema.resources.title,
+          slug: schema.resources.slug,
+          description: schema.resources.description,
+          category: schema.resources.category,
+          section: schema.resources.section,
+          deadline: schema.resources.deadline,
+          publishedAt: schema.resources.publishedAt,
+        })
+        .from(schema.resources)
+        .where(
+          and(
+            eq(schema.resources.type, 'BLOG'),
+            eq(schema.resources.isPublished, true),
+            or(
+              eq(schema.resources.section, 'opportunity'),
+              like(schema.resources.category, '%intern%'),
+              like(schema.resources.category, '%compet%'),
+              like(schema.resources.category, '%exchange%'),
+              like(schema.resources.category, '%opport%')
+            )
+          )
+        )
+        .orderBy(desc(schema.resources.publishedAt))
+        .limit(4)
+
+      const [coursesWithScholarship] = await db
+        .select({ count: count() })
+        .from(schema.courses)
+        .where(and(eq(schema.courses.isActive, true), eq(schema.courses.hasScholarship, true)))
+
+      const totalScholarshipsCount = Math.max(
+        dbScholarships.length + Number(coursesWithScholarship?.count || 0),
+        200
+      )
+
+      const dynamicList: Array<{
+        id: string
+        type: string
+        title: string
+        description: string
+        deadline: string
+        href: string
+      }> = []
+
+      for (const s of dbScholarships) {
+        dynamicList.push({
+          id: `sch-${s.id}`,
+          type: 'Scholarship',
+          title: s.name,
+          description: s.description || 'Full and partial tuition support available for eligible students.',
+          deadline: s.deadline
+            ? new Date(s.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Applications Open',
+          href: s.linkUrl || '/scholarships',
+        })
+      }
+
+      for (const o of dbOpportunities) {
+        dynamicList.push({
+          id: `opp-${o.id}`,
+          type: o.category || 'Opportunity',
+          title: o.title,
+          description: o.description || '',
+          deadline: o.deadline
+            ? new Date(o.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+            : 'Open Now',
+          href: `/blog/${o.slug}`,
+        })
+      }
+
+      const defaultOpportunities = [
+        {
+          id: 'def-gks',
+          type: 'Scholarship',
+          title: 'Global Korea Scholarship (GKS) Degree Program',
+          description: 'Full tuition, monthly allowance, and round-trip airfare supported by Korean Government.',
+          deadline: 'Dec 15, 2026',
+          href: '/scholarships',
+        },
+        {
+          id: 'def-tech',
+          type: 'Internship',
+          title: 'Seoul Global Business Internship Program',
+          description: 'Hands-on paid corporate internship at leading Seoul-based tech and trading companies.',
+          deadline: 'Jun 30, 2027',
+          href: '/blog',
+        },
+        {
+          id: 'def-biz',
+          type: 'Competition',
+          title: 'International Student Innovation Challenge',
+          description: 'Win seed grant prizes and startup mentorship from Korean startup accelerators.',
+          deadline: 'Aug 15, 2027',
+          href: '/blog',
+        },
+        {
+          id: 'def-ex',
+          type: 'Exchange',
+          title: 'Partner University Semester Exchange',
+          description: 'Study for a credit-bearing semester at renowned universities with tuition waiver.',
+          deadline: 'Jul 01, 2027',
+          href: '/universities',
+        },
+      ]
+
+      const finalList =
+        dynamicList.length >= 4
+          ? dynamicList.slice(0, 4)
+          : [...dynamicList, ...defaultOpportunities.slice(dynamicList.length)]
+
+      return {
+        stats: [
+          {
+            title: 'Scholarships',
+            count: `${totalScholarshipsCount}+`,
+            description: 'Full and partial scholarships available',
+          },
+          {
+            title: 'Internships',
+            count: '150+',
+            description: 'Paid internship opportunities',
+          },
+          {
+            title: 'Competitions',
+            count: '50+',
+            description: 'Student competitions with prizes',
+          },
+          {
+            title: 'Exchange Programs',
+            count: '100+',
+            description: 'Study abroad exchange opportunities',
+          },
+        ],
+        latestOpportunities: finalList,
+      }
     }),
   }),
 

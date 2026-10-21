@@ -3,9 +3,20 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, Home, Utensils, Bus, Briefcase } from 'lucide-react'
+import { ArrowRight, Home, Utensils, Bus, Briefcase, BookOpen } from 'lucide-react'
 
-const studentLifeCards = [
+export type StudentLifeItem = {
+  id: string
+  title: string
+  slug: string
+  description?: string | null
+  coverImage?: string | null
+  author?: string | null
+  publishedAt?: string | Date | null
+  category?: string | null
+}
+
+const defaultCards = [
   {
     icon: Home,
     title: 'Dormitory Life',
@@ -44,7 +55,15 @@ const studentLifeCards = [
   },
 ]
 
-export function StudentLifeSection() {
+const iconMap = [Home, Utensils, Bus, Briefcase, BookOpen]
+
+export function StudentLifeSection({
+  posts,
+  onSeeAll,
+}: {
+  posts?: StudentLifeItem[]
+  onSeeAll?: () => void
+}) {
   const containerVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -58,6 +77,17 @@ export function StudentLifeSection() {
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   }
 
+  const cards = (posts && posts.length > 0)
+    ? posts.slice(0, 4).map((p, idx) => ({
+        icon: iconMap[idx % iconMap.length],
+        title: p.title,
+        description: p.description || '',
+        image: p.coverImage || defaultCards[idx % defaultCards.length].image,
+        color: 'bg-[#C41E3A]',
+        href: `/blog/${p.slug}`,
+      }))
+    : defaultCards
+
   return (
     <section className="relative bg-white py-24 lg:py-32">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -66,17 +96,28 @@ export function StudentLifeSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          className="mb-16 text-center"
+          className="mb-16 flex flex-col items-center justify-between gap-6 sm:flex-row"
         >
-          <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
-            Student Life
-          </span>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
-            Student Life in Korea
-          </h2>
-          <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-gray-500">
-            Everything you need to know about living as an international student
-          </p>
+          <div className="text-center sm:text-left">
+            <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold uppercase tracking-widest text-[#C41E3A] shadow-sm">
+              Student Life
+            </span>
+            <h2 className="mt-4 text-3xl font-bold tracking-tight text-gray-950 sm:text-4xl">
+              Student Life in Korea
+            </h2>
+            <p className="mt-2 max-w-xl text-base leading-relaxed text-gray-500">
+              Everything you need to know about living as an international student
+            </p>
+          </div>
+
+          <Link
+            href="/blog?category=Student+Life#articles"
+            onClick={onSeeAll}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-900 shadow-sm transition-all hover:border-[#C41E3A] hover:bg-[#C41E3A]/5 hover:text-[#C41E3A]"
+          >
+            See All Student Life Posts
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </motion.div>
 
         {/* CARDS GRID */}
@@ -87,14 +128,14 @@ export function StudentLifeSection() {
           viewport={{ once: true, amount: 0.2 }}
           className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4"
         >
-          {studentLifeCards.map((card, index) => {
+          {cards.map((card, index) => {
             const Icon = card.icon
             return (
               <motion.div
                 key={index}
                 variants={itemVariants}
                 whileHover={{ y: -8 }}
-                className="group overflow-hidden rounded-xl border border-[#E5E7EB] bg-white transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
+                className="group flex flex-col overflow-hidden rounded-xl border border-[#E5E7EB] bg-white transition-all duration-300 hover:shadow-[0_10px_30px_rgba(0,0,0,0.06)]"
               >
                 {/* IMAGE */}
                 <Link href={card.href} className="relative block h-48 overflow-hidden bg-[#F8FAFC]">
@@ -108,7 +149,7 @@ export function StudentLifeSection() {
                 </Link>
 
                 {/* CONTENT */}
-                <div className="p-8">
+                <div className="flex flex-1 flex-col p-6 sm:p-8">
                   <div
                     className={`h-12 w-12 rounded-lg ${card.color} mb-4 flex items-center justify-center transition-transform group-hover:scale-105`}
                   >
@@ -116,17 +157,17 @@ export function StudentLifeSection() {
                   </div>
 
                   <Link href={card.href}>
-                    <h3 className="mb-3 text-2xl font-bold text-[#111827] transition-colors group-hover:text-[#C41E3A]">
+                    <h3 className="mb-3 line-clamp-2 text-xl font-bold text-[#111827] transition-colors group-hover:text-[#C41E3A]">
                       {card.title}
                     </h3>
                   </Link>
-                  <p className="text-base leading-relaxed text-[#6B7280]">{card.description}</p>
+                  <p className="line-clamp-3 text-sm leading-relaxed text-[#6B7280]">{card.description}</p>
 
                   <Link
                     href={card.href}
-                    className="mt-6 inline-flex items-center gap-1 text-base font-semibold text-[#C41E3A] transition-all hover:gap-2 group-hover:translate-x-1"
+                    className="mt-auto pt-6 inline-flex items-center gap-1 text-sm font-semibold text-[#C41E3A] transition-all hover:gap-2 group-hover:translate-x-1"
                   >
-                    Learn More <ArrowRight className="h-5 w-5" />
+                    Learn More <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
               </motion.div>

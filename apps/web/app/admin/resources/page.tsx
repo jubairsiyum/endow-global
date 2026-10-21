@@ -83,10 +83,91 @@ const SECTIONS = [
   { value: 'scholarship', label: 'Latest Scholarships' },
   { value: 'visa', label: 'Visa Updates' },
   { value: 'featured_university', label: 'Featured University' },
+  { value: 'student_life', label: 'Student Life' },
+  { value: 'opportunity', label: 'Opportunity Hub (Latest Opportunities)' },
 ]
 
 function sectionLabel(key: string | null | undefined): string {
   return SECTIONS.find((s) => s.value === key)?.label || ''
+}
+
+function sanitizeImageUrl(raw: string): string {
+  let url = raw.trim()
+  if (!url) return ''
+
+  // Convert Google Drive view URLs to direct link
+  const gDriveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/)
+  if (gDriveMatch && gDriveMatch[1]) {
+    return `https://drive.google.com/uc?export=view&id=${gDriveMatch[1]}`
+  }
+
+  // Convert Dropbox share links to raw
+  if (url.includes('dropbox.com') && url.includes('dl=0')) {
+    return url.replace('dl=0', 'raw=1')
+  }
+
+  return url
+}
+
+function ImagePreviewBox({ url, onClear }: { url: string; onClear?: () => void }) {
+  const [status, setStatus] = useState<'loading' | 'loaded' | 'error'>('loading')
+  const cleanUrl = sanitizeImageUrl(url)
+
+  useEffect(() => {
+    if (cleanUrl) {
+      setStatus('loading')
+    }
+  }, [cleanUrl])
+
+  if (!cleanUrl) return null
+
+  return (
+    <div className="mt-2.5 overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80 p-2.5 dark:border-white/[0.08] dark:bg-[#0f1117]">
+      <div className="relative flex min-h-[140px] max-h-48 w-full items-center justify-center overflow-hidden rounded-lg bg-gray-100 dark:bg-white/[0.04]">
+        {status === 'loading' && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50/90 text-xs text-gray-500 dark:bg-zinc-900/90 dark:text-gray-400">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin text-[#C41E3A]" /> Loading preview…
+          </div>
+        )}
+        <img
+          src={cleanUrl}
+          alt="Preview"
+          referrerPolicy="no-referrer"
+          crossOrigin="anonymous"
+          onLoad={() => setStatus('loaded')}
+          onError={() => setStatus('error')}
+          className={`h-40 w-full object-cover transition-opacity duration-200 ${status === 'loaded' ? 'opacity-100' : 'opacity-0'}`}
+        />
+        {status === 'error' && (
+          <div className="flex flex-col items-center justify-center p-4 text-center text-xs text-amber-600 dark:text-amber-400">
+            <span className="font-semibold">Unable to display preview</span>
+            <span className="mt-1 text-[11px] text-gray-500 dark:text-gray-400">
+              Check that this is a direct image URL (.jpg, .png, .webp) or click &apos;Upload&apos; to upload directly.
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-2 flex items-center justify-between px-1 text-xs">
+        {status === 'loaded' ? (
+          <span className="flex items-center gap-1.5 font-medium text-emerald-600 dark:text-emerald-400">
+            ✓ Preview loaded successfully
+          </span>
+        ) : (
+          <span className="text-[11px] text-gray-400 truncate max-w-[240px]">{cleanUrl}</span>
+        )}
+        {onClear && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-gray-400 hover:text-red-500 font-medium transition-colors"
+          >
+            Clear image
+          </button>
+        )}
+      </div>
+    </div>
+  )
 }
 
 const emptyForm: ResourceForm = {
@@ -611,11 +692,25 @@ export default function ResourcesPage() {
                   <div>
                     <label className={labelCls}>Category</label>
                     <input
+                      list="admin-resource-categories"
                       value={form.category}
                       onChange={(e) => setF('category', e.target.value)}
-                      placeholder="e.g. Study Abroad"
+                      placeholder="e.g. Student Life"
                       className={inputCls}
                     />
+                    <datalist id="admin-resource-categories">
+                      <option value="Student Life" />
+                      <option value="Scholarships" />
+                      <option value="Internships" />
+                      <option value="Competitions" />
+                      <option value="Exchange Programs" />
+                      <option value="Opportunities" />
+                      <option value="Visa Guide" />
+                      <option value="Study Abroad" />
+                      <option value="University News" />
+                      <option value="Career" />
+                      <option value="Success Stories" />
+                    </datalist>
                   </div>
                   <div>
                     <label className={labelCls}>Author</label>
@@ -699,8 +794,8 @@ export default function ResourcesPage() {
                         <div className="flex items-center gap-2">
                           <input
                             value={form.coverImage}
-                            onChange={(e) => setF('coverImage', e.target.value)}
-                            placeholder="https://… or upload"
+                            onChange={(e) => setF('coverImage', sanitizeImageUrl(e.target.value))}
+                            placeholder="https://… or click Upload"
                             className={inputCls}
                           />
                           <button
@@ -729,10 +824,9 @@ export default function ResourcesPage() {
                           />
                         </div>
                         {form.coverImage && (
-                          <img
-                            src={form.coverImage}
-                            alt="cover preview"
-                            className="mt-2 h-32 w-56 rounded-lg border border-gray-200 object-cover dark:border-white/[0.08]"
+                          <ImagePreviewBox
+                            url={form.coverImage}
+                            onClear={() => setF('coverImage', '')}
                           />
                         )}
                       </div>
@@ -875,10 +969,16 @@ export default function ResourcesPage() {
                     <label className={labelCls}>OG Image URL</label>
                     <input
                       value={form.ogImageUrl}
-                      onChange={(e) => setF('ogImageUrl', e.target.value)}
+                      onChange={(e) => setF('ogImageUrl', sanitizeImageUrl(e.target.value))}
                       placeholder="https://… (social share image)"
                       className={inputCls}
                     />
+                    {form.ogImageUrl && (
+                      <ImagePreviewBox
+                        url={form.ogImageUrl}
+                        onClear={() => setF('ogImageUrl', '')}
+                      />
+                    )}
                   </div>
                   <div className="flex items-center gap-3 sm:col-span-2">
                     <button

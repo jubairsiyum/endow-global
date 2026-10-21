@@ -14,6 +14,7 @@ import {
   Landmark,
   MoreHorizontal,
   SearchX,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -47,10 +48,11 @@ export default function FeaturedUniversities() {
   const q = searchParams.get('q') || undefined
   const country = searchParams.get('country') || undefined
   const level = searchParams.get('level') || searchParams.get('degree') || undefined
+  const intake = searchParams.get('intake') || undefined
   const perPage = 9
 
   const { data, isLoading, isFetching, isError } = trpc.university.list.useQuery(
-    { page, perPage, q, country, level },
+    { page, perPage, q, country, level, intake },
     {
       // Keep the current cards mounted while a page transition is in flight.
       // This prevents a route change from creating an empty section between
@@ -157,6 +159,28 @@ export default function FeaturedUniversities() {
               </span>{' '}
               of {total} universities
             </p>
+          )}
+          {intake && (
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-[#FEF2F2] px-3.5 py-1 text-xs font-semibold text-[#C41E3A] shadow-xs">
+                Intake: {intake.charAt(0).toUpperCase() + intake.slice(1)} Intake
+                <button
+                  type="button"
+                  onClick={() => {
+                    const params = new URLSearchParams(window.location.search)
+                    params.delete('intake')
+                    params.delete('page')
+                    const qs = params.toString()
+                    window.location.href = qs ? `/universities?${qs}` : '/universities'
+                  }}
+                  className="ml-1 rounded-full p-0.5 transition-colors hover:bg-[#C41E3A]/20"
+                  title="Clear intake filter"
+                  aria-label="Clear intake filter"
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            </div>
           )}
         </motion.div>
 
