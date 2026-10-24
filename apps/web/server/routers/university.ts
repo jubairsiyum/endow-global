@@ -35,42 +35,77 @@ function normalizeCountryFilter(value?: string) {
   return normalized || undefined
 }
 
-function getIntakeFilter(intake: string | undefined | null) {
+type IntakeFilterType = {
+  key: string
+  name?: string
+  startMonths: number[]
+  keywords: string[]
+  excludeKeywords: string[]
+}
+
+function getIntakeFilter(intake: string | undefined | null): IntakeFilterType | null {
   if (!intake) return null
   const norm = intake.toLowerCase().trim()
   if (norm.includes('mar') || norm.includes('spring')) {
     return {
+      key: 'march',
       name: 'March Intake',
       startMonths: [2, 3, 4],
-      dlMonths: [11, 12, 1, 2],
       keywords: ['march', 'spring'],
+      excludeKeywords: ['winter', 'december', 'summer', 'june', 'fall', 'autumn', 'september'],
     }
   }
   if (norm.includes('jun') || norm.includes('summer')) {
     return {
+      key: 'june',
       name: 'June Intake',
       startMonths: [5, 6, 7],
-      dlMonths: [3, 4],
       keywords: ['june', 'summer'],
+      excludeKeywords: ['spring', 'march', 'winter', 'december', 'fall', 'autumn', 'september'],
     }
   }
   if (norm.includes('sep') || norm.includes('fall') || norm.includes('autumn')) {
     return {
+      key: 'september',
       name: 'September Intake',
       startMonths: [8, 9, 10],
-      dlMonths: [5, 6, 7],
       keywords: ['september', 'fall', 'autumn'],
+      excludeKeywords: ['spring', 'march', 'winter', 'december', 'summer', 'june'],
     }
   }
   if (norm.includes('dec') || norm.includes('winter')) {
     return {
+      key: 'december',
       name: 'December Intake',
       startMonths: [11, 12, 1],
-      dlMonths: [8, 9, 10],
       keywords: ['december', 'winter'],
+      excludeKeywords: ['spring', 'march', 'summer', 'june', 'fall', 'autumn', 'september'],
     }
   }
   return null
+}
+
+function courseMatchesIntake(
+  course: {
+    name?: string | null
+    description?: string | null
+    startDate?: Date | null
+  },
+  filter: IntakeFilterType
+): boolean {
+  const text = `${course.name || ''} ${course.description || ''}`.toLowerCase()
+  const startM = course.startDate ? new Date(course.startDate).getMonth() + 1 : null
+
+  if (filter.excludeKeywords.some((kw) => text.includes(kw))) {
+    return false
+  }
+  if (filter.keywords.some((kw) => text.includes(kw))) {
+    return true
+  }
+  if (startM && filter.startMonths.includes(startM)) {
+    return true
+  }
+  return false
 }
 
 function pickBestDeadline(
@@ -78,8 +113,10 @@ function pickBestDeadline(
     universityId: string
     applicationDeadline: Date | null
     startDate?: Date | null
+    name?: string | null
+    description?: string | null
   }>,
-  intakeFilter?: { startMonths: number[]; dlMonths: number[]; keywords?: string[] } | null
+  intakeFilter?: IntakeFilterType | null
 ): Map<string, string> {
   const deadlineMap = new Map<string, string>()
   const nowTime = Date.now()
@@ -95,14 +132,7 @@ function pickBestDeadline(
   for (const [uniId, coursesList] of Array.from(byUni.entries())) {
     let candidates = coursesList
     if (intakeFilter) {
-      const intakeMatches = coursesList.filter((c: any) => {
-        const startM = c.startDate ? new Date(c.startDate).getMonth() + 1 : null
-        const dlM = c.applicationDeadline ? new Date(c.applicationDeadline).getMonth() + 1 : null
-        return (
-          (startM !== null && intakeFilter.startMonths.includes(startM)) ||
-          (dlM !== null && intakeFilter.dlMonths.includes(dlM))
-        )
-      })
+      const intakeMatches = coursesList.filter((c) => courseMatchesIntake(c, intakeFilter))
       if (intakeMatches.length > 0) {
         candidates = intakeMatches
       }
@@ -200,20 +230,26 @@ export const universityRouter = createTRPCRouter({
 
       const intakeFilter = getIntakeFilter(input.intake)
       if (intakeFilter) {
-        const parts = [
+        const includeParts = [
           sql`MONTH(${courses.startDate}) IN (${sql.raw(intakeFilter.startMonths.join(','))})`,
-          sql`MONTH(${courses.applicationDeadline}) IN (${sql.raw(intakeFilter.dlMonths.join(','))})`,
         ]
         for (const kw of intakeFilter.keywords) {
-          parts.push(sql`LOWER(${courses.name}) LIKE ${`%${kw}%`}`)
-          parts.push(sql`LOWER(${courses.description}) LIKE ${`%${kw}%`}`)
+          includeParts.push(sql`LOWER(${courses.name}) LIKE ${`%${kw}%`}`)
+          includeParts.push(sql`LOWER(${courses.description}) LIKE ${`%${kw}%`}`)
         }
+        const excludeParts: any[] = []
+        for (const kw of intakeFilter.excludeKeywords) {
+          excludeParts.push(sql`LOWER(${courses.name}) NOT LIKE ${`%${kw}%`}`)
+          excludeParts.push(sql`LOWER(${courses.description}) NOT LIKE ${`%${kw}%`}`)
+        }
+
         conditions.push(
           sql`EXISTS (
             SELECT 1 FROM ${courses}
             WHERE ${courses.universityId} = ${universities.id}
               AND ${courses.isActive} = 1
-              AND (${sql.join(parts, sql` OR `)})
+              AND (${sql.join(includeParts, sql` OR `)})
+              AND (${sql.join(excludeParts, sql` AND `)})
           )` as any
         )
       }
@@ -289,6 +325,8 @@ export const universityRouter = createTRPCRouter({
         const uniCourses = await ctx.db
           .select({
             universityId: courses.universityId,
+            name: courses.name,
+            description: courses.description,
             applicationDeadline: courses.applicationDeadline,
             startDate: courses.startDate,
           })
@@ -351,20 +389,26 @@ export const universityRouter = createTRPCRouter({
 
       const intakeFilter = getIntakeFilter(input.intake)
       if (intakeFilter) {
-        const parts = [
+        const includeParts = [
           sql`MONTH(${courses.startDate}) IN (${sql.raw(intakeFilter.startMonths.join(','))})`,
-          sql`MONTH(${courses.applicationDeadline}) IN (${sql.raw(intakeFilter.dlMonths.join(','))})`,
         ]
         for (const kw of intakeFilter.keywords) {
-          parts.push(sql`LOWER(${courses.name}) LIKE ${`%${kw}%`}`)
-          parts.push(sql`LOWER(${courses.description}) LIKE ${`%${kw}%`}`)
+          includeParts.push(sql`LOWER(${courses.name}) LIKE ${`%${kw}%`}`)
+          includeParts.push(sql`LOWER(${courses.description}) LIKE ${`%${kw}%`}`)
         }
+        const excludeParts: any[] = []
+        for (const kw of intakeFilter.excludeKeywords) {
+          excludeParts.push(sql`LOWER(${courses.name}) NOT LIKE ${`%${kw}%`}`)
+          excludeParts.push(sql`LOWER(${courses.description}) NOT LIKE ${`%${kw}%`}`)
+        }
+
         conditions.push(
           sql`EXISTS (
             SELECT 1 FROM ${courses}
             WHERE ${courses.universityId} = ${universities.id}
               AND ${courses.isActive} = 1
-              AND (${sql.join(parts, sql` OR `)})
+              AND (${sql.join(includeParts, sql` OR `)})
+              AND (${sql.join(excludeParts, sql` AND `)})
           )` as any
         )
       }
@@ -448,6 +492,8 @@ export const universityRouter = createTRPCRouter({
         const uniCourses = await ctx.db
           .select({
             universityId: courses.universityId,
+            name: courses.name,
+            description: courses.description,
             applicationDeadline: courses.applicationDeadline,
             startDate: courses.startDate,
           })
@@ -506,6 +552,8 @@ export const universityRouter = createTRPCRouter({
     const uniCourses = await ctx.db
       .select({
         universityId: courses.universityId,
+        name: courses.name,
+        description: courses.description,
         applicationDeadline: courses.applicationDeadline,
         startDate: courses.startDate,
       })
@@ -560,8 +608,8 @@ export const universityRouter = createTRPCRouter({
         targetMonthName: 'March',
         startMonth: 3,
         startMonths: [2, 3, 4],
-        dlMonths: [11, 12, 1, 2],
         keywords: ['march', 'spring'],
+        excludeKeywords: ['winter', 'december', 'summer', 'june', 'fall', 'autumn', 'september'],
         defaultDlMonth: 11, // Dec
         defaultDlDay: 15,
         badge: 'Applications Open',
@@ -575,8 +623,8 @@ export const universityRouter = createTRPCRouter({
         targetMonthName: 'June',
         startMonth: 6,
         startMonths: [5, 6, 7],
-        dlMonths: [3, 4],
         keywords: ['june', 'summer'],
+        excludeKeywords: ['spring', 'march', 'winter', 'december', 'fall', 'autumn', 'september'],
         defaultDlMonth: 2, // March
         defaultDlDay: 31,
         badge: 'Open Now',
@@ -590,8 +638,8 @@ export const universityRouter = createTRPCRouter({
         targetMonthName: 'September',
         startMonth: 9,
         startMonths: [8, 9, 10],
-        dlMonths: [5, 6, 7],
         keywords: ['september', 'fall', 'autumn'],
+        excludeKeywords: ['spring', 'march', 'winter', 'december', 'summer', 'june'],
         defaultDlMonth: 5, // June
         defaultDlDay: 30,
         badge: 'Most Popular',
@@ -605,8 +653,8 @@ export const universityRouter = createTRPCRouter({
         targetMonthName: 'December',
         startMonth: 12,
         startMonths: [11, 12, 1],
-        dlMonths: [8, 9, 10],
         keywords: ['december', 'winter'],
+        excludeKeywords: ['spring', 'march', 'summer', 'june', 'fall', 'autumn', 'september'],
         defaultDlMonth: 8, // September
         defaultDlDay: 30,
         badge: 'Limited Seats',
@@ -616,16 +664,7 @@ export const universityRouter = createTRPCRouter({
     ]
 
     return intakeDefs.map((def) => {
-      const matching = activeCourses.filter((c) => {
-        const startM = c.startDate ? new Date(c.startDate).getMonth() + 1 : null
-        const dlM = c.applicationDeadline ? new Date(c.applicationDeadline).getMonth() + 1 : null
-        const nameLower = (c.name || '').toLowerCase()
-        const descLower = (c.description || '').toLowerCase()
-        const matchesStart = startM && def.startMonths.includes(startM)
-        const matchesDl = dlM && def.dlMonths.includes(dlM)
-        const matchesKeyword = def.keywords.some((kw) => nameLower.includes(kw) || descLower.includes(kw))
-        return matchesStart || matchesDl || matchesKeyword
-      })
+      const matching = activeCourses.filter((c) => courseMatchesIntake(c, def))
 
       const uniqueUnis = new Set(matching.map((m) => m.universityId))
       const universityCount = uniqueUnis.size

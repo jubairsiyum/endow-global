@@ -140,27 +140,19 @@ export function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex items-center gap-2.5"
+            className="flex shrink-0 items-center"
             aria-label="Endow Global Education home"
           >
             <Image
               id="navbar-brand-logo"
               data-navbar-logo="true"
-              src="/logo/endoedu.svg"
+              src="/logo/EndowFullLogo.svg"
               alt="Endow Global Education"
-              width={36}
-              height={36}
-              className="h-8 w-8 shrink-0 sm:h-9 sm:w-9"
+              width={128}
+              height={40}
+              className="h-8 w-auto shrink-0 object-contain sm:h-11 md:h-12"
               priority
             />
-            <div className="w-fit leading-none">
-              <span className="block text-sm font-bold tracking-tight text-gray-900">
-                Endow Global
-              </span>
-              <span className="block text-xs font-semibold uppercase tracking-[0.22em] text-gray-400">
-                Education
-              </span>
-            </div>
           </Link>
 
           {/* Desktop Nav */}
@@ -499,7 +491,10 @@ export function Navbar() {
                   </Link>
                 </div>
 
-                <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3" suppressHydrationWarning>
+                <div
+                  className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3"
+                  suppressHydrationWarning
+                >
                   {isAuthLoading ? (
                     <div className="h-10 animate-pulse rounded-xl bg-gray-100" aria-hidden />
                   ) : session ? (
