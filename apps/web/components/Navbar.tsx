@@ -146,11 +146,11 @@ export function Navbar() {
             <Image
               id="navbar-brand-logo"
               data-navbar-logo="true"
-              src="/logo/EndowFullLogo.svg"
+              src="/logo/EndowFullLogo2.svg"
               alt="Endow Global Education"
-              width={128}
-              height={40}
-              className="h-8 w-auto shrink-0 object-contain sm:h-11 md:h-12"
+              width={160}
+              height={50}
+              className="h-10 w-auto shrink-0 object-contain sm:h-11 md:h-12"
               priority
             />
           </Link>

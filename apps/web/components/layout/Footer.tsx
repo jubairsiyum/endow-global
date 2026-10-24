@@ -191,6 +191,7 @@ export function Footer() {
             textLength="1380"
             lengthAdjust="spacing"
             fill="url(#endow-global-watermark)"
+            className="uppercase"
             style={{
               fontFamily:
                 "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
