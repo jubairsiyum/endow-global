@@ -30,6 +30,10 @@ echo "==> Applying course schema changes"
 # (course.application_fee_currency) without replaying the full history.
 pnpm db:ensure-course-schema
 
+echo "==> Applying student inquiry schema changes"
+# The inquiry model includes photo_url, which is not part of the legacy migration history.
+pnpm db:ensure-inquiry-schema
+
 echo "==> Building web app"
 pnpm build
 
