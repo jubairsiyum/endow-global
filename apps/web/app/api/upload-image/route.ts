@@ -16,26 +16,29 @@ const MAX_SIZE = 8 * 1024 * 1024
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers })
-    if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-
-    const user = await db.query.users.findFirst({
-      where: (table, operators) => operators.eq(table.id, session.user.id),
-      columns: { role: true },
-    })
-
-    if (
-      !user ||
-      (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN' && user.role !== 'COUNSELOR')
-    ) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
     const formData = await req.formData()
+    const scope = formData.get('scope') as string | null
     const file = formData.get('file') as File | null
+
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     if (file.size === 0) return NextResponse.json({ error: 'Empty file' }, { status: 400 })
     if (file.size > MAX_SIZE)
-      return NextResponse.json({ error: 'Image too large (max 4 MB)' }, { status: 413 })
+      return NextResponse.json({ error: 'Image too large (max 8 MB)' }, { status: 413 })
+
+    // If unauthenticated, allow avatar / profile image uploads from the public apply-now form
+    if (!session?.user) {
+      if (scope !== 'avatar' && scope !== 'apply-now') {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+    } else {
+      const user = await db.query.users.findFirst({
+        where: (table, operators) => operators.eq(table.id, session.user.id),
+        columns: { role: true },
+      })
+      if (!user) {
+        return NextResponse.json({ error: 'User not found' }, { status: 403 })
+      }
+    }
 
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)

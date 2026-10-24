@@ -3,11 +3,13 @@
 import { SAButton } from '@/components/super-admin/shared/SAButton'
 import { SAInput } from '@/components/super-admin/shared/SAInput'
 import StatusBadge from '@/components/ui/StatusBadge'
+import { confirmToast } from '@/components/ui/confirmToast'
 import { trpc } from '@/lib/trpc-client'
 import { formatDistanceToNow } from 'date-fns'
 import { motion } from 'framer-motion'
 import {
   AlertTriangle,
+  ArrowRight,
   ChevronDown,
   Download,
   Eye,
@@ -15,16 +17,20 @@ import {
   FileSpreadsheet,
   FileText,
   Filter,
+  Globe,
   GraduationCap,
+  Languages,
   Mail,
   MapPin,
-  Phone,
+  MessageCircle,
   RefreshCw,
   Search,
+  Trash2,
+  Users,
   X,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 const STATUS_OPTIONS = [
@@ -46,8 +52,77 @@ const SOURCES = ['Social Sites', 'Website', 'Family, Friends & Relatives']
 const selCls =
   'rounded-md border border-gray-200 bg-white px-3 py-1.5 text-[13px] text-gray-900 outline-none transition-colors dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function csvEscape(v: any): string {
+interface CourseApplicationItem {
+  id: string
+  status?: string | null
+  updatedAt?: string | Date | null
+  student?: {
+    user?: {
+      name?: string | null
+      email?: string | null
+    } | null
+  } | null
+  course?: {
+    name?: string | null
+    university?: {
+      id?: string | null
+      name?: string | null
+    } | null
+  } | null
+  counselor?: {
+    user?: {
+      name?: string | null
+    } | null
+  } | null
+}
+
+interface InquiryItem {
+  id: string
+  userId?: string | null
+  surname: string
+  givenName: string
+  dob?: string | null
+  gender?: string | null
+  phone: string
+  whatsapp?: string | null
+  email: string
+  fatherName?: string | null
+  motherName?: string | null
+  hometown?: string | null
+  nationality?: string | null
+  addressLine1?: string | null
+  addressLine2?: string | null
+  city?: string | null
+  state?: string | null
+  zipCode?: string | null
+  country: string
+  applyingTo?: string | null
+  sscYear?: string | null
+  sscResult?: string | null
+  hscYear?: string | null
+  hscResult?: string | null
+  bachelorsYear?: string | null
+  bachelorsResult?: string | null
+  mastersYear?: string | null
+  mastersResult?: string | null
+  targetCountry?: string | null
+  targetUniversity?: string | null
+  courseName?: string | null
+  courseSlug?: string | null
+  reasonToChoose?: string | null
+  englishTest?: string | null
+  ieltsScore?: string | null
+  toeflScore?: string | null
+  satScore?: string | null
+  topikLevel?: string | null
+  heardFrom?: string | null
+  referralName?: string | null
+  photoUrl?: string | null
+  ipAddress?: string | null
+  submittedAt: string | Date
+}
+
+function csvEscape(v: unknown): string {
   if (v === null || v === undefined) return ''
   const s = String(v).replace(/"/g, '""')
   return /[,"\n\r]/.test(s) ? `"${s}"` : s
@@ -63,8 +138,7 @@ function downloadBlob(c: string, f: string, m: string) {
   URL.revokeObjectURL(u)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function fmtDate(d: any) {
+function fmtDate(d: string | Date | null | undefined): string {
   if (!d) return ''
   return new Date(d).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -73,6 +147,11 @@ function fmtDate(d: any) {
     hour: '2-digit',
     minute: '2-digit',
   })
+}
+
+function cleanPhoneForWhatsApp(phone: string | null | undefined): string {
+  if (!phone) return ''
+  return phone.replace(/[^0-9]/g, '')
 }
 
 export default function ApplicationsPage() {
@@ -88,7 +167,9 @@ export default function ApplicationsPage() {
   const [dateTo, setDateTo] = useState('')
 
   // Inquiry filters
-  const [inqCountry, setInqCountry] = useState('')
+  const [inqSearch, setInqSearch] = useState('')
+  const [inqOriginCountry, setInqOriginCountry] = useState('')
+  const [inqTargetCountry, setInqTargetCountry] = useState('')
   const [inqUni, setInqUni] = useState('')
   const [inqLevel, setInqLevel] = useState('')
   const [inqTest, setInqTest] = useState('')
@@ -99,32 +180,70 @@ export default function ApplicationsPage() {
   const utils = trpc.useUtils()
   const {
     data: appData,
-    isLoading,
-    error,
+    isLoading: isAppsLoading,
+    error: appsError,
   } = trpc.admin.applications.list.useQuery({
     search: search || undefined,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    status: (statusFilter || undefined) as any,
+    status: (statusFilter || undefined) as (typeof STATUS_OPTIONS)[number] | undefined,
   })
-  const { data: inquiries } = trpc.endow.listInquiries.useQuery()
+
+  const {
+    data: rawInquiries,
+    isLoading: isInquiriesLoading,
+    error: inqError,
+  } = trpc.endow.listInquiries.useQuery()
+
   const { data: unis } = trpc.admin.universities.list.useQuery({})
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const appList = (appData as any)?.items ?? (Array.isArray(appData) ? appData : [])
+  const deleteInquiryMutation = trpc.endow.deleteInquiry.useMutation({
+    onSuccess: () => {
+      toast.success('Inquiry deleted successfully')
+      utils.endow.listInquiries.invalidate()
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to delete inquiry')
+    },
+  })
+
+  const appList: CourseApplicationItem[] =
+    (appData as { items?: CourseApplicationItem[] })?.items ??
+    (Array.isArray(appData) ? (appData as CourseApplicationItem[]) : [])
+
+  const inquiries: InquiryItem[] = (rawInquiries || []) as InquiryItem[]
 
   // Filter course applications
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filteredApps = appList.filter((a: any) => {
+  const filteredApps = appList.filter((a) => {
     if (uniFilter && a.course?.university?.id !== uniFilter) return false
-    if (dateFrom && new Date(a.updatedAt) < new Date(dateFrom)) return false
-    if (dateTo && new Date(a.updatedAt) > new Date(dateTo + 'T23:59:59')) return false
+    if (dateFrom && a.updatedAt && new Date(a.updatedAt) < new Date(dateFrom)) return false
+    if (dateTo && a.updatedAt && new Date(a.updatedAt) > new Date(dateTo + 'T23:59:59')) return false
     return true
   })
 
   // Filter inquiries
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const filteredInquiries = (inquiries || []).filter((i: any) => {
-    if (inqCountry && i.targetCountry !== inqCountry) return false
+  const filteredInquiries = inquiries.filter((i) => {
+    if (inqSearch.trim()) {
+      const q = inqSearch.toLowerCase().trim()
+      const haystack = [
+        i.givenName,
+        i.surname,
+        `${i.givenName} ${i.surname}`,
+        i.email,
+        i.phone,
+        i.whatsapp,
+        i.targetUniversity,
+        i.targetCountry,
+        i.country,
+        i.city,
+        i.courseName,
+        i.hometown,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+      if (!haystack.includes(q)) return false
+    }
+    if (inqOriginCountry && i.country !== inqOriginCountry) return false
+    if (inqTargetCountry && i.targetCountry !== inqTargetCountry) return false
     if (inqUni && i.targetUniversity !== inqUni) return false
     if (inqLevel && i.applyingTo !== inqLevel) return false
     if (inqTest && i.englishTest !== inqTest) return false
@@ -134,12 +253,45 @@ export default function ApplicationsPage() {
     return true
   })
 
+  // Inquiries KPI Stats
+  const inqStats = useMemo(() => {
+    const list = inquiries
+    const total = list.length
+    const withTest = list.filter((i) => i.englishTest && i.englishTest !== 'None').length
+
+    const countryCounts: Record<string, number> = {}
+    list.forEach((i) => {
+      if (i.targetCountry) {
+        countryCounts[i.targetCountry] = (countryCounts[i.targetCountry] || 0) + 1
+      }
+    })
+    const topCountry = Object.entries(countryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
+
+    const levelCounts: Record<string, number> = {}
+    list.forEach((i) => {
+      if (i.applyingTo) {
+        levelCounts[i.applyingTo] = (levelCounts[i.applyingTo] || 0) + 1
+      }
+    })
+    const topLevel = Object.entries(levelCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || '—'
+
+    return { total, withTest, topCountry, topLevel }
+  }, [inquiries])
+
   const uniOpts = unis || []
   const activeFilters =
     tab === 'applications'
       ? [uniFilter, dateFrom, dateTo].filter(Boolean).length
-      : [inqCountry, inqUni, inqLevel, inqTest, inqSource, inqDateFrom, inqDateTo].filter(Boolean)
-          .length
+      : [
+          inqOriginCountry,
+          inqTargetCountry,
+          inqUni,
+          inqLevel,
+          inqTest,
+          inqSource,
+          inqDateFrom,
+          inqDateTo,
+        ].filter(Boolean).length
 
   const doExport = useCallback(
     (format: 'csv' | 'json') => {
@@ -186,36 +338,72 @@ export default function ApplicationsPage() {
         }
         const csv = [
           [
-            'Name',
+            'Given Name',
+            'Surname',
             'Email',
             'Phone',
-            'Country',
+            'WhatsApp',
+            'Country of Residence',
+            'City',
             'Target Country',
             'Target University',
-            'Degree',
+            'Course Name',
+            'Degree Level',
             'English Test',
+            'IELTS Score',
+            'TOEFL Score',
+            'SAT Score',
+            'TOPIK Level',
+            'SSC Year',
+            'SSC Result',
+            'HSC Year',
+            'HSC Result',
+            'Bachelors Year',
+            'Bachelors Result',
+            'Masters Year',
+            'Masters Result',
+            'Reason to Choose',
             'Source',
-            'Submitted',
+            'Referral',
+            'Submitted At',
           ].join(','),
         ]
         for (const i of rows)
           csv.push(
             [
-              `${i.givenName} ${i.surname}`,
+              i.givenName,
+              i.surname,
               i.email,
               i.phone,
+              i.whatsapp || '',
               i.country,
-              i.targetCountry,
-              i.targetUniversity,
-              i.applyingTo,
-              i.englishTest,
-              i.heardFrom,
+              i.city || '',
+              i.targetCountry || '',
+              i.targetUniversity || '',
+              i.courseName || '',
+              i.applyingTo || '',
+              i.englishTest || '',
+              i.ieltsScore || '',
+              i.toeflScore || '',
+              i.satScore || '',
+              i.topikLevel || '',
+              i.sscYear || '',
+              i.sscResult || '',
+              i.hscYear || '',
+              i.hscResult || '',
+              i.bachelorsYear || '',
+              i.bachelorsResult || '',
+              i.mastersYear || '',
+              i.mastersResult || '',
+              i.reasonToChoose || '',
+              i.heardFrom || '',
+              i.referralName || '',
               fmtDate(i.submittedAt),
             ]
               .map(csvEscape)
               .join(',')
           )
-        downloadBlob(csv.join('\n'), `inquiries-${ts}.csv`, 'text/csv')
+        downloadBlob(csv.join('\n'), `apply-now-inquiries-${ts}.csv`, 'text/csv')
       }
       toast.success(`Exported ${format.toUpperCase()}`)
       setExportOpen(false)
@@ -227,7 +415,9 @@ export default function ApplicationsPage() {
     setUniFilter('')
     setDateFrom('')
     setDateTo('')
-    setInqCountry('')
+    setInqSearch('')
+    setInqOriginCountry('')
+    setInqTargetCountry('')
     setInqUni('')
     setInqLevel('')
     setInqTest('')
@@ -236,8 +426,18 @@ export default function ApplicationsPage() {
     setInqDateTo('')
   }
 
+  function handleDeleteInquiry(id: string, name: string) {
+    confirmToast({
+      title: 'Delete Inquiry?',
+      description: `Are you sure you want to permanently delete the inquiry from ${name}?`,
+      confirmLabel: 'Delete',
+      onConfirm: () => deleteInquiryMutation.mutate({ id }),
+    })
+  }
+
   return (
     <div className="mx-auto max-w-[1440px] space-y-4">
+      {/* Top Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -248,10 +448,10 @@ export default function ApplicationsPage() {
             className="text-[20px] font-bold tracking-tight text-gray-900 dark:text-white"
             style={{ fontFamily: "'Space Grotesk',sans-serif" }}
           >
-            Applications
+            Applications & Inquiries
           </h1>
           <p className="mt-0.5 text-[13px] text-gray-500 dark:text-gray-400">
-            Manage student applications & inquiries
+            Review student admissions applications and Apply Now form submissions
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -279,9 +479,9 @@ export default function ApplicationsPage() {
               <ChevronDown size={12} />
             </SAButton>
             {exportOpen && (
-              <div className="absolute right-0 top-full z-30 mt-1 w-44 rounded-xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="absolute right-0 top-full z-30 mt-1 w-48 rounded-xl border border-gray-200 bg-white py-1 shadow-xl dark:border-white/[0.08] dark:bg-[#18181b]">
                 <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                  {tab === 'applications' ? 'Course Apps' : 'Inquiries'}
+                  {tab === 'applications' ? 'Course Applications' : 'Apply Now Inquiries'}
                 </div>
                 <button
                   onClick={() => doExport('csv')}
@@ -303,17 +503,16 @@ export default function ApplicationsPage() {
         </div>
       </motion.div>
 
-      {/* Tabs */}
+      {/* Navigation Tabs */}
       <div className="flex w-fit gap-1 rounded-xl bg-gray-100 p-1 dark:bg-[#18181b]">
         {[
           { k: 'applications', l: 'Course Applications', c: appList.length },
-          { k: 'inquiries', l: 'Apply Now Inquiries', c: (inquiries || []).length },
+          { k: 'inquiries', l: 'Apply Now Inquiries', c: inquiries.length },
         ].map((t) => (
           <button
             key={t.k}
             onClick={() => {
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              setTab(t.k as any)
+              setTab(t.k as 'applications' | 'inquiries')
               setShowFilters(false)
             }}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
@@ -323,14 +522,20 @@ export default function ApplicationsPage() {
             }`}
           >
             {t.l}
-            <span className="ml-2 rounded-full bg-gray-200 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+            <span
+              className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+                tab === t.k
+                  ? 'bg-red-50 text-[#c41e3a] dark:bg-red-950/40 dark:text-red-400'
+                  : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+              }`}
+            >
               {t.c}
             </span>
           </button>
         ))}
       </div>
 
-      {/* Filter bar */}
+      {/* Filter drawer */}
       {showFilters && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -339,7 +544,7 @@ export default function ApplicationsPage() {
         >
           <div className="mb-3 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
-              Filter by
+              Filter {tab === 'applications' ? 'Course Applications' : 'Inquiries'}
             </span>
             <button
               onClick={resetFilters}
@@ -359,8 +564,7 @@ export default function ApplicationsPage() {
                   className={selCls}
                 >
                   <option value="">All Universities</option>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {uniOpts.map((u: any) => (
+                  {uniOpts.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.name}
                     </option>
@@ -392,19 +596,16 @@ export default function ApplicationsPage() {
           ) : (
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Country</span>
+                <span className="text-[10px] text-gray-400">Origin Country</span>
                 <select
-                  value={inqCountry}
-                  onChange={(e) => setInqCountry(e.target.value)}
+                  value={inqOriginCountry}
+                  onChange={(e) => setInqOriginCountry(e.target.value)}
                   className={selCls}
                 >
-                  <option value="">All</option>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {Array.from(
-                    new Set((inquiries || []).map((i: any) => i.country).filter(Boolean))
-                  ).map((c) => (
-                    <option key={c as string} value={c as string}>
-                      {c as string}
+                  <option value="">All Origin Countries</option>
+                  {Array.from(new Set(inquiries.map((i) => i.country).filter(Boolean))).map((c) => (
+                    <option key={c} value={c}>
+                      {c}
                     </option>
                   ))}
                 </select>
@@ -412,17 +613,16 @@ export default function ApplicationsPage() {
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] text-gray-400">Target Country</span>
                 <select
-                  value={inqCountry}
-                  onChange={(e) => setInqCountry(e.target.value)}
+                  value={inqTargetCountry}
+                  onChange={(e) => setInqTargetCountry(e.target.value)}
                   className={selCls}
                 >
-                  <option value="">All</option>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <option value="">All Target Countries</option>
                   {Array.from(
-                    new Set((inquiries || []).map((i: any) => i.targetCountry).filter(Boolean))
+                    new Set(inquiries.map((i) => i.targetCountry).filter(Boolean) as string[])
                   ).map((c) => (
-                    <option key={c as string} value={c as string}>
-                      {c as string}
+                    <option key={c} value={c}>
+                      {c}
                     </option>
                   ))}
                 </select>
@@ -434,25 +634,24 @@ export default function ApplicationsPage() {
                   onChange={(e) => setInqUni(e.target.value)}
                   className={selCls}
                 >
-                  <option value="">All</option>
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                  <option value="">All Universities</option>
                   {Array.from(
-                    new Set((inquiries || []).map((i: any) => i.targetUniversity).filter(Boolean))
+                    new Set(inquiries.map((i) => i.targetUniversity).filter(Boolean) as string[])
                   ).map((u) => (
-                    <option key={u as string} value={u as string}>
-                      {u as string}
+                    <option key={u} value={u}>
+                      {u}
                     </option>
                   ))}
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Degree</span>
+                <span className="text-[10px] text-gray-400">Degree Level</span>
                 <select
                   value={inqLevel}
                   onChange={(e) => setInqLevel(e.target.value)}
                   className={selCls}
                 >
-                  <option value="">All</option>
+                  <option value="">All Degrees</option>
                   {LEVELS.map((l) => (
                     <option key={l} value={l}>
                       {l}
@@ -467,7 +666,7 @@ export default function ApplicationsPage() {
                   onChange={(e) => setInqTest(e.target.value)}
                   className={selCls}
                 >
-                  <option value="">All</option>
+                  <option value="">All Tests</option>
                   {TESTS.map((t) => (
                     <option key={t} value={t}>
                       {t}
@@ -482,7 +681,7 @@ export default function ApplicationsPage() {
                   onChange={(e) => setInqSource(e.target.value)}
                   className={selCls}
                 >
-                  <option value="">All</option>
+                  <option value="">All Sources</option>
                   {SOURCES.map((s) => (
                     <option key={s} value={s}>
                       {s}
@@ -509,15 +708,17 @@ export default function ApplicationsPage() {
                 />
               </div>
               <span className="ml-2 text-[11px] text-gray-400">
-                {filteredInquiries.length} of {(inquiries || []).length} results
+                {filteredInquiries.length} of {inquiries.length} results
               </span>
             </div>
           )}
         </motion.div>
       )}
 
+      {/* MAIN TAB CONTENT */}
       {tab === 'applications' ? (
         <>
+          {/* Applications Toolbar */}
           <div className="flex items-center gap-3">
             <div className="w-[300px]">
               <SAInput
@@ -552,19 +753,21 @@ export default function ApplicationsPage() {
               Reset
             </SAButton>
           </div>
+
+          {/* Applications Table */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]"
           >
-            {isLoading ? (
+            {isAppsLoading ? (
               <div className="flex items-center justify-center py-20">
                 <div
                   className="h-8 w-8 animate-spin rounded-full border-2"
                   style={{ borderColor: '#E8A33D', borderTopColor: 'transparent' }}
                 />
               </div>
-            ) : error ? (
+            ) : appsError ? (
               <div className="flex flex-col items-center justify-center py-20">
                 <AlertTriangle size={28} style={{ color: '#F0625B' }} />
                 <p className="mt-3 text-sm font-medium text-red-500">Failed to load</p>
@@ -596,8 +799,7 @@ export default function ApplicationsPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100 dark:divide-white/[0.06]">
-                    {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                    {filteredApps.map((app: any) => (
+                    {filteredApps.map((app) => (
                       <tr
                         key={app.id}
                         className="transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]"
@@ -628,7 +830,7 @@ export default function ApplicationsPage() {
                           </div>
                         </td>
                         <td className="px-3 py-3">
-                          <StatusBadge status={app.status} />
+                          <StatusBadge status={app.status || 'DRAFT'} />
                         </td>
                         <td className="px-3 py-3 text-[13px] text-gray-500 dark:text-gray-400">
                           {app.counselor?.user?.name || 'Unassigned'}
@@ -638,15 +840,16 @@ export default function ApplicationsPage() {
                             ? formatDistanceToNow(new Date(app.updatedAt), { addSuffix: true })
                             : '—'}
                         </td>
-                        <td className="px-3 py-3">
+                        <td className="px-3 py-3 text-right">
                           <Link
                             href={`/admin/applications/${app.id}`}
                             aria-label={`View application from ${
                               app.student?.user?.name || 'student'
                             }`}
-                            className="flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/[0.06] dark:hover:text-gray-200"
+                            title="View Application Details"
                           >
-                            <Eye size={14} />
+                            <Eye size={15} />
                           </Link>
                         </td>
                       </tr>
@@ -675,95 +878,375 @@ export default function ApplicationsPage() {
           </motion.div>
         </>
       ) : (
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]"
-        >
-          {filteredInquiries.length === 0 ? (
-            <div className="py-20 text-center">
-              <Mail size={28} className="mx-auto text-gray-300 dark:text-gray-600" />
-              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                {!inquiries?.length
-                  ? 'No inquiries received yet.'
-                  : 'No results match your filters.'}
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                Apply Now form submissions will appear here.
+        /* APPLY NOW INQUIRIES TAB */
+        <div className="space-y-4">
+          {/* Quick Metrics Bar for Inquiries */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Users size={15} className="text-[#c41e3a]" />
+                <span className="text-[11px] font-medium">Total Inquiries</span>
+              </div>
+              <p className="mt-1.5 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                {inqStats.total}
               </p>
             </div>
-          ) : (
-            <div className="divide-y divide-gray-100 dark:divide-white/[0.06]">
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {filteredInquiries.map((inq: any, i: number) => (
-                <div
-                  key={i}
-                  className="px-5 py-4 transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.02]"
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Globe size={15} className="text-blue-500" />
+                <span className="text-[11px] font-medium">Top Destination</span>
+              </div>
+              <p className="mt-1.5 truncate text-lg font-bold tracking-tight text-gray-900 dark:text-white">
+                {inqStats.topCountry}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex items-center gap-2 text-gray-400">
+                <GraduationCap size={15} className="text-purple-500" />
+                <span className="text-[11px] font-medium">Top Degree</span>
+              </div>
+              <p className="mt-1.5 truncate text-lg font-bold tracking-tight text-purple-600 dark:text-purple-400">
+                {inqStats.topLevel}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Languages size={15} className="text-emerald-500" />
+                <span className="text-[11px] font-medium">Test Takers</span>
+              </div>
+              <p className="mt-1.5 text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
+                {inqStats.withTest}
+              </p>
+            </div>
+          </div>
+
+          {/* Inquiries Search & Quick Controls Toolbar */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-1 flex-wrap items-center gap-3">
+              <div className="w-full sm:w-[320px]">
+                <SAInput
+                  placeholder="Search by student, email, phone, university..."
+                  icon={<Search size={14} />}
+                  value={inqSearch}
+                  onChange={(e) => setInqSearch(e.target.value)}
+                />
+              </div>
+
+              <select
+                value={inqLevel}
+                onChange={(e) => setInqLevel(e.target.value)}
+                className={selCls}
+              >
+                <option value="">All Degrees</option>
+                {LEVELS.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+
+              <select
+                value={inqTest}
+                onChange={(e) => setInqTest(e.target.value)}
+                className={selCls}
+              >
+                <option value="">All Tests</option>
+                {TESTS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+
+              {(inqSearch || inqLevel || inqTest || activeFilters > 0) && (
+                <SAButton
+                  variant="ghost"
+                  size="sm"
+                  onClick={resetFilters}
+                  className="text-gray-400 hover:text-gray-600"
                 >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0 flex-1">
-                      <div className="mb-1 flex items-center gap-2">
-                        <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                          {inq.givenName} {inq.surname}
-                        </span>
-                        {inq.applyingTo && (
-                          <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-600 dark:bg-purple-950/60 dark:text-purple-300">
-                            {inq.applyingTo}
-                          </span>
-                        )}
-                        {inq.targetUniversity && (
-                          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-600 dark:bg-blue-950/60 dark:text-blue-300">
-                            {inq.targetUniversity}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-gray-500 dark:text-gray-400">
-                        <span className="flex items-center gap-1">
-                          <Mail size={11} />
-                          {inq.email}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Phone size={11} />
-                          {inq.phone}
-                        </span>
-                        {inq.country && (
-                          <span className="flex items-center gap-1">
-                            <MapPin size={11} />
-                            {inq.country}
-                          </span>
-                        )}
-                        {inq.targetCountry && (
-                          <span className="flex items-center gap-1">
-                            <GraduationCap size={11} />
-                            {inq.targetCountry}
-                          </span>
-                        )}
-                      </div>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {inq.englishTest && inq.englishTest !== 'None' && (
-                          <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-                            {inq.englishTest}
-                            {inq[inq.englishTest.toLowerCase() + 'Score']
-                              ? `: ${inq[inq.englishTest.toLowerCase() + 'Score']}`
-                              : ''}
-                          </span>
-                        )}
-                        {inq.reasonToChoose && (
-                          <p className="line-clamp-2 max-w-lg text-[11px] text-gray-400">
-                            {inq.reasonToChoose}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <span className="shrink-0 text-[11px] text-gray-400">
-                      {fmtDate(inq.submittedAt)}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  <X size={12} />
+                  Clear Filters
+                </SAButton>
+              )}
             </div>
-          )}
-        </motion.div>
+
+            <div className="flex items-center gap-2">
+              <SAButton
+                variant="ghost"
+                size="sm"
+                onClick={() => utils.endow.listInquiries.invalidate()}
+                title="Refresh list"
+              >
+                <RefreshCw size={13} />
+                Refresh
+              </SAButton>
+            </div>
+          </div>
+
+          {/* Inquiries List / Table */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]"
+          >
+            {isInquiriesLoading ? (
+              <div className="flex items-center justify-center py-24">
+                <div
+                  className="h-8 w-8 animate-spin rounded-full border-2"
+                  style={{ borderColor: '#c41e3a', borderTopColor: 'transparent' }}
+                />
+              </div>
+            ) : inqError ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <AlertTriangle size={28} className="text-red-500" />
+                <p className="mt-2 text-sm font-medium text-red-500">
+                  Failed to load inquiry submissions
+                </p>
+                <SAButton
+                  variant="secondary"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => utils.endow.listInquiries.invalidate()}
+                >
+                  Retry
+                </SAButton>
+              </div>
+            ) : filteredInquiries.length === 0 ? (
+              <div className="py-24 text-center">
+                <Mail size={32} className="mx-auto text-gray-300 dark:text-gray-600" />
+                <p className="mt-3 text-sm font-semibold text-gray-900 dark:text-white">
+                  {!inquiries.length
+                    ? 'No inquiries received yet'
+                    : 'No inquiries match your filters'}
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  Submissions from the public /apply-now page will automatically show up here.
+                </p>
+                {(inqSearch || activeFilters > 0) && (
+                  <button
+                    onClick={resetFilters}
+                    className="mt-4 inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-200"
+                  >
+                    Reset all filters
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 bg-gray-50/80 dark:border-white/[0.08] dark:bg-[#18181b]/80">
+                      {[
+                        'Applicant',
+                        'Target Goal & Degree',
+                        'Location',
+                        'Test & Academics',
+                        'Submitted',
+                        'Actions',
+                      ].map((h, idx) => (
+                        <th
+                          key={h}
+                          className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
+                            idx === 5 ? 'text-right' : 'text-left'
+                          }`}
+                          style={{ fontFamily: "'JetBrains Mono',monospace" }}
+                        >
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-white/[0.06]">
+                    {filteredInquiries.map((inq) => {
+                      const waNumber = cleanPhoneForWhatsApp(inq.whatsapp || inq.phone)
+                      const initials = `${inq.givenName?.[0] || ''}${
+                        inq.surname?.[0] || ''
+                      }`.toUpperCase()
+
+                      return (
+                        <tr
+                          key={inq.id}
+                          className="group transition-colors hover:bg-gray-50/70 dark:hover:bg-white/[0.02]"
+                        >
+                          {/* Student Info */}
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-3">
+                              {inq.photoUrl ? (
+                                <img
+                                  src={inq.photoUrl}
+                                  alt=""
+                                  className="h-9 w-9 shrink-0 rounded-xl border border-gray-100 object-cover dark:border-white/[0.08]"
+                                />
+                              ) : (
+                                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#c41e3a]/15 to-[#e8a33d]/15 text-xs font-bold text-[#c41e3a] dark:text-red-400">
+                                  {initials || 'ST'}
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5">
+                                  <Link
+                                    href={`/admin/applications/inquiries/${inq.id}`}
+                                    className="truncate text-[13px] font-semibold text-gray-900 transition-colors hover:text-[#c41e3a] dark:text-white dark:hover:text-red-400"
+                                  >
+                                    {inq.givenName} {inq.surname}
+                                  </Link>
+                                  {inq.userId && (
+                                    <span
+                                      className="rounded bg-emerald-50 px-1.5 py-0.2 text-[9px] font-medium text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                      title="Signed-in user at submission"
+                                    >
+                                      Registered
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="mt-0.5 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                  <span className="truncate max-w-[150px]">{inq.email}</span>
+                                  <span>•</span>
+                                  <span>{inq.phone}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Target Goal & Degree */}
+                          <td className="px-4 py-3.5">
+                            <div className="min-w-0 max-w-[220px]">
+                              <div className="flex items-center gap-1.5">
+                                {inq.applyingTo && (
+                                  <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                                    {inq.applyingTo}
+                                  </span>
+                                )}
+                                <span className="truncate text-xs font-medium text-gray-900 dark:text-white">
+                                  {inq.targetUniversity || 'General Inquiry'}
+                                </span>
+                              </div>
+                              <div className="mt-1 flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400">
+                                <Globe size={11} className="text-[#c41e3a]" />
+                                <span className="truncate">{inq.targetCountry || '—'}</span>
+                                {inq.courseName && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="truncate max-w-[100px] text-gray-400">
+                                      {inq.courseName}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+
+                          {/* Residence Location */}
+                          <td className="px-4 py-3.5 text-xs">
+                            <div className="flex items-center gap-1 font-medium text-gray-800 dark:text-gray-200">
+                              <MapPin size={12} className="text-gray-400" />
+                              <span>{inq.country || '—'}</span>
+                            </div>
+                            {inq.city && (
+                              <p className="mt-0.5 text-[11px] text-gray-400 pl-4">
+                                {inq.city}
+                              </p>
+                            )}
+                          </td>
+
+                          {/* Language & Academics */}
+                          <td className="px-4 py-3.5">
+                            <div className="flex flex-col gap-1">
+                              {inq.englishTest && inq.englishTest !== 'None' ? (
+                                <span className="inline-flex items-center gap-1 w-fit rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                  {inq.englishTest}
+                                  {(() => {
+                                    const testKey = `${inq.englishTest.toLowerCase()}Score` as keyof InquiryItem
+                                    const score = inq[testKey]
+                                    return score ? `: ${String(score)}` : ''
+                                  })()}
+                                </span>
+                              ) : (
+                                <span className="text-[11px] text-gray-400">No Test</span>
+                              )}
+
+                              {(inq.hscResult || inq.bachelorsResult || inq.sscResult) && (
+                                <span className="text-[10px] text-gray-400">
+                                  Result: {inq.bachelorsResult || inq.hscResult || inq.sscResult}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+
+                          {/* Submitted Date */}
+                          <td className="px-4 py-3.5 whitespace-nowrap text-xs text-gray-500 dark:text-gray-400">
+                            <div className="flex items-center gap-1 font-medium text-gray-800 dark:text-gray-200">
+                              {fmtDate(inq.submittedAt)}
+                            </div>
+                            <span className="text-[10px] text-gray-400">
+                              {formatDistanceToNow(new Date(inq.submittedAt), {
+                                addSuffix: true,
+                              })}
+                            </span>
+                          </td>
+
+                          {/* Actions */}
+                          <td className="px-4 py-3.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {/* Quick Email link */}
+                              <a
+                                href={`mailto:${inq.email}`}
+                                className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 text-gray-400 transition-colors hover:border-gray-300 hover:text-gray-700 dark:border-white/[0.08] dark:hover:text-white"
+                                title="Send Email"
+                              >
+                                <Mail size={13} />
+                              </a>
+
+                              {/* Quick WhatsApp link */}
+                              {waNumber && (
+                                <a
+                                  href={`https://wa.me/${waNumber}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex h-7 w-7 items-center justify-center rounded-lg border border-emerald-200 text-emerald-600 transition-colors hover:bg-emerald-50 dark:border-emerald-900/40 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+                                  title="WhatsApp"
+                                >
+                                  <MessageCircle size={13} />
+                                </a>
+                              )}
+
+                              {/* View Details Primary Button */}
+                              <Link
+                                href={`/admin/applications/inquiries/${inq.id}`}
+                                className="inline-flex items-center gap-1 rounded-lg bg-gray-900 px-2.5 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-gray-800 dark:bg-white dark:text-gray-900 dark:hover:bg-gray-100"
+                              >
+                                <span>Details</span>
+                                <ArrowRight size={12} />
+                              </Link>
+
+                              {/* Delete button */}
+                              <button
+                                onClick={() =>
+                                  handleDeleteInquiry(
+                                    inq.id,
+                                    `${inq.givenName} ${inq.surname}`
+                                  )
+                                }
+                                className="flex h-7 w-7 items-center justify-center rounded-lg text-gray-300 transition-colors hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400"
+                                title="Delete Inquiry"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </motion.div>
+        </div>
       )}
     </div>
   )

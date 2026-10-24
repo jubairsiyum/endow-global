@@ -1,18 +1,18 @@
-import {
-  mysqlTable,
-  mysqlEnum,
-  varchar,
-  text,
-  datetime,
-  int,
-  float,
-  json,
-  boolean,
-  uniqueIndex,
-  index,
-  timestamp,
-} from 'drizzle-orm/mysql-core'
 import { sql } from 'drizzle-orm'
+import {
+    boolean,
+    datetime,
+    float,
+    index,
+    int,
+    json,
+    mysqlEnum,
+    mysqlTable,
+    text,
+    timestamp,
+    uniqueIndex,
+    varchar,
+} from 'drizzle-orm/mysql-core'
 
 function genId() {
   // 25 chars: fits every varchar(25) primary-key/foreign-key column in this schema.
@@ -629,6 +629,7 @@ export const studentInquiries = mysqlTable('student_inquiry', {
   topikLevel: varchar('topik_level', { length: 10 }),
   heardFrom: varchar('heard_from', { length: 100 }),
   referralName: varchar('referral_name', { length: 255 }),
+  photoUrl: varchar('photo_url', { length: 500 }),
   ipAddress: varchar('ip_address', { length: 50 }),
   submittedAt: timestamp('submitted_at', { mode: 'date' }).defaultNow().notNull(),
 })
