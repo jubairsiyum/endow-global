@@ -23,11 +23,16 @@ function typeIcon(mime: string | null) {
 }
 
 export default async function ResourcesPage() {
-  const files = await db
-    .select()
-    .from(schema.resources)
-    .where(and(eq(schema.resources.type, 'FILE'), eq(schema.resources.isPublished, true)))
-    .orderBy(desc(schema.resources.publishedAt))
+  let files: any[] = []
+  try {
+    files = await db
+      .select()
+      .from(schema.resources)
+      .where(and(eq(schema.resources.type, 'FILE'), eq(schema.resources.isPublished, true)))
+      .orderBy(desc(schema.resources.publishedAt))
+  } catch (err) {
+    console.error('Error fetching resources:', err)
+  }
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#111827]">

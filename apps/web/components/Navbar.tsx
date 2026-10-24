@@ -37,6 +37,7 @@ export function Navbar() {
   const router = useRouter()
   const { data: session, isPending: sessionPending } = useSession()
   const { image: avatarImage } = useUserAvatar()
+  const [mounted, setMounted] = useState(false)
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const [isCountriesOpen, setIsCountriesOpen] = useState(false)
@@ -44,6 +45,12 @@ export function Navbar() {
   const [isSigningOut, setIsSigningOut] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const isAuthLoading = !mounted || sessionPending
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 50)
@@ -258,8 +265,8 @@ export function Navbar() {
           </nav>
 
           {/* Desktop CTA */}
-          <div className="hidden items-center gap-2 lg:flex">
-            {sessionPending ? (
+          <div className="hidden items-center gap-2 lg:flex" suppressHydrationWarning>
+            {isAuthLoading ? (
               <div className="h-9 w-28 animate-pulse rounded-lg bg-gray-100" aria-hidden />
             ) : session ? (
               <>
@@ -305,8 +312,8 @@ export function Navbar() {
           </div>
 
           {/* Mobile CTA + Toggle */}
-          <div className="flex items-center gap-2 lg:hidden">
-            {sessionPending ? (
+          <div className="flex items-center gap-2 lg:hidden" suppressHydrationWarning>
+            {isAuthLoading ? (
               <div className="h-8 w-20 animate-pulse rounded-lg bg-gray-100" aria-hidden />
             ) : session ? (
               <Link
@@ -492,8 +499,8 @@ export function Navbar() {
                   </Link>
                 </div>
 
-                <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3">
-                  {sessionPending ? (
+                <div className="mt-2 flex flex-col gap-2 border-t border-gray-100/80 pt-3" suppressHydrationWarning>
+                  {isAuthLoading ? (
                     <div className="h-10 animate-pulse rounded-xl bg-gray-100" aria-hidden />
                   ) : session ? (
                     <>

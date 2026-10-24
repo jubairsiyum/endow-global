@@ -29,6 +29,11 @@ function BlogContent() {
   const searchParams = useSearchParams()
   const categoryParam = searchParams.get('category')
   const [activeCategory, setActiveCategory] = useState<string>('All Articles')
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     if (categoryParam) {
@@ -39,7 +44,15 @@ function BlogContent() {
   const { data: blogs, isLoading: blogsLoading } = trpc.resource.published.blogs.useQuery()
   const { data: files } = trpc.resource.published.files.useQuery()
 
-  const posts = useMemo(() => sortByDateDesc(blogs ?? []), [blogs])
+  const posts = useMemo(() => {
+    if (!mounted) return []
+    return sortByDateDesc(blogs ?? [])
+  }, [blogs, mounted])
+
+  const filesList = useMemo(() => {
+    if (!mounted) return []
+    return files ?? []
+  }, [files, mounted])
   const featuredPosts = useMemo(() => {
     const feat = posts.filter((p) => p.featured)
     if (feat.length > 0) return feat
@@ -149,7 +162,7 @@ function BlogContent() {
         <CareerPathwayHub />
 
         {/* RESOURCE CENTER */}
-        <ResourceCenter resources={files ?? []} />
+        <ResourceCenter resources={filesList} />
 
         {/* INTAKE COUNTDOWN */}
         <IntakeCountdown />
