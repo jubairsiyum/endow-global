@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { QuillEditor } from '@/components/super-admin/shared/QuillEditor'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
@@ -297,6 +298,8 @@ export default function ResourcesPage() {
     setForm(emptyForm)
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('resources', openCreate)
 
   function openEdit(r: ResourceItem) {
     setEditingId(r.id)

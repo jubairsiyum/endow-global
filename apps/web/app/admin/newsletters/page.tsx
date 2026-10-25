@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
@@ -94,6 +95,8 @@ export default function NewslettersPage() {
     setForm(emptyForm)
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('newsletters', openCreate)
 
   function openEdit(s: SubscriberItem) {
     setEditingId(s.id)

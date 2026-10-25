@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { ImageUploader } from '@/components/super-admin/shared/ImageUploader'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
@@ -85,6 +86,10 @@ export default function HeroImagesPage() {
     setForm(emptyForm)
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('hero-images', () => {
+    if (canManage) openCreate()
+  })
 
   function openEdit(image: NonNullable<typeof heroImages>[number]) {
     setEditingId(image.id)

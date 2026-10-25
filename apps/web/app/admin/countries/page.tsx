@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { SAButton } from '@/components/super-admin/shared/SAButton'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
@@ -84,6 +85,11 @@ export default function SACountriesPage() {
     setEditingCode(null)
     setForm({ code: '', name: '', flagUrl: '', continent: '' })
   }
+
+  useAdminCreateShortcut('countries', () => {
+    resetForm()
+    setShowForm(true)
+  })
 
   function startEdit(c: CountryItem) {
     setEditingCode(c.code)

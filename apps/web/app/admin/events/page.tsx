@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { ImageUploader } from '@/components/super-admin/shared/ImageUploader'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
@@ -195,6 +196,10 @@ export default function EventsPage() {
     setSeoOpen(false)
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('events', () => {
+    if (canManage) openCreate()
+  })
 
   function openEdit(ev: EventItem) {
     setEditingId(ev.id)

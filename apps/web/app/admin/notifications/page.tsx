@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
 import { formatDistanceToNow } from 'date-fns'
@@ -20,6 +21,10 @@ interface NotificationItem {
 export default function NotificationsPage() {
   const [search, setSearch] = useState('')
   const [showSend, setShowSend] = useState(false)
+
+  useAdminCreateShortcut('notifications', () => {
+    setShowSend(true)
+  })
   const [mounted, setMounted] = useState(false)
   const [sendForm, setSendForm] = useState({ title: '', body: '', userId: '' })
 

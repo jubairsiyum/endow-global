@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { SABadge } from '@/components/super-admin/shared/SABadge'
 import { SAButton } from '@/components/super-admin/shared/SAButton'
 import AdminTable from '@/components/ui/AdminTable'
@@ -139,6 +140,11 @@ export default function SABranchesPage() {
       applications: '0',
     })
   }
+
+  useAdminCreateShortcut('branches', () => {
+    resetForm()
+    setShowForm(true)
+  })
 
   function startEdit(branch: BranchItem) {
     setEditingId(branch.id)

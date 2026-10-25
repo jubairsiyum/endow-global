@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { QuillEditor } from '@/components/super-admin/shared/QuillEditor'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
@@ -255,6 +256,10 @@ export default function CoursesPage() {
     setReqItems([])
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('courses', () => {
+    if (canManage) openCreate()
+  })
 
   function openEdit(c: CourseItem) {
     setEditingId(c.id)

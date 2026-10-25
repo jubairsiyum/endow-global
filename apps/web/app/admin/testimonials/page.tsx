@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
 import { AlertTriangle, Eye, EyeOff, Pencil, Star, Trash2, X } from 'lucide-react'
@@ -87,6 +88,8 @@ export default function TestimonialsPage() {
     setForm(emptyForm)
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('testimonials', openCreate)
 
   function openEdit(t: TestimonialItem) {
     setEditingId(t.id)

@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
@@ -150,6 +151,8 @@ export default function DeadlinesPage() {
     setForm(emptyForm)
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('deadlines', openCreate)
 
   function openEdit(d: DeadlineItem) {
     setEditingId(d.id)

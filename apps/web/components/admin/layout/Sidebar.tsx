@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface NavItem {
   name: string
@@ -125,6 +126,10 @@ interface SidebarProps {
 }
 
 export function Sidebar({ userRole, permissions }: SidebarProps) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const pathname = usePathname()
   const { data: session } = useSession()
   const { image: avatarImage } = useUserAvatar()

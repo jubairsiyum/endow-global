@@ -40,7 +40,11 @@ export function AdminClientLayout({
 
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="shrink-0">
-          <Topbar onMenuClick={() => setSidebarOpen(true)} />
+          <Topbar
+            onMenuClick={() => setSidebarOpen(true)}
+            userRole={userRole}
+            permissions={permissions}
+          />
         </div>
         <main className="min-h-0 flex-1 overflow-y-auto p-3 lg:p-5">{children}</main>
       </div>

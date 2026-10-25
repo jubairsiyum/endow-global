@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
@@ -204,6 +205,8 @@ export default function ScholarshipsPage() {
     setFormErrors({})
     setShowModal(true)
   }
+
+  useAdminCreateShortcut('scholarships', openCreate)
 
   function openEdit(sch: ScholarshipItem) {
     setEditingId(sch.id)

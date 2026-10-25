@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import { PermissionEditor } from '@/components/admin/PermissionEditor'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
@@ -97,6 +98,10 @@ export default function SAUsersPage() {
   const [editingUserId, setEditingUserId] = useState<string | null>(null)
   const [editingPerms, setEditingPerms] = useState<string[]>([])
   const [showCreate, setShowCreate] = useState(false)
+
+  useAdminCreateShortcut('users', () => {
+    if (isSuperAdmin) setShowCreate(true)
+  })
   const [createForm, setCreateForm] = useState({
     name: '',
     email: '',

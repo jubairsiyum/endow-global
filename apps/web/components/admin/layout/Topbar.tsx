@@ -1,11 +1,13 @@
 'use client'
 
+import { CreateShortcutDropdown } from '@/components/admin/layout/CreateShortcutDropdown'
 import { useUserAvatar } from '@/components/providers/UserAvatarProvider'
 import { QuickNavigation } from '@/components/ui/QuickNavigation'
 import { authClient, useSession } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc-client'
+import { UserRole } from '@endow/types'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Bell, KeyRound, LogOut, Menu, Plus, User } from 'lucide-react'
+import { Bell, KeyRound, LogOut, Menu, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -21,6 +23,8 @@ const QUICK_NAVIGATION = [
 
 interface Props {
   onMenuClick: () => void
+  userRole?: UserRole
+  permissions?: string[]
 }
 
 interface SessionUser {
@@ -46,14 +50,19 @@ function StatusDot() {
   )
 }
 
-export function Topbar({ onMenuClick }: Props) {
+export function Topbar({ onMenuClick, userRole, permissions }: Props) {
   const router = useRouter()
   const { data: session } = useSession()
   const { image: avatarImage } = useUserAvatar()
   const { data: unreadNotifications = 0 } = trpc.notification.unreadCount.useQuery()
   const [menuOpen, setMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const sessionUser = session?.user as SessionUser | undefined
 
@@ -116,13 +125,8 @@ export function Topbar({ onMenuClick }: Props) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          className="hidden items-center gap-1 rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors hover:opacity-90 lg:flex"
-          style={{ background: '#E8A33D', color: '#f8fafc' }}
-        >
-          <Plus size={13} />
-          New
-        </button>
+        {/* Create New Shortcut Dropdown */}
+        <CreateShortcutDropdown userRole={userRole} permissions={permissions} />
 
         <div className="hidden items-center gap-2 rounded-md border border-gray-200 bg-emerald-500/5 px-3 py-1.5 dark:border-white/[0.08] sm:flex">
           <StatusDot />
@@ -155,14 +159,17 @@ export function Topbar({ onMenuClick }: Props) {
               className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-md bg-gray-200 text-[10px] font-bold text-gray-600 dark:bg-gray-700 dark:text-gray-300"
               suppressHydrationWarning
             >
-              {user?.image ? (
+              {mounted && user?.image ? (
                 <img src={user.image} alt="" className="h-full w-full object-cover" />
               ) : (
                 initials
               )}
             </div>
-            <span className="hidden text-[13px] font-medium lg:inline">
-              {user?.name || 'Admin'}
+            <span
+              className="hidden text-[13px] font-medium lg:inline"
+              suppressHydrationWarning
+            >
+              {mounted ? (user?.name || 'Admin') : 'Admin'}
             </span>
           </button>
 

@@ -1,5 +1,6 @@
 'use client'
 
+import { useAdminCreateShortcut } from '@/lib/hooks/useAdminCreateShortcut'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
 import StatusBadge from '@/components/ui/StatusBadge'
@@ -68,6 +69,10 @@ export default function StudentsPage() {
   const debouncedSearch = useDebounce(search, 500)
   const [cursor, setCursor] = useState<string | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
+
+  useAdminCreateShortcut('students', () => {
+    if (canManage) setShowCreateModal(true)
+  })
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
