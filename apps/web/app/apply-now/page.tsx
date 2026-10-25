@@ -376,6 +376,11 @@ function ApplyNowContent() {
   const destCountries = countryList?.map((c: any) => c.country) || ['South Korea']
   const universities = uniList?.map((u: any) => u.name) || []
 
+  const { data: universityCourses } = trpc.endow.getCoursesForUniversity.useQuery(
+    { universityName: form.targetUniversity },
+    { enabled: !!form.targetUniversity }
+  )
+
   const inquiryMutation = trpc.endow.submitInquiry.useMutation({
     onSuccess: () => {
       setSubmitted(true)
@@ -575,12 +580,20 @@ function ApplyNowContent() {
               Thank you for applying! Our team will contact you via WhatsApp or email within 24
               hours.
             </p>
-            <Link
-              href="/"
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] px-6 py-3 text-sm font-bold text-white shadow-lg"
-            >
-              Back to Home <ArrowRight size={16} />
-            </Link>
+            <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link
+                href="/dashboard"
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] px-6 py-3 text-sm font-bold text-white shadow-lg transition-transform hover:scale-[1.02]"
+              >
+                Go to Dashboard <ArrowRight size={16} />
+              </Link>
+              <Link
+                href="/dashboard/application"
+                className="inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-5 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-all hover:bg-gray-50"
+              >
+                View Applications
+              </Link>
+            </div>
           </motion.div>
         </div>
         <Footer />
@@ -930,7 +943,11 @@ function ApplyNowContent() {
                       <label className={labelCls}>Preferred University</label>
                       <select
                         value={form.targetUniversity}
-                        onChange={(e) => setF('targetUniversity', e.target.value)}
+                        onChange={(e) => {
+                          setF('targetUniversity', e.target.value)
+                          setF('courseSlug', '')
+                          setF('courseName', '')
+                        }}
                         className={inputCls}
                       >
                         <option value="">Select...</option>
@@ -942,6 +959,54 @@ function ApplyNowContent() {
                       </select>
                     </div>
                   </div>
+
+                  {form.targetUniversity && (
+                    <div>
+                      <label className={labelCls}>Preferred Program / Course</label>
+                      <select
+                        value={form.courseSlug || (form.courseName ? '__custom__' : '')}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          if (val === '__custom__') {
+                            setF('courseSlug', '')
+                            setF('courseName', '')
+                          } else if (!val) {
+                            setF('courseSlug', '')
+                            setF('courseName', '')
+                          } else {
+                            const c = universityCourses?.find((item: any) => item.slug === val)
+                            if (c) {
+                              setF('courseSlug', c.slug)
+                              setF('courseName', c.name)
+                            }
+                          }
+                        }}
+                        className={inputCls}
+                      >
+                        <option value="">
+                          {universityCourses && universityCourses.length > 0
+                            ? 'General Admission (Counselor will guide best course)'
+                            : 'General Admission / Any Course'}
+                        </option>
+                        {(universityCourses || []).map((c: any) => (
+                          <option key={c.id} value={c.slug}>
+                            {c.name} {c.level ? `(${c.level})` : ''}
+                          </option>
+                        ))}
+                        <option value="__custom__">Other / Specify Major (type below)</option>
+                      </select>
+                      {!form.courseSlug && (
+                        <input
+                          type="text"
+                          value={form.courseName}
+                          onChange={(e) => setF('courseName', e.target.value)}
+                          placeholder="Enter your desired major / department (e.g. Computer Science, Business)..."
+                          className={`${inputCls} mt-2`}
+                        />
+                      )}
+                    </div>
+                  )}
+
                   <div>
                     <label className={labelCls}>Why this university?</label>
                     <textarea

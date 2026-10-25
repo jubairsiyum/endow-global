@@ -16,6 +16,7 @@ import {
 } from 'drizzle-orm'
 import { z } from 'zod'
 import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
+import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 
 const eq = _eq as any
 const and = _and as any
@@ -281,7 +282,11 @@ export const dashboardRouter = createTRPCRouter({
   overview: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id
     const user = await resolveStudent(ctx)
-    const profile = user?.studentProfile ?? null
+    let profile = user?.studentProfile ?? null
+
+    // Sync any submitted inquiries into applications & refresh profile signals
+    const syncRes = await syncStudentInquiriesToApplications(ctx.db, ctx.session.user, profile)
+    profile = syncRes.profile || profile
     const studentId = profile?.id ?? null
 
     if (!studentId) {
@@ -1068,7 +1073,11 @@ export const dashboardRouter = createTRPCRouter({
   matches: createTRPCRouter({
     list: protectedProcedure.query(async ({ ctx }) => {
       const user = await resolveStudent(ctx)
-      const profile = user?.studentProfile ?? null
+      let profile = user?.studentProfile ?? null
+
+      // Sync any submitted inquiries into applications & refresh profile signals
+      const syncRes = await syncStudentInquiriesToApplications(ctx.db, ctx.session.user, profile)
+      profile = syncRes.profile || profile
       if (!profile) return []
       const matches = await computeStudentMatches(ctx, profile)
       return matches.matches.slice(0, 12)

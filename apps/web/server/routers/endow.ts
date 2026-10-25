@@ -1,6 +1,7 @@
 import { logAdminActivity } from '@/lib/audit'
 import { db, schema } from '@/lib/db'
 import { createInAppNotification } from '@/lib/in-app-notifications'
+import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 import {
   adminWithPermission,
   createTRPCRouter,
@@ -137,7 +138,19 @@ export const endowRouter = createTRPCRouter({
       }
     }
 
-    const userId = ctx.session?.user?.id || null
+    let userId = ctx.session?.user?.id || null
+    if (!userId && input.email) {
+      try {
+        const [u] = await db
+          .select({ id: schema.users.id })
+          .from(schema.users)
+          .where(eq(schema.users.email, input.email.trim()))
+          .limit(1)
+        if (u) userId = u.id
+      } catch {
+        // non-blocking
+      }
+    }
 
     await db.insert(schema.studentInquiries).values({
       id: globalThis.crypto.randomUUID(),
@@ -197,127 +210,59 @@ export const endowRouter = createTRPCRouter({
       }
     }
 
-    // If a signed-in student applied to a specific course, also create an
-    // application record so it shows up under /dashboard/application (and in
-    // the dashboard overview stats). Non-course inquiries and guests are skipped.
-    if (userId && (input.courseSlug || input.courseName)) {
+    // Automatically sync inquiries to applications and update profile match signals
+    if (userId) {
       try {
-        let [profile] = await db
-          .select({ id: schema.studentProfiles.id })
-          .from(schema.studentProfiles)
-          .where(eq(schema.studentProfiles.userId, userId))
-          .limit(1)
-
-        // Ensure studentProfile exists if missing
-        if (!profile) {
-          const profileId = randomUUID().replace(/-/g, '').slice(0, 24)
-          await db.insert(schema.studentProfiles).values({
-            id: profileId,
-            userId,
-            phone: input.phone || null,
-            nationality: input.nationality || null,
-            countryOfResidence: input.country || null,
-          } as any)
-          profile = { id: profileId }
-        }
-
-        // Match course by slug or by name
-        let course: { id: string } | undefined
-        if (input.courseSlug) {
-          const [c] = await db
-            .select({ id: schema.courses.id })
-            .from(schema.courses)
-            .where(eq(schema.courses.slug, input.courseSlug))
-            .limit(1)
-          course = c
-        }
-        if (!course && input.courseName) {
-          const [c] = await db
-            .select({ id: schema.courses.id })
-            .from(schema.courses)
-            .where(eq(schema.courses.name, input.courseName))
-            .limit(1)
-          course = c
-        }
-
-        if (profile && course) {
-          const [existing] = await db
-            .select({ id: schema.applications.id })
-            .from(schema.applications)
-            .where(
-              and(
-                eq(schema.applications.studentId, profile.id),
-                eq(schema.applications.courseId, course.id)
-              )
-            )
-            .limit(1)
-
-          if (!existing) {
-            await db.insert(schema.applications).values({
-              studentId: profile.id,
-              courseId: course.id,
-              status: 'SUBMITTED',
-              currentStep: 5,
-              totalSteps: 5,
-              submittedAt: new Date(),
-              personalInfo: {
-                givenName: input.givenName,
-                surname: input.surname,
-                email: input.email,
-                phone: input.phone,
-                whatsapp: input.whatsapp,
-                dob: input.dob,
-                gender: input.gender,
-                nationality: input.nationality,
-                country: input.country,
-                city: input.city,
-                image: input.photoUrl || null,
-              },
-              academicHistory: {
-                applyingTo: input.applyingTo,
-                sscYear: input.sscYear,
-                sscResult: input.sscResult,
-                hscYear: input.hscYear,
-                hscResult: input.hscResult,
-                bachelorsYear: input.bachelorsYear,
-                bachelorsResult: input.bachelorsResult,
-                mastersYear: input.mastersYear,
-                mastersResult: input.mastersResult,
-              },
-            } as any)
-
-            // If user is logged in and uploaded a profile picture, update user's profile image so it shows on their dashboard
-            if (userId && input.photoUrl) {
-              try {
-                await db
-                  .update(schema.users)
-                  .set({ image: input.photoUrl })
-                  .where(eq(schema.users.id, userId))
-              } catch {
-                // non-blocking
-              }
-            }
-            await createInAppNotification(db, schema, {
-              userId,
-              type: 'APPLICATION_UPDATE',
-              title: 'Application submitted',
-              body: 'Your application was submitted successfully and is now under review.',
-              data: { courseId: course.id },
-            })
-            await logAdminActivity({
-              action: 'application.submit',
-              actor: { id: userId, email: input.email, role: 'STUDENT' },
-              target: { id: course.id, type: 'course' },
-            })
-          }
-        }
-      } catch {
-        // Linking the dashboard application must never fail the inquiry submission.
+        await syncStudentInquiriesToApplications(
+          db,
+          { id: userId, email: input.email, name: `${input.givenName} ${input.surname}` }
+        )
+        await createInAppNotification(db, schema, {
+          userId,
+          type: 'APPLICATION_UPDATE',
+          title: 'Application submitted',
+          body: 'Your application was submitted successfully and is now live on your student dashboard.',
+          data: { university: input.targetUniversity, courseName: input.courseName },
+        })
+        await logAdminActivity({
+          action: 'application.submit',
+          actor: { id: userId, email: input.email, role: 'STUDENT' },
+          target: { id: input.targetUniversity || 'direct-apply', type: 'inquiry' },
+        })
+      } catch (err) {
+        console.error('[submitInquiry] Auto-create application error:', err)
       }
     }
 
     return { success: true, message: 'Application submitted! Our team will contact you shortly.' }
   }),
+
+  getCoursesForUniversity: publicProcedure
+    .input(z.object({ universityName: z.string().optional() }))
+    .query(async ({ input, ctx }) => {
+      if (!input.universityName) return []
+      const rows = await ctx.db
+        .select({
+          id: schema.courses.id,
+          name: schema.courses.name,
+          slug: schema.courses.slug,
+          level: schema.courses.level,
+          subject: schema.courses.subject,
+        })
+        .from(schema.courses)
+        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+        .where(
+          and(
+            eq(schema.courses.isActive, true),
+            or(
+              eq(schema.universities.name, input.universityName),
+              sql`${schema.universities.name} LIKE ${'%' + input.universityName + '%'}`
+            )
+          )
+        )
+        .orderBy(schema.courses.name)
+      return rows
+    }),
 
   listInquiries: adminWithPermission('dashboard:view').query(async () => {
     return db
