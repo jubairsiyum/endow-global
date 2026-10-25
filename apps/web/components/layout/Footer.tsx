@@ -53,22 +53,22 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.1fr] lg:gap-12">
           {/* Brand */}
           <div>
-            <Link href="/" className="inline-flex items-center gap-3">
+            {/* Logo */}
+            <Link
+              href="/"
+              className="flex shrink-0 items-center"
+              aria-label="Endow Global Education home"
+            >
               <Image
-                src="/logo/endoedu.svg"
+                id="navbar-brand-logo"
+                data-navbar-logo="true"
+                src="/logo/EndowFullLogo2.svg"
                 alt="Endow Global Education"
-                width={48}
-                height={48}
-                className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+                width={160}
+                height={50}
+                className="h-10 w-auto shrink-0 object-contain sm:h-11 md:h-12"
+                priority
               />
-              <div className="leading-tight">
-                <span className="block text-xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-2xl">
-                  Endow Global
-                </span>
-                <span className="block text-[13px] font-semibold uppercase tracking-[0.22em] text-gray-400 dark:text-gray-500 sm:text-sm">
-                  Education
-                </span>
-              </div>
             </Link>
             <p className="mt-4 max-w-sm text-base leading-relaxed text-gray-600 dark:text-gray-400 sm:text-[17px]">
               Helping students turn international education goals into real opportunities.

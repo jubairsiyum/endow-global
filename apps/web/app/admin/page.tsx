@@ -27,6 +27,7 @@ import {
   Shield,
   Sparkles,
   TrendingUp,
+  RefreshCw,
   UserCheck,
   Users,
   Zap,
@@ -94,7 +95,14 @@ interface MetricData {
   upcomingConsultations?: ConsultationItem[]
   recentActivity?: ActivityItem[]
   topCountries?: { country: string; count: number }[]
-  applicationTrend?: { date: string; count: number }[]
+  applicationTrend?: {
+    date: string
+    day?: string
+    fullDate?: string
+    applications?: number
+    inquiries?: number
+    count: number
+  }[]
   totalStudentsWithNationality?: number
 }
 
@@ -115,21 +123,31 @@ export default function AdminPage() {
 
   const [activeTab, setActiveTab] = useState<'consultations' | 'inquiries'>('consultations')
 
-  const { data: metricsData, isLoading } = trpc.admin.dashboard.getMetrics.useQuery(undefined, {
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
+  const utils = trpc.useUtils()
+
+  const { data: metricsData, isLoading, isFetching } = trpc.admin.dashboard.getMetrics.useQuery(undefined, {
+    staleTime: 10 * 1000,
+    refetchOnWindowFocus: true,
   })
 
   const { data: statsData } = trpc.admin.super.getPlatformStats.useQuery(undefined, {
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
+    staleTime: 10 * 1000,
+    refetchOnWindowFocus: true,
     enabled: isSuperAdmin,
   })
 
-  const { data: inquiriesData } = trpc.endow.listInquiries.useQuery(undefined, {
-    staleTime: 60 * 1000,
-    refetchOnWindowFocus: false,
+  const { data: inquiriesData, isFetching: isFetchingInquiries } = trpc.endow.listInquiries.useQuery(undefined, {
+    staleTime: 10 * 1000,
+    refetchOnWindowFocus: true,
   })
+
+  const handleRefresh = async () => {
+    await Promise.all([
+      utils.admin.dashboard.getMetrics.invalidate(),
+      utils.endow.listInquiries.invalidate(),
+      utils.admin.super.getPlatformStats.invalidate(),
+    ])
+  }
 
   const metrics = (metricsData as MetricData) || {}
   const stats = (statsData as PlatformStatsData) || {}
@@ -281,6 +299,17 @@ export default function AdminPage() {
               All Systems Operational
             </div>
 
+            {/* Refresh Button */}
+            <button
+              type="button"
+              onClick={handleRefresh}
+              disabled={isFetching || isFetchingInquiries}
+              className="flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs transition hover:bg-gray-50 active:scale-95 disabled:opacity-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.04]"
+            >
+              <RefreshCw size={13} className={isFetching || isFetchingInquiries ? 'animate-spin text-[#C41E3A]' : 'text-gray-400'} />
+              <span>Refresh</span>
+            </button>
+
             {/* Date Display */}
             <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-600 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300">
               <Clock size={13} className="text-gray-400" />
@@ -404,6 +433,9 @@ export default function AdminPage() {
           <ModernApplicationChart
             trendData={metrics.applicationTrend}
             totalApplications={totalApplications}
+            totalInquiries={totalInquiries}
+            onRefresh={handleRefresh}
+            isRefreshing={isFetching || isFetchingInquiries}
           />
         </div>
 

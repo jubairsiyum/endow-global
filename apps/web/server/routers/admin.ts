@@ -98,7 +98,7 @@ export const adminRouter = createTRPCRouter({
       // All metrics are independent — run them in parallel to cut total
       // latency. Relational `with` queries are replaced with explicit joins
       // because MariaDB rejects the lateral SQL the relation builder emits.
-      const [studentCountRes, counselorCountRes, appsByStatus, recentActivity, topCountries, upcomingConsultations, applicationTrend, totalStudentsWithNationality] = await Promise.all([
+      const [studentCountRes, counselorCountRes, appsByStatus, recentActivity, topCountries, upcomingConsultations, appTrendRows, inqTrendRows, totalStudentsWithNationality] = await Promise.all([
         db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
         db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
         db.select({ status: schema.applications.status, count: count() as any }).from(schema.applications).groupBy(schema.applications.status),
@@ -147,17 +147,69 @@ export const adminRouter = createTRPCRouter({
           .orderBy(schema.bookingSessions.scheduledAt)
           .limit(5),
         db.select({
-          date: (sql`DATE(${schema.applications.createdAt})` as any).as('date'),
+          date: (sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any).as('date'),
           count: count() as any,
         })
           .from(schema.applications)
-          .where(sql`${schema.applications.createdAt} >= DATE_SUB(NOW(), INTERVAL 7 DAY)` as any)
-          .groupBy(sql`DATE(${schema.applications.createdAt})` as any)
-          .orderBy(sql`DATE(${schema.applications.createdAt})` as any),
+          .where(sql`${schema.applications.createdAt} >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)` as any)
+          .groupBy(sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any)
+          .orderBy(sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any),
+        db.select({
+          date: (sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any).as('date'),
+          count: count() as any,
+        })
+          .from(schema.studentInquiries)
+          .where(sql`${schema.studentInquiries.submittedAt} >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)` as any)
+          .groupBy(sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any)
+          .orderBy(sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any),
         db.select({ value: count() as any })
           .from(schema.studentProfiles)
           .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any),
       ])
+
+      const appMap = new Map<string, number>()
+      for (const row of (appTrendRows as any[]) || []) {
+        if (row.date) appMap.set(String(row.date), Number(row.count) || 0)
+      }
+
+      const inqMap = new Map<string, number>()
+      for (const row of (inqTrendRows as any[]) || []) {
+        if (row.date) inqMap.set(String(row.date), Number(row.count) || 0)
+      }
+
+      const now = new Date()
+      const applicationTrend: Array<{
+        date: string
+        day: string
+        fullDate: string
+        applications: number
+        inquiries: number
+        count: number
+      }> = []
+
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - i))
+        const yyyy = d.getUTCFullYear()
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0')
+        const dd = String(d.getUTCDate()).padStart(2, '0')
+        const dateKey = `${yyyy}-${mm}-${dd}`
+
+        const dayName = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
+        const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+
+        const apps = appMap.get(dateKey) || 0
+        const inqs = inqMap.get(dateKey) || 0
+        const total = apps + inqs
+
+        applicationTrend.push({
+          date: dateKey,
+          day: dayName,
+          fullDate: monthDay,
+          applications: apps,
+          inquiries: inqs,
+          count: total,
+        })
+      }
 
       const activity = (recentActivity as any[]).map((a) => ({
         id: a.id,
