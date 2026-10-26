@@ -69,6 +69,17 @@ const inquiryInput = z.object({
   heardFrom: z.string().max(100).optional(),
   referralName: z.string().max(255).optional(),
   photoUrl: z.string().max(500).optional(),
+  documents: z
+    .array(
+      z.object({
+        category: z.string(),
+        label: z.string(),
+        fileUrl: z.string(),
+        fileName: z.string().optional(),
+        fileSize: z.number().optional(),
+      })
+    )
+    .optional(),
 })
 
 function getIP(ctx: any): string {
@@ -213,10 +224,29 @@ export const endowRouter = createTRPCRouter({
     // Automatically sync inquiries to applications and update profile match signals
     if (userId) {
       try {
-        await syncStudentInquiriesToApplications(
+        const syncRes = await syncStudentInquiriesToApplications(
           db,
           { id: userId, email: input.email, name: `${input.givenName} ${input.surname}` }
         )
+
+        // Persist any uploaded files from the application form into studentDocuments
+        if (Array.isArray(input.documents) && input.documents.length > 0 && syncRes?.profile?.id) {
+          for (const doc of input.documents) {
+            if (doc.fileUrl) {
+              await db
+                .insert(schema.studentDocuments)
+                .values({
+                  studentId: syncRes.profile.id,
+                  category: doc.category || 'Academic Certificates',
+                  label: doc.label || 'Document',
+                  fileUrl: doc.fileUrl,
+                  fileName: doc.fileName || doc.label,
+                  status: 'UPLOADED',
+                } as any)
+                .catch(() => {})
+            }
+          }
+        }
         await createInAppNotification(db, schema, {
           userId,
           type: 'APPLICATION_UPDATE',

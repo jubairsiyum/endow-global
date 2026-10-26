@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import {
   Bell,
+  BookOpen,
   Camera,
   Check,
   CheckCircle2,
@@ -17,9 +18,12 @@ import {
   EyeOff,
   Gift,
   GraduationCap,
+  Home,
   KeyRound,
   LockKeyhole,
   Mail,
+  MapPin,
+  Phone,
   Search,
   ShieldCheck,
   Trash2,
@@ -71,9 +75,12 @@ const BUDGET_OPTIONS: { label: string; value: number | '' }[] = [
   { label: 'Under $75,000 / year', value: 75000 },
 ]
 
+const ENGLISH_TESTS = ['None', 'IELTS', 'TOEFL', 'SAT', 'TOPIK']
+const TOPIK_LEVELS = ['Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5', 'Level 6']
+
 const TABS: { id: Tab; label: string; icon: typeof UserRound }[] = [
   { id: 'personal', label: 'Personal info', icon: UserRound },
-  { id: 'study', label: 'Study preferences', icon: GraduationCap },
+  { id: 'study', label: 'Study & Academic info', icon: GraduationCap },
   { id: 'security', label: 'Security & privacy', icon: ShieldCheck },
 ]
 
@@ -88,7 +95,23 @@ function isValidPhone(value: string): boolean {
   return /^(?!0+$)\d{7,15}$/.test(normalizePhone(value))
 }
 
-type Errors = Partial<Record<'name' | 'phone' | 'nationality' | 'country' | 'gpa' | 'ieltsScore' | 'toeflScore', string>>
+type Errors = Partial<
+  Record<
+    | 'name'
+    | 'phone'
+    | 'nationality'
+    | 'country'
+    | 'gpa'
+    | 'sscResult'
+    | 'hscResult'
+    | 'bachelorsResult'
+    | 'mastersResult'
+    | 'ieltsScore'
+    | 'toeflScore'
+    | 'satScore',
+    string
+  >
+>
 
 function validateProfileFields(fields: {
   name?: string
@@ -96,8 +119,13 @@ function validateProfileFields(fields: {
   phone?: string
   nationality?: string
   gpa?: string
+  sscResult?: string
+  hscResult?: string
+  bachelorsResult?: string
+  mastersResult?: string
   ieltsScore?: string
   toeflScore?: string
+  satScore?: string
 }): Errors {
   const errors: Errors = {}
 
@@ -123,6 +151,26 @@ function validateProfileFields(fields: {
     errors.gpa = 'GPA must be between 0 and 5 (e.g. 3.75)'
   }
 
+  const sscVal = fields.sscResult?.trim()
+  if (sscVal && (!/^\d*(\.\d{1,2})?$/.test(sscVal) || Number(sscVal) < 0 || Number(sscVal) > 5)) {
+    errors.sscResult = 'SSC GPA must be between 0 and 5.00'
+  }
+
+  const hscVal = fields.hscResult?.trim()
+  if (hscVal && (!/^\d*(\.\d{1,2})?$/.test(hscVal) || Number(hscVal) < 0 || Number(hscVal) > 5)) {
+    errors.hscResult = 'HSC GPA must be between 0 and 5.00'
+  }
+
+  const bacVal = fields.bachelorsResult?.trim()
+  if (bacVal && (!/^\d*(\.\d{1,2})?$/.test(bacVal) || Number(bacVal) < 0 || Number(bacVal) > 4)) {
+    errors.bachelorsResult = "Bachelor's CGPA must be between 0 and 4.00"
+  }
+
+  const masVal = fields.mastersResult?.trim()
+  if (masVal && (!/^\d*(\.\d{1,2})?$/.test(masVal) || Number(masVal) < 0 || Number(masVal) > 4)) {
+    errors.mastersResult = "Master's CGPA must be between 0 and 4.00"
+  }
+
   const ieltsValue = fields.ieltsScore?.trim()
   if (ieltsValue && (!/^\d(\.\d)?$/.test(ieltsValue) || Number(ieltsValue) < 0 || Number(ieltsValue) > 9)) {
     errors.ieltsScore = 'IELTS band must be between 0 and 9 (e.g. 6.5)'
@@ -131,6 +179,11 @@ function validateProfileFields(fields: {
   const toeflValue = fields.toeflScore?.trim()
   if (toeflValue && (!/^\d+$/.test(toeflValue) || Number(toeflValue) < 0 || Number(toeflValue) > 120)) {
     errors.toeflScore = 'TOEFL must be a whole number between 0 and 120'
+  }
+
+  const satValue = fields.satScore?.trim()
+  if (satValue && (!/^\d+$/.test(satValue) || Number(satValue) < 0 || Number(satValue) > 1600)) {
+    errors.satScore = 'SAT score must be between 0 and 1600'
   }
 
   return errors
@@ -478,7 +531,9 @@ export default function SettingsPage() {
 function SettingsContent() {
   const searchParams = useSearchParams()
   const { data: session, refetch: refetchSession } = useSession()
-  const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery()
+  const { data: profile, isLoading, isError, refetch } = trpc.user.getProfile.useQuery(undefined, {
+    refetchOnWindowFocus: true,
+  })
   const { data: universityCountries } = trpc.university.countries.useQuery(undefined, { staleTime: Infinity })
   const updateProfile = trpc.user.updateProfile.useMutation()
   const updateOwnProfile = trpc.user.updateOwnProfile.useMutation()
@@ -500,27 +555,60 @@ function SettingsContent() {
     }
   }, [])
 
+  // Basic Personal Info
   const [name, setName] = useState('')
   const [image, setImage] = useState<string | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [nationality, setNationality] = useState('')
-  const [country, setCountry] = useState('')
+  const [nationality, setNationality] = useState('Bangladeshi')
+  const [country, setCountry] = useState('Bangladesh')
   const [phonePrefix, setPhonePrefix] = useState('+880')
   const [phone, setPhone] = useState('')
-  const [education, setEducation] = useState('')
-  const [targetCountries, setTargetCountries] = useState<string[]>([])
+  const [dob, setDob] = useState('')
+  const [gender, setGender] = useState('')
+  const [whatsapp, setWhatsapp] = useState('')
+
+  // Present Address
+  const [addressLine1, setAddressLine1] = useState('')
+  const [addressLine2, setAddressLine2] = useState('')
+  const [city, setCity] = useState('')
+  const [state, setState] = useState('')
+  const [zipCode, setZipCode] = useState('')
+
+  // Family Info
+  const [fatherName, setFatherName] = useState('')
+  const [motherName, setMotherName] = useState('')
+  const [hometown, setHometown] = useState('')
+
+  // Study Preferences
+  const [education, setEducation] = useState('HIGH_SCHOOL')
+  const [targetCountries, setTargetCountries] = useState<string[]>(['South Korea'])
   const [targetSubjects, setTargetSubjects] = useState<string[]>([])
   const [budgetMax, setBudgetMax] = useState<number | ''>('')
+  const [intakeYear, setIntakeYear] = useState('2026')
+
+  // Academic History
+  const [sscYear, setSscYear] = useState('')
+  const [sscResult, setSscResult] = useState('')
+  const [hscYear, setHscYear] = useState('')
+  const [hscResult, setHscResult] = useState('')
+  const [bachelorsYear, setBachelorsYear] = useState('')
+  const [bachelorsResult, setBachelorsResult] = useState('')
+  const [mastersYear, setMastersYear] = useState('')
+  const [mastersResult, setMastersResult] = useState('')
   const [gpa, setGpa] = useState('')
+
+  // Standardized Tests
+  const [englishTest, setEnglishTest] = useState('None')
   const [ieltsScore, setIeltsScore] = useState('')
   const [toeflScore, setToeflScore] = useState('')
-  const [intakeYear, setIntakeYear] = useState('2026')
+  const [satScore, setSatScore] = useState('')
+  const [topikLevel, setTopikLevel] = useState('')
+
   const [countrySearch, setCountrySearch] = useState('')
   const [saveState, setSaveState] = useState<SaveState>('idle')
   const [errors, setErrors] = useState<Errors>({})
   const [copied, setCopied] = useState(false)
   const [preferences, setPreferences] = useState({ updates: true, recommendations: false })
-
   const [uploading, setUploading] = useState(false)
 
   async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
@@ -539,6 +627,7 @@ function SettingsContent() {
     try {
       const formData = new FormData()
       formData.append('file', file)
+      formData.append('scope', 'avatar')
       const res = await fetch('/api/upload-image', { method: 'POST', body: formData })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Upload failed')
@@ -572,22 +661,75 @@ function SettingsContent() {
   useEffect(() => {
     if (profile) {
       const student = profile.studentProfile as any
-      const storedPhone = student?.phone || ''
+      const inq = (profile as any).latestInquiry as any
+
+      const storedPhone = student?.phone || inq?.phone || ''
       const storedPrefix = PHONE_PREFIXES.find((option) => storedPhone.startsWith(`${option.value} `))
-      setName(profile.name || '')
-      setImage(profile.image || null)
-      setImagePreview(profile.image || null)
-      setNationality(student?.nationality || '')
-      setCountry(student?.countryOfResidence || '')
+
+      setName(profile.name || (inq ? `${inq.givenName || ''} ${inq.surname || ''}`.trim() : ''))
+      setImage(profile.image || inq?.photoUrl || null)
+      setImagePreview(profile.image || inq?.photoUrl || null)
+      setNationality(student?.nationality || inq?.nationality || 'Bangladeshi')
+      setCountry(student?.countryOfResidence || inq?.country || 'Bangladesh')
       setPhone(storedPrefix ? storedPhone.slice(storedPrefix.value.length).trim() : storedPhone)
       if (storedPrefix) setPhonePrefix(storedPrefix.value)
-      setEducation(student?.highestEducation || '')
-      setTargetCountries(asStringArray(student?.targetCountries))
+
+      // Inquiry / Personal fields
+      setDob(inq?.dob || '')
+      setGender(inq?.gender || '')
+      setWhatsapp(inq?.whatsapp || '')
+      setFatherName(inq?.fatherName || '')
+      setMotherName(inq?.motherName || '')
+      setHometown(inq?.hometown || '')
+
+      // Address fields
+      setAddressLine1(inq?.addressLine1 || '')
+      setAddressLine2(inq?.addressLine2 || '')
+      setCity(inq?.city || '')
+      setState(inq?.state || '')
+      setZipCode(inq?.zipCode || '')
+
+      // Academic details
+      const eduLevel = student?.highestEducation || (inq?.applyingTo === 'Masters' ? 'BACHELORS' : inq?.applyingTo === 'Doctorate' ? 'MASTERS' : 'HIGH_SCHOOL')
+      setEducation(eduLevel)
+      setTargetCountries(asStringArray(student?.targetCountries || (inq?.targetCountry ? [inq.targetCountry] : ['South Korea'])))
       setTargetSubjects(asStringArray(student?.targetSubjects))
       setBudgetMax(typeof student?.budgetMax === 'number' ? student.budgetMax : '')
-      setGpa(student?.gpa != null ? String(student.gpa) : '')
-      setIeltsScore(student?.ieltsScore != null ? String(student.ieltsScore) : '')
-      setToeflScore(student?.toeflScore != null ? String(student.toeflScore) : '')
+
+      setSscYear(inq?.sscYear || '')
+      setSscResult(inq?.sscResult || '')
+      setHscYear(inq?.hscYear || '')
+      setHscResult(inq?.hscResult || '')
+      setBachelorsYear(inq?.bachelorsYear || '')
+      setBachelorsResult(inq?.bachelorsResult || '')
+      setMastersYear(inq?.mastersYear || '')
+      setMastersResult(inq?.mastersResult || '')
+
+      // GPA
+      const effectiveGpa =
+        student?.gpa != null
+          ? String(student.gpa)
+          : inq?.bachelorsResult || inq?.mastersResult || inq?.hscResult || inq?.sscResult || ''
+      setGpa(effectiveGpa)
+
+      // Standardized & language tests
+      const ieltsVal = student?.ieltsScore != null ? String(student.ieltsScore) : inq?.ieltsScore || ''
+      const toeflVal = student?.toeflScore != null ? String(student.toeflScore) : inq?.toeflScore || ''
+      const satVal = student?.satScore != null ? String(student.satScore) : inq?.satScore || ''
+      setIeltsScore(ieltsVal)
+      setToeflScore(toeflVal)
+      setSatScore(satVal)
+
+      let testType = inq?.englishTest || 'None'
+      if (testType === 'None') {
+        if (ieltsVal) testType = 'IELTS'
+        else if (toeflVal) testType = 'TOEFL'
+        else if (satVal) testType = 'SAT'
+        else if (inq?.topikLevel) testType = 'TOPIK'
+      }
+      setEnglishTest(testType)
+      setTopikLevel(inq?.topikLevel || '')
+
       setIntakeYear(String(student?.preferredIntakeYear || '2026'))
     }
   }, [profile])
@@ -604,13 +746,23 @@ function SettingsContent() {
   const referralBalance = student?.referralBalance || 0
   const userName = profile?.name || session?.user?.name || 'Student'
   const userInitials = userName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
+
   const completion = useMemo(() => {
-    const completed = [name.trim(), nationality, country, phone.trim(), education, intakeYear, targetCountries.length > 0, image].filter(Boolean).length
-    return Math.round((completed / 8) * 100)
-  }, [name, nationality, country, phone, education, intakeYear, targetCountries.length, image])
-  // Education-offering destinations only (South Korea pinned first), merging
-  // the static list with the served countries and any active university
-  // countries so newly added partners appear automatically.
+    const completed = [
+      name.trim(),
+      nationality,
+      country,
+      phone.trim(),
+      dob,
+      education,
+      gpa || sscResult || hscResult || bachelorsResult,
+      intakeYear,
+      targetCountries.length > 0,
+      image,
+    ].filter(Boolean).length
+    return Math.min(Math.round((completed / 10) * 100), 100)
+  }, [name, nationality, country, phone, dob, education, gpa, sscResult, hscResult, bachelorsResult, intakeYear, targetCountries.length, image])
+
   const destinationCountries = useMemo(() => {
     const names = new Set<string>(EDUCATION_DESTINATIONS)
     for (const country of SITE_CONFIG.servedCountries) if (country) names.add(country)
@@ -626,12 +778,25 @@ function SettingsContent() {
     return [build('South Korea'), ...rest.map(build)]
   }, [universityCountries])
 
-  const filteredCountries = destinationCountries.filter((option) => `${option.label} ${option.code}`.toLowerCase().includes(countrySearch.toLowerCase()))
+  const filteredCountries = destinationCountries.filter((option) =>
+    `${option.label} ${option.code}`.toLowerCase().includes(countrySearch.toLowerCase())
+  )
 
   const saveProfile = useCallback(async (tab: Tab = activeTab) => {
-    const fieldsToValidate = tab === 'personal'
-      ? { name, phonePrefix, phone, nationality, gpa, ieltsScore, toeflScore }
-      : { gpa, ieltsScore, toeflScore }
+    const fieldsToValidate = {
+      name,
+      phonePrefix,
+      phone,
+      nationality,
+      gpa,
+      sscResult,
+      hscResult,
+      bachelorsResult,
+      mastersResult,
+      ieltsScore,
+      toeflScore,
+      satScore,
+    }
     const validationErrors = validateProfileFields(fieldsToValidate)
     setErrors(validationErrors)
     if (Object.keys(validationErrors).length > 0) {
@@ -647,32 +812,49 @@ function SettingsContent() {
         nationality: nationality || undefined,
         countryOfResidence: country || undefined,
         phone: phone ? `${phonePrefix} ${phone}` : undefined,
+        dob: dob || undefined,
+        gender: gender || undefined,
+        whatsapp: whatsapp || undefined,
+        fatherName: fatherName || undefined,
+        motherName: motherName || undefined,
+        hometown: hometown || undefined,
+        addressLine1: addressLine1 || undefined,
+        addressLine2: addressLine2 || undefined,
+        city: city || undefined,
+        state: state || undefined,
+        zipCode: zipCode || undefined,
         highestEducation: education || undefined,
         targetCountries: asStringArray(targetCountries),
         targetSubjects: asStringArray(targetSubjects),
         budgetMax: budgetMax === '' ? null : Number(budgetMax),
         gpa: gpa.trim() ? Number(gpa) : null,
+        sscYear: sscYear || undefined,
+        sscResult: sscResult || undefined,
+        hscYear: hscYear || undefined,
+        hscResult: hscResult || undefined,
+        bachelorsYear: bachelorsYear || undefined,
+        bachelorsResult: bachelorsResult || undefined,
+        mastersYear: mastersYear || undefined,
+        mastersResult: mastersResult || undefined,
+        englishTest: englishTest || undefined,
         ieltsScore: ieltsScore.trim() ? Number(ieltsScore) : null,
         toeflScore: toeflScore.trim() ? Number(toeflScore) : null,
+        satScore: satScore.trim() ? Number(satScore) : null,
+        topikLevel: topikLevel || undefined,
         preferredIntakeYear: intakeYear ? Number(intakeYear) : undefined,
       } as any)
 
-      // Keep the auth session in sync so every surface that reads the signed-in
-      // user (nav bar, dashboard header/sidebar, messages…) shows the new name
-      // immediately instead of the stale value cached in the session cookie.
       const newName = name.trim()
       if (newName && newName !== (session?.user?.name || '')) {
         try {
           await authClient.updateUser({ name: newName })
           await refetchSession({ query: { disableCookieCache: true } })
-        } catch {
-          // The profile is already saved; the session will refresh on its own
-          // (better-auth re-issues the cookie) even if this call fails.
-        }
+        } catch {}
       }
 
       await utils.user.getProfile.invalidate()
-      utils.dashboard.overview.invalidate()
+      await utils.dashboard.overview.invalidate()
+      await utils.application.getAll.invalidate()
       setSaveState('success')
       toast.success('Profile updated successfully')
       window.setTimeout(() => setSaveState('idle'), 2200)
@@ -680,8 +862,48 @@ function SettingsContent() {
       setSaveState('idle')
       toast.error(error.message || 'Could not save your profile')
     }
-  }, [activeTab, country, education, image, intakeYear, name, nationality, phone, phonePrefix, targetCountries, targetSubjects, budgetMax, gpa, ieltsScore, toeflScore, session, refetchSession, updateProfile, utils])
-
+  }, [
+    name,
+    image,
+    nationality,
+    country,
+    phone,
+    phonePrefix,
+    dob,
+    gender,
+    whatsapp,
+    fatherName,
+    motherName,
+    hometown,
+    addressLine1,
+    addressLine2,
+    city,
+    state,
+    zipCode,
+    education,
+    targetCountries,
+    targetSubjects,
+    budgetMax,
+    gpa,
+    sscYear,
+    sscResult,
+    hscYear,
+    hscResult,
+    bachelorsYear,
+    bachelorsResult,
+    mastersYear,
+    mastersResult,
+    englishTest,
+    ieltsScore,
+    toeflScore,
+    satScore,
+    topikLevel,
+    intakeYear,
+    session,
+    refetchSession,
+    updateProfile,
+    utils,
+  ])
 
   function togglePreference(key: keyof typeof preferences, value: boolean) {
     const next = { ...preferences, [key]: value }
@@ -690,11 +912,15 @@ function SettingsContent() {
   }
 
   function toggleCountry(value: string) {
-    setTargetCountries((current) => current.includes(value) ? current.filter((countryValue) => countryValue !== value) : current.length < 5 ? [...current, value] : current)
+    setTargetCountries((current) =>
+      current.includes(value) ? current.filter((countryValue) => countryValue !== value) : current.length < 5 ? [...current, value] : current
+    )
   }
 
   function toggleSubject(value: string) {
-    setTargetSubjects((current) => current.includes(value) ? current.filter((subject) => subject !== value) : current.length < 5 ? [...current, value] : current)
+    setTargetSubjects((current) =>
+      current.includes(value) ? current.filter((subject) => subject !== value) : current.length < 5 ? [...current, value] : current
+    )
   }
 
   async function copyReferral() {
@@ -728,7 +954,7 @@ function SettingsContent() {
       <StudentPageHeader
         eyebrow="Account settings"
         title="Settings"
-        description="Keep your details current so Endow can recommend better courses and guide your application."
+        description="Keep your personal, address, and academic details current so your application submissions and eligibility metrics remain synchronized."
         action={
           <button
             type="button"
@@ -736,7 +962,11 @@ function SettingsContent() {
             disabled={saveState === 'saving'}
             className={cn(btnPrimary, 'min-w-[140px]')}
           >
-            {saveState === 'saving' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" /> : saveState === 'success' ? <Check size={17} /> : null}
+            {saveState === 'saving' ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : saveState === 'success' ? (
+              <Check size={17} />
+            ) : null}
             {saveState === 'saving' ? 'Saving...' : saveState === 'success' ? 'Saved' : 'Save changes'}
           </button>
         }
@@ -785,7 +1015,12 @@ function SettingsContent() {
                   role="tab"
                   aria-selected={active}
                   onClick={() => selectTab(tab.id)}
-                  className={cn('relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600', active ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white')}
+                  className={cn(
+                    'relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600',
+                    active
+                      ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+                  )}
                 >
                   {active && <span className="absolute bottom-1.5 left-0 top-1.5 w-[3px] rounded-full bg-rose-600" aria-hidden />}
                   <Icon size={18} aria-hidden />
@@ -806,131 +1041,605 @@ function SettingsContent() {
         <main className="min-w-0">
           <div className="mb-6 flex gap-1 overflow-x-auto rounded-2xl border border-gray-200 bg-white p-1.5 shadow-sm dark:border-gray-800 dark:bg-[#12141c]" role="tablist" aria-label="Settings tabs">
             {TABS.map((tab) => (
-              <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => selectTab(tab.id)} className={cn('whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 sm:px-4 sm:text-sm', activeTab === tab.id ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white')}>
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                onClick={() => selectTab(tab.id)}
+                className={cn(
+                  'whitespace-nowrap rounded-lg px-3 py-2 text-xs font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-rose-600 sm:px-4 sm:text-sm',
+                  activeTab === tab.id ? 'bg-rose-600 text-white' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-white'
+                )}
+              >
                 {tab.label}
               </button>
             ))}
           </div>
 
           {activeTab === 'personal' && (
-            <section className={`${studentPanel} p-5 sm:p-6`} role="tabpanel">
-              <div className="mb-6 flex items-start gap-3">
-                <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300"><UserRound size={18} /></div>
-                <div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">Personal information</h2>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">This is the information your counselor uses to support you.</p>
+            <section className="space-y-6" role="tabpanel">
+              {/* Basic Personal Details */}
+              <div className={`${studentPanel} p-5 sm:p-6`}>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <UserRound size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Personal details</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      These details are shared with your advisory counselor and locked on future application forms.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <Field label="Full name" required error={errors.name} errorId="name-error">
+                    <input
+                      aria-label="Full name"
+                      aria-required="true"
+                      aria-invalid={Boolean(errors.name)}
+                      aria-describedby="name-error"
+                      value={name}
+                      onChange={(event) => {
+                        setName(event.target.value)
+                        if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
+                      }}
+                      className={cn(input, errors.name && 'border-rose-500 focus:border-rose-500')}
+                      placeholder="Your full name"
+                      maxLength={100}
+                    />
+                  </Field>
+
+                  <Field label="Email address" hint="Your sign-in email cannot be changed here.">
+                    <div className="relative">
+                      <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+                      <input
+                        aria-label="Email address"
+                        aria-readonly="true"
+                        value={session?.user?.email || ''}
+                        readOnly
+                        className={cn(input, 'cursor-not-allowed pl-10 pr-28 text-gray-500')}
+                      />
+                      <span className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 text-xs font-bold text-emerald-600">
+                        <CheckCircle2 size={14} /> Verified
+                      </span>
+                    </div>
+                  </Field>
+
+                  <Field label="Phone number" error={errors.phone}>
+                    <div className={cn('flex h-11 rounded-xl border bg-white transition duration-150 focus-within:border-rose-500 dark:bg-[#12141c] dark:focus-within:border-rose-400', errors.phone ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700')}>
+                      <div className="w-[108px] shrink-0 border-r border-gray-200 dark:border-gray-700">
+                        <SearchableCombobox id="phone-prefix" value={phonePrefix} options={PHONE_PREFIXES} onChange={setPhonePrefix} placeholder="Code" ariaLabel="Phone country code" />
+                      </div>
+                      <input
+                        aria-label="Phone number"
+                        aria-invalid={Boolean(errors.phone)}
+                        value={phone}
+                        onChange={(event) => {
+                          setPhone(event.target.value.replace(/[^0-9\s.-]/g, ''))
+                          if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
+                        }}
+                        placeholder="1 234 567 890"
+                        inputMode="tel"
+                        maxLength={20}
+                        className="min-w-0 flex-1 bg-transparent px-3 text-sm text-gray-900 outline-none dark:text-white"
+                      />
+                    </div>
+                  </Field>
+
+                  <Field label="WhatsApp number" hint="For advisory updates and admissions counseling.">
+                    <div className="relative">
+                      <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+                      <input
+                        value={whatsapp}
+                        onChange={(e) => setWhatsapp(e.target.value)}
+                        placeholder="+880 1712 345678"
+                        className={cn(input, 'pl-10')}
+                      />
+                    </div>
+                  </Field>
+
+                  <Field label="Date of birth">
+                    <input
+                      type="date"
+                      value={dob}
+                      onChange={(e) => setDob(e.target.value)}
+                      className={input}
+                    />
+                  </Field>
+
+                  <Field label="Gender">
+                    <select
+                      value={gender}
+                      onChange={(e) => setGender(e.target.value)}
+                      className={input}
+                    >
+                      <option value="">Select gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </Field>
+
+                  <Field label="Nationality" required error={errors.nationality}>
+                    <SearchableCombobox
+                      id="nationality"
+                      value={nationality}
+                      options={COUNTRIES}
+                      onChange={(value) => {
+                        setNationality(value)
+                        if (errors.nationality) setErrors((prev) => ({ ...prev, nationality: undefined }))
+                      }}
+                      placeholder="Select nationality"
+                      ariaLabel="Nationality"
+                    />
+                  </Field>
+
+                  <Field label="Country of residence">
+                    <SearchableCombobox
+                      id="residence"
+                      value={country}
+                      options={COUNTRIES}
+                      onChange={setCountry}
+                      placeholder="Select country"
+                      ariaLabel="Country of residence"
+                    />
+                  </Field>
                 </div>
               </div>
-              <form onSubmit={(e) => { e.preventDefault(); saveProfile() }} noValidate className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Field label="Full name" required error={errors.name} errorId="name-error">
-                  <input
-                    aria-label="Full name"
-                    aria-required="true"
-                    aria-invalid={Boolean(errors.name)}
-                    aria-describedby="name-error"
-                    value={name}
-                    onChange={(event) => {
-                      setName(event.target.value)
-                      if (errors.name) setErrors((prev) => ({ ...prev, name: undefined }))
-                    }}
-                    className={cn(input, errors.name && 'border-rose-500 focus:border-rose-500')}
-                    placeholder="Your full name"
-                    maxLength={100}
-                  />
-                </Field>
-                <Field label="Email address" hint="Your sign-in email cannot be changed here.">
-                  <div className="relative">
-                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
-                    <input aria-label="Email address" aria-readonly="true" value={session?.user?.email || ''} readOnly className={cn(input, 'cursor-not-allowed pl-10 pr-28 text-gray-500')} />
-                    <span className="absolute right-3 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 text-xs font-bold text-emerald-600"><CheckCircle2 size={14} /> Verified</span>
+
+              {/* Present Address */}
+              <div className={`${studentPanel} p-5 sm:p-6`}>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <MapPin size={18} />
                   </div>
-                </Field>
-                <Field label="Phone number" error={errors.phone}>
-                  <div className={cn('flex h-11 rounded-xl border bg-white transition duration-150 focus-within:border-rose-500 dark:bg-[#12141c] dark:focus-within:border-rose-400', errors.phone ? 'border-rose-500' : 'border-gray-200 dark:border-gray-700')}>
-                    <div className="w-[108px] shrink-0 border-r border-gray-200 dark:border-gray-700"><SearchableCombobox id="phone-prefix" value={phonePrefix} options={PHONE_PREFIXES} onChange={setPhonePrefix} placeholder="Code" ariaLabel="Phone country code" /></div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Present address</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Your residential address used for university letters, admissions packets, and student visas.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <Field label="Address Line 1" hint="House number, street address, flat or apartment.">
+                      <input
+                        value={addressLine1}
+                        onChange={(e) => setAddressLine1(e.target.value)}
+                        placeholder="e.g. House 42, Road 7, Block C"
+                        className={input}
+                      />
+                    </Field>
+                  </div>
+
+                  <Field label="Address Line 2 (Optional)">
                     <input
-                      aria-label="Phone number"
-                      aria-invalid={Boolean(errors.phone)}
-                      value={phone}
-                      onChange={(event) => {
-                        setPhone(event.target.value.replace(/[^0-9\s.-]/g, ''))
-                        if (errors.phone) setErrors((prev) => ({ ...prev, phone: undefined }))
-                      }}
-                      placeholder="1 234 567 890"
-                      inputMode="tel"
-                      maxLength={20}
-                      className="min-w-0 flex-1 bg-transparent px-3 text-sm text-gray-900 outline-none dark:text-white"
+                      value={addressLine2}
+                      onChange={(e) => setAddressLine2(e.target.value)}
+                      placeholder="e.g. Sector 3, Uttara"
+                      className={input}
                     />
+                  </Field>
+
+                  <Field label="City / Town">
+                    <input
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Dhaka"
+                      className={input}
+                    />
+                  </Field>
+
+                  <Field label="State / Division">
+                    <input
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. Dhaka Division"
+                      className={input}
+                    />
+                  </Field>
+
+                  <Field label="Postal / Zip Code">
+                    <input
+                      value={zipCode}
+                      onChange={(e) => setZipCode(e.target.value)}
+                      placeholder="e.g. 1230"
+                      className={input}
+                    />
+                  </Field>
+                </div>
+              </div>
+
+              {/* Family & Origins */}
+              <div className={`${studentPanel} p-5 sm:p-6`}>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <Home size={18} />
                   </div>
-                </Field>
-                <Field label="Nationality" required error={errors.nationality}>
-                  <SearchableCombobox
-                    id="nationality"
-                    value={nationality}
-                    options={COUNTRIES}
-                    onChange={(value) => {
-                      setNationality(value)
-                      if (errors.nationality) setErrors((prev) => ({ ...prev, nationality: undefined }))
-                    }}
-                    placeholder="Select nationality"
-                    ariaLabel="Nationality"
-                  />
-                </Field>
-                <Field label="Country of residence">
-                  <SearchableCombobox id="residence" value={country} options={COUNTRIES} onChange={setCountry} placeholder="Select country" ariaLabel="Country of residence" />
-                </Field>
-              </form>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Family &amp; origin (Optional)</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Required for background checks, scholarship eligibility, and student visa forms.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                  <Field label="Father's name">
+                    <input
+                      value={fatherName}
+                      onChange={(e) => setFatherName(e.target.value)}
+                      placeholder="Father's full name"
+                      className={input}
+                    />
+                  </Field>
+
+                  <Field label="Mother's name">
+                    <input
+                      value={motherName}
+                      onChange={(e) => setMotherName(e.target.value)}
+                      placeholder="Mother's full name"
+                      className={input}
+                    />
+                  </Field>
+
+                  <Field label="Hometown / District">
+                    <input
+                      value={hometown}
+                      onChange={(e) => setHometown(e.target.value)}
+                      placeholder="e.g. Chittagong, Sylhet"
+                      className={input}
+                    />
+                  </Field>
+                </div>
+              </div>
             </section>
           )}
 
           {activeTab === 'study' && (
             <section className="space-y-6" role="tabpanel">
+              {/* Study Preferences */}
               <div className={`${studentPanel} p-5 sm:p-6`}>
-                <div className="mb-6 flex items-start gap-3"><div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300"><GraduationCap size={18} /></div><div><h2 className="text-lg font-bold text-gray-900 dark:text-white">Study preferences</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Tell us what you want to study and where you want to go.</p></div></div>
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <Field label="Highest education" required><SearchableCombobox id="education" value={education} options={EDUCATION_OPTIONS} onChange={setEducation} placeholder="Select education level" ariaLabel="Highest education" /></Field>
-                  <Field label="Preferred intake year" hint="Choose the year you want to start studying.">
-                    <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Preferred intake year">
-                      {INTAKE_YEARS.map((year) => <button key={year} type="button" role="radio" aria-checked={intakeYear === year} onClick={() => setIntakeYear(year)} className={cn('h-11 rounded-xl border text-sm font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', intakeYear === year ? 'border-rose-600 bg-rose-600 text-white shadow-sm' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300 dark:hover:bg-rose-500/10')}>{year}</button>)}
-                    </div>
-                  </Field>
-                </div>
-                <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><SectionLabel>Target countries</SectionLabel><p id="country-hint" className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose up to 5 destinations.</p></div><span className="text-xs font-bold text-gray-500">{targetCountries.length} / 5 selected</span></div>
-                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"><div className="h-full rounded-full bg-rose-600 transition-all duration-300" style={{ width: `${(targetCountries.length / 5) * 100}%` }} /></div>
-                  <div className="relative mt-4"><Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden /><input aria-label="Search target countries" aria-describedby="country-hint" value={countrySearch} onChange={(event) => setCountrySearch(event.target.value)} placeholder="Search countries" className={cn(input, 'pl-10')} /></div>
-                  <div className="mt-4 max-h-56 overflow-y-auto overscroll-contain pr-1" data-lenis-prevent><div className="flex flex-wrap gap-2" role="group" aria-label="Target countries">
-                    {filteredCountries.map((option) => { const selected = targetCountries.includes(option.value); const limitReached = targetCountries.length >= 5 && !selected; return <button key={option.value} type="button" aria-pressed={selected} disabled={limitReached} onClick={() => toggleCountry(option.value)} className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', selected ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300' : limitReached ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300')}><Flag url={option.flag} />{option.label}</button> })}
-                  </div></div>
-                </div>
-
-                <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
-                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><SectionLabel>Fields of interest</SectionLabel><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose up to 5 subjects you want to study.</p></div><span className="text-xs font-bold text-gray-500">{targetSubjects.length} / 5 selected</span></div>
-                  <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Target subjects">
-                    {SUBJECT_OPTIONS.map((subject) => { const selected = targetSubjects.includes(subject); const limitReached = targetSubjects.length >= 5 && !selected; return <button key={subject} type="button" aria-pressed={selected} disabled={limitReached} onClick={() => toggleSubject(subject)} className={cn('inline-flex items-center rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600', selected ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300' : limitReached ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600' : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300')}>{subject}</button> })}
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <GraduationCap size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Study goals &amp; preferences</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      Tell us what you want to study and where you want to go.
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-6 grid grid-cols-1 gap-6 border-t border-gray-100 pt-6 md:grid-cols-2 dark:border-gray-800">
-                  <Field label="Maximum budget" hint="Used to filter courses within your budget.">
-                    <select value={budgetMax === '' ? '' : String(budgetMax)} onChange={(event) => setBudgetMax(event.target.value === '' ? '' : Number(event.target.value))} className={input}>
-                      {BUDGET_OPTIONS.map((option) => <option key={option.label} value={option.value === '' ? '' : String(option.value)}>{option.label}</option>)}
-                    </select>
-                  </Field>
-                  <Field label="GPA" hint="Your current grade point average (e.g. 3.75)." error={errors.gpa}>
-                    <input
-                      aria-invalid={Boolean(errors.gpa)}
-                      value={gpa}
-                      onChange={(event) => {
-                        setGpa(event.target.value.replace(/[^0-9.]/g, ''))
-                        if (errors.gpa) setErrors((prev) => ({ ...prev, gpa: undefined }))
-                      }}
-                      inputMode="decimal"
-                      placeholder="e.g. 3.75"
-                      maxLength={5}
-                      className={cn(input, errors.gpa && 'border-rose-500 focus:border-rose-500')}
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <Field label="Highest education completed" required>
+                    <SearchableCombobox
+                      id="education"
+                      value={education}
+                      options={EDUCATION_OPTIONS}
+                      onChange={setEducation}
+                      placeholder="Select education level"
+                      ariaLabel="Highest education"
                     />
                   </Field>
+
+                  <Field label="Preferred intake year" hint="Choose the year you want to start studying.">
+                    <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Preferred intake year">
+                      {INTAKE_YEARS.map((year) => (
+                        <button
+                          key={year}
+                          type="button"
+                          role="radio"
+                          aria-checked={intakeYear === year}
+                          onClick={() => setIntakeYear(year)}
+                          className={cn(
+                            'h-11 rounded-xl border text-sm font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600',
+                            intakeYear === year
+                              ? 'border-rose-600 bg-rose-600 text-white shadow-sm'
+                              : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300 dark:hover:bg-rose-500/10'
+                          )}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                  </Field>
+                </div>
+
+                <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                    <div>
+                      <SectionLabel>Target countries</SectionLabel>
+                      <p id="country-hint" className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose up to 5 destinations.</p>
+                    </div>
+                    <span className="text-xs font-bold text-gray-500">{targetCountries.length} / 5 selected</span>
+                  </div>
+                  <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                    <div className="h-full rounded-full bg-rose-600 transition-all duration-300" style={{ width: `${(targetCountries.length / 5) * 100}%` }} />
+                  </div>
+                  <div className="relative mt-4">
+                    <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" aria-hidden />
+                    <input
+                      aria-label="Search target countries"
+                      aria-describedby="country-hint"
+                      value={countrySearch}
+                      onChange={(event) => setCountrySearch(event.target.value)}
+                      placeholder="Search countries"
+                      className={cn(input, 'pl-10')}
+                    />
+                  </div>
+                  <div className="mt-4 max-h-56 overflow-y-auto overscroll-contain pr-1" data-lenis-prevent>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label="Target countries">
+                      {filteredCountries.map((option) => {
+                        const selected = targetCountries.includes(option.value)
+                        const limitReached = targetCountries.length >= 5 && !selected
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            aria-pressed={selected}
+                            disabled={limitReached}
+                            onClick={() => toggleCountry(option.value)}
+                            className={cn(
+                              'inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600',
+                              selected
+                                ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300'
+                                : limitReached
+                                  ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600'
+                                  : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300'
+                            )}
+                          >
+                            <Flag url={option.flag} />
+                            {option.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                    <div>
+                      <SectionLabel>Fields of interest</SectionLabel>
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Choose up to 5 subjects you want to study.</p>
+                    </div>
+                    <span className="text-xs font-bold text-gray-500">{targetSubjects.length} / 5 selected</span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2" role="group" aria-label="Target subjects">
+                    {SUBJECT_OPTIONS.map((subject) => {
+                      const selected = targetSubjects.includes(subject)
+                      const limitReached = targetSubjects.length >= 5 && !selected
+                      return (
+                        <button
+                          key={subject}
+                          type="button"
+                          aria-pressed={selected}
+                          disabled={limitReached}
+                          onClick={() => toggleSubject(subject)}
+                          className={cn(
+                            'inline-flex items-center rounded-full border px-3 py-2 text-xs font-semibold transition duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600',
+                            selected
+                              ? 'border-rose-600 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-500 dark:bg-rose-500/10 dark:text-rose-300'
+                              : limitReached
+                                ? 'cursor-not-allowed border-gray-100 bg-gray-50 text-gray-300 opacity-50 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-600'
+                                : 'border-gray-200 bg-white text-gray-600 hover:border-rose-300 hover:bg-rose-50 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-300'
+                          )}
+                        >
+                          {subject}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="mt-6 border-t border-gray-100 pt-6 dark:border-gray-800">
+                  <Field label="Maximum budget" hint="Used to filter courses within your budget.">
+                    <select
+                      value={budgetMax === '' ? '' : String(budgetMax)}
+                      onChange={(event) => setBudgetMax(event.target.value === '' ? '' : Number(event.target.value))}
+                      className={input}
+                    >
+                      {BUDGET_OPTIONS.map((option) => (
+                        <option key={option.label} value={option.value === '' ? '' : String(option.value)}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+              </div>
+
+              {/* Academic History & Credentials */}
+              <div className={`${studentPanel} p-5 sm:p-6`}>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <BookOpen size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Academic history &amp; results</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      These credentials sync directly with your dashboard graph and pre-populate your university applications.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-5">
+                  {/* Secondary (SSC) */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
+                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
+                      Secondary (SSC / O-Level)
+                    </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Field label="Passing Year">
+                        <input
+                          value={sscYear}
+                          onChange={(e) => setSscYear(e.target.value)}
+                          placeholder="e.g. 2020"
+                          maxLength={4}
+                          className={input}
+                        />
+                      </Field>
+                      <Field label="Result (GPA - Max 5.00)" error={errors.sscResult}>
+                        <input
+                          value={sscResult}
+                          onChange={(e) => {
+                            setSscResult(e.target.value)
+                            if (errors.sscResult) setErrors((prev) => ({ ...prev, sscResult: undefined }))
+                          }}
+                          placeholder="e.g. 5.00"
+                          maxLength={5}
+                          className={cn(input, errors.sscResult && 'border-rose-500 focus:border-rose-500')}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  {/* Higher Secondary (HSC) */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
+                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
+                      Higher Secondary (HSC / A-Level)
+                    </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Field label="Passing Year">
+                        <input
+                          value={hscYear}
+                          onChange={(e) => setHscYear(e.target.value)}
+                          placeholder="e.g. 2022"
+                          maxLength={4}
+                          className={input}
+                        />
+                      </Field>
+                      <Field label="Result (GPA - Max 5.00)" error={errors.hscResult}>
+                        <input
+                          value={hscResult}
+                          onChange={(e) => {
+                            setHscResult(e.target.value)
+                            if (errors.hscResult) setErrors((prev) => ({ ...prev, hscResult: undefined }))
+                          }}
+                          placeholder="e.g. 4.80"
+                          maxLength={5}
+                          className={cn(input, errors.hscResult && 'border-rose-500 focus:border-rose-500')}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  {/* Bachelor's Degree */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
+                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
+                      Bachelor&apos;s Degree (BSc, BBA, BA Hons, etc.)
+                    </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Field label="Passing Year">
+                        <input
+                          value={bachelorsYear}
+                          onChange={(e) => setBachelorsYear(e.target.value)}
+                          placeholder="e.g. 2026"
+                          maxLength={4}
+                          className={input}
+                        />
+                      </Field>
+                      <Field label="Result (CGPA - Max 4.00)" error={errors.bachelorsResult}>
+                        <input
+                          value={bachelorsResult}
+                          onChange={(e) => {
+                            setBachelorsResult(e.target.value)
+                            if (errors.bachelorsResult) setErrors((prev) => ({ ...prev, bachelorsResult: undefined }))
+                          }}
+                          placeholder="e.g. 3.75"
+                          maxLength={5}
+                          className={cn(input, errors.bachelorsResult && 'border-rose-500 focus:border-rose-500')}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  {/* Master's Degree */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
+                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
+                      Master&apos;s Degree (MSc, MBA, MA, etc.)
+                    </p>
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Field label="Passing Year">
+                        <input
+                          value={mastersYear}
+                          onChange={(e) => setMastersYear(e.target.value)}
+                          placeholder="e.g. 2028"
+                          maxLength={4}
+                          className={input}
+                        />
+                      </Field>
+                      <Field label="Result (CGPA - Max 4.00)" error={errors.mastersResult}>
+                        <input
+                          value={mastersResult}
+                          onChange={(e) => {
+                            setMastersResult(e.target.value)
+                            if (errors.mastersResult) setErrors((prev) => ({ ...prev, mastersResult: undefined }))
+                          }}
+                          placeholder="e.g. 3.85"
+                          maxLength={5}
+                          className={cn(input, errors.mastersResult && 'border-rose-500 focus:border-rose-500')}
+                        />
+                      </Field>
+                    </div>
+                  </div>
+
+                  {/* Overall GPA */}
+                  <div className="pt-2">
+                    <Field label="Cumulative GPA (Used on Benchmark Chart)" hint="Your overall primary GPA shown on your dashboard eligibility graph." error={errors.gpa}>
+                      <input
+                        aria-invalid={Boolean(errors.gpa)}
+                        value={gpa}
+                        onChange={(event) => {
+                          setGpa(event.target.value.replace(/[^0-9.]/g, ''))
+                          if (errors.gpa) setErrors((prev) => ({ ...prev, gpa: undefined }))
+                        }}
+                        inputMode="decimal"
+                        placeholder="e.g. 3.75"
+                        maxLength={5}
+                        className={cn(input, errors.gpa && 'border-rose-500 focus:border-rose-500')}
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+
+              {/* Standardized & Language Tests */}
+              <div className={`${studentPanel} p-5 sm:p-6`}>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <GraduationCap size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Standardized &amp; language test scores</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      IELTS, TOEFL, SAT, or TOPIK test scores for international admissions.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <Field label="Primary English / Language test taken">
+                      <select
+                        value={englishTest}
+                        onChange={(e) => setEnglishTest(e.target.value)}
+                        className={input}
+                      >
+                        {ENGLISH_TESTS.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    </Field>
+                  </div>
+
                   <Field label="IELTS band" hint="Overall band score (0–9), if taken." error={errors.ieltsScore}>
                     <input
                       aria-invalid={Boolean(errors.ieltsScore)}
@@ -945,6 +1654,7 @@ function SettingsContent() {
                       className={cn(input, errors.ieltsScore && 'border-rose-500 focus:border-rose-500')}
                     />
                   </Field>
+
                   <Field label="TOEFL score" hint="Total score (0–120), if taken." error={errors.toeflScore}>
                     <input
                       aria-invalid={Boolean(errors.toeflScore)}
@@ -959,8 +1669,37 @@ function SettingsContent() {
                       className={cn(input, errors.toeflScore && 'border-rose-500 focus:border-rose-500')}
                     />
                   </Field>
-                </div>
 
+                  <Field label="SAT score" hint="Total score (0–1600), if taken." error={errors.satScore}>
+                    <input
+                      aria-invalid={Boolean(errors.satScore)}
+                      value={satScore}
+                      onChange={(event) => {
+                        setSatScore(event.target.value.replace(/\D/g, ''))
+                        if (errors.satScore) setErrors((prev) => ({ ...prev, satScore: undefined }))
+                      }}
+                      inputMode="numeric"
+                      placeholder="e.g. 1350"
+                      maxLength={4}
+                      className={cn(input, errors.satScore && 'border-rose-500 focus:border-rose-500')}
+                    />
+                  </Field>
+
+                  <Field label="TOPIK level (Korean Proficiency)" hint="If applying for South Korea.">
+                    <select
+                      value={topikLevel}
+                      onChange={(e) => setTopikLevel(e.target.value)}
+                      className={input}
+                    >
+                      <option value="">None / Not Taken</option>
+                      {TOPIK_LEVELS.map((lvl) => (
+                        <option key={lvl} value={lvl}>
+                          {lvl}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
               </div>
             </section>
           )}
@@ -968,14 +1707,60 @@ function SettingsContent() {
           {activeTab === 'security' && (
             <section className="space-y-6" role="tabpanel">
               <div className={`${studentPanel} p-5 sm:p-6`}>
-                <div className="mb-6 flex items-start gap-3"><div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300"><ShieldCheck size={18} /></div><div><h2 className="text-lg font-bold text-gray-900 dark:text-white">Security &amp; privacy</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Control your password, messages, and account preferences.</p></div></div>
+                <div className="mb-6 flex items-start gap-3">
+                  <div className="rounded-lg bg-rose-50 p-2.5 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+                    <ShieldCheck size={18} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Security &amp; privacy</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Control your password, messages, and account preferences.</p>
+                  </div>
+                </div>
                 <StudentChangePasswordSection />
-                 <div className="mt-6 space-y-3"><div className="flex items-center gap-2"><Bell size={17} className="text-rose-600" /><h3 className="text-sm font-bold text-gray-900 dark:text-white">Notification preferences</h3></div><Toggle label="Application updates" description="Get notified when your application status changes." checked={preferences.updates} onChange={(value) => togglePreference('updates', value)} /><Toggle label="Recommendations" description="Receive new course and destination suggestions." checked={preferences.recommendations} onChange={(value) => togglePreference('recommendations', value)} /></div>
+                <div className="mt-6 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Bell size={17} className="text-rose-600" />
+                    <h3 className="text-sm font-bold text-gray-900 dark:text-white">Notification preferences</h3>
+                  </div>
+                  <Toggle label="Application updates" description="Get notified when your application status changes." checked={preferences.updates} onChange={(value) => togglePreference('updates', value)} />
+                  <Toggle label="Recommendations" description="Receive new course and destination suggestions." checked={preferences.recommendations} onChange={(value) => togglePreference('recommendations', value)} />
+                </div>
               </div>
 
-              <div className="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 shadow-sm sm:p-6 dark:border-rose-900/40 dark:from-rose-500/10 dark:to-[#12141c]"><div className="flex items-start gap-3"><Gift size={18} className="mt-0.5 text-rose-600" /><div><h2 className="text-base font-bold text-gray-900 dark:text-white">Refer a friend</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Share Endow and earn credits when your friend joins.</p></div></div><div className="mt-4 flex flex-col gap-2 sm:flex-row"><code className="flex h-11 flex-1 items-center rounded-xl border border-rose-100 bg-white px-4 text-sm font-bold tracking-[0.18em] text-rose-700 dark:border-rose-900 dark:bg-[#1a1d25] dark:text-rose-300">{referralCode || 'Generating code...'}</code><button type="button" onClick={copyReferral} className={cn(btnPrimary, 'h-11')}>{copied ? <Check size={15} /> : <Copy size={15} />} {copied ? 'Copied' : 'Copy code'}</button><button type="button" onClick={shareReferral} className="inline-flex h-11 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-bold text-rose-700 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-500/10">Share</button></div>{referralBalance > 0 && <p className="mt-3 text-xs font-semibold text-gray-600 dark:text-gray-300">Available balance: {referralBalance.toLocaleString()} credits</p>}</div>
+              <div className="rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50 to-white p-5 shadow-sm sm:p-6 dark:border-rose-900/40 dark:from-rose-500/10 dark:to-[#12141c]">
+                <div className="flex items-start gap-3">
+                  <Gift size={18} className="mt-0.5 text-rose-600" />
+                  <div>
+                    <h2 className="text-base font-bold text-gray-900 dark:text-white">Refer a friend</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Share Endow and earn credits when your friend joins.</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <code className="flex h-11 flex-1 items-center rounded-xl border border-rose-100 bg-white px-4 text-sm font-bold tracking-[0.18em] text-rose-700 dark:border-rose-900 dark:bg-[#1a1d25] dark:text-rose-300">
+                    {referralCode || 'Generating code...'}
+                  </code>
+                  <button type="button" onClick={copyReferral} className={cn(btnPrimary, 'h-11')}>
+                    {copied ? <Check size={15} /> : <Copy size={15} />} {copied ? 'Copied' : 'Copy code'}
+                  </button>
+                  <button type="button" onClick={shareReferral} className="inline-flex h-11 items-center justify-center rounded-xl border border-rose-200 px-4 text-sm font-bold text-rose-700 transition-colors hover:bg-rose-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600 dark:border-rose-900 dark:text-rose-300 dark:hover:bg-rose-500/10">
+                    Share
+                  </button>
+                </div>
+                {referralBalance > 0 && <p className="mt-3 text-xs font-semibold text-gray-600 dark:text-gray-300">Available balance: {referralBalance.toLocaleString()} credits</p>}
+              </div>
 
-              <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm sm:p-6 dark:border-red-900/70 dark:bg-[#12141c]"><div className="flex items-start gap-3"><Trash2 size={18} className="mt-0.5 text-red-600" /><div><h2 className="text-base font-bold text-red-700 dark:text-red-300">Danger zone</h2><p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Account deletion is permanent. Contact support so we can verify and process your request safely.</p></div></div><a href="mailto:contact@endowglobaledu.com?subject=Account%20deletion%20request" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl border border-red-200 px-4 text-sm font-bold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-500/10">Request account deletion</a></div>
+              <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm sm:p-6 dark:border-red-900/70 dark:bg-[#12141c]">
+                <div className="flex items-start gap-3">
+                  <Trash2 size={18} className="mt-0.5 text-red-600" />
+                  <div>
+                    <h2 className="text-base font-bold text-red-700 dark:text-red-300">Danger zone</h2>
+                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Account deletion is permanent. Contact support so we can verify and process your request safely.</p>
+                  </div>
+                </div>
+                <a href="mailto:contact@endowglobaledu.com?subject=Account%20deletion%20request" className="mt-4 inline-flex h-10 items-center gap-2 rounded-xl border border-red-200 px-4 text-sm font-bold text-red-700 transition-colors hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-500/10">
+                  Request account deletion
+                </a>
+              </div>
             </section>
           )}
         </main>

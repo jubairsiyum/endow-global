@@ -1,20 +1,23 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CalendarClock, FileCheck2, FileText, Heart } from 'lucide-react'
-
 import { trpc } from '@/lib/trpc-client'
 import { useSession } from '@/lib/auth-client'
 import { asStringArray } from '@/lib/utils'
 
 import { OverviewHeader } from '@/components/dashboard/OverviewHeader'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { ApplicationsPanel } from '@/components/dashboard/ApplicationsPanel'
-import { ShortlistedPanel } from '@/components/dashboard/ShortlistedPanel'
-import { TasksPanel } from '@/components/dashboard/TasksPanel'
-import { SessionsPanel } from '@/components/dashboard/SessionsPanel'
+import { ModernStatCards } from '@/components/dashboard/ModernStatCards'
+import { AcademicCurvedChart } from '@/components/dashboard/AcademicCurvedChart'
+import { DashboardTodoList } from '@/components/dashboard/DashboardTodoList'
+import { ApplicationProgressCard } from '@/components/dashboard/ApplicationProgressCard'
+import { UpcomingSessionsCard } from '@/components/dashboard/UpcomingSessionsCard'
+import { ShortlistedTable } from '@/components/dashboard/ShortlistedTable'
 import { DashboardError } from '@/components/dashboard/DashboardState'
-import { DashboardCourseShelf, DashboardInstitutionShelf, DashboardResourceShelf } from '@/components/dashboard/DashboardDiscovery'
+import {
+  DashboardCourseShelf,
+  DashboardInstitutionShelf,
+  DashboardResourceShelf,
+} from '@/components/dashboard/DashboardDiscovery'
 
 export default function DashboardPage() {
   const { data: session } = useSession()
@@ -24,15 +27,13 @@ export default function DashboardPage() {
   const stats = data?.stats ?? {}
   const name = data?.user?.name ?? session?.user?.name ?? 'there'
 
-  const nextDeadlineLabel = data?.deadlines?.[0]?.label
-
   if (isLoading) {
     return <OverviewSkeleton />
   }
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-[1200px]">
+      <div className="mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-8">
         <DashboardError onRetry={() => refetch()} />
       </div>
     )
@@ -46,10 +47,13 @@ export default function DashboardPage() {
         hidden: { opacity: 0 },
         show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.03 } },
       }}
-      className="mx-auto max-w-[1200px] space-y-5"
+      className="mx-auto w-full max-w-[1440px] space-y-6 px-4 sm:px-6 lg:px-8"
     >
+      {/* 1. Overview Header (Greeting, Avatar, Preferred Intakes, Destination Tags) */}
       <OverviewHeader
         name={name}
+        image={data?.user?.image || session?.user?.image}
+        email={data?.user?.email || session?.user?.email}
         intakeLabel={
           data?.profile?.preferredIntakeMonth
             ? `${data.profile.preferredIntakeMonth} ${data.profile.preferredIntakeYear ?? ''}`.trim()
@@ -57,102 +61,85 @@ export default function DashboardPage() {
         }
         targetCountries={asStringArray(data?.profile?.targetCountries)}
         matchCount={stats.matches ?? 0}
+        completionPercent={data?.profile?.completionPercent}
       />
 
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Applications"
-          value={stats.applications ?? 0}
-          icon={<FileText size={18} aria-hidden />}
-          tone="default"
-          caption={stats.applications ? 'On your journey' : 'Start your first one'}
-          index={0}
-        />
-        <StatCard
-          title="Shortlisted"
-          value={stats.shortlisted ?? 0}
-          icon={<Heart size={18} aria-hidden />}
-          tone="info"
-          caption="Courses you saved"
-          index={1}
-        />
-        <StatCard
-          title="Documents"
-          value={stats.documentsUploaded ?? 0}
-          suffix={` / ${stats.documentsTotal ?? 0}`}
-          icon={<FileCheck2 size={18} aria-hidden />}
-          tone="success"
-          caption={stats.documentsTotal ? 'Uploaded & verified' : 'Nothing yet'}
-          index={2}
-        />
-        <StatCard
-          title="Next deadline"
-          value={stats.daysUntilNextDeadline ?? 0}
-          suffix=" days"
-          icon={<CalendarClock size={18} aria-hidden />}
-          tone={
-            stats.daysUntilNextDeadline == null
-              ? 'default'
-              : stats.daysUntilNextDeadline <= 7
-                ? 'danger'
-                : stats.daysUntilNextDeadline <= 14
-                  ? 'warning'
-                  : 'info'
-          }
-          caption={nextDeadlineLabel ?? 'No deadlines'}
-          index={3}
-        />
-      </section>
+      {/* 2. Top Row: 4 Modern Stat Cards (Theme Styled) */}
+      <ModernStatCards stats={stats} />
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-5">
-        <div className="space-y-4 lg:col-span-3">
-          <ApplicationsPanel applications={data?.applications ?? []} index={2} />
-          <ShortlistedPanel shortlisted={data?.shortlisted ?? []} index={3} />
+      {/* 3. Row 1: Academic Eligibility Curved Chart (Left) + Real To-Do Checklist (Right) */}
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="lg:col-span-7 xl:col-span-8">
+          <AcademicCurvedChart profile={data?.profile} />
         </div>
-        <div className="space-y-4 lg:col-span-2">
-          <TasksPanel
+        <div className="lg:col-span-5 xl:col-span-4">
+          <DashboardTodoList
             documents={data?.documents ?? []}
-            deadlines={data?.deadlines ?? []}
-            index={2}
+            docProgress={stats?.docProgress}
           />
-          <SessionsPanel sessions={data?.upcomingSessions ?? []} index={4} />
         </div>
       </section>
 
+      {/* 4. Row 2: Application Progress (All Applied Courses) + Counselor Sessions */}
+      <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="lg:col-span-7 xl:col-span-8">
+          <ApplicationProgressCard
+            applications={data?.applications ?? []}
+            stats={stats}
+          />
+        </div>
+        <div className="lg:col-span-5 xl:col-span-4">
+          <UpcomingSessionsCard
+            sessions={data?.upcomingSessions ?? []}
+            counselor={data?.counselor}
+          />
+        </div>
+      </section>
+
+      {/* 5. Shortlisted & Target Programs Table (All DB Data + Functional Actions) */}
+      <ShortlistedTable
+        shortlisted={data?.shortlisted ?? []}
+        matches={data?.matches ?? []}
+        counselor={data?.counselor}
+      />
+
+      {/* 6. AI Match Recommendations Shelf (First 9 Cards + "See All Matches" Button) */}
       <DashboardCourseShelf matches={data?.matches ?? []} />
 
-      <section className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-        <DashboardInstitutionShelf recommendedUniversities={data?.recommendedUniversities ?? []} />
+      {/* 7. Institutional Recommendations & Resources */}
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <DashboardInstitutionShelf
+          recommendedUniversities={data?.recommendedUniversities ?? []}
+        />
         <DashboardResourceShelf />
       </section>
 
-      <div className="h-2" aria-hidden />
+      <div className="h-6" aria-hidden />
     </motion.div>
   )
 }
 
 function OverviewSkeleton() {
   return (
-    <div className="mx-auto max-w-[1200px] space-y-6">
-      <div className="h-[180px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
+    <div className="mx-auto w-full max-w-[1440px] space-y-6 px-4 sm:px-6 lg:px-8">
+      <div className="h-[160px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-[110px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
+          <div
+            key={i}
+            className="h-[140px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60"
+          />
         ))}
       </div>
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-        <div className="space-y-5 lg:col-span-3">
-          <div className="h-[320px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
-        </div>
-        <div className="space-y-5 lg:col-span-2">
-          <div className="h-[320px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
-        </div>
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="h-[360px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60 lg:col-span-7 xl:col-span-8" />
+        <div className="h-[360px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60 lg:col-span-5 xl:col-span-4" />
       </div>
-      <div className="h-48 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
-        <div className="h-56 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
-        <div className="h-56 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="h-[260px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60 lg:col-span-7 xl:col-span-8" />
+        <div className="h-[260px] animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60 lg:col-span-5 xl:col-span-4" />
       </div>
+      <div className="h-64 animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800/60" />
     </div>
   )
 }

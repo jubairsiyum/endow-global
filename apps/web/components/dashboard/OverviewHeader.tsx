@@ -2,96 +2,156 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { ArrowRight, Camera, GraduationCap, MapPin, SlidersHorizontal, Sparkles, User } from 'lucide-react'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
 interface Props {
   name: string
+  image?: string | null
+  email?: string | null
   intakeLabel?: string
   targetCountries?: string[]
   matchCount?: number
+  completionPercent?: number
 }
 
 export function OverviewHeader({
   name,
+  image,
+  email,
   intakeLabel,
-  targetCountries,
+  targetCountries = [],
   matchCount = 0,
+  completionPercent = 0,
 }: Props) {
   const firstName = name?.split(' ')[0] || 'there'
+  const initials = (name || 'Student')
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
+  const countriesList: string[] = Array.isArray(targetCountries)
+    ? targetCountries
+    : (() => {
+        if (typeof targetCountries === 'string') {
+          try {
+            const p = JSON.parse(targetCountries as unknown as string)
+            if (Array.isArray(p)) return p as string[]
+            return targetCountries ? [String(targetCountries)] : []
+          } catch {
+            return targetCountries ? [String(targetCountries)] : []
+          }
+        }
+        return []
+      })()
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
-      className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-[#12141c]"
+      className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-[#12141c]"
     >
+      {/* Background Ambient Glows */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-rose-100/60 blur-3xl dark:bg-rose-500/10"
+        className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-rose-500/10 blur-3xl dark:bg-rose-500/15"
       />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute left-1/3 -bottom-20 h-48 w-48 rounded-full bg-amber-400/5 blur-3xl"
+      />
+
       <div className="relative z-10 p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-rose-600 dark:text-rose-300">
-              <Sparkles size={16} aria-hidden />
-              <p className="text-xs font-bold uppercase tracking-[0.14em]">Your personalised space</p>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          {/* Left: Avatar & Identity Section */}
+          <div className="flex items-center gap-4 sm:gap-5">
+            {/* Profile Avatar Hero */}
+            <div className="relative shrink-0">
+              <div className="relative h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-2xl border-2 border-white bg-slate-100 shadow-md ring-2 ring-rose-500/20 dark:border-slate-800 dark:bg-slate-800 dark:ring-rose-500/30">
+                {image ? (
+                  <img
+                    src={image}
+                    alt={name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-rose-500 to-rose-700 text-white font-extrabold text-xl sm:text-2xl shadow-inner">
+                    {initials}
+                  </div>
+                )}
+              </div>
+
+              {/* Edit Photo Quick Pill / Camera Icon */}
+              <Link
+                href="/dashboard/settings?tab=personal"
+                title="Edit profile photo in settings"
+                className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-white bg-rose-600 text-white shadow-xs transition-transform hover:scale-110 hover:bg-rose-700 dark:border-slate-900"
+              >
+                <Camera size={12} />
+              </Link>
             </div>
-            <h1 className="mt-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-[28px]">
-              Welcome back, {firstName}
-            </h1>
-            <p className="mt-1.5 max-w-2xl text-sm leading-6 text-gray-500 dark:text-gray-400">
-              {intakeLabel ? (
-                <>
-                  You&apos;re prepping for the <span className="font-semibold text-gray-900 dark:text-white">{intakeLabel}</span> intake
-                  {(() => {
-                    const arr: string[] = Array.isArray(targetCountries)
-                      ? targetCountries
-                      : (() => {
-                          if (typeof targetCountries === 'string') {
-                            try {
-                              const p = JSON.parse(targetCountries as unknown as string)
-                              if (Array.isArray(p)) return p as string[]
-                              return (targetCountries as unknown as string) ? [String(targetCountries)] : []
-                            } catch {
-                              return (targetCountries as unknown as string) ? [String(targetCountries)] : []
-                            }
-                          }
-                          return []
-                        })()
-                    return arr.length ? (
-                      <>
-                        {' '}
-                        targeting{' '}
-                        <span className="font-semibold text-gray-900 dark:text-white">
-                          {arr.slice(0, 3).join(', ')}
-                        </span>
-                      </>
-                    ) : null
-                  })()}
-                  . Let&apos;s get you to campus.
-                </>
-              ) : (
-                <>Your study-abroad journey starts here. Let&apos;s find the right next step.</>
-              )}
-            </p>
+
+            {/* Greeting & Academic Context */}
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/50 dark:text-rose-300">
+                  <Sparkles size={12} />
+                  <span>Student Portal</span>
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Active Applicant
+                </span>
+              </div>
+
+              <h1 className="mt-1.5 text-xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-2xl lg:text-[26px]">
+                Welcome back, {firstName} 👋
+              </h1>
+
+              {/* Intake & Destination Capsule */}
+              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                {intakeLabel ? (
+                  <span className="inline-flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-200">
+                    <GraduationCap size={14} className="text-rose-600 dark:text-rose-400" />
+                    Prepping for {intakeLabel} Intake
+                  </span>
+                ) : (
+                  <span>Ready to explore university options</span>
+                )}
+
+                {countriesList.length > 0 && (
+                  <>
+                    <span className="text-slate-300 dark:text-slate-700">·</span>
+                    <span className="inline-flex items-center gap-1 font-medium text-slate-600 dark:text-slate-300">
+                      <MapPin size={13} className="text-rose-500" />
+                      Targeting {countriesList.slice(0, 3).join(', ')}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-          <div className="flex shrink-0 flex-col items-start gap-2.5 lg:items-end">
+
+          {/* Right: Actions & Preferences Button Group */}
+          <div className="flex shrink-0 flex-wrap items-center gap-3 lg:justify-end">
             <Link
               href={matchCount > 0 ? '/dashboard#matches' : '/dashboard/settings?tab=study'}
-              className="group inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-rose-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-rose-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
+              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-all hover:bg-rose-700 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"
             >
-              {matchCount > 0 ? `See ${matchCount} matches` : 'Set study preferences'}
-              <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" />
+              <span>{matchCount > 0 ? `See ${matchCount} matches` : 'Set study preferences'}</span>
+              <ArrowRight size={15} className="transition-transform group-hover:translate-x-0.5" />
             </Link>
+
             <Link
-              href="/dashboard/settings?tab=study"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-rose-600 transition-colors hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200"
+              href="/dashboard/settings"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-slate-50/80 px-3.5 py-2.5 text-xs font-semibold text-slate-700 transition-colors hover:border-rose-200 hover:bg-rose-50/50 hover:text-rose-700 dark:border-slate-800 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-rose-300"
             >
               <SlidersHorizontal size={14} />
-              Study preferences
+              <span>Profile Settings</span>
             </Link>
           </div>
         </div>

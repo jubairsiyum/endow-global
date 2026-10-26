@@ -1,5 +1,5 @@
 import { createBooking } from '@/lib/booking'
-import { applicantLevelFromEducation, DOCUMENT_REQUIREMENTS, requirementKey } from '@/lib/documents'
+import { applicantLevelFromEducation, DOCUMENT_REQUIREMENTS, requirementKey, type ApplicantLevel } from '@/lib/documents'
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
 import {
@@ -124,12 +124,58 @@ async function assertNoConflict(
 // student document row (PENDING until uploaded), then return the full list.
 async function ensureDocumentChecklist(ctx: any, studentId: string) {
   const [profile] = await ctx.db
-    .select({ highestEducation: schema.studentProfiles.highestEducation })
+    .select({
+      id: schema.studentProfiles.id,
+      userId: schema.studentProfiles.userId,
+      highestEducation: schema.studentProfiles.highestEducation,
+    })
     .from(schema.studentProfiles)
     .where(eq(schema.studentProfiles.id, studentId))
     .limit(1)
 
-  const level = applicantLevelFromEducation(profile?.highestEducation)
+  // 1. Check student's active applications to determine target program level
+  const [recentApp] = await ctx.db
+    .select({
+      level: schema.courses.level,
+    })
+    .from(schema.applications)
+    .innerJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+    .where(eq(schema.applications.studentId, studentId))
+    .orderBy(desc(schema.applications.createdAt))
+    .limit(1)
+
+  // 2. Check student's latest inquiry if no application exists
+  let inqApplyingTo: string | null = null
+  if (!recentApp && profile?.userId) {
+    const [inq] = await ctx.db
+      .select({ applyingTo: schema.studentInquiries.applyingTo })
+      .from(schema.studentInquiries)
+      .where(eq(schema.studentInquiries.userId, profile.userId))
+      .orderBy(desc(schema.studentInquiries.submittedAt))
+      .limit(1)
+    if (inq?.applyingTo) inqApplyingTo = inq.applyingTo
+  }
+
+  // 3. Determine level:
+  // - Postgraduate (Masters / PhD): requires previous 3 academic documents (Bachelor's, HSC, SSC)
+  // - Undergraduate (Bachelor's): requires previous academic documents (HSC, SSC)
+  let level: ApplicantLevel = 'UNDERGRADUATE'
+  if (recentApp?.level) {
+    if (recentApp.level === 'POSTGRADUATE' || recentApp.level === 'PHD') {
+      level = 'POSTGRADUATE'
+    } else {
+      level = 'UNDERGRADUATE'
+    }
+  } else if (inqApplyingTo) {
+    if (inqApplyingTo === 'Masters' || inqApplyingTo === 'Doctorate') {
+      level = 'POSTGRADUATE'
+    } else {
+      level = 'UNDERGRADUATE'
+    }
+  } else {
+    level = applicantLevelFromEducation(profile?.highestEducation)
+  }
+
   const required = DOCUMENT_REQUIREMENTS[level]
 
   const fetchItems = () =>
@@ -151,10 +197,20 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
         status: 'PENDING',
       })) as any
     )
-    return { level, items: await fetchItems() }
   }
 
-  return { level, items }
+  // Clean up any empty/pending checklist items that are not in the current target degree's required list
+  const requiredKeys = new Set(required.map((r) => requirementKey(r.category, r.label)))
+  const obsoletePending = items.filter(
+    (d: any) => !d.fileUrl && d.status === 'PENDING' && !requiredKeys.has(requirementKey(d.category, d.label))
+  )
+  if (obsoletePending.length > 0) {
+    await ctx.db
+      .delete(schema.studentDocuments)
+      .where(inArray(schema.studentDocuments.id, obsoletePending.map((d: any) => d.id)))
+  }
+
+  return { level, items: await fetchItems() }
 }
 
 function daysUntil(date: Date | string | null | undefined): number | null {
@@ -288,6 +344,17 @@ export const dashboardRouter = createTRPCRouter({
     const syncRes = await syncStudentInquiriesToApplications(ctx.db, ctx.session.user, profile)
     profile = syncRes.profile || profile
     const studentId = profile?.id ?? null
+
+    const inqConditions = [eq(schema.studentInquiries.userId, userId)]
+    if (ctx.session.user.email) {
+      inqConditions.push(eq(schema.studentInquiries.email, ctx.session.user.email.trim()))
+    }
+    const [latestInquiry] = await ctx.db
+      .select()
+      .from(schema.studentInquiries)
+      .where(or(...inqConditions))
+      .orderBy(desc(schema.studentInquiries.submittedAt))
+      .limit(1)
 
     if (!studentId) {
       return {
@@ -479,9 +546,91 @@ export const dashboardRouter = createTRPCRouter({
     }))
 
     const documentsTotal = documents.length
+    const documentsVerified = documents.filter((d: any) => d.status === 'VERIFIED').length
     const documentsUploaded = documents.filter(
       (d: any) => d.status === 'VERIFIED' || d.status === 'UPLOADED'
     ).length
+    const documentsInReview = documents.filter(
+      (d: any) => d.status === 'UPLOADED' || (d.status === 'PENDING' && !!d.fileUrl)
+    ).length
+    const documentsPending = documents.filter(
+      (d: any) => (!d.fileUrl && d.status === 'PENDING') || d.status === 'MISSING' || d.status === 'REJECTED'
+    ).length
+
+    // 1. Dynamic Application Progress Breakdown (strictly for application lifecycle)
+    let appProgressBreakdown = {
+      submittedPercent: 0,
+      inReviewPercent: 0,
+      remainingPercent: 100,
+      overallPercent: 0,
+      currentStep: 0,
+      totalSteps: 5,
+      status: 'NONE',
+    }
+
+    if (applications.length > 0) {
+      const activeApp = applications[0]
+      const totalSteps = activeApp?.totalSteps || 5
+      const currentStep = activeApp?.currentStep || 1
+      const rawStatus = (activeApp?.status || 'DRAFT').toUpperCase()
+
+      if (rawStatus === 'ACCEPTED' || rawStatus === 'ENROLLED') {
+        appProgressBreakdown = {
+          submittedPercent: 100,
+          inReviewPercent: 0,
+          remainingPercent: 0,
+          overallPercent: 100,
+          currentStep: totalSteps,
+          totalSteps,
+          status: rawStatus,
+        }
+      } else if (rawStatus === 'UNDER_REVIEW') {
+        appProgressBreakdown = {
+          submittedPercent: 60,
+          inReviewPercent: 40,
+          remainingPercent: 0,
+          overallPercent: 100,
+          currentStep: totalSteps,
+          totalSteps,
+          status: rawStatus,
+        }
+      } else if (rawStatus === 'SUBMITTED') {
+        appProgressBreakdown = {
+          submittedPercent: 100,
+          inReviewPercent: 0,
+          remainingPercent: 0,
+          overallPercent: 100,
+          currentStep: totalSteps,
+          totalSteps,
+          status: rawStatus,
+        }
+      } else {
+        // DRAFT / IN_PROGRESS
+        const completed = Math.max(0, currentStep - 1)
+        const submitted = Math.round((completed / totalSteps) * 100)
+        const inReview = Math.round((1 / totalSteps) * 100)
+        const remaining = Math.max(0, 100 - submitted - inReview)
+        appProgressBreakdown = {
+          submittedPercent: submitted,
+          inReviewPercent: inReview,
+          remainingPercent: remaining,
+          overallPercent: Math.round((currentStep / totalSteps) * 100),
+          currentStep,
+          totalSteps,
+          status: rawStatus,
+        }
+      }
+    }
+
+    // 2. Document Checklist Progress (strictly for student documents)
+    const docProgress = {
+      total: documentsTotal,
+      uploaded: documentsUploaded,
+      verified: documentsVerified,
+      inReview: documentsInReview,
+      pending: documentsPending,
+      percent: documentsTotal > 0 ? Math.round((documentsUploaded / documentsTotal) * 100) : 0,
+    }
 
     // Application progress: average of step progress across applications
     let applicationProgress = profile?.completionPercent ?? 0
@@ -544,8 +693,20 @@ export const dashboardRouter = createTRPCRouter({
         preferredIntakeYear: profile.preferredIntakeYear,
         highestEducation: profile.highestEducation,
         gpa: profile.gpa,
+        sscResult: latestInquiry?.sscResult || null,
+        sscYear: latestInquiry?.sscYear || null,
+        hscResult: latestInquiry?.hscResult || null,
+        hscYear: latestInquiry?.hscYear || null,
+        bachelorsResult: latestInquiry?.bachelorsResult || null,
+        bachelorsYear: latestInquiry?.bachelorsYear || null,
+        mastersResult: latestInquiry?.mastersResult || null,
+        mastersYear: latestInquiry?.mastersYear || null,
+        englishTest: latestInquiry?.englishTest || null,
+        topikLevel: latestInquiry?.topikLevel || null,
         ieltsScore: profile.ieltsScore,
         toeflScore: profile.toeflScore,
+        satScore: profile.satScore,
+        greScore: profile.greScore,
         referralCode: profile.referralCode,
         referralBalance: profile.referralBalance,
       },
@@ -566,6 +727,8 @@ export const dashboardRouter = createTRPCRouter({
         upcomingSessions: upcomingSessions.length,
         applicationProgress,
         daysUntilNextDeadline,
+        appProgressBreakdown,
+        docProgress,
       },
       applications,
       shortlisted,

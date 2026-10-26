@@ -31,13 +31,13 @@ const PRIVATE_PREFIX = 'private'
 export async function POST(req: NextRequest) {
   try {
     const session = await auth.api.getSession({ headers: req.headers })
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     const formData = await req.formData()
     const file = formData.get('file') as File | null
-    const scope = formData.get('scope') === 'private' ? 'private' : 'public'
+    const scope = formData.get('scope') === 'private' ? 'private' : (formData.get('scope') as string || 'public')
+
+    if (!session?.user && scope !== 'apply-now' && scope !== 'public') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
     if (file.size === 0) return NextResponse.json({ error: 'Empty file' }, { status: 400 })
@@ -53,6 +53,9 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer())
 
     if (scope === 'private') {
+      if (!session?.user) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
       // Only a student (someone with a student profile) may upload a private
       // document; those files are bound to their account at access time.
       const hasProfile = await db

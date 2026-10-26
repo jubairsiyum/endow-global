@@ -1,13 +1,16 @@
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
-import { eq as _eq, and as _and, ne as _ne } from 'drizzle-orm'
+import { eq as _eq, and as _and, ne as _ne, desc as _desc, or as _or } from 'drizzle-orm'
 const eq = _eq as any
 const and = _and as any
 const ne = _ne as any
+const desc = _desc as any
+const or = _or as any
 import { z } from 'zod'
 import { hash as bcryptHash } from 'bcryptjs'
 import { autoAssignCounselor, notifyStudentCounselorAssigned } from '@/lib/counselor-assignment'
 import { notifyCounselorNewStudent } from '@/lib/notify'
+import { syncStudentInquiriesToApplications } from '@/server/utils/syncStudentApplications'
 
 const BCRYPT_SALT_ROUNDS = 12
 
@@ -26,14 +29,50 @@ function isValidPhone(value: string): boolean {
 
 export const userRouter = createTRPCRouter({
   getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id
+    const userEmail = ctx.session.user.email
+
+    // 1. Sync any existing inquiries to student profile & applications
+    await syncStudentInquiriesToApplications(ctx.db, ctx.session.user).catch((err) => {
+      console.error('[getProfile] Sync error:', err)
+    })
+
+    // 2. Query user and studentProfile
     const rows = await ctx.db
       .select({ user: schema.users, studentProfile: schema.studentProfiles })
       .from(schema.users)
       .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
-      .where(eq(schema.users.id, ctx.session.user.id))
+      .where(eq(schema.users.id, userId))
       .limit(1)
     const row = rows[0]
-    return row ? { ...row.user, studentProfile: row.studentProfile } : null
+    if (!row) return null
+
+    // 3. Find latest student inquiry for this user (by userId or email)
+    const inqConditions = [eq(schema.studentInquiries.userId, userId)]
+    if (userEmail) {
+      inqConditions.push(eq(schema.studentInquiries.email, userEmail.trim()))
+    }
+    const [latestInquiry] = await ctx.db
+      .select()
+      .from(schema.studentInquiries)
+      .where(or(...inqConditions))
+      .orderBy(desc(schema.studentInquiries.submittedAt))
+      .limit(1)
+
+    // 4. Fetch student documents
+    const studentDocs = row.studentProfile?.id
+      ? await ctx.db
+          .select()
+          .from(schema.studentDocuments)
+          .where(eq(schema.studentDocuments.studentId, row.studentProfile.id))
+      : []
+
+    return {
+      ...row.user,
+      studentProfile: row.studentProfile,
+      latestInquiry: latestInquiry || null,
+      documents: studentDocs,
+    }
   }),
 
   setPassword: protectedProcedure
@@ -86,6 +125,27 @@ export const userRouter = createTRPCRouter({
             }
           })
           .optional(),
+        dob: z.string().trim().max(50).optional(),
+        gender: z.string().trim().max(20).optional(),
+        whatsapp: z.string().trim().max(50).optional(),
+        fatherName: z.string().trim().max(255).optional(),
+        motherName: z.string().trim().max(255).optional(),
+        hometown: z.string().trim().max(255).optional(),
+        addressLine1: z.string().trim().max(500).optional(),
+        addressLine2: z.string().trim().max(500).optional(),
+        city: z.string().trim().max(100).optional(),
+        state: z.string().trim().max(100).optional(),
+        zipCode: z.string().trim().max(20).optional(),
+        sscYear: z.string().trim().max(10).optional(),
+        sscResult: z.string().trim().max(50).optional(),
+        hscYear: z.string().trim().max(10).optional(),
+        hscResult: z.string().trim().max(50).optional(),
+        bachelorsYear: z.string().trim().max(10).optional(),
+        bachelorsResult: z.string().trim().max(50).optional(),
+        mastersYear: z.string().trim().max(10).optional(),
+        mastersResult: z.string().trim().max(50).optional(),
+        englishTest: z.string().trim().max(50).optional(),
+        topikLevel: z.string().trim().max(20).optional(),
         targetCountries: z.array(z.string()).optional(),
         targetSubjects: z.array(z.string()).optional(),
         budgetMin: z.number().nonnegative().nullable().optional(),
@@ -93,6 +153,7 @@ export const userRouter = createTRPCRouter({
         gpa: z.number().min(0, 'GPA must be between 0 and 5').max(5, 'GPA must be between 0 and 5').nullable().optional(),
         ieltsScore: z.number().min(0, 'IELTS band must be between 0 and 9').max(9, 'IELTS band must be between 0 and 9').nullable().optional(),
         toeflScore: z.number().int('TOEFL score must be a whole number').min(0, 'TOEFL score must be between 0 and 120').max(120, 'TOEFL score must be between 0 and 120').nullable().optional(),
+        satScore: z.number().int('SAT score must be a whole number').min(0, 'SAT score must be between 0 and 1600').max(1600, 'SAT score must be between 0 and 1600').nullable().optional(),
         highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).optional(),
         preferredIntakeYear: z.number().int().min(2020).max(2100).optional(),
         preferredIntakeMonth: z.string().trim().max(50).optional(),
@@ -101,6 +162,7 @@ export const userRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id
+      const userEmail = ctx.session.user.email
 
       // Update user name/image if provided
       const userUpdates: Record<string, unknown> = {}
@@ -137,11 +199,33 @@ export const userRouter = createTRPCRouter({
             ...(input.gpa !== undefined && { gpa: input.gpa }),
             ...(input.ieltsScore !== undefined && { ieltsScore: input.ieltsScore }),
             ...(input.toeflScore !== undefined && { toeflScore: input.toeflScore }),
+            ...(input.satScore !== undefined && { satScore: input.satScore }),
             ...(input.highestEducation !== undefined && { highestEducation: input.highestEducation }),
             ...(input.preferredIntakeYear !== undefined && { preferredIntakeYear: input.preferredIntakeYear }),
             ...(input.preferredIntakeMonth !== undefined && { preferredIntakeMonth: input.preferredIntakeMonth }),
+            completionPercent: Math.min(
+              Math.round(
+                ([
+                  input.name || ctx.session.user.name,
+                  input.nationality ?? existing.nationality,
+                  input.countryOfResidence ?? existing.countryOfResidence,
+                  input.phone ?? existing.phone,
+                  input.highestEducation ?? existing.highestEducation,
+                  (input.gpa ?? existing.gpa) != null && Number(input.gpa ?? existing.gpa) > 0,
+                  ((input.ieltsScore ?? existing.ieltsScore) != null && Number(input.ieltsScore ?? existing.ieltsScore) > 0) ||
+                    ((input.toeflScore ?? existing.toeflScore) != null && Number(input.toeflScore ?? existing.toeflScore) > 0) ||
+                    ((input.satScore ?? existing.satScore) != null && Number(input.satScore ?? existing.satScore) > 0),
+                  Array.isArray(input.targetCountries ?? existing.targetCountries) && (input.targetCountries ?? (existing.targetCountries as any[])).length > 0,
+                  input.image || ctx.session.user.image,
+                ].filter(Boolean).length /
+                  9) *
+                  100
+              ),
+              100
+            ),
           })
           .where(eq(schema.studentProfiles.userId, userId))
+
         if (!existing.assignedCounselorId && assignedCounselorId) {
           try {
             await notifyCounselorNewStudent(ctx.db, schema, {
@@ -159,9 +243,6 @@ export const userRouter = createTRPCRouter({
           }
         }
       } else {
-        // Profile doesn't exist yet (e.g. a user who registered before
-        // auto-assignment, or an edge case) — create it and auto-assign a
-        // counselor by equal distribution.
         const assignedCounselorId = await autoAssignCounselor(ctx.db, schema, input)
         await ctx.db.insert(schema.studentProfiles).values({
           userId,
@@ -176,6 +257,7 @@ export const userRouter = createTRPCRouter({
           gpa: input.gpa,
           ieltsScore: input.ieltsScore,
           toeflScore: input.toeflScore,
+          satScore: input.satScore,
           highestEducation: input.highestEducation ?? 'HIGH_SCHOOL',
           preferredIntakeYear: input.preferredIntakeYear,
           preferredIntakeMonth: input.preferredIntakeMonth,
@@ -196,6 +278,66 @@ export const userRouter = createTRPCRouter({
             console.error('[assignment] Failed to notify counselor:', error)
           }
         }
+      }
+
+      // Sync personal & academic records to studentInquiries
+      const inqConditions = [eq(schema.studentInquiries.userId, userId)]
+      if (userEmail) {
+        inqConditions.push(eq(schema.studentInquiries.email, userEmail.trim()))
+      }
+      const existingInquiries = await ctx.db
+        .select({ id: schema.studentInquiries.id })
+        .from(schema.studentInquiries)
+        .where(or(...inqConditions))
+
+      const fullName = (input.name || ctx.session.user.name || 'Student').trim()
+      const parts = fullName.split(/\s+/)
+      const givenName = parts[0] || 'Student'
+      const surname = parts.slice(1).join(' ') || parts[0] || 'User'
+
+      const inquiryUpdates: Record<string, any> = {
+        userId,
+        givenName,
+        surname,
+        ...(input.phone !== undefined && { phone: input.phone }),
+        ...(input.whatsapp !== undefined && { whatsapp: input.whatsapp }),
+        ...(input.dob !== undefined && { dob: input.dob }),
+        ...(input.gender !== undefined && { gender: input.gender }),
+        ...(input.fatherName !== undefined && { fatherName: input.fatherName }),
+        ...(input.motherName !== undefined && { motherName: input.motherName }),
+        ...(input.hometown !== undefined && { hometown: input.hometown }),
+        ...(input.nationality !== undefined && { nationality: input.nationality }),
+        ...(input.countryOfResidence !== undefined && { country: input.countryOfResidence }),
+        ...(input.addressLine1 !== undefined && { addressLine1: input.addressLine1 }),
+        ...(input.addressLine2 !== undefined && { addressLine2: input.addressLine2 }),
+        ...(input.city !== undefined && { city: input.city }),
+        ...(input.state !== undefined && { state: input.state }),
+        ...(input.zipCode !== undefined && { zipCode: input.zipCode }),
+        ...(input.sscYear !== undefined && { sscYear: input.sscYear }),
+        ...(input.sscResult !== undefined && { sscResult: input.sscResult }),
+        ...(input.hscYear !== undefined && { hscYear: input.hscYear }),
+        ...(input.hscResult !== undefined && { hscResult: input.hscResult }),
+        ...(input.bachelorsYear !== undefined && { bachelorsYear: input.bachelorsYear }),
+        ...(input.bachelorsResult !== undefined && { bachelorsResult: input.bachelorsResult }),
+        ...(input.mastersYear !== undefined && { mastersYear: input.mastersYear }),
+        ...(input.mastersResult !== undefined && { mastersResult: input.mastersResult }),
+        ...(input.englishTest !== undefined && { englishTest: input.englishTest }),
+        ...(input.ieltsScore !== undefined && { ieltsScore: input.ieltsScore != null ? String(input.ieltsScore) : null }),
+        ...(input.toeflScore !== undefined && { toeflScore: input.toeflScore != null ? String(input.toeflScore) : null }),
+        ...(input.satScore !== undefined && { satScore: input.satScore != null ? String(input.satScore) : null }),
+        ...(input.topikLevel !== undefined && { topikLevel: input.topikLevel }),
+        ...(input.image !== undefined && { photoUrl: input.image }),
+      }
+
+      if (existingInquiries.length > 0) {
+        for (const inq of existingInquiries) {
+          await ctx.db
+            .update(schema.studentInquiries)
+            .set(inquiryUpdates)
+            .where(eq(schema.studentInquiries.id, inq.id))
+            .catch(() => {})
+        }
+        await syncStudentInquiriesToApplications(ctx.db, ctx.session.user).catch(() => {})
       }
 
       return { success: true }

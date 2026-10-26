@@ -136,17 +136,25 @@ function CourseCard({
             ))}
           </ul>
         ) : null}
-        <div className="mt-4 flex items-center justify-between gap-2">
-          <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
-            {course.tuitionFee
-              ? `${course.currency || 'USD'} ${Number(course.tuitionFee).toLocaleString()}`
-              : 'Fee on request'}
-          </span>
-          {course.hasScholarship && (
-            <span className="text-[10px] font-bold text-emerald-600">Scholarship</span>
-          )}
-        </div>
+        {course.hasScholarship && (
+          <div className="mt-3">
+            <span className="text-[10px] font-bold text-emerald-600">Scholarship Available</span>
+          </div>
+        )}
       </Link>
+      <div className="mt-3 flex items-center justify-between gap-2 border-t border-gray-100 pt-3 dark:border-gray-800">
+        <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+          {course.tuitionFee
+            ? `${course.currency || 'USD'} ${Number(course.tuitionFee).toLocaleString()}`
+            : 'Fee on request'}
+        </span>
+        <Link
+          href={`/apply-now?courseName=${encodeURIComponent(course.name || '')}&slug=${encodeURIComponent(course.slug || '')}&university=${encodeURIComponent(course.universityName || '')}&country=${encodeURIComponent(course.universityCountry || '')}&level=${encodeURIComponent(course.level || '')}`}
+          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 transition-colors"
+        >
+          <Sparkles size={11} /> Apply
+        </Link>
+      </div>
     </div>
   )
 }
@@ -163,6 +171,7 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
   const utils = trpc.useUtils()
   const [tab, setTab] = useState<CourseTab>('matches')
   const [page, setPage] = useState(1)
+  const [showAllMatches, setShowAllMatches] = useState(false)
 
   const [query, setQuery] = useState('')
   const [subject, setSubject] = useState('')
@@ -171,7 +180,7 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
   const [scholarship, setScholarship] = useState(false)
   const [budget, setBudget] = useState<number | null>(null)
 
-  const filterOptions = trpc.course.getFilterOptions.useQuery()
+  const filterOptions = trpc.course.getFilterOptions.useQuery(undefined, { staleTime: 10 * 60 * 1000 })
   const coursesQuery = trpc.course.list.useQuery(
     {
       page,
@@ -183,7 +192,10 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
       hasScholarship: scholarship || undefined,
       feeMax: budget || undefined,
     },
-    { enabled: tab === 'explore' }
+    {
+      staleTime: 5 * 60 * 1000,
+      placeholderData: (previousData: any) => previousData,
+    }
   )
   const shortlistQuery = trpc.dashboard.shortlist.list.useQuery(undefined, {
     enabled: true,
@@ -264,6 +276,8 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
       : tab === 'explore'
         ? normalizedExplore
         : normalizedShortlist
+  const visibleCourses =
+    tab === 'matches' && !showAllMatches ? activeCourses.slice(0, 9) : activeCourses
   const showLoading = tab === 'explore' && coursesQuery.isLoading
   const showError = tab === 'explore' && coursesQuery.isError
   const totalPages = coursesQuery.data?.totalPages || 1
@@ -437,7 +451,25 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
 
       <div className="mt-5">
         {showLoading ? (
-          <DashboardLoading rows={2} />
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div
+                key={i}
+                className="animate-pulse rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-800 dark:bg-[#1a1d25]"
+              >
+                <div className="flex items-center justify-between gap-2 pr-9">
+                  <div className="h-3 w-20 rounded-md bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-4 w-14 rounded-full bg-gray-200 dark:bg-gray-800" />
+                </div>
+                <div className="mt-3.5 h-4 w-4/5 rounded-md bg-gray-200 dark:bg-gray-800" />
+                <div className="mt-2 h-3 w-1/2 rounded-md bg-gray-200 dark:bg-gray-800" />
+                <div className="mt-6 flex items-center justify-between gap-2 border-t border-gray-50 pt-3 dark:border-gray-800/60">
+                  <div className="h-4 w-20 rounded-md bg-gray-200 dark:bg-gray-800" />
+                  <div className="h-4 w-16 rounded-md bg-gray-200 dark:bg-gray-800" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : showError ? (
           <DashboardError
             title="Courses unavailable"
@@ -473,7 +505,7 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {activeCourses.map((course) => (
+              {visibleCourses.map((course) => (
                 <CourseCard
                   key={`${tab}-${course.id}`}
                   course={course}
@@ -482,6 +514,24 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
                 />
               ))}
             </div>
+            {tab === 'matches' && activeCourses.length > 9 && (
+              <div className="mt-5 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setShowAllMatches((v) => !v)}
+                  className="inline-flex h-10 items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 text-xs font-bold text-gray-800 shadow-xs transition-colors hover:border-rose-300 hover:text-rose-600 dark:border-gray-700 dark:bg-[#1a1d25] dark:text-gray-200 dark:hover:border-rose-900"
+                >
+                  {showAllMatches ? (
+                    'Show Less'
+                  ) : (
+                    <>
+                      <span>See All Matches ({activeCourses.length})</span>
+                      <ArrowRight size={13} />
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
             {tab === 'explore' && totalPages > page && (
               <div className="mt-4 flex justify-center">
                 <button

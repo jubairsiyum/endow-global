@@ -14,6 +14,7 @@ import { sendEmail } from './email'
 import { absoluteUrl } from './utils'
 import { parsePermissionsJSON } from './rbac'
 import { logAdminActivity } from './audit'
+import { syncStudentInquiriesToApplications } from '../server/utils/syncStudentApplications'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
@@ -186,6 +187,11 @@ export const auth = betterAuth({
               userId: user.id,
               assignedCounselorId,
             })
+          }
+          try {
+            await syncStudentInquiriesToApplications(db, user)
+          } catch (err) {
+            console.error('[auth] Auto-sync inquiries error on user create:', err)
           }
         },
       },

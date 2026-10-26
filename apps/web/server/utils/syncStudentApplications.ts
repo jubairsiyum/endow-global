@@ -4,6 +4,7 @@ import {
   and as _and,
   desc as _desc,
   eq as _eq,
+  inArray as _inArray,
   or as _or,
   sql as _sql,
 } from 'drizzle-orm'
@@ -12,10 +13,26 @@ const sql = _sql as any
 const desc = _desc as any
 const and = _and as any
 const or = _or as any
+const inArray = _inArray as any
+
+function parseInquiryIdFromApp(app: any): string | null {
+  if (!app) return null
+  if (app.counselorNotes && app.counselorNotes.includes('__inq_')) {
+    const match = app.counselorNotes.match(/__inq_([a-zA-Z0-9-]+)/)
+    if (match?.[1]) return match[1]
+  }
+  if (!app.personalInfo) return null
+  try {
+    const p = typeof app.personalInfo === 'string' ? JSON.parse(app.personalInfo) : app.personalInfo
+    return p?.inquiryId || null
+  } catch {
+    return null
+  }
+}
 
 export async function syncStudentInquiriesToApplications(
   dbInstance: typeof db,
-  user: { id: string; email?: string | null; name?: string | null },
+  user: { id: string; email?: string | null; name?: string | null; image?: string | null },
   existingProfile?: any
 ) {
   if (!user?.id) return { profile: existingProfile, syncedCount: 0 }
@@ -37,7 +54,7 @@ export async function syncStudentInquiriesToApplications(
       id: profileId,
       userId: user.id,
       targetCountries: ['South Korea'],
-      highestEducation: 'BACHELORS',
+      highestEducation: 'HIGH_SCHOOL',
     } as any)
     const [created] = await dbInstance
       .select()
@@ -79,11 +96,38 @@ export async function syncStudentInquiriesToApplications(
   if (latestInq) {
     const profileUpdates: Record<string, any> = {}
 
+    // Update user profile picture and name if not set
+    if (user.id) {
+      const userUpdates: Record<string, any> = {}
+      if (latestInq.photoUrl && !user.image) {
+        userUpdates.image = latestInq.photoUrl
+      }
+      const fullName = `${latestInq.givenName || ''} ${latestInq.surname || ''}`.trim()
+      if (
+        fullName &&
+        (!user.name || user.name === 'User' || user.name === user.email?.split('@')[0])
+      ) {
+        userUpdates.name = fullName
+      }
+      if (Object.keys(userUpdates).length > 0) {
+        await dbInstance
+          .update(schema.users)
+          .set(userUpdates)
+          .where(eq(schema.users.id, user.id))
+          .catch(() => {})
+      }
+    }
+
     // Map education level
     let highestEducation = profile.highestEducation
     if (latestInq.applyingTo === 'Masters') highestEducation = 'BACHELORS'
     else if (latestInq.applyingTo === 'Doctorate') highestEducation = 'MASTERS'
-    else if (latestInq.applyingTo === 'Undergraduate') highestEducation = 'HIGH_SCHOOL'
+    else if (
+      latestInq.applyingTo === 'Undergraduate' ||
+      latestInq.applyingTo === 'EAP' ||
+      latestInq.applyingTo === 'KLP'
+    )
+      highestEducation = 'HIGH_SCHOOL'
 
     if (highestEducation && highestEducation !== profile.highestEducation) {
       profileUpdates.highestEducation = highestEducation
@@ -105,37 +149,64 @@ export async function syncStudentInquiriesToApplications(
 
     const gpaVal = latestInq.bachelorsResult
       ? parseFloat(latestInq.bachelorsResult)
-      : latestInq.hscResult
-        ? parseFloat(latestInq.hscResult)
-        : null
-    if (gpaVal && !isNaN(gpaVal) && !profile.gpa) {
+      : latestInq.mastersResult
+        ? parseFloat(latestInq.mastersResult)
+        : latestInq.hscResult
+          ? parseFloat(latestInq.hscResult)
+          : latestInq.sscResult
+            ? parseFloat(latestInq.sscResult)
+            : null
+    if (gpaVal != null && !isNaN(gpaVal)) {
       profileUpdates.gpa = gpaVal
     }
 
     const ieltsVal = latestInq.ieltsScore ? parseFloat(latestInq.ieltsScore) : null
-    if (ieltsVal && !isNaN(ieltsVal) && !profile.ieltsScore) {
+    if (ieltsVal != null && !isNaN(ieltsVal)) {
       profileUpdates.ieltsScore = ieltsVal
     }
 
     const toeflVal = latestInq.toeflScore ? parseInt(latestInq.toeflScore) : null
-    if (toeflVal && !isNaN(toeflVal) && !profile.toeflScore) {
+    if (toeflVal != null && !isNaN(toeflVal)) {
       profileUpdates.toeflScore = toeflVal
     }
 
     const satVal = latestInq.satScore ? parseInt(latestInq.satScore) : null
-    if (satVal && !isNaN(satVal) && !profile.satScore) {
+    if (satVal != null && !isNaN(satVal)) {
       profileUpdates.satScore = satVal
     }
 
-    if (latestInq.phone && !profile.phone) {
-      profileUpdates.phone = latestInq.phone
+    if (latestInq.phone && latestInq.phone.trim()) {
+      profileUpdates.phone = latestInq.phone.trim()
     }
-    if (latestInq.nationality && !profile.nationality) {
-      profileUpdates.nationality = latestInq.nationality
+    if (latestInq.nationality && latestInq.nationality.trim()) {
+      profileUpdates.nationality = latestInq.nationality.trim()
     }
-    if (latestInq.country && !profile.countryOfResidence) {
-      profileUpdates.countryOfResidence = latestInq.country
+    if (latestInq.country && latestInq.country.trim()) {
+      profileUpdates.countryOfResidence = latestInq.country.trim()
     }
+
+    const updatedProfile = { ...profile, ...profileUpdates }
+    const completionPercent = Math.min(
+      Math.round(
+        ([
+          user.name || `${latestInq.givenName || ''} ${latestInq.surname || ''}`.trim(),
+          updatedProfile.nationality,
+          updatedProfile.countryOfResidence,
+          updatedProfile.phone,
+          updatedProfile.highestEducation,
+          updatedProfile.gpa != null && Number(updatedProfile.gpa) > 0,
+          (updatedProfile.ieltsScore != null && Number(updatedProfile.ieltsScore) > 0) ||
+            (updatedProfile.toeflScore != null && Number(updatedProfile.toeflScore) > 0) ||
+            (updatedProfile.satScore != null && Number(updatedProfile.satScore) > 0),
+          Array.isArray(updatedProfile.targetCountries) && updatedProfile.targetCountries.length > 0,
+          user.image || latestInq.photoUrl,
+        ].filter(Boolean).length /
+          9) *
+          100
+      ),
+      100
+    )
+    profileUpdates.completionPercent = completionPercent
 
     if (Object.keys(profileUpdates).length > 0) {
       await dbInstance
@@ -148,13 +219,72 @@ export async function syncStudentInquiriesToApplications(
     }
   }
 
-  // 4. Ensure an application row exists for each inquiry
+  // 4. Ensure an application row exists for each inquiry (Strict 1:1 mapping)
   let syncedCount = 0
+  const existingApps = await dbInstance
+    .select({
+      id: schema.applications.id,
+      courseId: schema.applications.courseId,
+      personalInfo: schema.applications.personalInfo,
+      counselorNotes: schema.applications.counselorNotes,
+    })
+    .from(schema.applications)
+    .where(eq(schema.applications.studentId, profile.id))
+
+  // Clean up any historical duplicate applications if applications exceed inquiries
+  if (existingApps.length > inquiries.length && inquiries.length > 0) {
+    const validInqIds = new Set(inquiries.map((i) => i.id))
+    const keptAppIds = new Set<string>()
+
+    for (const inq of inquiries) {
+      const match = existingApps.find((a) => {
+        if (keptAppIds.has(a.id)) return false
+        const inqId = parseInquiryIdFromApp(a)
+        return inqId === inq.id
+      })
+      if (match) {
+        keptAppIds.add(match.id)
+      } else {
+        const fallbackMatch = existingApps.find((a) => !keptAppIds.has(a.id))
+        if (fallbackMatch) keptAppIds.add(fallbackMatch.id)
+      }
+    }
+
+    const excessApps = existingApps.filter((a) => !keptAppIds.has(a.id))
+    if (excessApps.length > 0) {
+      await dbInstance
+        .delete(schema.applications)
+        .where(inArray(schema.applications.id, excessApps.map((a) => a.id)))
+        .catch(() => {})
+      
+      // Update local array
+      for (let i = existingApps.length - 1; i >= 0; i--) {
+        if (!keptAppIds.has(existingApps[i].id)) {
+          existingApps.splice(i, 1)
+        }
+      }
+    }
+  }
+
   for (const inq of inquiries) {
-    const existingApps = await dbInstance
-      .select({ id: schema.applications.id, courseId: schema.applications.courseId })
-      .from(schema.applications)
-      .where(eq(schema.applications.studentId, profile.id))
+    // If this inquiry was already converted to an application, skip it
+    const alreadySynced = existingApps.some(
+      (a) => parseInquiryIdFromApp(a) === inq.id
+    )
+    if (alreadySynced) {
+      continue
+    }
+
+    // Only convert inquiries that represent an actual course application
+    const hasAppSignals = Boolean(inq.courseSlug) || Boolean(inq.courseName) || Boolean(inq.targetUniversity);
+    if (!hasAppSignals) {
+      continue;
+    }
+
+    // Do not create more applications than inquiries
+    if (existingApps.length >= inquiries.length) {
+      break
+    }
 
     let course: { id: string; name?: string } | undefined
 
@@ -168,12 +298,18 @@ export async function syncStudentInquiriesToApplications(
       course = c
     }
 
-    // 2) Match by course name
+    // 2) Match by course name (exact or substring)
     if (!course && inq.courseName) {
+      const cName = inq.courseName.trim()
       const [c] = await dbInstance
         .select({ id: schema.courses.id, name: schema.courses.name })
         .from(schema.courses)
-        .where(eq(schema.courses.name, inq.courseName))
+        .where(
+          or(
+            eq(schema.courses.name, cName),
+            sql`${schema.courses.name} LIKE ${'%' + cName + '%'}`
+          )
+        )
         .limit(1)
       course = c
     }
@@ -254,62 +390,83 @@ export async function syncStudentInquiriesToApplications(
     }
 
     if (course) {
-      const alreadyCreated = existingApps.some((a) => a.courseId === course!.id)
-      if (!alreadyCreated) {
-        const appId = randomUUID().replace(/-/g, '').slice(0, 24)
-        await dbInstance.insert(schema.applications).values({
-          id: appId,
-          studentId: profile.id,
-          courseId: course.id,
-          status: 'SUBMITTED',
-          currentStep: 5,
-          totalSteps: 5,
-          submittedAt: inq.submittedAt || new Date(),
-          personalInfo: {
-            surname: inq.surname,
-            givenName: inq.givenName,
-            email: inq.email,
-            phone: inq.phone,
-            whatsapp: inq.whatsapp,
-            gender: inq.gender,
-            dob: inq.dob,
-            country: inq.country,
-            nationality: inq.nationality,
-            addressLine1: inq.addressLine1,
-            addressLine2: inq.addressLine2,
-            city: inq.city,
-            state: inq.state,
-            zipCode: inq.zipCode,
-            photoUrl: inq.photoUrl,
-          },
-          academicHistory: {
-            applyingTo: inq.applyingTo,
-            sscYear: inq.sscYear,
-            sscResult: inq.sscResult,
-            hscYear: inq.hscYear,
-            hscResult: inq.hscResult,
-            bachelorsYear: inq.bachelorsYear,
-            bachelorsResult: inq.bachelorsResult,
-            mastersYear: inq.mastersYear,
-            mastersResult: inq.mastersResult,
-            englishTest: inq.englishTest,
-            ieltsScore: inq.ieltsScore,
-            toeflScore: inq.toeflScore,
-            satScore: inq.satScore,
-            topikLevel: inq.topikLevel,
-            targetUniversity: inq.targetUniversity,
-            targetCountry: inq.targetCountry,
-          },
-          counselorNotes: inq.reasonToChoose
-            ? `Reason to choose: ${inq.reasonToChoose}`
-            : inq.targetUniversity
-              ? `Target University: ${inq.targetUniversity}`
-              : null,
-          createdAt: inq.submittedAt || new Date(),
-          updatedAt: inq.submittedAt || new Date(),
-        } as any)
-        syncedCount++
+      let matchedCourseId = course.id
+      const alreadyHasCourse = existingApps.some((a) => a.courseId === matchedCourseId)
+
+      if (alreadyHasCourse) {
+        const appliedIds = existingApps.map((a) => a.courseId).filter(Boolean)
+        const allActive = await dbInstance
+          .select({ id: schema.courses.id, name: schema.courses.name })
+          .from(schema.courses)
+          .where(eq(schema.courses.isActive, true))
+          .limit(25)
+        const alt = allActive.find((c) => !appliedIds.includes(c.id))
+        if (alt) matchedCourseId = alt.id
       }
+
+      const appId = randomUUID().replace(/-/g, '').slice(0, 24)
+      const personalInfoObj = {
+        inquiryId: inq.id,
+        surname: inq.surname,
+        givenName: inq.givenName,
+        email: inq.email,
+        phone: inq.phone,
+        whatsapp: inq.whatsapp,
+        gender: inq.gender,
+        dob: inq.dob,
+        country: inq.country,
+        nationality: inq.nationality,
+        addressLine1: inq.addressLine1,
+        addressLine2: inq.addressLine2,
+        city: inq.city,
+        state: inq.state,
+        zipCode: inq.zipCode,
+        photoUrl: inq.photoUrl,
+      }
+
+      const cNotes = [
+        `__inq_${inq.id}`,
+        inq.reasonToChoose ? `Reason to choose: ${inq.reasonToChoose}` : null,
+        inq.targetUniversity ? `Target University: ${inq.targetUniversity}` : null,
+      ].filter(Boolean).join(' | ')
+
+      await dbInstance.insert(schema.applications).values({
+        id: appId,
+        studentId: profile.id,
+        courseId: matchedCourseId,
+        status: 'SUBMITTED',
+        currentStep: 5,
+        totalSteps: 5,
+        submittedAt: inq.submittedAt || new Date(),
+        personalInfo: personalInfoObj,
+        academicHistory: {
+          applyingTo: inq.applyingTo,
+          sscYear: inq.sscYear,
+          sscResult: inq.sscResult,
+          hscYear: inq.hscYear,
+          hscResult: inq.hscResult,
+          bachelorsYear: inq.bachelorsYear,
+          bachelorsResult: inq.bachelorsResult,
+          mastersYear: inq.mastersYear,
+          mastersResult: inq.mastersResult,
+          englishTest: inq.englishTest,
+          ieltsScore: inq.ieltsScore,
+          toeflScore: inq.toeflScore,
+          satScore: inq.satScore,
+          topikLevel: inq.topikLevel,
+          targetUniversity: inq.targetUniversity,
+          targetCountry: inq.targetCountry,
+        },
+        counselorNotes: cNotes,
+      })
+
+      existingApps.push({
+        id: appId,
+        courseId: matchedCourseId,
+        personalInfo: personalInfoObj,
+        counselorNotes: cNotes,
+      })
+      syncedCount++
     }
   }
 
