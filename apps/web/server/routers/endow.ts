@@ -255,16 +255,66 @@ export const endowRouter = createTRPCRouter({
       photoUrl: input.photoUrl || null,
     } as any)
 
-    // If user is logged in and uploaded a profile picture, update user's profile image so it shows on their dashboard
-    if (userId && input.photoUrl) {
-      try {
+    // If user is logged in, sync image and name so it reflects on their account
+    if (userId) {
+      const userUpdates: Record<string, any> = {}
+      if (input.photoUrl) userUpdates.image = input.photoUrl
+      const fullName = `${input.givenName || ''} ${input.surname || ''}`.trim()
+      if (fullName) {
+        try {
+          const [u] = await db
+            .select({ name: schema.users.name })
+            .from(schema.users)
+            .where(eq(schema.users.id, userId))
+            .limit(1)
+          if (!u?.name || u.name === 'User' || u.name === input.email?.split('@')[0]) {
+            userUpdates.name = fullName
+          }
+        } catch {}
+      }
+      if (Object.keys(userUpdates).length > 0) {
         await db
           .update(schema.users)
-          .set({ image: input.photoUrl })
+          .set(userUpdates)
           .where(eq(schema.users.id, userId))
-      } catch {
-        // non-blocking
+          .catch(() => {})
       }
+
+      // Also ensure any existing inquiry records for this user share the newly submitted data
+      await db
+        .update(schema.studentInquiries)
+        .set({
+          ...(input.dob && { dob: input.dob }),
+          ...(input.gender && { gender: input.gender }),
+          ...(input.phone && { phone: input.phone }),
+          ...(input.whatsapp && { whatsapp: input.whatsapp }),
+          ...(input.fatherName && { fatherName: input.fatherName }),
+          ...(input.motherName && { motherName: input.motherName }),
+          ...(input.hometown && { hometown: input.hometown }),
+          ...(input.nationality && { nationality: input.nationality }),
+          ...(input.addressLine1 && { addressLine1: input.addressLine1 }),
+          ...(input.addressLine2 && { addressLine2: input.addressLine2 }),
+          ...(input.city && { city: input.city }),
+          ...(input.state && { state: input.state }),
+          ...(input.zipCode && { zipCode: input.zipCode }),
+          ...(input.country && { country: input.country }),
+          ...(input.sscYear && { sscYear: input.sscYear }),
+          ...(input.sscResult && { sscResult: input.sscResult }),
+          ...(input.hscYear && { hscYear: input.hscYear }),
+          ...(input.hscResult && { hscResult: input.hscResult }),
+          ...(input.bachelorsYear && { bachelorsYear: input.bachelorsYear }),
+          ...(input.bachelorsResult && { bachelorsResult: input.bachelorsResult }),
+          ...(input.mastersYear && { mastersYear: input.mastersYear }),
+          ...(input.mastersResult && { mastersResult: input.mastersResult }),
+          ...(input.englishTest && { englishTest: input.englishTest }),
+          ...(input.ieltsScore && { ieltsScore: input.ieltsScore }),
+          ...(input.toeflScore && { toeflScore: input.toeflScore }),
+          ...(input.satScore && { satScore: input.satScore }),
+          ...(input.topikLevel && { topikLevel: input.topikLevel }),
+          ...(input.photoUrl && { photoUrl: input.photoUrl }),
+        })
+        .where(eq(schema.studentInquiries.userId, userId))
+        .catch(() => {})
     }
 
     // Automatically sync inquiries to applications and update profile match signals

@@ -14,6 +14,7 @@ import {
   desc as _desc,
   eq as _eq,
   gte as _gte,
+  lte as _lte,
   inArray as _inArray,
   isNull as _isNull,
   ne as _ne,
@@ -21,7 +22,7 @@ import {
   sql as _sql,
 } from 'drizzle-orm'
 import { z } from 'zod'
-import { hasMatchSignals, scoreCourse, scoreUniversity } from '../utils/courseMatch'
+import { hasMatchSignals, normalizeInterestedProgramToLevels, scoreCourse, scoreUniversity } from '../utils/courseMatch'
 import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 
 const eq = _eq as any
@@ -32,6 +33,7 @@ const ne = _ne as any
 const desc = _desc as any
 const asc = _asc as any
 const gte = _gte as any
+const lte = _lte as any
 const or = _or as any
 const isNull = _isNull as any
 
@@ -232,6 +234,23 @@ function daysUntil(date: Date | string | null | undefined): number | null {
 
 async function computeStudentMatches(ctx: any, profile: any) {
   if (!profile || !hasMatchSignals(profile)) return { matches: [], universities: [] }
+
+  const interestedProgram = profile.interestedProgram
+  const targetLevels = normalizeInterestedProgramToLevels(interestedProgram)
+
+  const conditions = [eq(schema.courses.isActive, true)]
+
+  // Strict optimization: if student specified an interested program (e.g. Masters), only query matching course levels
+  if (targetLevels && targetLevels.length > 0) {
+    conditions.push(inArray(schema.courses.level, targetLevels))
+  }
+
+  // Budget optimization: if student set a maximum budget, filter courses within reasonable range
+  if (profile.budgetMax && Number(profile.budgetMax) > 0) {
+    const maxFee = Math.round(Number(profile.budgetMax) * 1.15)
+    conditions.push(lte(schema.courses.tuitionFee, maxFee))
+  }
+
   const rows = await ctx.db
     .select({
       id: schema.courses.id,
@@ -256,7 +275,7 @@ async function computeStudentMatches(ctx: any, profile: any) {
     })
     .from(schema.courses)
     .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
-    .where(eq(schema.courses.isActive, true))
+    .where(and(...conditions))
 
   const scored = rows
     .map((row: any) => {
@@ -705,6 +724,7 @@ export const dashboardRouter = createTRPCRouter({
         preferredIntakeMonth: profile.preferredIntakeMonth,
         preferredIntakeYear: profile.preferredIntakeYear,
         highestEducation: profile.highestEducation,
+        interestedProgram: profile.interestedProgram || latestInquiry?.applyingTo || null,
         gpa: profile.gpa,
         sscResult: latestInquiry?.sscResult || null,
         sscYear: latestInquiry?.sscYear || null,

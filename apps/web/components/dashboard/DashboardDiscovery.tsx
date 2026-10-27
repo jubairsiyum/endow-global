@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { trpc } from '@/lib/trpc-client'
@@ -173,7 +173,13 @@ function universityHref(university: { country?: string; slug?: string }) {
   return `/universities/${country}/${university.slug || ''}`
 }
 
-export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
+export function DashboardCourseShelf({
+  matches = [],
+  profile,
+}: {
+  matches?: any[]
+  profile?: any
+}) {
   const utils = trpc.useUtils()
   const [tab, setTab] = useState<CourseTab>('matches')
   const { data: appsData } = trpc.application.getAll.useQuery()
@@ -189,6 +195,22 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
   const [level, setLevel] = useState('')
   const [scholarship, setScholarship] = useState(false)
   const [budget, setBudget] = useState<number | null>(null)
+
+  useEffect(() => {
+    if (profile?.interestedProgram) {
+      const p = String(profile.interestedProgram).toLowerCase()
+      if (p.includes('master') || p.includes('postgrad')) {
+        setLevel('POSTGRADUATE')
+      } else if (p.includes('bachelor') || p.includes('undergrad')) {
+        setLevel('UNDERGRADUATE')
+      } else if (p.includes('phd') || p.includes('doctor')) {
+        setLevel('PHD')
+      }
+    }
+    if (profile?.budgetMax && typeof profile.budgetMax === 'number' && profile.budgetMax > 0) {
+      setBudget(profile.budgetMax)
+    }
+  }, [profile?.interestedProgram, profile?.budgetMax])
 
   const filterOptions = trpc.course.getFilterOptions.useQuery(undefined, { staleTime: 10 * 60 * 1000 })
   const coursesQuery = trpc.course.list.useQuery(
@@ -303,6 +325,21 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
         description="Matches based on your goals and the full course catalogue to explore."
         href="/courses"
       />
+
+      {profile?.interestedProgram && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-rose-100 bg-rose-50/60 px-3.5 py-2 text-xs text-rose-800 dark:border-rose-900/30 dark:bg-rose-500/10 dark:text-rose-200">
+          <div className="flex items-center gap-2">
+            <Sparkles size={14} className="shrink-0 text-rose-600 dark:text-rose-400" />
+            <span>
+              Best match &amp; suggestions tailored to: <strong className="font-semibold">{profile.interestedProgram}</strong>
+              {profile.budgetMax ? <> &bull; Budget &le; <strong className="font-semibold">${Number(profile.budgetMax).toLocaleString()}</strong></> : null}
+            </span>
+          </div>
+          <Link href="/dashboard/settings?tab=study" className="font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400">
+            Edit Goal
+          </Link>
+        </div>
+      )}
 
       <div
         className="mt-5 flex gap-1 overflow-x-auto rounded-xl bg-gray-50 p-1 dark:bg-[#1a1d25]"

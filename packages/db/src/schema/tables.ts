@@ -111,6 +111,7 @@ export const studentProfiles = mysqlTable('student_profile', {
   highestEducation: mysqlEnum('highest_education', ['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD'])
     .default('HIGH_SCHOOL')
     .notNull(),
+  interestedProgram: varchar('interested_program', { length: 100 }),
   workExperienceYears: int('work_experience_years').default(0).notNull(),
   assignedCounselorId: varchar('assigned_counselor_id', { length: 25 }),
   referralCode: varchar('referral_code', { length: 25 })

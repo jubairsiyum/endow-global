@@ -26,12 +26,12 @@ async function main() {
   const pool = await mysql.createPool(databaseOptions(process.env.DATABASE_URL))
 
   try {
-    const [rows] = await pool.query(
+    const [inqRows] = await pool.query(
       "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'student_inquiry'",
     )
-    const columns = new Set(rows.map((row) => row.COLUMN_NAME))
+    const inqColumns = new Set(inqRows.map((row) => row.COLUMN_NAME))
 
-    if (!columns.has('photo_url')) {
+    if (!inqColumns.has('photo_url')) {
       await pool.query(
         'ALTER TABLE `student_inquiry` ADD COLUMN `photo_url` varchar(500) NULL',
       )
@@ -40,7 +40,21 @@ async function main() {
       console.log('student_inquiry.photo_url already exists')
     }
 
-    console.log('Inquiry schema is ready')
+    const [profRows] = await pool.query(
+      "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'student_profile'",
+    )
+    const profColumns = new Set(profRows.map((row) => row.COLUMN_NAME))
+
+    if (!profColumns.has('interested_program')) {
+      await pool.query(
+        'ALTER TABLE `student_profile` ADD COLUMN `interested_program` varchar(100) NULL',
+      )
+      console.log('Added student_profile.interested_program')
+    } else {
+      console.log('student_profile.interested_program already exists')
+    }
+
+    console.log('Inquiry & Student Profile schema is ready')
   } finally {
     await pool.end()
   }
@@ -50,4 +64,3 @@ main().catch((error) => {
   console.error(error.message || error)
   process.exitCode = 1
 })
-

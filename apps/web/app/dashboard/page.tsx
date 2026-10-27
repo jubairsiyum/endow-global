@@ -62,6 +62,8 @@ export default function DashboardPage() {
         targetCountries={asStringArray(data?.profile?.targetCountries)}
         matchCount={stats.matches ?? 0}
         completionPercent={data?.profile?.completionPercent}
+        interestedProgram={data?.profile?.interestedProgram}
+        budgetMax={data?.profile?.budgetMax}
       />
 
       {/* 2. Top Row: 4 Modern Stat Cards (Theme Styled) */}
@@ -105,7 +107,7 @@ export default function DashboardPage() {
       />
 
       {/* 6. AI Match Recommendations Shelf (First 9 Cards + "See All Matches" Button) */}
-      <DashboardCourseShelf matches={data?.matches ?? []} />
+      <DashboardCourseShelf matches={data?.matches ?? []} profile={data?.profile} />
 
       {/* 7. Institutional Recommendations & Resources */}
       <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">

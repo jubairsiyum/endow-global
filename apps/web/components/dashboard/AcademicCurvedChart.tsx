@@ -235,8 +235,9 @@ export function AcademicCurvedChart({ profile }: Props) {
     })
   }
 
-  // 3c. Bachelor's Degree (BSc / BBA / BA)
-  if (hasBsc && rawBsc !== null) {
+  // 3c. Bachelor's Degree (BSc / BBA / BA) - shown when highest education is BACHELORS or higher
+  const showBsc = !profile?.highestEducation || profile.highestEducation === 'BACHELORS' || profile.highestEducation === 'MASTERS' || profile.highestEducation === 'PHD'
+  if (showBsc && hasBsc && rawBsc !== null) {
     const scale = 4.0
     const reqPct = 75 // 3.00 / 4.00
     const myPct = Math.min(Math.round((rawBsc / scale) * 100), 100)
@@ -253,8 +254,9 @@ export function AcademicCurvedChart({ profile }: Props) {
     })
   }
 
-  // 3d. Master's Degree (MSc / MBA / MA)
-  if (hasMasters && rawMasters !== null) {
+  // 3d. Master's Degree (MSc / MBA / MA) - strictly shown ONLY if highest education is MASTERS or PHD
+  const showMasters = profile?.highestEducation === 'MASTERS' || profile?.highestEducation === 'PHD'
+  if (showMasters && hasMasters && rawMasters !== null) {
     const scale = 4.0
     const reqPct = 81 // 3.25 / 4.00
     const myPct = Math.min(Math.round((rawMasters / scale) * 100), 100)

@@ -1,5 +1,6 @@
 export interface MatchProfile {
   highestEducation?: string | null
+  interestedProgram?: string | null
   targetCountries?: string[]
   targetSubjects?: string[]
   budgetMin?: number | null
@@ -27,6 +28,47 @@ const LEVEL_MAP: Record<string, string[]> = {
   BACHELORS: ['POSTGRADUATE', 'DIPLOMA', 'CERTIFICATE'],
   MASTERS: ['POSTGRADUATE', 'PHD'],
   PHD: ['PHD'],
+}
+
+/**
+ * Normalizes user-friendly interested program inputs to database CourseLevel enums.
+ * E.g., "Masters" -> ['POSTGRADUATE'], "Bachelors" -> ['UNDERGRADUATE'], "Doctorate" -> ['PHD'].
+ */
+export function normalizeInterestedProgramToLevels(program?: string | null): string[] | null {
+  if (!program) return null
+  const p = program.trim().toLowerCase()
+  if (
+    p === 'masters' ||
+    p === 'master' ||
+    p === 'postgraduate' ||
+    p === "master's" ||
+    p === "master's degree" ||
+    p.includes('master') ||
+    p.includes('postgrad')
+  ) {
+    return ['POSTGRADUATE']
+  }
+  if (
+    p === 'bachelors' ||
+    p === 'bachelor' ||
+    p === 'undergraduate' ||
+    p === "bachelor's" ||
+    p === "bachelor's degree" ||
+    p.includes('bachelor') ||
+    p.includes('undergrad')
+  ) {
+    return ['UNDERGRADUATE']
+  }
+  if (p === 'doctorate' || p === 'phd' || p === 'ph.d' || p.includes('phd') || p.includes('doctor')) {
+    return ['PHD']
+  }
+  if (p === 'diploma' || p === 'certificate' || p.includes('diploma') || p.includes('cert')) {
+    return ['DIPLOMA', 'CERTIFICATE']
+  }
+  if (p === 'foundation' || p.includes('foundation')) {
+    return ['FOUNDATION']
+  }
+  return null
 }
 
 function norm(value: string): string {
@@ -66,6 +108,7 @@ export function hasMatchSignals(profile: MatchProfile): boolean {
   return Boolean(
     asArray(profile.targetCountries).length > 0 ||
     asArray(profile.targetSubjects).length > 0 ||
+    profile.interestedProgram ||
     profile.highestEducation ||
     profile.budgetMin ||
     profile.budgetMax ||
@@ -86,46 +129,54 @@ export function scoreCourse(profile: MatchProfile, course: MatchCourse): { score
   const subject = course.subject ?? ''
   const fee = course.tuitionFee || 0
 
-  // 1. Location — strongest signal
+  // 1. Program Level / Interested Program Fit (First-class constraint)
+  const targetLevels = normalizeInterestedProgramToLevels(profile.interestedProgram)
+  if (targetLevels && targetLevels.length > 0) {
+    // If student explicitly specified an interested program (e.g. Masters),
+    // they ONLY want courses matching that level! Non-matching levels are rejected.
+    if (!targetLevels.includes(course.level)) {
+      return { score: 0, reasons: [] }
+    }
+    score += 35
+    reasons.push(`Target program: ${titleCase(course.level)}`)
+  } else {
+    // Fall back to level appropriate for highest completed education
+    const levels = LEVEL_MAP[profile.highestEducation || '']
+    if (levels && levels.includes(course.level)) {
+      score += 20
+      reasons.push(`Right level for you: ${titleCase(course.level)}`)
+    }
+  }
+
+  // 2. Budget constraint & fit
+  if (fee > 0 && profile.budgetMax) {
+    if (fee <= profile.budgetMax) {
+      score += 25
+      reasons.push(`Within your budget ($${fee.toLocaleString()})`)
+    } else if (fee <= profile.budgetMax * 1.15) {
+      score += 8
+      reasons.push('Close to your budget')
+    } else {
+      // Over budget: reject course from best match
+      return { score: 0, reasons: [] }
+    }
+  } else if (fee > 0 && profile.budgetMin && profile.budgetMax) {
+    if (fee >= profile.budgetMin && fee <= profile.budgetMax) {
+      score += 25
+      reasons.push('Within your budget range')
+    }
+  }
+
+  // 3. Location — strong signal
   if (targetCountries.length > 0 && targetCountries.includes(country)) {
-    score += 30
+    score += 25
     reasons.push(`In your target country: ${course.universityCountry}`)
   }
 
-  // 2. Field of study
+  // 4. Field of study
   if (targetSubjects.length > 0 && targetSubjects.some((target) => subjectMatches(target, subject))) {
     score += 20
     reasons.push(`Matches your field of interest: ${subject}`)
-  }
-
-  // 3. Right degree level for your current education
-  const levels = LEVEL_MAP[profile.highestEducation || '']
-  if (levels && levels.includes(course.level)) {
-    score += 20
-    reasons.push(`Right level for you: ${titleCase(course.level)}`)
-  }
-
-  // 4. Budget (treat tuition as per-term, compare against annual budget as a range)
-  if (fee > 0) {
-    if (profile.budgetMin && profile.budgetMax) {
-      const annual = fee * 2
-      if (annual >= profile.budgetMin && annual <= profile.budgetMax) {
-        score += 15
-        reasons.push('Within your budget range')
-      } else if (annual <= profile.budgetMax * 1.3) {
-        score += 7
-        reasons.push('Close to your budget')
-      }
-    } else if (profile.budgetMax) {
-      const annual = fee * 2
-      if (annual <= profile.budgetMax) {
-        score += 15
-        reasons.push('Within your budget')
-      } else if (annual <= profile.budgetMax * 1.3) {
-        score += 7
-        reasons.push('Close to your budget')
-      }
-    }
   }
 
   // 5. Scholarship availability

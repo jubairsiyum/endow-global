@@ -64,6 +64,13 @@ const EDUCATION_OPTIONS: Option[] = [
   { value: 'PHD', label: 'PhD', search: 'doctoral research' },
 ]
 
+const INTERESTED_PROGRAM_OPTIONS: Option[] = [
+  { value: 'Masters', label: "Master's Degree (Postgraduate)", search: 'masters postgraduate msc mba ma' },
+  { value: 'Bachelors', label: "Bachelor's Degree (Undergraduate)", search: 'bachelors undergraduate bsc ba bba' },
+  { value: 'Doctorate', label: 'Doctorate / Ph.D. (Postgraduate)', search: 'phd doctorate research doctoral' },
+  { value: 'Certificate', label: 'Diploma / Certificate Program', search: 'diploma certificate vocational' },
+]
+
 const INTAKE_YEARS = ['2025', '2026', '2027', '2028']
 
 const BUDGET_OPTIONS: { label: string; value: number | '' }[] = [
@@ -581,6 +588,7 @@ function SettingsContent() {
 
   // Study Preferences
   const [education, setEducation] = useState('HIGH_SCHOOL')
+  const [interestedProgram, setInterestedProgram] = useState('Masters')
   const [targetCountries, setTargetCountries] = useState<string[]>(['South Korea'])
   const [targetSubjects, setTargetSubjects] = useState<string[]>([])
   const [budgetMax, setBudgetMax] = useState<number | ''>('')
@@ -658,79 +666,121 @@ function SettingsContent() {
     }
   }
 
+  const hasLoadedRef = useRef(false)
+  const lastUserIdRef = useRef<string | null>(null)
+
   useEffect(() => {
     if (profile) {
       const student = profile.studentProfile as any
       const inq = (profile as any).latestInquiry as any
 
-      const storedPhone = student?.phone || inq?.phone || ''
-      const storedPrefix = PHONE_PREFIXES.find((option) => storedPhone.startsWith(`${option.value} `))
-
-      setName(profile.name || (inq ? `${inq.givenName || ''} ${inq.surname || ''}`.trim() : ''))
-      setImage(profile.image || inq?.photoUrl || null)
-      setImagePreview(profile.image || inq?.photoUrl || null)
-      setNationality(student?.nationality || inq?.nationality || 'Bangladeshi')
-      setCountry(student?.countryOfResidence || inq?.country || 'Bangladesh')
-      setPhone(storedPrefix ? storedPhone.slice(storedPrefix.value.length).trim() : storedPhone)
-      if (storedPrefix) setPhonePrefix(storedPrefix.value)
-
-      // Inquiry / Personal fields
-      setDob(inq?.dob || '')
-      setGender(inq?.gender || '')
-      setWhatsapp(inq?.whatsapp || '')
-      setFatherName(inq?.fatherName || '')
-      setMotherName(inq?.motherName || '')
-      setHometown(inq?.hometown || '')
-
-      // Address fields
-      setAddressLine1(inq?.addressLine1 || '')
-      setAddressLine2(inq?.addressLine2 || '')
-      setCity(inq?.city || '')
-      setState(inq?.state || '')
-      setZipCode(inq?.zipCode || '')
-
-      // Academic details
-      const eduLevel = student?.highestEducation || (inq?.applyingTo === 'Masters' ? 'BACHELORS' : inq?.applyingTo === 'Doctorate' ? 'MASTERS' : 'HIGH_SCHOOL')
-      setEducation(eduLevel)
-      setTargetCountries(asStringArray(student?.targetCountries || (inq?.targetCountry ? [inq.targetCountry] : ['South Korea'])))
-      setTargetSubjects(asStringArray(student?.targetSubjects))
-      setBudgetMax(typeof student?.budgetMax === 'number' ? student.budgetMax : '')
-
-      setSscYear(inq?.sscYear || '')
-      setSscResult(inq?.sscResult || '')
-      setHscYear(inq?.hscYear || '')
-      setHscResult(inq?.hscResult || '')
-      setBachelorsYear(inq?.bachelorsYear || '')
-      setBachelorsResult(inq?.bachelorsResult || '')
-      setMastersYear(inq?.mastersYear || '')
-      setMastersResult(inq?.mastersResult || '')
-
-      // GPA
-      const effectiveGpa =
-        student?.gpa != null
-          ? String(student.gpa)
-          : inq?.bachelorsResult || inq?.mastersResult || inq?.hscResult || inq?.sscResult || ''
-      setGpa(effectiveGpa)
-
-      // Standardized & language tests
-      const ieltsVal = student?.ieltsScore != null ? String(student.ieltsScore) : inq?.ieltsScore || ''
-      const toeflVal = student?.toeflScore != null ? String(student.toeflScore) : inq?.toeflScore || ''
-      const satVal = student?.satScore != null ? String(student.satScore) : inq?.satScore || ''
-      setIeltsScore(ieltsVal)
-      setToeflScore(toeflVal)
-      setSatScore(satVal)
-
-      let testType = inq?.englishTest || 'None'
-      if (testType === 'None') {
-        if (ieltsVal) testType = 'IELTS'
-        else if (toeflVal) testType = 'TOEFL'
-        else if (satVal) testType = 'SAT'
-        else if (inq?.topikLevel) testType = 'TOPIK'
+      if (lastUserIdRef.current !== profile.id) {
+        hasLoadedRef.current = false
+        lastUserIdRef.current = profile.id
       }
-      setEnglishTest(testType)
-      setTopikLevel(inq?.topikLevel || '')
 
-      setIntakeYear(String(student?.preferredIntakeYear || '2026'))
+      if (!hasLoadedRef.current) {
+        hasLoadedRef.current = true
+
+        const storedPhone = student?.phone || inq?.phone || ''
+        const storedPrefix = PHONE_PREFIXES.find((option) => storedPhone.startsWith(`${option.value} `))
+
+        setName(profile.name || (inq ? `${inq.givenName || ''} ${inq.surname || ''}`.trim() : ''))
+        setImage(profile.image || inq?.photoUrl || null)
+        setImagePreview(profile.image || inq?.photoUrl || null)
+        setNationality(student?.nationality || inq?.nationality || 'Bangladeshi')
+        setCountry(student?.countryOfResidence || inq?.country || 'Bangladesh')
+        setPhone(storedPrefix ? storedPhone.slice(storedPrefix.value.length).trim() : storedPhone)
+        if (storedPrefix) setPhonePrefix(storedPrefix.value)
+
+        // Inquiry / Personal fields
+        setDob(inq?.dob || '')
+        setGender(inq?.gender || '')
+        setWhatsapp(inq?.whatsapp || '')
+        setFatherName(inq?.fatherName || '')
+        setMotherName(inq?.motherName || '')
+        setHometown(inq?.hometown || '')
+
+        // Address fields
+        setAddressLine1(inq?.addressLine1 || '')
+        setAddressLine2(inq?.addressLine2 || '')
+        setCity(inq?.city || '')
+        setState(inq?.state || '')
+        setZipCode(inq?.zipCode || '')
+
+        // Academic details
+        const eduLevel = student?.highestEducation || (inq?.applyingTo === 'Masters' ? 'BACHELORS' : inq?.applyingTo === 'Doctorate' ? 'MASTERS' : 'HIGH_SCHOOL')
+        setEducation(eduLevel)
+        const defaultInterested = student?.interestedProgram || inq?.applyingTo || (eduLevel === 'BACHELORS' ? 'Masters' : eduLevel === 'HIGH_SCHOOL' ? 'Bachelors' : 'Masters')
+        setInterestedProgram(defaultInterested)
+        setTargetCountries(asStringArray(student?.targetCountries || (inq?.targetCountry ? [inq.targetCountry] : ['South Korea'])))
+        setTargetSubjects(asStringArray(student?.targetSubjects))
+        setBudgetMax(typeof student?.budgetMax === 'number' ? student.budgetMax : '')
+
+        setSscYear(inq?.sscYear || '')
+        setSscResult(inq?.sscResult || '')
+        setHscYear(inq?.hscYear || '')
+        setHscResult(inq?.hscResult || '')
+        setBachelorsYear(inq?.bachelorsYear || '')
+        setBachelorsResult(inq?.bachelorsResult || '')
+        setMastersYear(inq?.mastersYear || '')
+        setMastersResult(inq?.mastersResult || '')
+
+        // GPA
+        const effectiveGpa =
+          student?.gpa != null
+            ? String(student.gpa)
+            : inq?.bachelorsResult || inq?.mastersResult || inq?.hscResult || inq?.sscResult || ''
+        setGpa(effectiveGpa)
+
+        // Standardized & language tests
+        const ieltsVal = student?.ieltsScore != null ? String(student.ieltsScore) : inq?.ieltsScore || ''
+        const toeflVal = student?.toeflScore != null ? String(student.toeflScore) : inq?.toeflScore || ''
+        const satVal = student?.satScore != null ? String(student.satScore) : inq?.satScore || ''
+        setIeltsScore(ieltsVal)
+        setToeflScore(toeflVal)
+        setSatScore(satVal)
+
+        let testType = inq?.englishTest || 'None'
+        if (testType === 'None') {
+          if (ieltsVal) testType = 'IELTS'
+          else if (toeflVal) testType = 'TOEFL'
+          else if (satVal) testType = 'SAT'
+          else if (inq?.topikLevel) testType = 'TOPIK'
+        }
+        setEnglishTest(testType)
+        setTopikLevel(inq?.topikLevel || '')
+
+        setIntakeYear(String(student?.preferredIntakeYear || '2026'))
+      } else {
+        // Form is already active/dirty in this session - sync newly confirmed server fields without clearing local values
+        if (profile.name && !name) setName(profile.name)
+        if (profile.image && !image) {
+          setImage(profile.image)
+          setImagePreview(profile.image)
+        }
+        if (inq) {
+          if (inq.fatherName && !fatherName) setFatherName(inq.fatherName)
+          if (inq.motherName && !motherName) setMotherName(inq.motherName)
+          if (inq.hometown && !hometown) setHometown(inq.hometown)
+          if (inq.addressLine1 && !addressLine1) setAddressLine1(inq.addressLine1)
+          if (inq.addressLine2 && !addressLine2) setAddressLine2(inq.addressLine2)
+          if (inq.city && !city) setCity(inq.city)
+          if (inq.state && !state) setState(inq.state)
+          if (inq.zipCode && !zipCode) setZipCode(inq.zipCode)
+          if (inq.dob && !dob) setDob(inq.dob)
+          if (inq.gender && !gender) setGender(inq.gender)
+          if (inq.whatsapp && !whatsapp) setWhatsapp(inq.whatsapp)
+          if (inq.sscYear && !sscYear) setSscYear(inq.sscYear)
+          if (inq.sscResult && !sscResult) setSscResult(inq.sscResult)
+          if (inq.hscYear && !hscYear) setHscYear(inq.hscYear)
+          if (inq.hscResult && !hscResult) setHscResult(inq.hscResult)
+          if (inq.bachelorsYear && !bachelorsYear) setBachelorsYear(inq.bachelorsYear)
+          if (inq.bachelorsResult && !bachelorsResult) setBachelorsResult(inq.bachelorsResult)
+          if (inq.mastersYear && !mastersYear) setMastersYear(inq.mastersYear)
+          if (inq.mastersResult && !mastersResult) setMastersResult(inq.mastersResult)
+        }
+      }
     }
   }, [profile])
 
@@ -791,8 +841,8 @@ function SettingsContent() {
       gpa,
       sscResult,
       hscResult,
-      bachelorsResult,
-      mastersResult,
+      bachelorsResult: (education === 'BACHELORS' || education === 'MASTERS' || education === 'PHD') ? bachelorsResult : undefined,
+      mastersResult: (education === 'MASTERS' || education === 'PHD') ? mastersResult : undefined,
       ieltsScore,
       toeflScore,
       satScore,
@@ -806,41 +856,58 @@ function SettingsContent() {
 
     setSaveState('saving')
     try {
+      const computedGpa = gpa.trim()
+        ? Number(gpa)
+        : (education === 'MASTERS' || education === 'PHD') && mastersResult.trim()
+          ? Number(mastersResult)
+          : (education === 'BACHELORS' || education === 'MASTERS' || education === 'PHD') && bachelorsResult.trim()
+            ? Number(bachelorsResult)
+            : hscResult.trim()
+              ? Number(hscResult)
+              : sscResult.trim()
+                ? Number(sscResult)
+                : null
+
+      if (computedGpa != null && !gpa.trim()) {
+        setGpa(String(computedGpa))
+      }
+
       await updateProfile.mutateAsync({
         name: name.trim(),
         image: image || undefined,
         nationality: nationality || undefined,
         countryOfResidence: country || undefined,
         phone: phone ? `${phonePrefix} ${phone}` : undefined,
-        dob: dob || undefined,
-        gender: gender || undefined,
-        whatsapp: whatsapp || undefined,
-        fatherName: fatherName || undefined,
-        motherName: motherName || undefined,
-        hometown: hometown || undefined,
-        addressLine1: addressLine1 || undefined,
-        addressLine2: addressLine2 || undefined,
-        city: city || undefined,
-        state: state || undefined,
-        zipCode: zipCode || undefined,
+        dob: dob.trim(),
+        gender: gender.trim(),
+        whatsapp: whatsapp.trim(),
+        fatherName: fatherName.trim(),
+        motherName: motherName.trim(),
+        hometown: hometown.trim(),
+        addressLine1: addressLine1.trim(),
+        addressLine2: addressLine2.trim(),
+        city: city.trim(),
+        state: state.trim(),
+        zipCode: zipCode.trim(),
         highestEducation: education || undefined,
+        interestedProgram: interestedProgram || undefined,
         targetCountries: asStringArray(targetCountries),
         targetSubjects: asStringArray(targetSubjects),
         budgetMax: budgetMax === '' ? null : Number(budgetMax),
-        gpa: gpa.trim() ? Number(gpa) : null,
-        sscYear: sscYear || undefined,
-        sscResult: sscResult || undefined,
-        hscYear: hscYear || undefined,
-        hscResult: hscResult || undefined,
-        bachelorsYear: bachelorsYear || undefined,
-        bachelorsResult: bachelorsResult || undefined,
-        mastersYear: mastersYear || undefined,
-        mastersResult: mastersResult || undefined,
-        englishTest: englishTest || undefined,
+        gpa: computedGpa,
+        sscYear: sscYear.trim(),
+        sscResult: sscResult.trim(),
+        hscYear: hscYear.trim(),
+        hscResult: hscResult.trim(),
+        bachelorsYear: bachelorsYear.trim(),
+        bachelorsResult: bachelorsResult.trim(),
+        mastersYear: mastersYear.trim(),
+        mastersResult: mastersResult.trim(),
+        englishTest: englishTest.trim(),
         ieltsScore: ieltsScore.trim() ? Number(ieltsScore) : null,
         toeflScore: toeflScore.trim() ? Number(toeflScore) : null,
         satScore: satScore.trim() ? Number(satScore) : null,
-        topikLevel: topikLevel || undefined,
+        topikLevel: topikLevel.trim(),
         preferredIntakeYear: intakeYear ? Number(intakeYear) : undefined,
       } as any)
 
@@ -854,6 +921,8 @@ function SettingsContent() {
 
       await utils.user.getProfile.invalidate()
       await utils.dashboard.overview.invalidate()
+      await utils.dashboard.matches.invalidate()
+      await utils.course.list.invalidate()
       await utils.application.getAll.invalidate()
       setSaveState('success')
       toast.success('Profile updated successfully')
@@ -1316,14 +1385,32 @@ function SettingsContent() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                  <Field label="Highest education completed" required>
+                  <Field label="Highest education completed" required hint="Your highest completed academic level.">
                     <SearchableCombobox
                       id="education"
                       value={education}
                       options={EDUCATION_OPTIONS}
-                      onChange={setEducation}
+                      onChange={(val) => {
+                        setEducation(val)
+                        if (val === 'BACHELORS' && (!interestedProgram || interestedProgram === 'Bachelors')) {
+                          setInterestedProgram('Masters')
+                        } else if (val === 'HIGH_SCHOOL' && (!interestedProgram || interestedProgram === 'Masters')) {
+                          setInterestedProgram('Bachelors')
+                        }
+                      }}
                       placeholder="Select education level"
                       ariaLabel="Highest education"
+                    />
+                  </Field>
+
+                  <Field label="Interested Program / Target Degree" required hint="Best Match & filter suggestions will strictly recommend only this degree level within your budget.">
+                    <SearchableCombobox
+                      id="interestedProgram"
+                      value={interestedProgram}
+                      options={INTERESTED_PROGRAM_OPTIONS}
+                      onChange={setInterestedProgram}
+                      placeholder="Select target degree"
+                      ariaLabel="Interested program"
                     />
                   </Field>
 
@@ -1461,49 +1548,124 @@ function SettingsContent() {
                     <BookOpen size={18} />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Academic history &amp; results</h2>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-lg font-bold text-gray-900 dark:text-white">Academic history &amp; results</h2>
+                      <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
+                        {education === 'BACHELORS'
+                          ? "Bachelor's & Previous Details"
+                          : education === 'HIGH_SCHOOL'
+                            ? 'High School & Secondary Details'
+                            : "Master's & Previous Details"}
+                      </span>
+                    </div>
                     <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                      These credentials sync directly with your dashboard graph and pre-populate your university applications.
+                      {education === 'BACHELORS'
+                        ? "Showing your Bachelor's degree and previous academic credentials (HSC & SSC) for university admission eligibility."
+                        : education === 'HIGH_SCHOOL'
+                          ? 'Showing your Higher Secondary and Secondary credentials for undergraduate admission eligibility.'
+                          : 'Showing your postgraduate and prior credentials for admission eligibility.'}
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-5">
-                  {/* Secondary (SSC) */}
-                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
-                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
-                      Secondary (SSC / O-Level)
-                    </p>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Field label="Passing Year">
-                        <input
-                          value={sscYear}
-                          onChange={(e) => setSscYear(e.target.value)}
-                          placeholder="e.g. 2020"
-                          maxLength={4}
-                          className={input}
-                        />
-                      </Field>
-                      <Field label="Result (GPA - Max 5.00)" error={errors.sscResult}>
-                        <input
-                          value={sscResult}
-                          onChange={(e) => {
-                            setSscResult(e.target.value)
-                            if (errors.sscResult) setErrors((prev) => ({ ...prev, sscResult: undefined }))
-                          }}
-                          placeholder="e.g. 5.00"
-                          maxLength={5}
-                          className={cn(input, errors.sscResult && 'border-rose-500 focus:border-rose-500')}
-                        />
-                      </Field>
+                  {/* Master's Degree - ONLY shown if highest education is MASTERS or PHD */}
+                  {(education === 'MASTERS' || education === 'PHD') && (
+                    <div className="rounded-xl border border-rose-100 bg-rose-50/20 p-4 dark:border-rose-900/30 dark:bg-[#161922]">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                          Master&apos;s Degree (MSc, MBA, MA, etc.)
+                        </p>
+                        <span className="text-[10px] font-bold rounded-full bg-rose-100 px-2 py-0.5 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                          Highest Qualification
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Passing Year">
+                          <input
+                            value={mastersYear}
+                            onChange={(e) => setMastersYear(e.target.value)}
+                            placeholder="e.g. 2028"
+                            maxLength={4}
+                            className={input}
+                          />
+                        </Field>
+                        <Field label="Result (CGPA - Max 4.00)" error={errors.mastersResult}>
+                          <input
+                            value={mastersResult}
+                            onChange={(e) => {
+                              setMastersResult(e.target.value)
+                              if (errors.mastersResult) setErrors((prev) => ({ ...prev, mastersResult: undefined }))
+                            }}
+                            placeholder="e.g. 3.85"
+                            maxLength={5}
+                            className={cn(input, errors.mastersResult && 'border-rose-500 focus:border-rose-500')}
+                          />
+                        </Field>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Higher Secondary (HSC) */}
+                  {/* Bachelor's Degree - shown if highest education is BACHELORS, MASTERS, or PHD */}
+                  {(education === 'BACHELORS' || education === 'MASTERS' || education === 'PHD') && (
+                    <div className={cn(
+                      "rounded-xl border p-4 dark:bg-[#161922]",
+                      education === 'BACHELORS'
+                        ? "border-rose-100 bg-rose-50/20 dark:border-rose-900/30"
+                        : "border-gray-100 bg-gray-50/50 dark:border-gray-800"
+                    )}>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                          Bachelor&apos;s Degree (BSc, BBA, BA Hons, etc.)
+                        </p>
+                        {education === 'BACHELORS' && (
+                          <span className="text-[10px] font-bold rounded-full bg-rose-100 px-2 py-0.5 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                            Highest Qualification
+                          </span>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <Field label="Passing Year">
+                          <input
+                            value={bachelorsYear}
+                            onChange={(e) => setBachelorsYear(e.target.value)}
+                            placeholder="e.g. 2026"
+                            maxLength={4}
+                            className={input}
+                          />
+                        </Field>
+                        <Field label="Result (CGPA - Max 4.00)" error={errors.bachelorsResult}>
+                          <input
+                            value={bachelorsResult}
+                            onChange={(e) => {
+                              setBachelorsResult(e.target.value)
+                              if (errors.bachelorsResult) setErrors((prev) => ({ ...prev, bachelorsResult: undefined }))
+                            }}
+                            placeholder="e.g. 3.75"
+                            maxLength={5}
+                            className={cn(input, errors.bachelorsResult && 'border-rose-500 focus:border-rose-500')}
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Higher Secondary (HSC) - Previous Academic Detail */}
                   <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
-                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
-                      Higher Secondary (HSC / A-Level)
-                    </p>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                        Higher Secondary (HSC / A-Level / 12th)
+                      </p>
+                      {education === 'HIGH_SCHOOL' ? (
+                        <span className="text-[10px] font-bold rounded-full bg-rose-100 px-2 py-0.5 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                          Highest Qualification
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">
+                          Previous Academic Detail
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Field label="Passing Year">
                         <input
@@ -1529,61 +1691,36 @@ function SettingsContent() {
                     </div>
                   </div>
 
-                  {/* Bachelor's Degree */}
+                  {/* Secondary (SSC) - Previous Academic Detail */}
                   <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
-                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
-                      Bachelor&apos;s Degree (BSc, BBA, BA Hons, etc.)
-                    </p>
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Field label="Passing Year">
-                        <input
-                          value={bachelorsYear}
-                          onChange={(e) => setBachelorsYear(e.target.value)}
-                          placeholder="e.g. 2026"
-                          maxLength={4}
-                          className={input}
-                        />
-                      </Field>
-                      <Field label="Result (CGPA - Max 4.00)" error={errors.bachelorsResult}>
-                        <input
-                          value={bachelorsResult}
-                          onChange={(e) => {
-                            setBachelorsResult(e.target.value)
-                            if (errors.bachelorsResult) setErrors((prev) => ({ ...prev, bachelorsResult: undefined }))
-                          }}
-                          placeholder="e.g. 3.75"
-                          maxLength={5}
-                          className={cn(input, errors.bachelorsResult && 'border-rose-500 focus:border-rose-500')}
-                        />
-                      </Field>
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                        Secondary (SSC / O-Level / 10th)
+                      </p>
+                      <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">
+                        Previous Academic Detail
+                      </span>
                     </div>
-                  </div>
-
-                  {/* Master's Degree */}
-                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 p-4 dark:border-gray-800 dark:bg-[#161922]">
-                    <p className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
-                      Master&apos;s Degree (MSc, MBA, MA, etc.)
-                    </p>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <Field label="Passing Year">
                         <input
-                          value={mastersYear}
-                          onChange={(e) => setMastersYear(e.target.value)}
-                          placeholder="e.g. 2028"
+                          value={sscYear}
+                          onChange={(e) => setSscYear(e.target.value)}
+                          placeholder="e.g. 2020"
                           maxLength={4}
                           className={input}
                         />
                       </Field>
-                      <Field label="Result (CGPA - Max 4.00)" error={errors.mastersResult}>
+                      <Field label="Result (GPA - Max 5.00)" error={errors.sscResult}>
                         <input
-                          value={mastersResult}
+                          value={sscResult}
                           onChange={(e) => {
-                            setMastersResult(e.target.value)
-                            if (errors.mastersResult) setErrors((prev) => ({ ...prev, mastersResult: undefined }))
+                            setSscResult(e.target.value)
+                            if (errors.sscResult) setErrors((prev) => ({ ...prev, sscResult: undefined }))
                           }}
-                          placeholder="e.g. 3.85"
+                          placeholder="e.g. 5.00"
                           maxLength={5}
-                          className={cn(input, errors.mastersResult && 'border-rose-500 focus:border-rose-500')}
+                          className={cn(input, errors.sscResult && 'border-rose-500 focus:border-rose-500')}
                         />
                       </Field>
                     </div>

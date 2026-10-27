@@ -34,6 +34,7 @@ export interface StudentProfile {
   preferredIntakeYear: number | null
   nationality: string | null
   highestEducation: EducationLevel
+  interestedProgram?: string | null
   workExperienceYears: number
   assignedCounselorId: string | null
   referralCode: string

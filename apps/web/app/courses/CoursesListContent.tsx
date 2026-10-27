@@ -13,6 +13,7 @@ import {
   MapPin,
   Search,
   SlidersHorizontal,
+  Sparkles,
   X,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -26,10 +27,21 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Button } from '@/components/ui/button'
 import { useSession } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc-client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { CourseFilters, FilterPanel } from './CourseFilters'
 import type { CourseFilters as Filters } from './filter-utils'
 import { EMPTY_FILTERS, countActiveFilters, serializeFilters } from './filter-utils'
+
+function getLevelsFromInterestedProgram(program?: string | null): string[] | null {
+  if (!program) return null
+  const p = program.trim().toLowerCase()
+  if (p.includes('master') || p.includes('postgrad')) return ['POSTGRADUATE']
+  if (p.includes('bachelor') || p.includes('undergrad')) return ['UNDERGRADUATE']
+  if (p.includes('phd') || p.includes('doctor')) return ['PHD']
+  if (p.includes('diploma') || p.includes('cert')) return ['DIPLOMA', 'CERTIFICATE']
+  if (p.includes('foundation')) return ['FOUNDATION']
+  return null
+}
 
 const levelLabels: Record<string, string> = {
   UNDERGRADUATE: 'Undergraduate',
@@ -130,7 +142,13 @@ export default function CoursesListContent({
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [filtersTouched, setFiltersTouched] = useState(false)
   const { data: session } = useSession()
+  const { data: overviewData } = trpc.dashboard.overview.useQuery(undefined, {
+    enabled: !!session,
+    staleTime: 5 * 60 * 1000,
+  })
+  const studentProfile = (overviewData as any)?.profile
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [favorites, setFavorites] = useState<Record<string, boolean>>({})
 
   const { data: shortlistedIds } = trpc.dashboard.shortlist.ids.useQuery(undefined, {
@@ -145,6 +163,23 @@ export default function CoursesListContent({
   const addShortlist = trpc.dashboard.shortlist.add.useMutation()
   const removeShortlist = trpc.dashboard.shortlist.remove.useMutation()
   const utils = trpc.useUtils()
+
+  const [presetApplied, setPresetApplied] = useState(false)
+  useEffect(() => {
+    if (!studentProfile || presetApplied || filtersTouched) return
+    const targetLevels = getLevelsFromInterestedProgram(studentProfile.interestedProgram)
+    const hasUrlLevel = searchParams.get('level') || searchParams.get('levels')
+    const hasUrlFee = searchParams.get('feeMax')
+
+    if (!hasUrlLevel && targetLevels && targetLevels.length > 0 && filters.levels.length === 0) {
+      setPresetApplied(true)
+      updateFilters({
+        ...filters,
+        levels: targetLevels,
+        feeMax: (!hasUrlFee && studentProfile.budgetMax) ? studentProfile.budgetMax : filters.feeMax,
+      })
+    }
+  }, [studentProfile, presetApplied, filtersTouched])
 
   useEffect(() => {
     if (shortlistedIds) {
@@ -584,6 +619,30 @@ export default function CoursesListContent({
 
               {/* Results - Expanded width */}
               <div className="min-w-0">
+                {studentProfile?.interestedProgram && (
+                  <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-rose-200/80 bg-rose-50/70 p-3.5 text-xs text-rose-900 shadow-xs dark:border-rose-900/40 dark:bg-rose-500/10 dark:text-rose-200">
+                    <div className="flex items-center gap-2.5">
+                      <Sparkles size={16} className="shrink-0 text-[#C41E3A] dark:text-rose-400" />
+                      <span>
+                        Filter suggestions tailored to: <strong className="font-bold">{studentProfile.interestedProgram}</strong>
+                        {studentProfile.budgetMax ? <> &bull; Budget up to <strong className="font-bold">${Number(studentProfile.budgetMax).toLocaleString()}</strong></> : null}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateFilters({ ...filters, levels: [], feeMax: null })}
+                        className="font-semibold text-[#C41E3A] underline hover:text-rose-800 dark:text-rose-300"
+                      >
+                        Show all programs
+                      </button>
+                      <span className="text-rose-300 dark:text-rose-700">&bull;</span>
+                      <Link href="/dashboard/settings?tab=study" className="font-semibold text-[#C41E3A] underline hover:text-rose-800 dark:text-rose-300">
+                        Edit goal in settings
+                      </Link>
+                    </div>
+                  </div>
+                )}
                 {/* Results toolbar */}
                 <div className="mb-6">
                   <div className="flex flex-col gap-4">

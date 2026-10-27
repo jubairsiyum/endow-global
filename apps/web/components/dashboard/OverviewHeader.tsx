@@ -14,6 +14,8 @@ interface Props {
   targetCountries?: string[]
   matchCount?: number
   completionPercent?: number
+  interestedProgram?: string | null
+  budgetMax?: number | null
 }
 
 export function OverviewHeader({
@@ -24,6 +26,8 @@ export function OverviewHeader({
   targetCountries = [],
   matchCount = 0,
   completionPercent = 0,
+  interestedProgram,
+  budgetMax,
 }: Props) {
   const firstName = name?.split(' ')[0] || 'there'
   const initials = (name || 'Student')
@@ -114,13 +118,26 @@ export function OverviewHeader({
 
               {/* Intake & Destination Capsule */}
               <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                {interestedProgram && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 px-2 py-0.5 font-bold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                    <GraduationCap size={13} className="text-rose-600 dark:text-rose-400" />
+                    Target: {interestedProgram}
+                  </span>
+                )}
+
+                {budgetMax ? (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                    Budget: &le; ${Number(budgetMax).toLocaleString()}
+                  </span>
+                ) : null}
+
                 {intakeLabel ? (
                   <span className="inline-flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-200">
-                    <GraduationCap size={14} className="text-rose-600 dark:text-rose-400" />
-                    Prepping for {intakeLabel} Intake
+                    <span className="text-slate-300 dark:text-slate-700">·</span>
+                    {intakeLabel} Intake
                   </span>
                 ) : (
-                  <span>Ready to explore university options</span>
+                  <span>· Ready to explore university options</span>
                 )}
 
                 {countriesList.length > 0 && (

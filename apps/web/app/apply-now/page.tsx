@@ -29,7 +29,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 const COUNTRY_ALIASES: Record<string, string> = {
@@ -344,6 +344,72 @@ function ApplyNowContent() {
 
   const isLoggedIn = !!session?.user && !!profile
   const student = (profile as any)?.studentProfile
+  const inq = (profile as any)?.latestInquiry
+
+  const profileLockedFields = useMemo(() => {
+    if (!isLoggedIn || !profile) return {} as Record<string, boolean>
+    const studentData = (profile as any)?.studentProfile
+    const inqData = (profile as any)?.latestInquiry
+    const nameParts = (profile.name || '').trim().split(/\s+/)
+    const hasSavedName = Boolean(
+      profile.name &&
+        profile.name.trim() &&
+        profile.name !== 'User' &&
+        !profile.name.includes('@')
+    )
+
+    return {
+      surname: Boolean(inqData?.surname?.trim() || (hasSavedName && nameParts.length > 1)),
+      givenName: Boolean(inqData?.givenName?.trim() || (hasSavedName && nameParts[0])),
+      email: Boolean(profile.email?.trim()),
+      dob: Boolean(inqData?.dob?.trim()),
+      gender: Boolean(inqData?.gender?.trim()),
+      phone: Boolean(studentData?.phone?.trim() || inqData?.phone?.trim()),
+      whatsapp: Boolean(inqData?.whatsapp?.trim()),
+      hometown: Boolean(inqData?.hometown?.trim()),
+      nationality: Boolean(studentData?.nationality?.trim() || inqData?.nationality?.trim()),
+      country: Boolean(studentData?.countryOfResidence?.trim() || inqData?.country?.trim()),
+      fatherName: Boolean(inqData?.fatherName?.trim()),
+      motherName: Boolean(inqData?.motherName?.trim()),
+      addressLine1: Boolean(inqData?.addressLine1?.trim()),
+      addressLine2: Boolean(inqData?.addressLine2?.trim()),
+      city: Boolean(inqData?.city?.trim()),
+      state: Boolean(inqData?.state?.trim()),
+      zipCode: Boolean(inqData?.zipCode?.trim()),
+      sscYear: Boolean(inqData?.sscYear?.trim()),
+      sscResult: Boolean(inqData?.sscResult?.trim()),
+      hscYear: Boolean(inqData?.hscYear?.trim()),
+      hscResult: Boolean(inqData?.hscResult?.trim()),
+      bachelorsYear: Boolean(inqData?.bachelorsYear?.trim()),
+      bachelorsResult: Boolean(inqData?.bachelorsResult?.trim()),
+      mastersYear: Boolean(inqData?.mastersYear?.trim()),
+      mastersResult: Boolean(inqData?.mastersResult?.trim()),
+      englishTest: Boolean(
+        (studentData?.ieltsScore != null && Number(studentData.ieltsScore) > 0) ||
+          (studentData?.toeflScore != null && Number(studentData.toeflScore) > 0) ||
+          (studentData?.satScore != null && Number(studentData.satScore) > 0) ||
+          (inqData?.englishTest && inqData.englishTest !== 'None')
+      ),
+      ieltsScore: Boolean(
+        (studentData?.ieltsScore != null && Number(studentData.ieltsScore) > 0) ||
+          (inqData?.ieltsScore && inqData.ieltsScore.trim())
+      ),
+      toeflScore: Boolean(
+        (studentData?.toeflScore != null && Number(studentData.toeflScore) > 0) ||
+          (inqData?.toeflScore && inqData.toeflScore.trim())
+      ),
+      satScore: Boolean(
+        (studentData?.satScore != null && Number(studentData.satScore) > 0) ||
+          (inqData?.satScore && inqData.satScore.trim())
+      ),
+      topikLevel: Boolean(inqData?.topikLevel?.trim()),
+      applyingTo: Boolean(
+        studentData?.highestEducation?.trim() ||
+          studentData?.interestedProgram?.trim() ||
+          inqData?.applyingTo?.trim()
+      ),
+    }
+  }, [isLoggedIn, profile])
 
   const [step, setStep] = useState(1)
   const [submitted, setSubmitted] = useState(false)
@@ -552,9 +618,19 @@ function ApplyNowContent() {
     return null
   }
 
+  const hasPopulatedFromProfileRef = useRef(false)
+  const lastProfileUserIdRef = useRef<string | null>(null)
+
   // Pre-populate personal details and academic credentials from the signed-in user's profile & latest inquiry
   useEffect(() => {
     if (profile) {
+      if (lastProfileUserIdRef.current !== profile.id) {
+        hasPopulatedFromProfileRef.current = false
+        lastProfileUserIdRef.current = profile.id
+      }
+      if (hasPopulatedFromProfileRef.current) return
+      hasPopulatedFromProfileRef.current = true
+
       const studentData = profile.studentProfile as any
       const inqData = (profile as any).latestInquiry as any
       const parts = (profile.name || '').trim().split(/\s+/)
@@ -562,7 +638,10 @@ function ApplyNowContent() {
       const surname = parts.slice(1).join(' ') || inqData?.surname || parts[0] || ''
       const phone = studentData?.phone || inqData?.phone || ''
       const inferredApplying =
-        EDUCATION_TO_APPLYING[studentData?.highestEducation] || inqData?.applyingTo || 'Undergraduate'
+        studentData?.interestedProgram ||
+        EDUCATION_TO_APPLYING[studentData?.highestEducation] ||
+        inqData?.applyingTo ||
+        'Undergraduate'
 
       const gpaStr = studentData?.gpa != null ? String(studentData.gpa) : inqData?.bachelorsResult || inqData?.hscResult || ''
       const ieltsStr = studentData?.ieltsScore != null ? String(studentData.ieltsScore) : inqData?.ieltsScore || ''
@@ -950,17 +1029,17 @@ function ApplyNowContent() {
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {[
-                      { l: 'Surname *', k: 'surname', sync: isLoggedIn },
-                      { l: 'Given Name *', k: 'givenName', sync: isLoggedIn },
-                      { l: 'Date of Birth', k: 'dob', t: 'date', sync: isLoggedIn && !!form.dob },
-                      { l: 'Gender', k: 'gender', type: 'select', opts: ['', 'Male', 'Female', 'Other'], sync: isLoggedIn && !!form.gender },
-                      { l: 'Phone *', k: 'phone', t: 'tel', sync: isLoggedIn && !!form.phone },
-                      { l: 'WhatsApp', k: 'whatsapp', t: 'tel', sync: isLoggedIn && !!form.whatsapp },
-                      { l: 'Email *', k: 'email', t: 'email', sync: isLoggedIn },
-                      { l: 'Hometown', k: 'hometown', sync: isLoggedIn && !!form.hometown },
-                      { l: 'Nationality', k: 'nationality', sync: isLoggedIn && !!form.nationality },
-                      { l: "Father's Name", k: 'fatherName', sync: isLoggedIn && !!form.fatherName },
-                      { l: "Mother's Name", k: 'motherName', sync: isLoggedIn && !!form.motherName },
+                      { l: 'Surname *', k: 'surname', sync: profileLockedFields.surname },
+                      { l: 'Given Name *', k: 'givenName', sync: profileLockedFields.givenName },
+                      { l: 'Date of Birth', k: 'dob', t: 'date', sync: profileLockedFields.dob },
+                      { l: 'Gender', k: 'gender', type: 'select', opts: ['', 'Male', 'Female', 'Other'], sync: profileLockedFields.gender },
+                      { l: 'Phone *', k: 'phone', t: 'tel', sync: profileLockedFields.phone },
+                      { l: 'WhatsApp', k: 'whatsapp', t: 'tel', sync: profileLockedFields.whatsapp },
+                      { l: 'Email *', k: 'email', t: 'email', sync: profileLockedFields.email },
+                      { l: 'Hometown', k: 'hometown', sync: profileLockedFields.hometown },
+                      { l: 'Nationality', k: 'nationality', sync: profileLockedFields.nationality },
+                      { l: "Father's Name", k: 'fatherName', sync: profileLockedFields.fatherName },
+                      { l: "Mother's Name", k: 'motherName', sync: profileLockedFields.motherName },
                     ].map((f) =>
                       f.type === 'select' ? (
                         <div key={f.k}>
@@ -1018,11 +1097,11 @@ function ApplyNowContent() {
                     <p className="mb-3 text-sm font-semibold text-gray-700">Present Address</p>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       {[
-                        { l: 'Address Line 1', k: 'addressLine1', sync: isLoggedIn && !!form.addressLine1 },
-                        { l: 'Address Line 2', k: 'addressLine2', sync: isLoggedIn && !!form.addressLine2 },
-                        { l: 'City', k: 'city', sync: isLoggedIn && !!form.city },
-                        { l: 'State/Division', k: 'state', sync: isLoggedIn && !!form.state },
-                        { l: 'Zip Code', k: 'zipCode', sync: isLoggedIn && !!form.zipCode },
+                        { l: 'Address Line 1', k: 'addressLine1', sync: profileLockedFields.addressLine1 },
+                        { l: 'Address Line 2', k: 'addressLine2', sync: profileLockedFields.addressLine2 },
+                        { l: 'City', k: 'city', sync: profileLockedFields.city },
+                        { l: 'State/Division', k: 'state', sync: profileLockedFields.state },
+                        { l: 'Zip Code', k: 'zipCode', sync: profileLockedFields.zipCode },
                       ].map((f) => (
                         <div key={f.k}>
                           <div className="flex items-center justify-between mb-1.5">
@@ -1044,19 +1123,20 @@ function ApplyNowContent() {
                       <div>
                         <div className="flex items-center justify-between mb-1.5">
                           <label className="text-sm font-medium text-gray-700">Country *</label>
-                          {isLoggedIn && student?.countryOfResidence && (
+                          {profileLockedFields.country && (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
                               Synced
                             </span>
                           )}
                         </div>
-                        {isLoggedIn && student?.countryOfResidence ? (
+                        {profileLockedFields.country ? (
                           <input
                             readOnly
                             value={form.country}
                             className={inputLockedCls}
                           />
                         ) : (
+
                           <select
                             value={form.country}
                             onChange={(e) => setF('country', e.target.value)}
@@ -1119,13 +1199,13 @@ function ApplyNowContent() {
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-sm font-medium text-gray-700">Applying to *</label>
-                      {isLoggedIn && student?.highestEducation && (
+                      {profileLockedFields.applyingTo && (
                         <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                          Synced with Highest Education
+                          Synced with Profile
                         </span>
                       )}
                     </div>
-                    {isLoggedIn && student?.highestEducation ? (
+                    {profileLockedFields.applyingTo ? (
                       <input
                         readOnly
                         value={form.applyingTo}
@@ -1157,11 +1237,14 @@ function ApplyNowContent() {
                         const currentVal = form[group.resultKey] || ''
                         const numVal = parseFloat(currentVal)
                         const isExceeded = !isNaN(numVal) && numVal > group.maxScore
-                        const isYearLocked = isLoggedIn && !!form[group.yearKey]
+                        const isYearLocked = profileLockedFields[group.yearKey] ?? false
                         const isProfileLocked =
-                          isLoggedIn &&
-                          (!!form[group.resultKey] ||
-                            (student?.gpa != null && group.resultKey === profileGpaKey))
+                          (profileLockedFields[group.resultKey] ?? false) ||
+                          (isLoggedIn &&
+                            student?.gpa != null &&
+                            student.gpa > 0 &&
+                            group.resultKey === profileGpaKey &&
+                            Boolean(inq?.[group.resultKey]?.trim()))
 
                         return (
                           <div
@@ -1220,7 +1303,7 @@ function ApplyNowContent() {
                                 />
                                 {isProfileLocked ? (
                                   <p className="mt-1 text-[11px] text-gray-500">
-                                    Locked to your profile GPA ({student.gpa}).{' '}
+                                    Locked to your profile GPA ({student?.gpa || form[group.resultKey]}).{' '}
                                     <Link
                                       href="/dashboard/settings?tab=study"
                                       target="_blank"
@@ -1381,14 +1464,13 @@ function ApplyNowContent() {
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="text-sm font-medium text-gray-700">English Proficiency / Test</label>
-                      {isLoggedIn &&
-                        (student?.ieltsScore || student?.toeflScore || student?.satScore) && (
-                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                            Verified from Profile
-                          </span>
-                        )}
+                      {profileLockedFields.englishTest && (
+                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                          Verified from Profile
+                        </span>
+                      )}
                     </div>
-                    {isLoggedIn && (student?.ieltsScore || student?.toeflScore || student?.satScore) ? (
+                    {profileLockedFields.englishTest ? (
                       <input
                         readOnly
                         value={form.englishTest}
@@ -1419,17 +1501,17 @@ function ApplyNowContent() {
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="text-xs text-gray-500">IELTS Band Score</label>
-                          {isLoggedIn && !!form.ieltsScore && (
+                          {profileLockedFields.ieltsScore && (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
                               Profile
                             </span>
                           )}
                         </div>
                         <input
-                          readOnly={isLoggedIn && !!form.ieltsScore}
+                          readOnly={profileLockedFields.ieltsScore}
                           value={form.ieltsScore}
                           onChange={(e) => setF('ieltsScore', e.target.value)}
-                          className={isLoggedIn && !!form.ieltsScore ? inputLockedCls : inputCls}
+                          className={profileLockedFields.ieltsScore ? inputLockedCls : inputCls}
                           placeholder="e.g. 6.5"
                         />
                       </div>
@@ -1438,17 +1520,17 @@ function ApplyNowContent() {
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="text-xs text-gray-500">TOEFL Score</label>
-                          {isLoggedIn && !!form.toeflScore && (
+                          {profileLockedFields.toeflScore && (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
                               Profile
                             </span>
                           )}
                         </div>
                         <input
-                          readOnly={isLoggedIn && !!form.toeflScore}
+                          readOnly={profileLockedFields.toeflScore}
                           value={form.toeflScore}
                           onChange={(e) => setF('toeflScore', e.target.value)}
-                          className={isLoggedIn && !!form.toeflScore ? inputLockedCls : inputCls}
+                          className={profileLockedFields.toeflScore ? inputLockedCls : inputCls}
                           placeholder="e.g. 90"
                         />
                       </div>
@@ -1457,36 +1539,51 @@ function ApplyNowContent() {
                       <div>
                         <div className="flex items-center justify-between mb-1">
                           <label className="text-xs text-gray-500">SAT Score</label>
-                          {isLoggedIn && !!form.satScore && (
+                          {profileLockedFields.satScore && (
                             <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
                               Profile
                             </span>
                           )}
                         </div>
                         <input
-                          readOnly={isLoggedIn && !!form.satScore}
+                          readOnly={profileLockedFields.satScore}
                           value={form.satScore}
                           onChange={(e) => setF('satScore', e.target.value)}
-                          className={isLoggedIn && !!form.satScore ? inputLockedCls : inputCls}
+                          className={profileLockedFields.satScore ? inputLockedCls : inputCls}
                           placeholder="e.g. 1200"
                         />
                       </div>
                     )}
                     {form.englishTest === 'TOPIK' && (
                       <div>
-                        <label className={labelCls}>TOPIK Level</label>
-                        <select
-                          value={form.topikLevel}
-                          onChange={(e) => setF('topikLevel', e.target.value)}
-                          className={inputCls}
-                        >
-                          <option value="">Select...</option>
-                          {[1, 2, 3, 4, 5, 6].map((l) => (
-                            <option key={l} value={String(l)}>
-                              Level {l}
-                            </option>
-                          ))}
-                        </select>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className={labelCls}>TOPIK Level</label>
+                          {profileLockedFields.topikLevel && (
+                            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded">
+                              Profile
+                            </span>
+                          )}
+                        </div>
+                        {profileLockedFields.topikLevel ? (
+                          <input
+                            readOnly
+                            value={form.topikLevel ? `Level ${form.topikLevel}` : ''}
+                            className={inputLockedCls}
+                          />
+                        ) : (
+                          <select
+                            value={form.topikLevel}
+                            onChange={(e) => setF('topikLevel', e.target.value)}
+                            className={inputCls}
+                          >
+                            <option value="">Select...</option>
+                            {[1, 2, 3, 4, 5, 6].map((l) => (
+                              <option key={l} value={String(l)}>
+                                Level {l}
+                              </option>
+                            ))}
+                          </select>
+                        )}
                       </div>
                     )}
                   </div>

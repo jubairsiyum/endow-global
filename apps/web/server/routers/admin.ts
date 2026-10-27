@@ -412,6 +412,9 @@ export const adminRouter = createTRPCRouter({
           countryOfResidence: schema.studentProfiles.countryOfResidence,
           phone: schema.studentProfiles.phone,
           highestEducation: schema.studentProfiles.highestEducation,
+          interestedProgram: schema.studentProfiles.interestedProgram,
+          budgetMin: schema.studentProfiles.budgetMin,
+          budgetMax: schema.studentProfiles.budgetMax,
           gpa: schema.studentProfiles.gpa,
           ieltsScore: schema.studentProfiles.ieltsScore,
           toeflScore: schema.studentProfiles.toeflScore,
@@ -432,6 +435,13 @@ export const adminRouter = createTRPCRouter({
 
       if (!row) return null
       const studentProfileId = row.studentProfileId
+
+      const [latestInq] = await db
+        .select()
+        .from(schema.studentInquiries)
+        .where(eq(schema.studentInquiries.userId, input.id))
+        .orderBy(desc(schema.studentInquiries.submittedAt))
+        .limit(1)
 
       // Applications for this student (explicit joins — no relational `with`).
       const applications = await db
@@ -479,6 +489,17 @@ export const adminRouter = createTRPCRouter({
           countryOfResidence: row.countryOfResidence,
           phone: row.phone,
           highestEducation: row.highestEducation,
+          interestedProgram: row.interestedProgram || latestInq?.applyingTo || null,
+          budgetMin: row.budgetMin,
+          budgetMax: row.budgetMax,
+          sscYear: latestInq?.sscYear,
+          sscResult: latestInq?.sscResult,
+          hscYear: latestInq?.hscYear,
+          hscResult: latestInq?.hscResult,
+          bachelorsYear: latestInq?.bachelorsYear,
+          bachelorsResult: latestInq?.bachelorsResult,
+          mastersYear: latestInq?.mastersYear,
+          mastersResult: latestInq?.mastersResult,
           gpa: row.gpa,
           ieltsScore: row.ieltsScore,
           toeflScore: row.toeflScore,

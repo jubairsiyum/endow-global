@@ -32,7 +32,17 @@ interface BookingSessionItem {
 
 interface StudentProfileData {
   highestEducation?: string | null
+  interestedProgram?: string | null
+  budgetMax?: number | null
   gpa?: number | null
+  sscYear?: string | null
+  sscResult?: string | null
+  hscYear?: string | null
+  hscResult?: string | null
+  bachelorsYear?: string | null
+  bachelorsResult?: string | null
+  mastersYear?: string | null
+  mastersResult?: string | null
   ieltsScore?: number | null
   toeflScore?: number | null
   targetCountries?: string[] | null
@@ -160,27 +170,37 @@ export default function StudentDetailPage() {
             <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
               Academic Profile
             </h2>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Highest Education</p>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {profile?.highestEducation || 'N/A'}
+                <p className="font-semibold text-gray-900 dark:text-white">
+                  {profile?.highestEducation === 'BACHELORS'
+                    ? "Bachelor's Degree"
+                    : profile?.highestEducation === 'MASTERS'
+                      ? "Master's Degree"
+                      : profile?.highestEducation || 'N/A'}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">GPA</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Interested Program</p>
+                <p className="font-semibold text-rose-600 dark:text-rose-400">
+                  {profile?.interestedProgram || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Max Budget</p>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {profile?.budgetMax ? `${Number(profile.budgetMax).toLocaleString()} / year` : 'No limit'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Overall GPA</p>
                 <p className="font-medium text-gray-900 dark:text-white">{profile?.gpa ?? 'N/A'}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">IELTS Score</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">IELTS Band</p>
                 <p className="font-medium text-gray-900 dark:text-white">
                   {profile?.ieltsScore ?? 'N/A'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">TOEFL Score</p>
-                <p className="font-medium text-gray-900 dark:text-white">
-                  {profile?.toeflScore ?? 'N/A'}
                 </p>
               </div>
               <div>
@@ -190,6 +210,48 @@ export default function StudentDetailPage() {
                     ? profile.targetCountries.join(', ')
                     : 'None'}
                 </p>
+              </div>
+            </div>
+
+            {/* Academic History & Credentials Breakdown */}
+            <div className="mt-6 border-t border-gray-100 pt-4 dark:border-white/[0.06]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400 mb-3">
+                {profile?.highestEducation === 'BACHELORS'
+                  ? "Bachelor's & Previous Academic History"
+                  : profile?.highestEducation === 'HIGH_SCHOOL'
+                    ? 'Secondary & Higher Secondary Academic History'
+                    : 'Academic Qualifications & Results'}
+              </h3>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {(profile?.highestEducation === 'MASTERS' || profile?.highestEducation === 'PHD') && profile?.mastersYear && (
+                  <div className="rounded-xl border border-gray-100 p-3 bg-gray-50/50 dark:border-white/[0.06] dark:bg-[#12141c]">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Master&apos;s Degree</p>
+                    <p className="font-medium text-gray-900 dark:text-white">Class of {profile.mastersYear} &bull; CGPA: {profile.mastersResult || '-'}</p>
+                  </div>
+                )}
+                {(profile?.highestEducation === 'BACHELORS' || profile?.highestEducation === 'MASTERS' || profile?.highestEducation === 'PHD') && profile?.bachelorsYear && (
+                  <div className="rounded-xl border border-rose-100 p-3 bg-rose-50/30 dark:border-rose-900/30 dark:bg-[#12141c]">
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-rose-600 dark:text-rose-400 font-semibold">Bachelor&apos;s Degree</p>
+                      {profile?.highestEducation === 'BACHELORS' && (
+                        <span className="text-[10px] bg-rose-100 px-1.5 py-0.5 rounded text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 font-bold">Highest</span>
+                      )}
+                    </div>
+                    <p className="font-medium text-gray-900 dark:text-white mt-0.5">Class of {profile.bachelorsYear} &bull; CGPA: {profile.bachelorsResult || '-'}</p>
+                  </div>
+                )}
+                {profile?.hscYear && (
+                  <div className="rounded-xl border border-gray-100 p-3 bg-gray-50/50 dark:border-white/[0.06] dark:bg-[#12141c]">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Higher Secondary (HSC / 12th)</p>
+                    <p className="font-medium text-gray-900 dark:text-white">Class of {profile.hscYear} &bull; GPA: {profile.hscResult || '-'}</p>
+                  </div>
+                )}
+                {profile?.sscYear && (
+                  <div className="rounded-xl border border-gray-100 p-3 bg-gray-50/50 dark:border-white/[0.06] dark:bg-[#12141c]">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Secondary (SSC / 10th)</p>
+                    <p className="font-medium text-gray-900 dark:text-white">Class of {profile.sscYear} &bull; GPA: {profile.sscResult || '-'}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

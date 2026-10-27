@@ -69,7 +69,12 @@ export const userRouter = createTRPCRouter({
 
     return {
       ...row.user,
-      studentProfile: row.studentProfile,
+      studentProfile: row.studentProfile
+        ? {
+            ...row.studentProfile,
+            interestedProgram: row.studentProfile.interestedProgram || latestInquiry?.applyingTo || null,
+          }
+        : null,
       latestInquiry: latestInquiry || null,
       documents: studentDocs,
     }
@@ -155,6 +160,7 @@ export const userRouter = createTRPCRouter({
         toeflScore: z.number().int('TOEFL score must be a whole number').min(0, 'TOEFL score must be between 0 and 120').max(120, 'TOEFL score must be between 0 and 120').nullable().optional(),
         satScore: z.number().int('SAT score must be a whole number').min(0, 'SAT score must be between 0 and 1600').max(1600, 'SAT score must be between 0 and 1600').nullable().optional(),
         highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).optional(),
+        interestedProgram: z.string().trim().max(100).optional(),
         preferredIntakeYear: z.number().int().min(2020).max(2100).optional(),
         preferredIntakeMonth: z.string().trim().max(50).optional(),
         image: z.string().max(500).optional(),
@@ -201,6 +207,7 @@ export const userRouter = createTRPCRouter({
             ...(input.toeflScore !== undefined && { toeflScore: input.toeflScore }),
             ...(input.satScore !== undefined && { satScore: input.satScore }),
             ...(input.highestEducation !== undefined && { highestEducation: input.highestEducation }),
+            ...(input.interestedProgram !== undefined && { interestedProgram: input.interestedProgram }),
             ...(input.preferredIntakeYear !== undefined && { preferredIntakeYear: input.preferredIntakeYear }),
             ...(input.preferredIntakeMonth !== undefined && { preferredIntakeMonth: input.preferredIntakeMonth }),
             completionPercent: Math.min(
@@ -259,6 +266,7 @@ export const userRouter = createTRPCRouter({
           toeflScore: input.toeflScore,
           satScore: input.satScore,
           highestEducation: input.highestEducation ?? 'HIGH_SCHOOL',
+          interestedProgram: input.interestedProgram,
           preferredIntakeYear: input.preferredIntakeYear,
           preferredIntakeMonth: input.preferredIntakeMonth,
         })
@@ -326,6 +334,7 @@ export const userRouter = createTRPCRouter({
         ...(input.toeflScore !== undefined && { toeflScore: input.toeflScore != null ? String(input.toeflScore) : null }),
         ...(input.satScore !== undefined && { satScore: input.satScore != null ? String(input.satScore) : null }),
         ...(input.topikLevel !== undefined && { topikLevel: input.topikLevel }),
+        ...(input.interestedProgram !== undefined && { applyingTo: input.interestedProgram }),
         ...(input.image !== undefined && { photoUrl: input.image }),
       }
 
@@ -335,10 +344,33 @@ export const userRouter = createTRPCRouter({
             .update(schema.studentInquiries)
             .set(inquiryUpdates)
             .where(eq(schema.studentInquiries.id, inq.id))
-            .catch(() => {})
+            .catch((err: any) => {
+              console.error('[updateProfile] Failed to update inquiry:', err)
+            })
         }
-        await syncStudentInquiriesToApplications(ctx.db, ctx.session.user).catch(() => {})
+      } else {
+        const newInquiryId =
+          globalThis.crypto?.randomUUID?.() ||
+          Math.random().toString(36).substring(2) + Date.now().toString(36)
+        await ctx.db
+          .insert(schema.studentInquiries)
+          .values({
+            id: newInquiryId,
+            userId,
+            email: (userEmail || ctx.session.user.email || '').trim(),
+            surname,
+            givenName,
+            phone: input.phone || existing?.phone || 'N/A',
+            country: input.countryOfResidence || existing?.countryOfResidence || 'Bangladesh',
+            ...inquiryUpdates,
+          })
+          .catch((err: any) => {
+            console.error('[updateProfile] Failed to insert inquiry:', err)
+          })
       }
+      await syncStudentInquiriesToApplications(ctx.db, ctx.session.user).catch((err: any) => {
+        console.error('[updateProfile] Failed to sync student applications:', err)
+      })
 
       return { success: true }
     }),

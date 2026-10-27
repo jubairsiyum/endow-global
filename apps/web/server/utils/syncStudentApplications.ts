@@ -119,19 +119,25 @@ export async function syncStudentInquiriesToApplications(
       }
     }
 
-    // Map education level
-    let highestEducation = profile.highestEducation
-    if (latestInq.applyingTo === 'Masters') highestEducation = 'BACHELORS'
-    else if (latestInq.applyingTo === 'Doctorate') highestEducation = 'MASTERS'
-    else if (
-      latestInq.applyingTo === 'Undergraduate' ||
-      latestInq.applyingTo === 'EAP' ||
-      latestInq.applyingTo === 'KLP'
-    )
-      highestEducation = 'HIGH_SCHOOL'
+    // Map education level only if student has not explicitly set highestEducation
+    if (!profile.highestEducation) {
+      let inferredHighestEducation: string | null = null
+      if (latestInq.applyingTo === 'Masters') inferredHighestEducation = 'BACHELORS'
+      else if (latestInq.applyingTo === 'Doctorate') inferredHighestEducation = 'MASTERS'
+      else if (
+        latestInq.applyingTo === 'Undergraduate' ||
+        latestInq.applyingTo === 'EAP' ||
+        latestInq.applyingTo === 'KLP'
+      )
+        inferredHighestEducation = 'HIGH_SCHOOL'
 
-    if (highestEducation && highestEducation !== profile.highestEducation) {
-      profileUpdates.highestEducation = highestEducation
+      if (inferredHighestEducation) {
+        profileUpdates.highestEducation = inferredHighestEducation
+      }
+    }
+
+    if (latestInq.applyingTo && !profile.interestedProgram) {
+      profileUpdates.interestedProgram = latestInq.applyingTo
     }
 
     if (latestInq.targetCountry) {
@@ -148,41 +154,55 @@ export async function syncStudentInquiriesToApplications(
       }
     }
 
-    const gpaVal = latestInq.bachelorsResult
-      ? parseFloat(latestInq.bachelorsResult)
-      : latestInq.mastersResult
-        ? parseFloat(latestInq.mastersResult)
-        : latestInq.hscResult
+    if (profile.gpa == null || profile.gpa === 0) {
+      let gpaVal: number | null = null
+      const currentHighest = profileUpdates.highestEducation || profile.highestEducation
+      if (currentHighest === 'MASTERS' || currentHighest === 'PHD') {
+        const parsed = latestInq.mastersResult ? parseFloat(latestInq.mastersResult) : null
+        if (parsed != null && !isNaN(parsed)) gpaVal = parsed
+      }
+      if (
+        gpaVal == null &&
+        (currentHighest === 'BACHELORS' || currentHighest === 'MASTERS' || currentHighest === 'PHD')
+      ) {
+        const parsed = latestInq.bachelorsResult ? parseFloat(latestInq.bachelorsResult) : null
+        if (parsed != null && !isNaN(parsed)) gpaVal = parsed
+      }
+      if (gpaVal == null) {
+        const parsed = latestInq.hscResult
           ? parseFloat(latestInq.hscResult)
           : latestInq.sscResult
             ? parseFloat(latestInq.sscResult)
             : null
-    if (gpaVal != null && !isNaN(gpaVal)) {
-      profileUpdates.gpa = gpaVal
+        if (parsed != null && !isNaN(parsed)) gpaVal = parsed
+      }
+      if (gpaVal != null && !isNaN(gpaVal)) {
+        profileUpdates.gpa = gpaVal
+      }
     }
 
     const ieltsVal = latestInq.ieltsScore ? parseFloat(latestInq.ieltsScore) : null
-    if (ieltsVal != null && !isNaN(ieltsVal)) {
+    if (ieltsVal != null && !isNaN(ieltsVal) && (profile.ieltsScore == null || profile.ieltsScore === 0)) {
       profileUpdates.ieltsScore = ieltsVal
     }
 
     const toeflVal = latestInq.toeflScore ? parseInt(latestInq.toeflScore) : null
-    if (toeflVal != null && !isNaN(toeflVal)) {
+    if (toeflVal != null && !isNaN(toeflVal) && (profile.toeflScore == null || profile.toeflScore === 0)) {
       profileUpdates.toeflScore = toeflVal
     }
 
     const satVal = latestInq.satScore ? parseInt(latestInq.satScore) : null
-    if (satVal != null && !isNaN(satVal)) {
+    if (satVal != null && !isNaN(satVal) && (profile.satScore == null || profile.satScore === 0)) {
       profileUpdates.satScore = satVal
     }
 
-    if (latestInq.phone && latestInq.phone.trim()) {
+    if (latestInq.phone && latestInq.phone.trim() && !profile.phone) {
       profileUpdates.phone = latestInq.phone.trim()
     }
-    if (latestInq.nationality && latestInq.nationality.trim()) {
+    if (latestInq.nationality && latestInq.nationality.trim() && !profile.nationality) {
       profileUpdates.nationality = latestInq.nationality.trim()
     }
-    if (latestInq.country && latestInq.country.trim()) {
+    if (latestInq.country && latestInq.country.trim() && !profile.countryOfResidence) {
       profileUpdates.countryOfResidence = latestInq.country.trim()
     }
 
