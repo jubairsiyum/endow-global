@@ -1,9 +1,13 @@
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
 import { cleanCounselorNotes } from '@/lib/utils'
-import { eq as _eq, desc as _desc } from 'drizzle-orm'
+import { eq as _eq, desc as _desc, and as _and, or as _or } from 'drizzle-orm'
 const eq = _eq as any
 const desc = _desc as any
+const and = _and as any
+const or = _or as any
+import { TRPCError } from '@trpc/server'
+import { z } from 'zod'
 import { authorizeApplicationAccess } from '../utils/authorizeApplicationAccess'
 import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 
@@ -87,5 +91,87 @@ export const applicationRouter = createTRPCRouter({
         }
       }
       return null
+    }),
+
+  withdraw: protectedProcedure
+    .input(z.object({ applicationId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { applicationId } = input
+      if (!applicationId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Application ID is required.',
+        })
+      }
+
+      // Ensure application exists and belongs to current student/user
+      const app = await authorizeApplicationAccess(ctx, applicationId, 'write')
+
+      // Identify linked inquiry ID from personalInfo or counselorNotes
+      let linkedInquiryId: string | null = null
+      if (app.personalInfo) {
+        try {
+          const p =
+            typeof app.personalInfo === 'string'
+              ? JSON.parse(app.personalInfo)
+              : app.personalInfo
+          if (p?.inquiryId) linkedInquiryId = p.inquiryId
+        } catch {}
+      }
+      if (!linkedInquiryId && app.counselorNotes && app.counselorNotes.includes('__inq_')) {
+        const match = app.counselorNotes.match(/__inq_([a-zA-Z0-9-]+)/)
+        if (match?.[1]) linkedInquiryId = match[1]
+      }
+
+      // If linked inquiry found by ID, delete it so it cannot recreate the application
+      if (linkedInquiryId) {
+        await ctx.db
+          .delete(schema.studentInquiries)
+          .where(eq(schema.studentInquiries.id, linkedInquiryId))
+          .catch(() => {})
+      }
+
+      // Also clean up any inquiry from this student for this course to prevent sync recreation
+      if (app.courseId && ctx.session.user.id) {
+        const [course] = await ctx.db
+          .select({ id: schema.courses.id, slug: schema.courses.slug, name: schema.courses.name })
+          .from(schema.courses)
+          .where(eq(schema.courses.id, app.courseId))
+          .limit(1)
+
+        if (course) {
+          const courseFilters = []
+          if (course.slug) courseFilters.push(eq(schema.studentInquiries.courseSlug, course.slug))
+          if (course.name) courseFilters.push(eq(schema.studentInquiries.courseName, course.name))
+
+          if (courseFilters.length > 0) {
+            await ctx.db
+              .delete(schema.studentInquiries)
+              .where(
+                and(
+                  eq(schema.studentInquiries.userId, ctx.session.user.id),
+                  or(...courseFilters)
+                )
+              )
+              .catch(() => {})
+          }
+        }
+      }
+
+      // Delete documents linked specifically to this application
+      await ctx.db
+        .delete(schema.studentDocuments)
+        .where(eq(schema.studentDocuments.applicationId, applicationId))
+        .catch(() => {})
+
+      // Delete the application row itself
+      await ctx.db
+        .delete(schema.applications)
+        .where(eq(schema.applications.id, applicationId))
+
+      return {
+        success: true,
+        message: 'Application has been successfully withdrawn and removed.',
+      }
     }),
 })

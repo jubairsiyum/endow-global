@@ -16,8 +16,12 @@ import {
   FileCheck2,
   Clock,
   Sparkles,
+  AlertTriangle,
+  Trash2,
+  Loader2,
 } from 'lucide-react'
 import { formatDistanceToNow, format } from 'date-fns'
+import { toast } from 'sonner'
 
 import { trpc } from '@/lib/trpc-client'
 import { cleanCounselorNotes } from '@/lib/utils'
@@ -44,10 +48,24 @@ const FILTER_STATUS: Record<Exclude<Filter, 'all'>, string[]> = {
 }
 
 export default function ApplicationPage() {
+  const utils = trpc.useUtils()
   const { data, isLoading, isError, refetch } = trpc.application.getAll.useQuery()
   const applications = (data ?? []) as any[]
   const [filter, setFilter] = useState<Filter>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [withdrawTarget, setWithdrawTarget] = useState<any | null>(null)
+
+  const withdrawMutation = trpc.application.withdraw.useMutation({
+    onSuccess: (res) => {
+      toast.success(res.message || 'Application withdrawn and removed successfully.')
+      setWithdrawTarget(null)
+      utils.application.getAll.invalidate()
+      utils.dashboard.overview.invalidate()
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to withdraw application. Please try again.')
+    },
+  })
 
   const countFor = (value: Filter) =>
     value === 'all'
@@ -118,85 +136,82 @@ export default function ApplicationPage() {
           </p>
           <div className="mt-5 flex items-center justify-center gap-3">
             <Link href="/apply-now" className={btnPrimary}>
-              Apply Now
+              Start application
             </Link>
             <Link href="/courses" className={btnSecondary}>
-              Explore courses
+              Browse catalog
             </Link>
           </div>
         </div>
       ) : visibleApplications.length === 0 ? (
-        <div className={`${studentPanel} py-14 text-center`}>
-          <GraduationCap size={32} className="mx-auto text-gray-300 dark:text-gray-600" />
-          <h3 className="mt-3 text-base font-bold text-gray-900 dark:text-white">
-            Nothing in this view
-          </h3>
-          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Try another filter to see your applications.
+        <div className="rounded-2xl border border-dashed border-gray-200 bg-white py-12 text-center dark:border-gray-700 dark:bg-[#12141c]">
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            No applications found matching the selected filter.
           </p>
         </div>
       ) : (
         <div className="space-y-4">
-          {visibleApplications.map((app: any, i: number) => {
-            const status =
+          {visibleApplications.map((app) => {
+            const statusConfig =
               APPLICATION_STATUS[app.status as ApplicationStatus] ?? APPLICATION_STATUS.DRAFT
-            const total = app.totalSteps || 5
-            const step = Math.min(Math.max(app.currentStep || 0, 0), total)
-            const pct = Math.round((step / total) * 100)
+            const status = {
+              ...statusConfig,
+              label:
+                app.status === 'UNDER_REVIEW'
+                  ? 'Application Under Review'
+                  : app.status === 'SUBMITTED'
+                    ? 'Application Submitted'
+                    : statusConfig.label,
+            }
             const isExpanded = expandedId === app.id
-            const pInfo = typeof app.personalInfo === 'string' ? JSON.parse(app.personalInfo) : app.personalInfo
-            const aHist = typeof app.academicHistory === 'string' ? JSON.parse(app.academicHistory) : app.academicHistory
+            const pInfo =
+              typeof app.personalInfo === 'string'
+                ? JSON.parse(app.personalInfo)
+                : app.personalInfo || {}
+            const aHist =
+              typeof app.academicHistory === 'string'
+                ? JSON.parse(app.academicHistory)
+                : app.academicHistory || {}
+
+            const step = app.currentStep || 1
+            const total = app.totalSteps || 5
+            const pct = Math.min(100, Math.round((step / total) * 100))
 
             return (
               <motion.div
                 key={app.id}
-                initial={{ opacity: 0, y: 10 }}
+                layout
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: i * 0.05 }}
-                className={`${studentPanel} overflow-hidden p-5 transition-shadow hover:shadow-md`}
+                className={`${studentPanel} p-5 md:p-6 transition-all hover:border-gray-300 dark:hover:border-gray-700`}
               >
-                {/* Header row */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-300">
-                      {app.course?.university?.logo ? (
-                        <img
-                          src={app.course.university.logo}
-                          alt=""
-                          className="h-8 w-8 rounded-lg object-contain"
-                        />
-                      ) : (
-                        <FileText size={20} />
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
+                        <Sparkles size={13} />
+                        {app.course?.level || 'Degree'} · {app.course?.subject || 'Academics'}
+                      </span>
+                    </div>
+
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                      {app.course?.name || app.courseName || 'Selected Academic Program'}
+                    </h2>
+
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                      <span className="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
+                        <Building2 size={14} className="text-gray-400" />
+                        {app.universityName || app.course?.university?.name || 'Partner University'}
+                      </span>
+                      {(app.universityCity || app.course?.university?.city) && (
+                        <span>
+                          · {app.universityCity || app.course?.university?.city},{' '}
+                          {app.universityCountry || app.course?.university?.country || 'South Korea'}
+                        </span>
                       )}
                     </div>
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-bold text-base text-gray-900 dark:text-white">
-                          {app.course?.name || 'Study Abroad Application'}
-                        </h3>
-                        {app.course?.level && (
-                          <span className="rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600 dark:text-gray-300">
-                            {app.course.level}
-                          </span>
-                        )}
-                        {aHist?.applyingTo && (
-                          <span className="rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 px-2.5 py-0.5 text-[11px] font-semibold text-rose-700 dark:text-rose-300">
-                            {aHist.applyingTo}
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
-                        <Building2 size={14} className="shrink-0 text-gray-400" />
-                        <span>
-                          {app.course?.university?.name || aHist?.targetUniversity || 'University'}
-                        </span>
-                        <span>·</span>
-                        <span>
-                          {app.course?.university?.country || aHist?.targetCountry || 'South Korea'}
-                        </span>
-                      </p>
-                    </div>
                   </div>
+
                   <div className="flex items-center gap-2 self-start">
                     <StatusPill label={status.label} config={status} />
                   </div>
@@ -259,7 +274,7 @@ export default function ApplicationPage() {
                   </div>
                 )}
 
-                {/* Collapsible Application details */}
+                {/* Collapsible Application details & Action toolbar */}
                 <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800/80 flex flex-wrap items-center justify-between gap-3">
                   <button
                     type="button"
@@ -277,7 +292,7 @@ export default function ApplicationPage() {
                     )}
                   </button>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href="/dashboard/documents"
                       className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-1.5 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -301,6 +316,15 @@ export default function ApplicationPage() {
                         View Course
                       </Link>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => setWithdrawTarget(app)}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 bg-rose-50/60 dark:bg-rose-950/30 px-3 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors"
+                      title="Withdraw and remove this application"
+                    >
+                      <Trash2 size={13} className="text-rose-600 dark:text-rose-400" />
+                      Withdraw
+                    </button>
                   </div>
                 </div>
 
@@ -411,6 +435,97 @@ export default function ApplicationPage() {
           })}
         </div>
       )}
+
+      {/* Confirmation Modal */}
+      <AnimatePresence>
+        {withdrawTarget && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="withdraw-modal-title"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 10 }}
+              transition={{ duration: 0.15 }}
+              className="w-full max-w-lg rounded-2xl border border-gray-100 bg-white p-6 shadow-2xl dark:border-gray-800 dark:bg-[#151821]"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-200/60 dark:border-rose-900/40">
+                  <AlertTriangle size={24} />
+                </div>
+                <div className="flex-1">
+                  <h3 id="withdraw-modal-title" className="text-lg font-bold text-gray-900 dark:text-white">
+                    Withdraw Application?
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Are you sure you want to withdraw your application? This will permanently delete your application and all related data from the platform.
+                  </p>
+                </div>
+              </div>
+
+              {/* Target Course and University Details */}
+              <div className="mt-5 rounded-xl border border-gray-200/70 bg-gray-50/70 p-3.5 dark:border-gray-800 dark:bg-[#1a1d25]">
+                <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 dark:text-white">
+                  <GraduationCap size={16} className="text-rose-600 dark:text-rose-400 shrink-0" />
+                  <span className="line-clamp-1">{withdrawTarget.courseName || withdrawTarget.course?.name || 'Academic Program'}</span>
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                  <Building2 size={14} className="shrink-0" />
+                  <span className="line-clamp-1">{withdrawTarget.universityName || withdrawTarget.course?.university?.name || 'Selected University'}</span>
+                </div>
+              </div>
+
+              {/* Permanent Warning Callout */}
+              <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/80 p-3.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                <p className="font-semibold flex items-center gap-1.5">
+                  <AlertTriangle size={14} className="shrink-0 text-amber-600 dark:text-amber-400" />
+                  This action cannot be undone
+                </p>
+                <p className="mt-1 leading-relaxed opacity-90">
+                  Once withdrawn, your application is removed from our database. If you wish to apply again, you will need to submit a new application.
+                </p>
+              </div>
+
+              {/* Modal Actions */}
+              <div className="mt-6 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={withdrawMutation.isPending}
+                  onClick={() => setWithdrawTarget(null)}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={withdrawMutation.isPending}
+                  onClick={() => {
+                    if (withdrawTarget?.id) {
+                      withdrawMutation.mutate({ applicationId: withdrawTarget.id })
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-700 transition-colors disabled:opacity-50 shadow-sm shadow-rose-600/20"
+                >
+                  {withdrawMutation.isPending ? (
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      Withdrawing...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={16} />
+                      Yes, Withdraw Application
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
