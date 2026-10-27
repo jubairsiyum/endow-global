@@ -691,3 +691,39 @@ export const homepageHeroImages = mysqlTable(
     createdAtIdx: index('idx_homepage_hero_image_created_at').on(table.createdAt),
   })
 )
+
+
+// ─── Campaign Leads ─────────────────────────────────────────
+
+export const campaignLeads = mysqlTable(
+  'campaign_lead',
+  {
+    id: varchar('id', { length: 25 }).primaryKey().$defaultFn(genId),
+    name: varchar('name', { length: 255 }),
+    email: varchar('email', { length: 255 }),
+    phone: varchar('phone', { length: 50 }),
+    normalizedPhone: varchar('normalized_phone', { length: 50 }),
+    interestedProgram: varchar('interested_program', { length: 255 }),
+    interestedCountry: varchar('interested_country', { length: 255 }),
+    intakeYear: varchar('intake_year', { length: 50 }),
+    reason: text('reason'),
+    completedStep: int('completed_step').default(1).notNull(),
+    status: mysqlEnum('status', ['PARTIAL', 'COMPLETED', 'CONTACTED', 'CONVERTED', 'ARCHIVED'])
+      .default('PARTIAL')
+      .notNull(),
+    utmSource: varchar('utm_source', { length: 100 }),
+    utmMedium: varchar('utm_medium', { length: 100 }),
+    utmCampaign: varchar('utm_campaign', { length: 100 }),
+    ipAddress: varchar('ip_address', { length: 50 }),
+    userAgent: varchar('user_agent', { length: 500 }),
+    createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { mode: 'date' }).defaultNow().onUpdateNow().notNull(),
+  },
+  (table) => ({
+    statusIdx: index('idx_campaign_lead_status').on(table.status),
+    createdAtIdx: index('idx_campaign_lead_created_at').on(table.createdAt),
+    emailIdx: index('idx_campaign_lead_email').on(table.email),
+    phoneIdx: index('idx_campaign_lead_phone').on(table.phone),
+    normalizedPhoneIdx: index('idx_campaign_lead_normalized_phone').on(table.normalizedPhone),
+  })
+)

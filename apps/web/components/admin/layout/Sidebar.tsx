@@ -24,6 +24,7 @@ import {
   LayoutDashboard,
   Mail,
   MessageSquare,
+  QrCode,
   Settings,
   Shield,
   Star,
@@ -96,6 +97,7 @@ const adminSections: NavSection[] = [
       { name: 'Newsletters', icon: Mail, href: '/admin/newsletters', perm: 'newsletters:view' },
       { name: 'Events', icon: CalendarDays, href: '/admin/events', perm: 'events:view' },
       { name: 'Testimonials', icon: Star, href: '/admin/testimonials', perm: 'testimonials:view' },
+      { name: 'Campaign Leads', icon: QrCode, href: '/admin/campaign', perm: 'campaign:view' },
     ],
   },
   {

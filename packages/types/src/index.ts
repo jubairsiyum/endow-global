@@ -278,3 +278,28 @@ export interface Testimonial {
   createdAt: Date
   updatedAt: Date
 }
+
+
+// ─── Campaign Lead ───────────────────────────────────────────
+export type CampaignLeadStatus = 'PARTIAL' | 'COMPLETED' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED'
+
+export interface CampaignLead {
+  id: string
+  name: string | null
+  email: string | null
+  phone: string | null
+  normalizedPhone: string | null
+  interestedProgram: string | null
+  interestedCountry: string | null
+  intakeYear: string | null
+  reason: string | null
+  completedStep: number
+  status: CampaignLeadStatus
+  utmSource: string | null
+  utmMedium: string | null
+  utmCampaign: string | null
+  ipAddress: string | null
+  userAgent: string | null
+  createdAt: Date
+  updatedAt: Date
+}

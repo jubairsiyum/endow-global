@@ -24,6 +24,7 @@ export const MODULES = [
   { id: 'settings', label: 'Settings', icon: 'Settings', group: 'System' },
   { id: 'events', label: 'Events', icon: 'CalendarDays', group: 'Content' },
   { id: 'hero', label: 'Homepage Hero', icon: 'ImagePlus', group: 'Content' },
+  { id: 'campaign', label: 'Campaign Leads', icon: 'QrCode', group: 'Communication' },
   // Super-admin only modules (also RBAC-controllable for delegated super staff)
   { id: 'branches', label: 'Branches', icon: 'Building2', group: 'System' },
   { id: 'users', label: 'Users', icon: 'Users', group: 'System' },
@@ -32,18 +33,25 @@ export const MODULES = [
   { id: 'revenue', label: 'Revenue', icon: 'DollarSign', group: 'Insights' },
 ] as const
 
-export type ModuleId = typeof MODULES[number]['id']
+export type ModuleId = (typeof MODULES)[number]['id']
 
 export const ACTIONS = ['view', 'manage'] as const
-export type Action = typeof ACTIONS[number]
+export type Action = (typeof ACTIONS)[number]
 
 export type Permission = `${ModuleId}:${Action}`
 
 // All possible permissions (used for validation & UI)
-export const ALL_PERMISSIONS: Permission[] = MODULES.flatMap((m) => ACTIONS.map((a) => `${m.id}:${a}` as Permission))
+export const ALL_PERMISSIONS: Permission[] = MODULES.flatMap((m) =>
+  ACTIONS.map((a) => `${m.id}:${a}` as Permission)
+)
 
 // For convenience — modules where `view` alone is usually the right grant for read-only staff
-export const VIEW_ONLY_MODULES = new Set<ModuleId>(['analytics', 'activity', 'revenue', 'dashboard'])
+export const VIEW_ONLY_MODULES = new Set<ModuleId>([
+  'analytics',
+  'activity',
+  'revenue',
+  'dashboard',
+])
 
 // Human helper for UI chips
 export function permissionLabel(p: Permission): string {
@@ -84,7 +92,10 @@ export function parsePermissionsJSON(raw: unknown): string[] {
       } catch (e) {
         // Fallback to comma-separated
         if (!trimmed.startsWith('{') && !trimmed.startsWith('[')) {
-          return trimmed.split(',').map((p) => p.trim()).filter(Boolean)
+          return trimmed
+            .split(',')
+            .map((p) => p.trim())
+            .filter(Boolean)
         }
       }
     }
@@ -114,7 +125,12 @@ export function hasPermission(
   // `manage` implies `view` for same module
   if (action === 'view' && userPermissions.includes(`${module}:manage` as Permission)) return true
   // wildcard `*` or `*:*` grants all
-  if (userPermissions.includes('*') || userPermissions.includes('*:*') || userPermissions.includes(`${module}:*`)) return true
+  if (
+    userPermissions.includes('*') ||
+    userPermissions.includes('*:*') ||
+    userPermissions.includes(`${module}:*`)
+  )
+    return true
   return false
 }
 
@@ -132,7 +148,9 @@ export function filterModulesByPermissions(
   role?: string
 ): typeof MODULES {
   if (role === 'SUPER_ADMIN') return MODULES as any
-  return MODULES.filter((m) => hasPermission(userPermissions, `${m.id}:view` as Permission, role)) as any
+  return MODULES.filter((m) =>
+    hasPermission(userPermissions, `${m.id}:view` as Permission, role)
+  ) as any
 }
 
 // Map legacy admin router keys to module ids (for guard wiring)
@@ -169,4 +187,4 @@ export const COUNSELOR_MODULES = [
   { id: 'counselor:sessions', label: 'Sessions' },
 ] as const
 
-export type CounselorModuleId = typeof COUNSELOR_MODULES[number]['id']
+export type CounselorModuleId = (typeof COUNSELOR_MODULES)[number]['id']
