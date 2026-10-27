@@ -28,7 +28,7 @@ import {
   X,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -330,6 +330,7 @@ export default function ApplyNowPage() {
 
 function ApplyNowContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const { data: session } = useSession()
   const { data: profile } = trpc.user.getProfile.useQuery(undefined, {
     enabled: !!session?.user,
@@ -439,6 +440,13 @@ function ApplyNowContent() {
       return false
     })
   }, [userApplications, courseBySlug, form.courseSlug, form.courseName, form.targetUniversity])
+
+  useEffect(() => {
+    if (existingApplication && !submitted) {
+      toast.info('You have already applied to this program. Redirecting to your applications...')
+      router.replace('/dashboard/application')
+    }
+  }, [existingApplication, submitted, router])
 
   const inquiryMutation = trpc.endow.submitInquiry.useMutation({
     onSuccess: async () => {
@@ -693,6 +701,28 @@ function ApplyNowContent() {
       : form.applyingTo === 'Doctorate'
         ? 'mastersResult'
         : 'hscResult'
+
+  if (existingApplication && !submitted) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+            <CheckCircle2 size={24} />
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">Application Already Submitted</h2>
+          <p className="max-w-md text-sm text-gray-600">
+            You have already applied for this course. Redirecting to your applications dashboard...
+          </p>
+          <Link
+            href="/dashboard/application"
+            className="mt-2 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:shadow"
+          >
+            Go to My Applications <ArrowRight size={14} />
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   if (submitted) {
     return (

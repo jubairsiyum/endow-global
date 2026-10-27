@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, CalendarClock, Clock, ExternalLink, Sparkles } from 'lucide-react'
+import { ArrowRight, CalendarClock, CheckCircle2, Clock, ExternalLink, Sparkles } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
 import { format } from 'date-fns'
 
 interface DeadlineItem {
@@ -36,6 +37,10 @@ const DEFAULT_INTAKES: DeadlineItem[] = [
 
 export function UpcomingIntakesCard({ deadlines = [] }: Props) {
   const displayItems = deadlines.length > 0 ? deadlines : DEFAULT_INTAKES
+  const { data: appsData } = trpc.application.getAll.useQuery()
+  const appliedSlugs = new Set((appsData || []).map((a: any) => a.course?.slug).filter(Boolean))
+  const appliedIds = new Set((appsData || []).map((a: any) => a.courseId || a.course?.id).filter(Boolean))
+  const isItemApplied = (item: DeadlineItem) => (!!item.slug && appliedSlugs.has(item.slug)) || (!!item.id && appliedIds.has(item.id))
 
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-[#12141c]">
@@ -112,13 +117,24 @@ export function UpcomingIntakesCard({ deadlines = [] }: Props) {
               </div>
 
               {/* Action Button */}
-              <Link
-                href={item.slug ? `/apply-now?slug=${encodeURIComponent(item.slug)}` : '/courses'}
-                className="shrink-0 ml-2 inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 transition-colors"
-              >
-                <Sparkles size={11} />
-                <span>Apply</span>
-              </Link>
+              {isItemApplied(item) ? (
+                <Link
+                  href="/dashboard/application"
+                  title="You have already applied. View application"
+                  className="shrink-0 ml-2 inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-colors"
+                >
+                  <CheckCircle2 size={11} />
+                  <span>Applied</span>
+                </Link>
+              ) : (
+                <Link
+                  href={item.slug ? `/apply-now?slug=${encodeURIComponent(item.slug)}` : '/courses'}
+                  className="shrink-0 ml-2 inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 transition-colors"
+                >
+                  <Sparkles size={11} />
+                  <span>Apply</span>
+                </Link>
+              )}
             </div>
           )
         })}

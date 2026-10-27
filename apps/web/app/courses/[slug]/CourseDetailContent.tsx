@@ -6,6 +6,8 @@ import { Navbar } from '@/components/layout/Navbar'
 import { Footer } from '@/components/layout/Footer'
 import { formatCurrency } from '@/lib/utils'
 import { FadeUp } from '@/components/home/FadeUp'
+import { useSession } from '@/lib/auth-client'
+import { trpc } from '@/lib/trpc-client'
 
 const levelLabels: Record<string, string> = { UNDERGRADUATE: 'Undergraduate', POSTGRADUATE: 'Postgraduate', PHD: 'PhD', DIPLOMA: 'Diploma', CERTIFICATE: 'Certificate', FOUNDATION: 'Foundation' }
 const modeLabels: Record<string, string> = { FULL_TIME: 'Full Time', PART_TIME: 'Part Time', ONLINE: 'Online', HYBRID: 'Hybrid' }
@@ -65,6 +67,26 @@ export default function CourseDetailContent({ course }: { course: any }) {
   const uniSlug = course.universitySlug || ''
   const levelSlug = (course.level || 'postgraduate').toLowerCase()
   const courseSlug = course.slug || ''
+  const { data: session } = useSession()
+  const { data: applications } = trpc.application.getAll.useQuery(undefined, {
+    enabled: !!session?.user,
+  })
+
+  const isApplied = Boolean(
+    applications?.some((app: any) => {
+      if (course?.id && (app.courseId === course.id || app.course?.id === course.id)) return true
+      if (courseSlug && (app.course?.slug === courseSlug || app.courseSlug === courseSlug)) return true
+      if (
+        course?.name &&
+        course?.universityName &&
+        app.course?.name?.toLowerCase() === course.name.toLowerCase() &&
+        app.course?.university?.name?.toLowerCase() === course.universityName.toLowerCase()
+      ) {
+        return true
+      }
+      return false
+    })
+  )
 
   const applyUrl = `/apply-now?courseName=${encodeURIComponent(course.name || '')}&slug=${encodeURIComponent(courseSlug)}&university=${encodeURIComponent(course.universityName || '')}&country=${encodeURIComponent(course.universityCountry || '')}&level=${encodeURIComponent(course.level || '')}`
 
@@ -99,6 +121,11 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
                   <span className="inline-flex items-center rounded-full bg-[#C41E3A]/10 px-2.5 py-0.5 text-xs font-semibold text-[#C41E3A]">{levelLabels[course.level] ?? course.level}</span>
                   <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600">{course.subject}</span>
+                  {isApplied && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-600/20">
+                      <CheckCircle2 size={11} /> Applied
+                    </span>
+                  )}
                   {course.expressOffer && <span className="inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700"><Star size={11} />Express</span>}
                 </div>
                 <h1 className="text-xl font-bold text-gray-900 truncate lg:text-2xl">{course.name}</h1>
@@ -274,9 +301,23 @@ export default function CourseDetailContent({ course }: { course: any }) {
                 )}
 
                 {/* CTA */}
-                <Link href={applyUrl} className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5">
-                  <Send size={17} /> Apply Now <ChevronRight size={16} />
-                </Link>
+                {isApplied ? (
+                  <Link
+                    href="/dashboard/application"
+                    className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-4 text-base font-bold text-white shadow-lg shadow-emerald-600/20 hover:shadow-xl hover:shadow-emerald-600/30 transition-all hover:-translate-y-0.5"
+                  >
+                    <CheckCircle2 size={18} />
+                    <span>Applied · View Application</span>
+                    <ChevronRight size={16} />
+                  </Link>
+                ) : (
+                  <Link
+                    href={applyUrl}
+                    className="flex items-center justify-center gap-2 w-full rounded-2xl bg-gradient-to-r from-[#760B16] to-[#A91324] px-5 py-4 text-base font-bold text-white shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5"
+                  >
+                    <Send size={17} /> Apply Now <ChevronRight size={16} />
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -286,9 +327,21 @@ export default function CourseDetailContent({ course }: { course: any }) {
 
       {/* Floating Apply CTA — mobile */}
       <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3 lg:hidden">
-        <Link href={applyUrl} className="flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] py-3.5 text-base font-bold text-white shadow-lg">
-          <Send size={17} /> Apply Now
-        </Link>
+        {isApplied ? (
+          <Link
+            href="/dashboard/application"
+            className="flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-700 py-3.5 text-base font-bold text-white shadow-lg"
+          >
+            <CheckCircle2 size={18} /> Applied · View Application
+          </Link>
+        ) : (
+          <Link
+            href={applyUrl}
+            className="flex items-center justify-center gap-2 w-full rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] py-3.5 text-base font-bold text-white shadow-lg"
+          >
+            <Send size={17} /> Apply Now
+          </Link>
+        )}
       </div>
     </div>
   )

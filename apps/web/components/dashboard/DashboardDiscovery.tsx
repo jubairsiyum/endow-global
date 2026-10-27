@@ -4,6 +4,7 @@ import {
   ArrowRight,
   BookOpen,
   Building2,
+  CheckCircle2,
   CalendarDays,
   Heart,
   MapPin,
@@ -80,10 +81,12 @@ const BUDGET_RANGES: { label: string; value: number | null }[] = [
 function CourseCard({
   course,
   shortlisted,
+  applied,
   onToggle,
 }: {
   course: NormalizedCourse
   shortlisted: boolean
+  applied?: boolean
   onToggle: () => void
 }) {
   return (
@@ -105,18 +108,11 @@ function CourseCard({
           <span className="truncate text-[11px] font-bold uppercase tracking-wider text-gray-400">
             {course.universityCountry || 'International'}
           </span>
-          <span className="flex shrink-0 items-center gap-1.5">
-            {shortlisted && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
-                <Heart size={10} className="fill-current" /> Shortlisted
-              </span>
-            )}
-            {course.score ? (
-              <span className="rounded-full bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
-                {Math.round(course.score)}% fit
-              </span>
-            ) : null}
-          </span>
+          {course.score ? (
+            <span className="shrink-0 rounded-full bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
+              {Math.round(course.score)}% fit
+            </span>
+          ) : null}
         </div>
         <h3 className="mt-3 line-clamp-2 text-sm font-bold text-gray-900 group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-300">
           {course.name || 'Course'}
@@ -148,12 +144,22 @@ function CourseCard({
             ? `${course.currency || 'USD'} ${Number(course.tuitionFee).toLocaleString()}`
             : 'Fee on request'}
         </span>
-        <Link
-          href={`/apply-now?courseName=${encodeURIComponent(course.name || '')}&slug=${encodeURIComponent(course.slug || '')}&university=${encodeURIComponent(course.universityName || '')}&country=${encodeURIComponent(course.universityCountry || '')}&level=${encodeURIComponent(course.level || '')}`}
-          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 transition-colors"
-        >
-          <Sparkles size={11} /> Apply
-        </Link>
+        {applied ? (
+          <Link
+            href="/dashboard/application"
+            title="You have already applied. View application"
+            className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 transition-colors"
+          >
+            <CheckCircle2 size={11} /> Applied
+          </Link>
+        ) : (
+          <Link
+            href={`/apply-now?courseName=${encodeURIComponent(course.name || '')}&slug=${encodeURIComponent(course.slug || '')}&university=${encodeURIComponent(course.universityName || '')}&country=${encodeURIComponent(course.universityCountry || '')}&level=${encodeURIComponent(course.level || '')}`}
+            className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 transition-colors"
+          >
+            <Sparkles size={11} /> Apply
+          </Link>
+        )}
       </div>
     </div>
   )
@@ -170,6 +176,10 @@ function universityHref(university: { country?: string; slug?: string }) {
 export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
   const utils = trpc.useUtils()
   const [tab, setTab] = useState<CourseTab>('matches')
+  const { data: appsData } = trpc.application.getAll.useQuery()
+  const appliedCourseIds = useMemo(() => new Set((appsData || []).map((a: any) => a.courseId || a.course?.id).filter(Boolean)), [appsData])
+  const appliedSlugs = useMemo(() => new Set((appsData || []).map((a: any) => a.course?.slug).filter(Boolean)), [appsData])
+  const isCourseApplied = (c: NormalizedCourse) => appliedCourseIds.has(c.id) || (!!c.slug && appliedSlugs.has(c.slug))
   const [page, setPage] = useState(1)
   const [showAllMatches, setShowAllMatches] = useState(false)
 
@@ -510,6 +520,7 @@ export function DashboardCourseShelf({ matches = [] }: { matches?: any[] }) {
                   key={`${tab}-${course.id}`}
                   course={course}
                   shortlisted={shortlistedIds.has(course.id)}
+                  applied={isCourseApplied(course)}
                   onToggle={() => toggleShortlist(course)}
                 />
               ))}

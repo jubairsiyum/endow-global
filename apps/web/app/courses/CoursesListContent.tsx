@@ -3,6 +3,7 @@
 import {
   ArrowRight,
   Award,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -135,6 +136,11 @@ export default function CoursesListContent({
   const { data: shortlistedIds } = trpc.dashboard.shortlist.ids.useQuery(undefined, {
     enabled: !!session,
   })
+  const { data: userApplications } = trpc.application.getAll.useQuery(undefined, {
+    enabled: !!session,
+  })
+  const appliedCourseIds = useMemo(() => new Set((userApplications || []).map((a: any) => a.courseId || a.course?.id).filter(Boolean)), [userApplications])
+  const appliedSlugs = useMemo(() => new Set((userApplications || []).map((a: any) => a.course?.slug).filter(Boolean)), [userApplications])
 
   const addShortlist = trpc.dashboard.shortlist.add.useMutation()
   const removeShortlist = trpc.dashboard.shortlist.remove.useMutation()
@@ -811,6 +817,7 @@ export default function CoursesListContent({
                           course.currency
                         )
                         const hasTuition = tuition.display !== null
+                        const isApplied = appliedCourseIds.has(course.id) || (!!course.slug && appliedSlugs.has(course.slug))
                         return (
                           <FadeUpItem key={course.id} className="flex">
                             <div className="group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_18px_40px_rgba(0,0,0,0.08)]">
@@ -930,6 +937,12 @@ export default function CoursesListContent({
                                         )}
                                       </div>
 
+                                      {isApplied && (
+                                        <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
+                                          <CheckCircle2 size={12} aria-hidden="true" />
+                                          Applied
+                                        </span>
+                                      )}
                                       {course.hasScholarship && (
                                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200/60 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 shadow-sm">
                                           <Award size={12} aria-hidden="true" />
@@ -940,14 +953,21 @@ export default function CoursesListContent({
 
                                     {/* Action Button */}
                                     <div className="mt-5">
-                                      <span className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-[#C41E3A] group-hover:shadow-[0_4px_16px_rgba(196,30,58,0.25)]">
-                                        View Course Details
-                                        <ArrowRight
-                                          size={15}
-                                          aria-hidden="true"
-                                          className="transition-transform duration-300 group-hover:translate-x-1"
-                                        />
-                                      </span>
+                                      {isApplied ? (
+                                        <span className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3 text-sm font-semibold text-white transition-all duration-300 shadow-sm">
+                                          <CheckCircle2 size={15} aria-hidden="true" />
+                                          Applied · View Details
+                                        </span>
+                                      ) : (
+                                        <span className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-semibold text-white transition-all duration-300 group-hover:bg-[#C41E3A] group-hover:shadow-[0_4px_16px_rgba(196,30,58,0.25)]">
+                                          View Course Details
+                                          <ArrowRight
+                                            size={15}
+                                            aria-hidden="true"
+                                            className="transition-transform duration-300 group-hover:translate-x-1"
+                                          />
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
