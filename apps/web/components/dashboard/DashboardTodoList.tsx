@@ -168,7 +168,7 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
             Document Checklist To-Do
           </h3>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">

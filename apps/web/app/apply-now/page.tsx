@@ -337,6 +337,9 @@ function ApplyNowContent() {
     refetchOnWindowFocus: true,
   })
   const utils = trpc.useUtils()
+  const { data: userApplications } = trpc.application.getAll.useQuery(undefined, {
+    enabled: !!session?.user,
+  })
 
   const isLoggedIn = !!session?.user && !!profile
   const student = (profile as any)?.studentProfile
@@ -419,6 +422,23 @@ function ApplyNowContent() {
     { universityName: form.targetUniversity },
     { enabled: !!form.targetUniversity }
   )
+
+  const existingApplication = useMemo(() => {
+    if (!userApplications || !userApplications.length) return null
+    return userApplications.find((app: any) => {
+      if (courseBySlug?.id && app.courseId === courseBySlug.id) return true
+      if (form.courseSlug && (app.course?.slug === form.courseSlug || app.courseSlug === form.courseSlug)) return true
+      if (
+        form.courseName &&
+        form.targetUniversity &&
+        app.course?.name?.toLowerCase() === form.courseName.toLowerCase() &&
+        app.course?.university?.name?.toLowerCase() === form.targetUniversity.toLowerCase()
+      ) {
+        return true
+      }
+      return false
+    })
+  }, [userApplications, courseBySlug, form.courseSlug, form.courseName, form.targetUniversity])
 
   const inquiryMutation = trpc.endow.submitInquiry.useMutation({
     onSuccess: async () => {
@@ -647,6 +667,10 @@ function ApplyNowContent() {
   }
 
   function handleSubmit() {
+    if (existingApplication) {
+      toast.error('You have already submitted an application for this course. Please view it in your dashboard.')
+      return
+    }
     if (!accepted) {
       toast.error('Please accept the terms')
       return
@@ -757,6 +781,31 @@ function ApplyNowContent() {
               </div>
             ))}
           </div>
+
+          {existingApplication && (
+            <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50/90 p-4 text-amber-900 shadow-sm dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 size={18} className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div className="flex-1 text-xs">
+                  <p className="font-bold text-sm text-amber-900 dark:text-amber-100">
+                    Application Already Submitted
+                  </p>
+                  <p className="mt-1 leading-relaxed text-amber-800 dark:text-amber-300">
+                    You have already submitted an application for this course ({form.courseName || 'Selected program'}). You can track your admission status and counselor notes directly in your student dashboard.
+                  </p>
+                  <div className="mt-3 flex items-center gap-2">
+                    <Link
+                      href="/dashboard/application"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-amber-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-amber-800 transition-colors"
+                    >
+                      <span>View My Application</span>
+                      <ArrowRight size={13} />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           <motion.div
             key={step}
@@ -1459,12 +1508,20 @@ function ApplyNowContent() {
                   </label>
 
                   <button
-                    onClick={handleSubmit}
-                    disabled={inquiryMutation.isPending}
-                    className="mt-4 w-full rounded-full bg-gradient-to-r from-[#760B16] to-[#A91324] py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:shadow-xl disabled:opacity-60"
+                    onClick={existingApplication ? undefined : handleSubmit}
+                    disabled={inquiryMutation.isPending || !!existingApplication}
+                    className={`mt-4 w-full rounded-full py-3.5 text-sm font-bold shadow-lg transition-all ${existingApplication ? 'bg-slate-200 text-slate-500 cursor-not-allowed dark:bg-slate-800 dark:text-slate-400 shadow-none' : 'bg-gradient-to-r from-[#760B16] to-[#A91324] text-white hover:shadow-xl disabled:opacity-60'}`}
                   >
-                    {inquiryMutation.isPending ? 'Submitting...' : 'Submit Application'}
+                    {existingApplication ? 'Already Applied to This Program' : inquiryMutation.isPending ? 'Submitting...' : 'Submit Application'}
                   </button>
+                  {existingApplication && (
+                    <Link
+                      href="/dashboard/application"
+                      className="mt-2.5 flex w-full items-center justify-center gap-2 rounded-full border border-gray-300 bg-white py-3 text-sm font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition-colors"
+                    >
+                      View Existing Application in Dashboard
+                    </Link>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

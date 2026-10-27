@@ -24,7 +24,7 @@ export function ShortlistedPanel({ shortlisted, index = 0 }: Props) {
     >
       <header className="mb-4 flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
+          <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl">
             Shortlisted courses
           </h2>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">

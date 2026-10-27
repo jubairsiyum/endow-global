@@ -46,7 +46,7 @@ export function UpcomingIntakesCard({ deadlines = [] }: Props) {
             <CalendarClock size={16} />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
               Upcoming Intakes
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400">

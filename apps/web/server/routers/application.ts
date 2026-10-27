@@ -1,5 +1,6 @@
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
 import { schema } from '@endow/db'
+import { cleanCounselorNotes } from '@/lib/utils'
 import { eq as _eq, desc as _desc } from 'drizzle-orm'
 const eq = _eq as any
 const desc = _desc as any
@@ -52,6 +53,7 @@ export const applicationRouter = createTRPCRouter({
 
     return rows.map((row: any) => ({
       ...row,
+      counselorNotes: cleanCounselorNotes(row.counselorNotes),
       course: {
         id: row.courseId,
         name: row.courseName,
@@ -74,9 +76,16 @@ export const applicationRouter = createTRPCRouter({
       const { applicationId } = input
       if (!applicationId) throw new Error('BAD_REQUEST')
       const app = await authorizeApplicationAccess(ctx, applicationId, 'read')
-      return ctx.db.query.applications.findFirst({
+      const result = await ctx.db.query.applications.findFirst({
         where: (a, { eq }) => eq(a.id, app.id),
         with: { course: { with: { university: true } } },
       })
+      if (result) {
+        return {
+          ...result,
+          counselorNotes: cleanCounselorNotes(result.counselorNotes),
+        }
+      }
+      return null
     }),
 })

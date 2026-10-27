@@ -94,7 +94,7 @@ export function ApplicationProgressCard({ applications = [], stats }: Props) {
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
                 Application Progress
               </h3>
               {applications.length > 1 && (

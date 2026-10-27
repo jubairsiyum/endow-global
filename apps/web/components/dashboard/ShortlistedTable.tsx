@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowRight,
   Award,
+  CheckCircle2,
   Copy,
   ExternalLink,
   Eye,
@@ -25,6 +26,7 @@ import { formatCurrency } from '@/lib/utils'
 interface Props {
   shortlisted?: any[]
   matches?: any[]
+  applications?: any[]
   counselor?: {
     id: string
     name: string
@@ -32,13 +34,29 @@ interface Props {
   } | null
 }
 
-export function ShortlistedTable({ shortlisted = [], counselor }: Props) {
+export function ShortlistedTable({ shortlisted = [], applications = [], counselor }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
   const [menuAnchor, setMenuAnchor] = useState<{ id: string; top: number; right: number } | null>(null)
   const [removingId, setRemovingId] = useState<string | null>(null)
 
   const utils = trpc.useUtils()
   const removeShortlist = trpc.dashboard.shortlist.remove.useMutation()
+
+  const appliedCourseIds = new Set(
+    (applications || [])
+      .map((a: any) => a.courseId || a.course?.id)
+      .filter(Boolean)
+  )
+  const appliedCourseSlugs = new Set(
+    (applications || [])
+      .map((a: any) => a.course?.slug || a.courseSlug)
+      .filter(Boolean)
+  )
+  const isItemApplied = (item: any) => {
+    if (item.courseId && appliedCourseIds.has(item.courseId)) return true
+    if (item.slug && appliedCourseSlugs.has(item.slug)) return true
+    return false
+  }
 
   // Strictly map only courses that the student has actually saved in their database shortlist
   const rows = (shortlisted || []).map((s) => {
@@ -120,7 +138,7 @@ export function ShortlistedTable({ shortlisted = [], counselor }: Props) {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
               Shortlisted Courses
             </h3>
             <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
@@ -255,14 +273,25 @@ export function ShortlistedTable({ shortlisted = [], counselor }: Props) {
                   {/* Functional Actions */}
                   <td className="py-3.5 pr-2 text-right">
                     <div className="flex items-center justify-end gap-1.5 text-slate-400">
-                      <Link
-                        href={getApplyUrl(item)}
-                        title="Apply to this program"
-                        className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 transition-colors"
-                      >
-                        <Sparkles size={12} />
-                        <span>Apply</span>
-                      </Link>
+                      {isItemApplied(item) ? (
+                        <Link
+                          href="/dashboard/application"
+                          title="You have already applied. View application in your dashboard"
+                          className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/60 transition-colors"
+                        >
+                          <CheckCircle2 size={12} />
+                          <span>Applied</span>
+                        </Link>
+                      ) : (
+                        <Link
+                          href={getApplyUrl(item)}
+                          title="Apply to this program"
+                          className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 transition-colors"
+                        >
+                          <Sparkles size={12} />
+                          <span>Apply</span>
+                        </Link>
+                      )}
 
                       <Link
                         href={item.slug ? `/courses/${item.slug}` : '/courses'}
@@ -343,14 +372,25 @@ export function ShortlistedTable({ shortlisted = [], counselor }: Props) {
                 <span>View Program</span>
               </Link>
 
-              <Link
-                href={getApplyUrl(activeMenuItem)}
-                onClick={() => setMenuAnchor(null)}
-                className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 transition-colors"
-              >
-                <Sparkles size={13} />
-                <span>Apply Now</span>
-              </Link>
+              {isItemApplied(activeMenuItem) ? (
+                <Link
+                  href="/dashboard/application"
+                  onClick={() => setMenuAnchor(null)}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/40 transition-colors"
+                >
+                  <CheckCircle2 size={13} />
+                  <span>View Application</span>
+                </Link>
+              ) : (
+                <Link
+                  href={getApplyUrl(activeMenuItem)}
+                  onClick={() => setMenuAnchor(null)}
+                  className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 transition-colors"
+                >
+                  <Sparkles size={13} />
+                  <span>Apply Now</span>
+                </Link>
+              )}
 
               <button
                 type="button"

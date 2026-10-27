@@ -1,4 +1,5 @@
 import { db, schema } from '@/lib/db'
+import { cleanCounselorNotes } from '@/lib/utils'
 import { randomUUID } from 'crypto'
 import {
   and as _and,
@@ -17,17 +18,17 @@ const inArray = _inArray as any
 
 function parseInquiryIdFromApp(app: any): string | null {
   if (!app) return null
+  if (app.personalInfo) {
+    try {
+      const p = typeof app.personalInfo === 'string' ? JSON.parse(app.personalInfo) : app.personalInfo
+      if (p?.inquiryId) return p.inquiryId
+    } catch {}
+  }
   if (app.counselorNotes && app.counselorNotes.includes('__inq_')) {
     const match = app.counselorNotes.match(/__inq_([a-zA-Z0-9-]+)/)
     if (match?.[1]) return match[1]
   }
-  if (!app.personalInfo) return null
-  try {
-    const p = typeof app.personalInfo === 'string' ? JSON.parse(app.personalInfo) : app.personalInfo
-    return p?.inquiryId || null
-  } catch {
-    return null
-  }
+  return null
 }
 
 export async function syncStudentInquiriesToApplications(
@@ -231,6 +232,57 @@ export async function syncStudentInquiriesToApplications(
     .from(schema.applications)
     .where(eq(schema.applications.studentId, profile.id))
 
+  // Self-heal existing applications: clean __inq_ from notes, link inquiryId, and restore any swapped courseId
+  for (const app of existingApps) {
+    let pInfo: any = {}
+    try {
+      pInfo =
+        typeof app.personalInfo === 'string'
+          ? JSON.parse(app.personalInfo)
+          : { ...(app.personalInfo || {}) }
+    } catch {}
+
+    const inqId =
+      pInfo?.inquiryId ||
+      (app.counselorNotes?.match(/__inq_([a-zA-Z0-9-]+)/)?.[1])
+    const cleanNotes = cleanCounselorNotes(app.counselorNotes)
+    const appUpdates: Record<string, any> = {}
+
+    if (cleanNotes !== app.counselorNotes) {
+      appUpdates.counselorNotes = cleanNotes
+      app.counselorNotes = cleanNotes
+    }
+
+    if (inqId && !pInfo?.inquiryId) {
+      pInfo.inquiryId = inqId
+      appUpdates.personalInfo = pInfo
+      app.personalInfo = pInfo
+    }
+
+    if (inqId) {
+      const linkedInq = inquiries.find((i) => i.id === inqId)
+      if (linkedInq?.courseSlug) {
+        const [cBySlug] = await dbInstance
+          .select({ id: schema.courses.id })
+          .from(schema.courses)
+          .where(eq(schema.courses.slug, linkedInq.courseSlug))
+          .limit(1)
+        if (cBySlug && cBySlug.id !== app.courseId) {
+          appUpdates.courseId = cBySlug.id
+          app.courseId = cBySlug.id
+        }
+      }
+    }
+
+    if (Object.keys(appUpdates).length > 0) {
+      await dbInstance
+        .update(schema.applications)
+        .set(appUpdates)
+        .where(eq(schema.applications.id, app.id))
+        .catch(() => {})
+    }
+  }
+
   // Clean up any historical duplicate applications if applications exceed inquiries
   if (existingApps.length > inquiries.length && inquiries.length > 0) {
     const validInqIds = new Set(inquiries.map((i) => i.id))
@@ -390,18 +442,12 @@ export async function syncStudentInquiriesToApplications(
     }
 
     if (course) {
-      let matchedCourseId = course.id
+      const matchedCourseId = course.id
       const alreadyHasCourse = existingApps.some((a) => a.courseId === matchedCourseId)
 
       if (alreadyHasCourse) {
-        const appliedIds = existingApps.map((a) => a.courseId).filter(Boolean)
-        const allActive = await dbInstance
-          .select({ id: schema.courses.id, name: schema.courses.name })
-          .from(schema.courses)
-          .where(eq(schema.courses.isActive, true))
-          .limit(25)
-        const alt = allActive.find((c) => !appliedIds.includes(c.id))
-        if (alt) matchedCourseId = alt.id
+        // Do not create a duplicate application or swap course to a random different program
+        continue
       }
 
       const appId = randomUUID().replace(/-/g, '').slice(0, 24)
@@ -425,10 +471,9 @@ export async function syncStudentInquiriesToApplications(
       }
 
       const cNotes = [
-        `__inq_${inq.id}`,
         inq.reasonToChoose ? `Reason to choose: ${inq.reasonToChoose}` : null,
         inq.targetUniversity ? `Target University: ${inq.targetUniversity}` : null,
-      ].filter(Boolean).join(' | ')
+      ].filter(Boolean).join(' | ') || null
 
       await dbInstance.insert(schema.applications).values({
         id: appId,

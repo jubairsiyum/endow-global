@@ -1,7 +1,6 @@
 import { logAdminActivity } from '@/lib/audit'
 import { db, schema } from '@/lib/db'
 import { createInAppNotification } from '@/lib/in-app-notifications'
-import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 import {
   adminWithPermission,
   createTRPCRouter,
@@ -9,7 +8,6 @@ import {
   publicProcedure,
 } from '@/lib/trpc'
 import { TRPCError } from '@trpc/server'
-import { randomUUID } from 'crypto'
 import {
   and as _and,
   count as _count,
@@ -19,6 +17,7 @@ import {
   sql as _sql,
 } from 'drizzle-orm'
 import { z } from 'zod'
+import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 const eq = _eq as any
 const sql = _sql as any
 const desc = _desc as any
@@ -163,6 +162,53 @@ export const endowRouter = createTRPCRouter({
       }
     }
 
+    if (userId) {
+      // Prevent duplicate application submission for the same course
+      let targetCourseId: string | null = null
+      if (input.courseSlug) {
+        const [c] = await db
+          .select({ id: schema.courses.id })
+          .from(schema.courses)
+          .where(eq(schema.courses.slug, input.courseSlug))
+          .limit(1)
+        if (c) targetCourseId = c.id
+      } else if (input.courseName) {
+        const [c] = await db
+          .select({ id: schema.courses.id })
+          .from(schema.courses)
+          .where(eq(schema.courses.name, input.courseName.trim()))
+          .limit(1)
+        if (c) targetCourseId = c.id
+      }
+
+      const [studentProf] = await db
+        .select({ id: schema.studentProfiles.id })
+        .from(schema.studentProfiles)
+        .where(eq(schema.studentProfiles.userId, userId))
+        .limit(1)
+
+      if (studentProf && targetCourseId) {
+        const [existingApp] = await db
+          .select({ id: schema.applications.id })
+          .from(schema.applications)
+          .where(
+            and(
+              eq(schema.applications.studentId, studentProf.id),
+              eq(schema.applications.courseId, targetCourseId)
+            )
+          )
+          .limit(1)
+
+        if (existingApp) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message:
+              'You have already submitted an application for this course. You can track your application in your dashboard.',
+          })
+        }
+      }
+    }
+
     await db.insert(schema.studentInquiries).values({
       id: globalThis.crypto.randomUUID(),
       userId,
@@ -224,10 +270,11 @@ export const endowRouter = createTRPCRouter({
     // Automatically sync inquiries to applications and update profile match signals
     if (userId) {
       try {
-        const syncRes = await syncStudentInquiriesToApplications(
-          db,
-          { id: userId, email: input.email, name: `${input.givenName} ${input.surname}` }
-        )
+        const syncRes = await syncStudentInquiriesToApplications(db, {
+          id: userId,
+          email: input.email,
+          name: `${input.givenName} ${input.surname}`,
+        })
 
         // Persist any uploaded files from the application form into studentDocuments
         if (Array.isArray(input.documents) && input.documents.length > 0 && syncRes?.profile?.id) {

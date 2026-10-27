@@ -1,6 +1,12 @@
 import { createBooking } from '@/lib/booking'
-import { applicantLevelFromEducation, DOCUMENT_REQUIREMENTS, requirementKey, type ApplicantLevel } from '@/lib/documents'
+import {
+  applicantLevelFromEducation,
+  DOCUMENT_REQUIREMENTS,
+  requirementKey,
+  type ApplicantLevel,
+} from '@/lib/documents'
 import { createTRPCRouter, protectedProcedure } from '@/lib/trpc'
+import { cleanCounselorNotes } from '@/lib/utils'
 import { schema } from '@endow/db'
 import {
   and as _and,
@@ -202,12 +208,16 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
   // Clean up any empty/pending checklist items that are not in the current target degree's required list
   const requiredKeys = new Set(required.map((r) => requirementKey(r.category, r.label)))
   const obsoletePending = items.filter(
-    (d: any) => !d.fileUrl && d.status === 'PENDING' && !requiredKeys.has(requirementKey(d.category, d.label))
+    (d: any) =>
+      !d.fileUrl && d.status === 'PENDING' && !requiredKeys.has(requirementKey(d.category, d.label))
   )
   if (obsoletePending.length > 0) {
-    await ctx.db
-      .delete(schema.studentDocuments)
-      .where(inArray(schema.studentDocuments.id, obsoletePending.map((d: any) => d.id)))
+    await ctx.db.delete(schema.studentDocuments).where(
+      inArray(
+        schema.studentDocuments.id,
+        obsoletePending.map((d: any) => d.id)
+      )
+    )
   }
 
   return { level, items: await fetchItems() }
@@ -510,9 +520,11 @@ export const dashboardRouter = createTRPCRouter({
     const matches = matchData.matches ?? []
     const recommendedUniversities = matchData.universities ?? []
     const applications = (applicationRows as any[]).map((row) => ({
+      counselorNotes: cleanCounselorNotes(row.counselorNotes),
       ...row,
       course: row.courseId
         ? {
+            id: row.courseId,
             name: row.courseName,
             slug: row.courseSlug,
             applicationDeadline: row.courseDeadline,
@@ -554,7 +566,8 @@ export const dashboardRouter = createTRPCRouter({
       (d: any) => d.status === 'UPLOADED' || (d.status === 'PENDING' && !!d.fileUrl)
     ).length
     const documentsPending = documents.filter(
-      (d: any) => (!d.fileUrl && d.status === 'PENDING') || d.status === 'MISSING' || d.status === 'REJECTED'
+      (d: any) =>
+        (!d.fileUrl && d.status === 'PENDING') || d.status === 'MISSING' || d.status === 'REJECTED'
     ).length
 
     // 1. Dynamic Application Progress Breakdown (strictly for application lifecycle)

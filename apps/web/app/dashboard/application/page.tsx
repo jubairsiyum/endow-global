@@ -20,6 +20,7 @@ import {
 import { formatDistanceToNow, format } from 'date-fns'
 
 import { trpc } from '@/lib/trpc-client'
+import { cleanCounselorNotes } from '@/lib/utils'
 import { APPLICATION_STATUS } from '@/lib/dashboard'
 import type { ApplicationStatus } from '@/lib/dashboard'
 import { StatusPill } from '@/components/dashboard/StatusPill'
@@ -247,13 +248,13 @@ export default function ApplicationPage() {
                 </div>
 
                 {/* Counselor Notes */}
-                {app.counselorNotes && (
+                {cleanCounselorNotes(app.counselorNotes) && (
                   <div className="mt-3.5 rounded-xl bg-gray-50 px-4 py-3 dark:bg-[#1a1d25] border border-gray-100 dark:border-gray-800">
                     <p className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">
                       Application Notes & Motivation
                     </p>
                     <p className="mt-1 text-xs leading-relaxed text-gray-700 dark:text-gray-300">
-                      {app.counselorNotes}
+                      {cleanCounselorNotes(app.counselorNotes)}
                     </p>
                   </div>
                 )}

@@ -69,10 +69,10 @@ export default function DashboardPage() {
 
       {/* 3. Row 1: Academic Eligibility Curved Chart (Left) + Real To-Do Checklist (Right) */}
       <section className="grid grid-cols-1 gap-5 lg:grid-cols-12">
-        <div className="lg:col-span-7 xl:col-span-8">
+        <div className="flex flex-col lg:col-span-7 xl:col-span-8">
           <AcademicCurvedChart profile={data?.profile} />
         </div>
-        <div className="lg:col-span-5 xl:col-span-4">
+        <div className="flex flex-col lg:col-span-5 xl:col-span-4">
           <DashboardTodoList
             documents={data?.documents ?? []}
             docProgress={stats?.docProgress}
@@ -100,6 +100,7 @@ export default function DashboardPage() {
       <ShortlistedTable
         shortlisted={data?.shortlisted ?? []}
         matches={data?.matches ?? []}
+        applications={data?.applications ?? []}
         counselor={data?.counselor}
       />
 

@@ -1,13 +1,14 @@
 'use client'
 
-import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { ArrowUpRight, FileText } from 'lucide-react'
+import Link from 'next/link'
 
-import { APPLICATION_STATUS } from '@/lib/dashboard'
 import type { ApplicationStatus } from '@/lib/dashboard'
+import { APPLICATION_STATUS } from '@/lib/dashboard'
+import { cleanCounselorNotes } from '@/lib/utils'
 import { StatusPill } from './StatusPill'
-import { panel, viewAllLink, progressTrack, progressFill } from './ui'
+import { panel, progressFill, progressTrack, viewAllLink } from './ui'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -26,11 +27,13 @@ export function ApplicationsPanel({ applications, index = 0 }: Props) {
     >
       <header className="mb-4 flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
+          <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl">
             My applications
           </h2>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
-            {applications.length ? `${applications.length} in progress` : 'Nothing yet — start your first'}
+            {applications.length
+              ? `${applications.length} in progress`
+              : 'Nothing yet — start your first'}
           </p>
         </div>
         <Link href="/dashboard/application" className={viewAllLink}>
@@ -41,7 +44,9 @@ export function ApplicationsPanel({ applications, index = 0 }: Props) {
       {applications.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 py-10 text-center dark:border-gray-700">
           <FileText size={28} className="mx-auto text-gray-300 dark:text-gray-600" />
-          <p className="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-200">No applications yet</p>
+          <p className="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
+            No applications yet
+          </p>
           <p className="mx-auto mt-1 max-w-xs text-xs text-gray-500 dark:text-gray-400">
             Browse courses and start your first application.
           </p>
@@ -49,7 +54,8 @@ export function ApplicationsPanel({ applications, index = 0 }: Props) {
       ) : (
         <ul className="space-y-3">
           {applications.slice(0, 4).map((app, i) => {
-            const status = APPLICATION_STATUS[app.status as ApplicationStatus] ?? APPLICATION_STATUS.DRAFT
+            const status =
+              APPLICATION_STATUS[app.status as ApplicationStatus] ?? APPLICATION_STATUS.DRAFT
             const total = app.totalSteps || 5
             const step = Math.min(Math.max(app.currentStep || 0, 0), total)
             const pct = Math.round((step / total) * 100)
@@ -70,7 +76,8 @@ export function ApplicationsPanel({ applications, index = 0 }: Props) {
                         {app.course?.name ?? 'Application'}
                       </p>
                       <p className="mt-0.5 truncate text-xs text-gray-500 dark:text-gray-400">
-                        {app.course?.university?.name ?? 'University'} · {app.course?.university?.country ?? ''}
+                        {app.course?.university?.name ?? 'University'} ·{' '}
+                        {app.course?.university?.country ?? ''}
                       </p>
                     </div>
                     <StatusPill label={status.label} config={status} />
@@ -84,9 +91,9 @@ export function ApplicationsPanel({ applications, index = 0 }: Props) {
                       Step {step}/{total}
                     </span>
                   </div>
-                  {app.counselorNotes && (
+                  {cleanCounselorNotes(app.counselorNotes) && (
                     <p className="mt-3 line-clamp-2 rounded-lg bg-gray-50 px-3 py-2 text-[11px] leading-relaxed text-gray-600 dark:bg-gray-800/60 dark:text-gray-300">
-                      {app.counselorNotes}
+                      {cleanCounselorNotes(app.counselorNotes)}
                     </p>
                   )}
                 </Link>

@@ -36,7 +36,7 @@ export function UpcomingSessionsCard({ sessions = [], counselor }: Props) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
                 Upcoming Sessions
               </h3>
               {sessions.length > 0 && (

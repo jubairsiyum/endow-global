@@ -38,7 +38,7 @@ function WidgetHeader({
       <div>
         <div className="flex items-center gap-2">
           <Icon size={18} className="text-rose-600 dark:text-rose-300" aria-hidden />
-          <h2 className="text-base font-semibold tracking-tight text-gray-900 dark:text-white">
+          <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl">
             {title}
           </h2>
         </div>

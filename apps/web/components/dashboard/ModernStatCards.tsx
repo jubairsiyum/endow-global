@@ -42,7 +42,7 @@ export function ModernStatCards({ stats }: StatProps) {
               <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/50 dark:text-rose-300">
                 <FileText size={16} />
               </div>
-              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+              <span className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-white">
                 Active Applications
               </span>
             </div>
@@ -93,7 +93,7 @@ export function ModernStatCards({ stats }: StatProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
               <BookOpen size={16} />
             </div>
-            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <span className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-white">
               Shortlisted Courses
             </span>
           </div>
@@ -129,7 +129,7 @@ export function ModernStatCards({ stats }: StatProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
               <FileCheck2 size={16} />
             </div>
-            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <span className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-white">
               Completed Documents
             </span>
           </div>
@@ -168,7 +168,7 @@ export function ModernStatCards({ stats }: StatProps) {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300">
               <CalendarClock size={16} />
             </div>
-            <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            <span className="text-[15px] sm:text-base font-bold text-slate-900 dark:text-white">
               Upcoming Deadlines
             </span>
           </div>

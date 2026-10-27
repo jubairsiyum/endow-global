@@ -60,6 +60,41 @@ function getCurvedPath(points: { x: number; y: number }[]): string {
   return path
 }
 
+// Format stoppage text into primary and secondary parts so they stack cleanly and never overlap
+function parseMetricLabel(label: string): { primary: string; secondary?: string } {
+  const parenMatch = label.match(/^(.*?)\s*(\(.*?\))$/)
+  if (parenMatch) {
+    return {
+      primary: parenMatch[1].trim(),
+      secondary: parenMatch[2].trim(),
+    }
+  }
+
+  const commonSuffixes = ['GPA', 'CGPA', 'Score', 'Band', 'Readiness', 'Level', 'Result']
+  for (const suf of commonSuffixes) {
+    if (label.endsWith(` ${suf}`)) {
+      return {
+        primary: label.slice(0, -(suf.length + 1)).trim(),
+        secondary: suf,
+      }
+    }
+  }
+
+  if (label === 'Readiness') {
+    return { primary: 'Profile', secondary: 'Readiness' }
+  }
+
+  if (label.length > 12 && label.includes(' ')) {
+    const lastSpace = label.lastIndexOf(' ')
+    return {
+      primary: label.slice(0, lastSpace).trim(),
+      secondary: label.slice(lastSpace + 1).trim(),
+    }
+  }
+
+  return { primary: label }
+}
+
 export function AcademicCurvedChart({ profile }: Props) {
   const chartId = useId()
   const [activeTab, setActiveTab] = useState<'all' | 'academic' | 'language'>('all')
@@ -121,7 +156,7 @@ export function AcademicCurvedChart({ profile }: Props) {
     return (
       <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-[#12141c]">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
             Academic Eligibility
           </h3>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
@@ -376,13 +411,13 @@ export function AcademicCurvedChart({ profile }: Props) {
       ? allMetrics
       : allMetrics.filter((m) => m.category === activeTab)
 
-  // SVG dimensions
-  const svgWidth = 660
-  const svgHeight = 220
-  const padLeft = 45
-  const padRight = 45
-  const padTop = 25
-  const padBottom = 38
+  // SVG dimensions - tall and spacious layout with prominent 0-100% axis
+  const svgWidth = Math.max(760, metrics.length * 115)
+  const svgHeight = 350
+  const padLeft = 72
+  const padRight = 55
+  const padTop = 32
+  const padBottom = 76
 
   const graphWidth = svgWidth - padLeft - padRight
   const graphHeight = svgHeight - padTop - padBottom
@@ -420,7 +455,7 @@ export function AcademicCurvedChart({ profile }: Props) {
       {/* Header */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
             Academic Eligibility
           </h3>
           <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
@@ -481,184 +516,267 @@ export function AcademicCurvedChart({ profile }: Props) {
         )}
       </div>
 
-      {/* Main Curved Line Chart Area */}
-      <div className="relative my-3 flex-1">
-        {/* Tooltip */}
-        {activePoint && (
-          <div
-            className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-full rounded-xl bg-slate-900/95 px-3 py-2 text-white shadow-xl backdrop-blur-xs transition-opacity dark:bg-white dark:text-slate-900"
-            style={{
-              left: `${(activePoint.x / svgWidth) * 100}%`,
-              top: `${Math.max((activePoint.y / svgHeight) * 100 - 12, 10)}%`,
-            }}
-          >
-            <div className="flex items-center gap-1.5 text-xs font-bold">
-              <span className="text-rose-400">★</span>
-              <span>
-                {activePoint.metric.label}: {activePoint.metric.myRaw}
-              </span>
-            </div>
-            <div className="mt-0.5 flex items-center justify-between gap-3 text-[10px] text-slate-300 dark:text-slate-600">
-              <span>Required: {activePoint.metric.reqRaw}</span>
-              <span
-                className={`font-bold ${
-                  activePoint.metric.diffPct >= 0
-                    ? 'text-emerald-400 dark:text-emerald-600'
-                    : 'text-amber-400 dark:text-amber-600'
-                }`}
-              >
-                {activePoint.metric.diffPct >= 0
-                  ? `+${activePoint.metric.diffPct}% Above`
-                  : `${activePoint.metric.diffPct}% Below`}
-              </span>
-            </div>
-            <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-slate-900 dark:border-t-white" />
-          </div>
-        )}
-
-        <svg
-          viewBox={`0 0 ${svgWidth} ${svgHeight}`}
-          className="h-52 w-full select-none overflow-visible sm:h-56"
+      {/* Main Curved Line Chart Area - Centered in middle of card, wider and zero overlap */}
+      <div className="relative my-auto flex flex-1 flex-col items-center justify-center py-2 sm:py-3 w-full overflow-x-auto sm:overflow-visible">
+        <div
+          className="relative mx-auto w-full max-w-full"
+          style={{ minWidth: metrics.length >= 6 ? '640px' : '100%' }}
         >
-          <defs>
-            <linearGradient id={`grad-my-score-${chartId}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#E11D48" stopOpacity="0.25" />
-              <stop offset="80%" stopColor="#E11D48" stopOpacity="0.03" />
-              <stop offset="100%" stopColor="#E11D48" stopOpacity="0" />
-            </linearGradient>
+          {/* Tooltip positioned relative to data point */}
+          {activePoint && (() => {
+            const xPct = (activePoint.x / svgWidth) * 100
+            const yPct = (activePoint.y / svgHeight) * 100
+            const isLeftEdge = xPct < 15
+            const isRightEdge = xPct > 85
+            const transformX = isLeftEdge ? '-15%' : isRightEdge ? '-85%' : '-50%'
+            const arrowLeft = isLeftEdge ? '15%' : isRightEdge ? '85%' : '50%'
 
-            <filter id={`glow-${chartId}`} x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#E11D48" floodOpacity="0.25" />
-            </filter>
-          </defs>
-
-          {/* Grid lines */}
-          {[100, 75, 50, 25, 0].map((val) => {
-            const y = padTop + graphHeight - (val / 100) * graphHeight
             return (
-              <g key={val}>
-                <line
-                  x1={padLeft}
-                  y1={y}
-                  x2={svgWidth - padRight}
-                  y2={y}
-                  stroke="currentColor"
-                  strokeDasharray="4 4"
-                  className="text-slate-100 dark:text-slate-800/80"
-                  strokeWidth="1"
-                />
-                <text
-                  x={padLeft - 10}
-                  y={y + 3}
-                  textAnchor="end"
-                  className="fill-slate-400 text-[10px] font-semibold dark:fill-slate-500"
-                >
-                  {val === 100 ? '100%' : val === 75 ? '75%' : val === 50 ? '50%' : val === 25 ? '25%' : '0%'}
-                </text>
-              </g>
-            )
-          })}
-
-          {/* Area Fill */}
-          {myAreaPath && <path d={myAreaPath} fill={`url(#grad-my-score-${chartId})`} />}
-
-          {/* Requirement Curve */}
-          {reqPoints.length > 1 && (
-            <path
-              d={reqLinePath}
-              fill="none"
-              stroke="#10B981"
-              strokeWidth="2.5"
-              strokeDasharray="5 4"
-            />
-          )}
-
-          {/* My Score Curve */}
-          {myPoints.length > 1 && (
-            <path
-              d={myLinePath}
-              fill="none"
-              stroke="#E11D48"
-              strokeWidth="3.5"
-              strokeLinecap="round"
-              filter={`url(#glow-${chartId})`}
-            />
-          )}
-
-          {/* Vertical tracking line on hover */}
-          {activePoint && (
-            <line
-              x1={activePoint.x}
-              y1={padTop}
-              x2={activePoint.x}
-              y2={padTop + graphHeight}
-              stroke="#E11D48"
-              strokeWidth="1.5"
-              strokeDasharray="3 3"
-              className="opacity-70 pointer-events-none"
-            />
-          )}
-
-          {/* Requirement Data Points */}
-          {reqPoints.map((pt) => (
-            <circle
-              key={`req-pt-${pt.metric.id}`}
-              cx={pt.x}
-              cy={pt.y}
-              r="3.5"
-              fill="#FFFFFF"
-              stroke="#10B981"
-              strokeWidth="2"
-            />
-          ))}
-
-          {/* My Score Data Points */}
-          {myPoints.map((pt, idx) => {
-            const isHovered = hoveredIdx === idx
-            return (
-              <g
-                key={`my-pt-${pt.metric.id}`}
-                className="cursor-pointer"
-                onMouseEnter={() => setHoveredIdx(idx)}
-                onMouseLeave={() => setHoveredIdx(null)}
+              <div
+                className="pointer-events-none absolute z-30 rounded-xl bg-slate-900/95 px-3 py-2 text-white shadow-xl backdrop-blur-xs transition-all duration-150 dark:bg-white dark:text-slate-900 whitespace-nowrap"
+                style={{
+                  left: `${xPct}%`,
+                  top: `${yPct}%`,
+                  transform: `translate(${transformX}, -120%)`,
+                }}
               >
-                <circle cx={pt.x} cy={pt.y} r="22" fill="transparent" />
+                <div className="flex items-center gap-1.5 text-sm font-bold">
+                  <span className="text-rose-400">★</span>
+                  <span>
+                    {activePoint.metric.label}: {activePoint.metric.myRaw}
+                  </span>
+                </div>
+                <div className="mt-1 flex items-center justify-between gap-3.5 text-xs text-slate-300 dark:text-slate-600">
+                  <span>Required: {activePoint.metric.reqRaw}</span>
+                  <span
+                    className={`font-bold ${
+                      activePoint.metric.diffPct >= 0
+                        ? 'text-emerald-400 dark:text-emerald-600'
+                        : 'text-amber-400 dark:text-amber-600'
+                    }`}
+                  >
+                    {activePoint.metric.diffPct >= 0
+                      ? `+${activePoint.metric.diffPct}% Above`
+                      : `${activePoint.metric.diffPct}% Below`}
+                  </span>
+                </div>
+                <div
+                  className="absolute top-full border-4 border-transparent border-t-slate-900 dark:border-t-white"
+                  style={{ left: arrowLeft, transform: 'translateX(-50%)' }}
+                />
+              </div>
+            )
+          })()}
 
-                {isHovered && (
+          <svg
+            viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+            className="w-full h-auto max-h-[380px] select-none overflow-visible"
+            preserveAspectRatio="xMidYMid meet"
+          >
+            <defs>
+              <linearGradient id={`grad-my-score-${chartId}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#E11D48" stopOpacity="0.25" />
+                <stop offset="80%" stopColor="#E11D48" stopOpacity="0.03" />
+                <stop offset="100%" stopColor="#E11D48" stopOpacity="0" />
+              </linearGradient>
+
+              <filter id={`glow-${chartId}`} x="-20%" y="-20%" width="140%" height="140%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="#E11D48" floodOpacity="0.25" />
+              </filter>
+            </defs>
+
+            {/* Grid lines */}
+            {[100, 75, 50, 25, 0].map((val) => {
+              const y = padTop + graphHeight - (val / 100) * graphHeight
+              return (
+                <g key={val}>
+                  <line
+                    x1={padLeft}
+                    y1={y}
+                    x2={svgWidth - padRight}
+                    y2={y}
+                    stroke="currentColor"
+                    strokeDasharray="4 4"
+                    className="text-slate-100 dark:text-slate-800/80"
+                    strokeWidth="1"
+                  />
+                  <text
+                    x={padLeft - 14}
+                    y={y + 5}
+                    textAnchor="end"
+                    fontSize="15"
+                    className="fill-slate-600 font-extrabold dark:fill-slate-300 select-none"
+                  >
+                    {val === 100 ? '100%' : val === 75 ? '75%' : val === 50 ? '50%' : val === 25 ? '25%' : '0%'}
+                  </text>
+                </g>
+              )
+            })}
+
+            {/* Area Fill */}
+            {myAreaPath && <path d={myAreaPath} fill={`url(#grad-my-score-${chartId})`} />}
+
+            {/* Requirement Curve */}
+            {reqPoints.length > 1 && (
+              <path
+                d={reqLinePath}
+                fill="none"
+                stroke="#10B981"
+                strokeWidth="2.5"
+                strokeDasharray="5 4"
+              />
+            )}
+
+            {/* My Score Curve */}
+            {myPoints.length > 1 && (
+              <path
+                d={myLinePath}
+                fill="none"
+                stroke="#E11D48"
+                strokeWidth="3.5"
+                strokeLinecap="round"
+                filter={`url(#glow-${chartId})`}
+              />
+            )}
+
+            {/* Vertical tracking line on hover - connects curve to stoppage tick */}
+            {activePoint && (
+              <line
+                x1={activePoint.x}
+                y1={padTop}
+                x2={activePoint.x}
+                y2={padTop + graphHeight + 9}
+                stroke="#E11D48"
+                strokeWidth="2"
+                strokeDasharray="4 4"
+                className="opacity-80 pointer-events-none"
+              />
+            )}
+
+            {/* Requirement Data Points */}
+            {reqPoints.map((pt) => (
+              <circle
+                key={`req-pt-${pt.metric.id}`}
+                cx={pt.x}
+                cy={pt.y}
+                r="3.5"
+                fill="#FFFFFF"
+                stroke="#10B981"
+                strokeWidth="2"
+              />
+            ))}
+
+            {/* My Score Data Points & Full Stoppage Hit Area */}
+            {myPoints.map((pt, idx) => {
+              const isHovered = hoveredIdx === idx
+              const { primary, secondary } = parseMetricLabel(pt.metric.label)
+              return (
+                <g
+                  key={`my-pt-${pt.metric.id}`}
+                  className="cursor-pointer"
+                  onMouseEnter={() => setHoveredIdx(idx)}
+                  onMouseLeave={() => setHoveredIdx(null)}
+                >
+                  {/* Transparent hit area 1: Top circle area */}
+                  <circle cx={pt.x} cy={pt.y} r="28" fill="transparent" />
+
+                  {/* Transparent hit area 2: Full stoppage column down through text */}
+                  <rect
+                    x={pt.x - 52}
+                    y={padTop}
+                    width="104"
+                    height={graphHeight + padBottom}
+                    fill="transparent"
+                  />
+
+                  {/* Soft highlight pill behind stoppage text when hovered */}
+                  {isHovered && (
+                    <rect
+                      x={pt.x - 52}
+                      y={padTop + graphHeight + 8}
+                      width="104"
+                      height="54"
+                      rx="8"
+                      fill="#E11D48"
+                      fillOpacity="0.08"
+                      stroke="#E11D48"
+                      strokeOpacity="0.25"
+                      strokeWidth="1"
+                      className="pointer-events-none"
+                    />
+                  )}
+
+                  {/* Glowing halo on hover */}
+                  {isHovered && (
+                    <circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r="14"
+                      fill="#E11D48"
+                      fillOpacity="0.22"
+                    />
+                  )}
+
+                  {/* Data point circle */}
                   <circle
                     cx={pt.x}
                     cy={pt.y}
-                    r="10"
-                    fill="#E11D48"
-                    fillOpacity="0.2"
+                    r={isHovered ? '7' : '5'}
+                    fill="#FFFFFF"
+                    stroke="#E11D48"
+                    strokeWidth={isHovered ? '4' : '2.5'}
                   />
-                )}
 
-                <circle
-                  cx={pt.x}
-                  cy={pt.y}
-                  r={isHovered ? '6' : '4.5'}
-                  fill="#FFFFFF"
-                  stroke="#E11D48"
-                  strokeWidth={isHovered ? '3.5' : '2.5'}
-                />
+                  {/* Stoppage tick mark */}
+                  <line
+                    x1={pt.x}
+                    y1={padTop + graphHeight}
+                    x2={pt.x}
+                    y2={padTop + graphHeight + (isHovered ? 9 : 7)}
+                    stroke={isHovered ? '#E11D48' : '#CBD5E1'}
+                    strokeWidth={isHovered ? '2.5' : '1.5'}
+                    className="transition-colors dark:stroke-slate-700"
+                  />
 
-                <text
-                  x={pt.x}
-                  y={padTop + graphHeight + 20}
-                  textAnchor="middle"
-                  className={`text-[11px] font-semibold transition-colors pointer-events-none ${
-                    isHovered
-                      ? 'fill-rose-600 font-bold dark:fill-rose-400'
-                      : 'fill-slate-500 dark:fill-slate-400'
-                  }`}
-                >
-                  {pt.metric.label}
-                </text>
-              </g>
-            )
-          })}
-        </svg>
+                  {/* Stoppage text labels (large, bold, and hover interactive) */}
+                  <text
+                    x={pt.x}
+                    y={padTop + graphHeight + 26}
+                    textAnchor="middle"
+                    className="select-none transition-colors"
+                  >
+                    <tspan
+                      x={pt.x}
+                      dy="0"
+                      fontSize="15"
+                      className={`font-black tracking-tight transition-colors ${
+                        isHovered
+                          ? 'fill-rose-600 dark:fill-rose-400'
+                          : 'fill-slate-800 dark:fill-slate-100'
+                      }`}
+                    >
+                      {primary}
+                    </tspan>
+                    {secondary && (
+                      <tspan
+                        x={pt.x}
+                        dy="19"
+                        fontSize="12.5"
+                        className={`font-bold transition-colors ${
+                          isHovered
+                            ? 'fill-rose-500 dark:fill-rose-300'
+                            : 'fill-slate-500 dark:fill-slate-400'
+                        }`}
+                      >
+                        {secondary}
+                      </tspan>
+                    )}
+                  </text>
+                </g>
+              )
+            })}
+          </svg>
+        </div>
       </div>
 
       {/* Bottom Legend & Eligibility Confirmation */}

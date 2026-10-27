@@ -169,3 +169,14 @@ export function absoluteUrl(path: string): string {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.BETTER_AUTH_URL || 'http://localhost:3000'
   return new URL(path, baseUrl).toString()
 }
+
+export function cleanCounselorNotes(notes?: string | null): string | null {
+  if (!notes) return null
+  const cleaned = notes
+    .replace(/__inq_[a-zA-Z0-9-]+/g, '')
+    .split('|')
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(' | ')
+  return cleaned || null
+}
