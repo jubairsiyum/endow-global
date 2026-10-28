@@ -981,176 +981,181 @@ export default function AdminCampaignPage() {
 
       {/* LEAD DETAILS MODAL */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm print:hidden">
-          <div className="relative w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#18181b]">
-            <button
-              type="button"
-              onClick={() => setSelectedLead(null)}
-              className="absolute right-5 top-5 rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/[0.08] dark:hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <div className="mb-4 flex items-center gap-3">
-              <div className="bg-primary/10 border-primary/20 text-primary flex h-10 w-10 items-center justify-center rounded-2xl border text-lg font-bold">
-                {selectedLead.name ? selectedLead.name.charAt(0).toUpperCase() : '?'}
-              </div>
-              <div>
-                <h3 className="text-base font-bold leading-tight text-gray-900 dark:text-white">
-                  {selectedLead.name || 'Unnamed Lead'}
-                </h3>
-                <span className="font-mono text-xs text-gray-400">ID: {selectedLead.id}</span>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                <div>
-                  <span className="block font-mono text-[10px] uppercase text-gray-400">Email</span>
-                  <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className="truncate font-semibold text-gray-800 dark:text-gray-200">
-                      {selectedLead.email || 'None'}
-                    </span>
-                    {selectedLead.email && (
-                      <button
-                        type="button"
-                        onClick={() => handleCopy(selectedLead.email, 'email')}
-                        className="hover:text-primary text-gray-400"
-                        title="Copy email"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm print:hidden">
+          <div className="flex min-h-full items-center justify-center p-3 py-6 sm:p-4 sm:py-8">
+            <div className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#18181b] sm:max-h-[calc(100dvh-4rem)]">
+              <div className="flex shrink-0 items-start gap-3 border-b border-gray-100 p-5 pr-12 dark:border-white/[0.06] sm:p-6 sm:pr-14">
+                <div className="bg-primary/10 border-primary/20 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-lg font-bold">
+                  {selectedLead.name ? selectedLead.name.charAt(0).toUpperCase() : '?'}
                 </div>
-
-                <div>
-                  <span className="block font-mono text-[10px] uppercase text-gray-400">Phone</span>
-                  <div className="mt-0.5 flex items-center gap-1.5">
-                    <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">
-                      {selectedLead.phone || 'None'}
-                    </span>
-                    {selectedLead.phone && (
-                      <button
-                        type="button"
-                        onClick={() => handleCopy(selectedLead.phone, 'phone')}
-                        className="hover:text-primary text-gray-400"
-                        title="Copy phone"
-                      >
-                        <Copy className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                <div>
-                  <span className="block font-mono text-[10px] uppercase text-gray-400">
-                    Target Country
-                  </span>
-                  <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
-                    {selectedLead.interestedCountry || 'Not Selected'}
-                  </span>
-                </div>
-                <div>
-                  <span className="block font-mono text-[10px] uppercase text-gray-400">
-                    Degree Program
-                  </span>
-                  <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
-                    {selectedLead.interestedProgram || 'Not Selected'}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <span className="block font-mono text-[10px] uppercase text-gray-400">
-                    Intake Year
-                  </span>
-                  <span className="mt-0.5 block font-mono font-semibold text-gray-800 dark:text-gray-200">
-                    {selectedLead.intakeYear || 'Not Selected'}
-                  </span>
-                </div>
-                <div className="mt-2">
-                  <span className="block font-mono text-[10px] uppercase text-gray-400">
-                    Progress Level
-                  </span>
-                  <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
-                    Step {selectedLead.completedStep} of 6 ({selectedLead.status})
+                <div className="min-w-0 pt-0.5">
+                  <h3 className="truncate text-base font-bold leading-tight text-gray-900 dark:text-white">
+                    {selectedLead.name || 'Unnamed Lead'}
+                  </h3>
+                  <span className="mt-0.5 block truncate font-mono text-xs text-gray-400">
+                    ID: {selectedLead.id}
                   </span>
                 </div>
               </div>
 
-              {selectedLead.reason && (
-                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                  <span className="mb-1 block font-mono text-[10px] uppercase text-gray-400">
-                    Why they want to go / Personal Note
-                  </span>
-                  <p className="italic leading-relaxed text-gray-700 dark:text-gray-300">
-                    "{selectedLead.reason}"
-                  </p>
-                </div>
-              )}
-
-              {/* Technical / Campaign Metadata */}
-              <div className="space-y-1 rounded-2xl border border-gray-100 bg-gray-50 p-3 font-mono text-[11px] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02]">
-                <div className="flex justify-between">
-                  <span>Source:</span>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    {selectedLead.utmSource || 'qr-campaign'}
-                  </span>
-                </div>
-                {selectedLead.utmCampaign && (
-                  <div className="flex justify-between">
-                    <span>UTM Campaign:</span>
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {selectedLead.utmCampaign}
-                    </span>
-                  </div>
-                )}
-                {selectedLead.ipAddress && (
-                  <div className="flex justify-between">
-                    <span>IP Address:</span>
-                    <span className="text-gray-700 dark:text-gray-300">
-                      {selectedLead.ipAddress}
-                    </span>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <span>Created:</span>
-                  <span className="text-gray-700 dark:text-gray-300">
-                    {selectedLead.createdAt
-                      ? new Date(selectedLead.createdAt).toLocaleString()
-                      : ''}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {copiedField && (
-              <div className="mt-2 text-center text-xs font-medium text-green-600">
-                Copied {copiedField} to clipboard!
-              </div>
-            )}
-
-            {/* Quick Action Footer */}
-            <div className="mt-5 flex items-center justify-end gap-2 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
-              {selectedLead.phone && (
-                <a
-                  href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                  <span>WhatsApp</span>
-                </a>
-              )}
               <button
                 type="button"
                 onClick={() => setSelectedLead(null)}
-                className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-300 dark:hover:bg-white/10"
+                aria-label="Close"
+                className="absolute right-4 top-4 rounded-xl p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/[0.08] dark:hover:text-white sm:right-5 sm:top-5"
               >
-                Close
+                <X className="h-4 w-4" />
               </button>
+
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-5 pt-4 text-xs sm:p-6 sm:pt-5">
+                <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                  <div>
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">Email</span>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className="truncate font-semibold text-gray-800 dark:text-gray-200">
+                        {selectedLead.email || 'None'}
+                      </span>
+                      {selectedLead.email && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(selectedLead.email, 'email')}
+                          className="hover:text-primary text-gray-400"
+                          title="Copy email"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">Phone</span>
+                    <div className="mt-0.5 flex items-center gap-1.5">
+                      <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">
+                        {selectedLead.phone || 'None'}
+                      </span>
+                      {selectedLead.phone && (
+                        <button
+                          type="button"
+                          onClick={() => handleCopy(selectedLead.phone, 'phone')}
+                          className="hover:text-primary text-gray-400"
+                          title="Copy phone"
+                        >
+                          <Copy className="h-3 w-3" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                  <div>
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">
+                      Target Country
+                    </span>
+                    <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
+                      {selectedLead.interestedCountry || 'Not Selected'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">
+                      Degree Program
+                    </span>
+                    <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
+                      {selectedLead.interestedProgram || 'Not Selected'}
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">
+                      Intake Year
+                    </span>
+                    <span className="mt-0.5 block font-mono font-semibold text-gray-800 dark:text-gray-200">
+                      {selectedLead.intakeYear || 'Not Selected'}
+                    </span>
+                  </div>
+                  <div className="mt-2">
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">
+                      Progress Level
+                    </span>
+                    <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
+                      Step {selectedLead.completedStep} of 6 ({selectedLead.status})
+                    </span>
+                  </div>
+                </div>
+
+                {selectedLead.reason && (
+                  <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                    <span className="mb-1 block font-mono text-[10px] uppercase text-gray-400">
+                      Why they want to go / Personal Note
+                    </span>
+                    <p className="italic leading-relaxed text-gray-700 dark:text-gray-300">
+                      "{selectedLead.reason}"
+                    </p>
+                  </div>
+                )}
+
+                {/* Technical / Campaign Metadata */}
+                <div className="space-y-1 rounded-2xl border border-gray-100 bg-gray-50 p-3 font-mono text-[11px] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                  <div className="flex justify-between">
+                    <span>Source:</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {selectedLead.utmSource || 'qr-campaign'}
+                    </span>
+                  </div>
+                  {selectedLead.utmCampaign && (
+                    <div className="flex justify-between">
+                      <span>UTM Campaign:</span>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {selectedLead.utmCampaign}
+                      </span>
+                    </div>
+                  )}
+                  {selectedLead.ipAddress && (
+                    <div className="flex justify-between">
+                      <span>IP Address:</span>
+                      <span className="text-gray-700 dark:text-gray-300">
+                        {selectedLead.ipAddress}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex justify-between">
+                    <span>Created:</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {selectedLead.createdAt
+                        ? new Date(selectedLead.createdAt).toLocaleString()
+                        : ''}
+                    </span>
+                  </div>
+                </div>
+
+              {copiedField && (
+                <div className="mt-2 text-center text-xs font-medium text-green-600">
+                  Copied {copiedField} to clipboard!
+                </div>
+              )}
+              </div>
+
+              {/* Quick Action Footer */}
+              <div className="flex shrink-0 items-center justify-end gap-2 border-t border-gray-100 px-5 py-3.5 dark:border-white/[0.06] sm:px-6">
+                {selectedLead.phone && (
+                  <a
+                    href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    <span>WhatsApp</span>
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setSelectedLead(null)}
+                  className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-300 dark:hover:bg-white/10"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1158,195 +1163,204 @@ export default function AdminCampaignPage() {
 
       {/* MANUAL LEAD CREATION MODAL */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm print:hidden">
-          <div className="relative w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#18181b]">
-            <button
-              type="button"
-              onClick={() => setIsManualModalOpen(false)}
-              className="absolute right-5 top-5 rounded-xl p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
-
-            <h3 className="mb-4 text-base font-bold text-gray-900 dark:text-white">
-              Add Campaign Lead Manually
-            </h3>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                createMutation.mutate(manualForm)
-              }}
-              className="space-y-3 text-xs"
-            >
-              <div>
-                <label className="mb-1 block font-medium text-gray-500">Candidate Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={manualForm.name}
-                  onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
-                  placeholder="Full name"
-                  className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
-                />
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm print:hidden">
+          <div className="flex min-h-full items-center justify-center p-3 py-6 sm:p-4 sm:py-8">
+            <div className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-md flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#18181b] sm:max-h-[calc(100dvh-4rem)]">
+              <div className="shrink-0 border-b border-gray-100 px-5 py-4 pr-12 dark:border-white/[0.06] sm:px-6 sm:pr-14">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  Add Campaign Lead Manually
+                </h3>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="mb-1 block font-medium text-gray-500">Email</label>
-                  <input
-                    type="email"
-                    value={manualForm.email}
-                    onChange={(e) => setManualForm({ ...manualForm, email: e.target.value })}
-                    placeholder="email@example.com"
-                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block font-medium text-gray-500">Phone</label>
-                  <input
-                    type="tel"
-                    value={manualForm.phone}
-                    onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
-                    placeholder="+880..."
-                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
-                  />
-                </div>
-              </div>
+              <button
+                type="button"
+                onClick={() => setIsManualModalOpen(false)}
+                aria-label="Close"
+                className="absolute right-4 top-4 rounded-xl p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/[0.08] dark:hover:text-white sm:right-5 sm:top-5"
+              >
+                <X className="h-4 w-4" />
+              </button>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="mb-1 block font-medium text-gray-500">Interested Country</label>
-                  <select
-                    value={manualForm.interestedCountry}
-                    onChange={(e) =>
-                      setManualForm({ ...manualForm, interestedCountry: e.target.value })
-                    }
-                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  createMutation.mutate(manualForm)
+                }}
+                className="flex min-h-0 flex-1 flex-col"
+              >
+                <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-5 py-4 text-xs sm:px-6">
+                  <div>
+                    <label className="mb-1 block font-medium text-gray-500">Candidate Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={manualForm.name}
+                      onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
+                      placeholder="Full name"
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="mb-1 block font-medium text-gray-500">Email</label>
+                      <input
+                        type="email"
+                        value={manualForm.email}
+                        onChange={(e) => setManualForm({ ...manualForm, email: e.target.value })}
+                        placeholder="email@example.com"
+                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block font-medium text-gray-500">Phone</label>
+                      <input
+                        type="tel"
+                        value={manualForm.phone}
+                        onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
+                        placeholder="+880..."
+                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="mb-1 block font-medium text-gray-500">Interested Country</label>
+                      <select
+                        value={manualForm.interestedCountry}
+                        onChange={(e) =>
+                          setManualForm({ ...manualForm, interestedCountry: e.target.value })
+                        }
+                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      >
+                        <option value="South Korea">South Korea</option>
+                        <option value="United States">United States</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                        <option value="Canada">Canada</option>
+                        <option value="Australia">Australia</option>
+                        <option value="Germany">Germany</option>
+                        <option value="Japan">Japan</option>
+                        <option value="Malaysia">Malaysia</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block font-medium text-gray-500">Program Level</label>
+                      <select
+                        value={manualForm.interestedProgram}
+                        onChange={(e) =>
+                          setManualForm({ ...manualForm, interestedProgram: e.target.value })
+                        }
+                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      >
+                        <option value="Bachelor's Degree">Bachelor's Degree</option>
+                        <option value="Master's Degree">Master's Degree</option>
+                        <option value="PhD / Doctorate">PhD / Doctorate</option>
+                        <option value="Diploma / Vocational">Diploma / Vocational</option>
+                        <option value="Language Course">Language Course</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="mb-1 block font-medium text-gray-500">Intake Year</label>
+                      <select
+                        value={manualForm.intakeYear}
+                        onChange={(e) => setManualForm({ ...manualForm, intakeYear: e.target.value })}
+                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      >
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029 or Later">2029 or Later</option>
+                        <option value="Flexible">Flexible</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block font-medium text-gray-500">Status</label>
+                      <select
+                        value={manualForm.status}
+                        onChange={(e) =>
+                          setManualForm({ ...manualForm, status: e.target.value as any })
+                        }
+                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      >
+                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="CONTACTED">CONTACTED</option>
+                        <option value="CONVERTED">CONVERTED</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block font-medium text-gray-500">
+                      Counselor Notes / Reason
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={manualForm.reason}
+                      onChange={(e) => setManualForm({ ...manualForm, reason: e.target.value })}
+                      placeholder="Notes from walk-in or telephone conversation..."
+                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 items-center justify-end gap-2 border-t border-gray-100 px-5 py-3.5 dark:border-white/[0.06] sm:px-6">
+                  <button
+                    type="button"
+                    onClick={() => setIsManualModalOpen(false)}
+                    className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 dark:bg-white/[0.05] dark:text-gray-300"
                   >
-                    <option value="South Korea">South Korea</option>
-                    <option value="United States">United States</option>
-                    <option value="United Kingdom">United Kingdom</option>
-                    <option value="Canada">Canada</option>
-                    <option value="Australia">Australia</option>
-                    <option value="Germany">Germany</option>
-                    <option value="Japan">Japan</option>
-                    <option value="Malaysia">Malaysia</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block font-medium text-gray-500">Program Level</label>
-                  <select
-                    value={manualForm.interestedProgram}
-                    onChange={(e) =>
-                      setManualForm({ ...manualForm, interestedProgram: e.target.value })
-                    }
-                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={createMutation.isPending}
+                    className="rounded-xl bg-[#AD0819] px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#8F0614] disabled:opacity-50"
                   >
-                    <option value="Bachelor's Degree">Bachelor's Degree</option>
-                    <option value="Master's Degree">Master's Degree</option>
-                    <option value="PhD / Doctorate">PhD / Doctorate</option>
-                    <option value="Diploma / Vocational">Diploma / Vocational</option>
-                    <option value="Language Course">Language Course</option>
-                  </select>
+                    {createMutation.isPending ? 'Saving...' : 'Add Lead'}
+                  </button>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="mb-1 block font-medium text-gray-500">Intake Year</label>
-                  <select
-                    value={manualForm.intakeYear}
-                    onChange={(e) => setManualForm({ ...manualForm, intakeYear: e.target.value })}
-                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
-                  >
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                    <option value="2028">2028</option>
-                    <option value="2029 or Later">2029 or Later</option>
-                    <option value="Flexible">Flexible</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="mb-1 block font-medium text-gray-500">Status</label>
-                  <select
-                    value={manualForm.status}
-                    onChange={(e) =>
-                      setManualForm({ ...manualForm, status: e.target.value as any })
-                    }
-                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
-                  >
-                    <option value="COMPLETED">COMPLETED</option>
-                    <option value="CONTACTED">CONTACTED</option>
-                    <option value="CONVERTED">CONVERTED</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-1 block font-medium text-gray-500">
-                  Counselor Notes / Reason
-                </label>
-                <textarea
-                  rows={2}
-                  value={manualForm.reason}
-                  onChange={(e) => setManualForm({ ...manualForm, reason: e.target.value })}
-                  placeholder="Notes from walk-in or telephone conversation..."
-                  className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 outline-none dark:border-white/10 dark:bg-white/[0.04]"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsManualModalOpen(false)}
-                  className="rounded-xl bg-gray-100 px-4 py-2 font-medium text-gray-700 dark:bg-white/[0.05] dark:text-gray-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  className="rounded-xl bg-[#AD0819] px-4 py-2 font-semibold text-white shadow-sm transition-all hover:bg-[#8F0614] disabled:opacity-50"
-                >
-                  {createMutation.isPending ? 'Saving...' : 'Add Lead'}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
 
       {/* DELETE CONFIRMATION MODAL */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm print:hidden">
-          <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 text-center shadow-2xl dark:border-white/10 dark:bg-[#18181b]">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/40">
-              <AlertTriangle className="h-6 w-6" />
-            </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">
-              Delete Lead Record?
-            </h3>
-            <p className="mt-1 text-xs text-gray-500">
-              Are you sure you want to delete this lead? This action cannot be reversed.
-            </p>
-            <div className="mt-5 flex justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => setDeleteId(null)}
-                className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 dark:bg-white/[0.05] dark:text-gray-300"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteMutation.mutate({ id: deleteId })}
-                disabled={deleteMutation.isPending}
-                className="rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
-              >
-                {deleteMutation.isPending ? 'Deleting...' : 'Delete Permanently'}
-              </button>
+        <div className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm print:hidden">
+          <div className="flex min-h-full items-center justify-center p-3 py-6 sm:p-4 sm:py-8">
+            <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-5 text-center shadow-2xl dark:border-white/10 dark:bg-[#18181b] sm:p-6">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/40">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                Delete Lead Record?
+              </h3>
+              <p className="mt-1 text-xs text-gray-500">
+                Are you sure you want to delete this lead? This action cannot be reversed.
+              </p>
+              <div className="mt-5 flex justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteId(null)}
+                  className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 dark:bg-white/[0.05] dark:text-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteMutation.mutate({ id: deleteId })}
+                  disabled={deleteMutation.isPending}
+                  className="rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+                >
+                  {deleteMutation.isPending ? 'Deleting...' : 'Delete Permanently'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
