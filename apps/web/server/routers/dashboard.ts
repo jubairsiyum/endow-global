@@ -2,6 +2,7 @@ import { createBooking } from '@/lib/booking'
 import {
   applicantLevelFromEducation,
   DOCUMENT_REQUIREMENTS,
+  getRequiredDocuments,
   requirementKey,
   type ApplicantLevel,
 } from '@/lib/documents'
@@ -136,6 +137,10 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
       id: schema.studentProfiles.id,
       userId: schema.studentProfiles.userId,
       highestEducation: schema.studentProfiles.highestEducation,
+      ieltsScore: schema.studentProfiles.ieltsScore,
+      toeflScore: schema.studentProfiles.toeflScore,
+      satScore: schema.studentProfiles.satScore,
+      greScore: schema.studentProfiles.greScore,
     })
     .from(schema.studentProfiles)
     .where(eq(schema.studentProfiles.id, studentId))
@@ -152,21 +157,34 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
     .orderBy(desc(schema.applications.createdAt))
     .limit(1)
 
-  // 2. Check student's latest inquiry if no application exists
-  let inqApplyingTo: string | null = null
-  if (!recentApp && profile?.userId) {
-    const [inq] = await ctx.db
-      .select({ applyingTo: schema.studentInquiries.applyingTo })
+  // 2. Check student's latest inquiry if exists
+  let inq: any = null
+  if (profile?.userId) {
+    const [foundInq] = await ctx.db
+      .select({
+        applyingTo: schema.studentInquiries.applyingTo,
+        englishTest: schema.studentInquiries.englishTest,
+        ieltsScore: schema.studentInquiries.ieltsScore,
+        toeflScore: schema.studentInquiries.toeflScore,
+        satScore: schema.studentInquiries.satScore,
+        topikLevel: schema.studentInquiries.topikLevel,
+        sscYear: schema.studentInquiries.sscYear,
+        sscResult: schema.studentInquiries.sscResult,
+        hscYear: schema.studentInquiries.hscYear,
+        hscResult: schema.studentInquiries.hscResult,
+        bachelorsYear: schema.studentInquiries.bachelorsYear,
+        bachelorsResult: schema.studentInquiries.bachelorsResult,
+        mastersYear: schema.studentInquiries.mastersYear,
+        mastersResult: schema.studentInquiries.mastersResult,
+      })
       .from(schema.studentInquiries)
       .where(eq(schema.studentInquiries.userId, profile.userId))
       .orderBy(desc(schema.studentInquiries.submittedAt))
       .limit(1)
-    if (inq?.applyingTo) inqApplyingTo = inq.applyingTo
+    if (foundInq) inq = foundInq
   }
 
-  // 3. Determine level:
-  // - Postgraduate (Masters / PhD): requires previous 3 academic documents (Bachelor's, HSC, SSC)
-  // - Undergraduate (Bachelor's): requires previous academic documents (HSC, SSC)
+  // 3. Determine level
   let level: ApplicantLevel = 'UNDERGRADUATE'
   if (recentApp?.level) {
     if (recentApp.level === 'POSTGRADUATE' || recentApp.level === 'PHD') {
@@ -174,8 +192,8 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
     } else {
       level = 'UNDERGRADUATE'
     }
-  } else if (inqApplyingTo) {
-    if (inqApplyingTo === 'Masters' || inqApplyingTo === 'Doctorate') {
+  } else if (inq?.applyingTo) {
+    if (inq.applyingTo === 'Masters' || inq.applyingTo === 'Doctorate') {
       level = 'POSTGRADUATE'
     } else {
       level = 'UNDERGRADUATE'
@@ -184,7 +202,7 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
     level = applicantLevelFromEducation(profile?.highestEducation)
   }
 
-  const required = DOCUMENT_REQUIREMENTS[level]
+  const required = getRequiredDocuments(level, profile, inq)
 
   const fetchItems = () =>
     ctx.db.query.studentDocuments.findMany({
@@ -192,7 +210,26 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
       orderBy: (d: any, { asc }: any) => [asc(d.createdAt)],
     })
 
-  const items = await fetchItems()
+  let items = await fetchItems()
+
+  // Gracefully migrate legacy generic language row if a file was uploaded and exactly 1 language test is required
+  const languageReqs = required.filter((r) => r.category === 'Language Proficiency')
+  if (languageReqs.length === 1) {
+    const legacyUploaded = items.find(
+      (d: any) =>
+        d.fileUrl &&
+        (d.label === 'Language Test Certificate (IELTS/TOEFL/TOPIK)' ||
+          d.label === 'Language Test Certificate')
+    )
+    if (legacyUploaded) {
+      await ctx.db
+        .update(schema.studentDocuments)
+        .set({ label: languageReqs[0].label })
+        .where(eq(schema.studentDocuments.id, legacyUploaded.id))
+      items = await fetchItems()
+    }
+  }
+
   const existing = new Set(items.map((d: any) => requirementKey(d.category, d.label)))
   const toCreate = required.filter((r) => !existing.has(requirementKey(r.category, r.label)))
 
@@ -207,7 +244,7 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
     )
   }
 
-  // Clean up any empty/pending checklist items that are not in the current target degree's required list
+  // Clean up any empty/pending checklist items that are not in the current required list
   const requiredKeys = new Set(required.map((r) => requirementKey(r.category, r.label)))
   const obsoletePending = items.filter(
     (d: any) =>
@@ -222,7 +259,7 @@ async function ensureDocumentChecklist(ctx: any, studentId: string) {
     )
   }
 
-  return { level, items: await fetchItems() }
+  return { level, requirements: required, items: await fetchItems() }
 }
 
 function daysUntil(date: Date | string | null | undefined): number | null {
@@ -841,6 +878,40 @@ export const dashboardRouter = createTRPCRouter({
             )
           )
         return { success: true }
+      }),
+    uploadDirect: protectedProcedure
+      .input(
+        z.object({
+          label: z.string().min(1).max(255),
+          category: z.string().max(100).default('OTHER'),
+          fileUrl: z.string().min(1),
+          fileName: z.string().max(255).optional(),
+          fileSize: z.number().optional(),
+          applicationId: z.string().optional(),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const user = await resolveStudent(ctx)
+        const studentId = user?.studentProfile?.id
+        if (!studentId) throw new Error('No student profile found')
+        if (!input.fileUrl.startsWith('/api/files/') || input.fileUrl.includes('..')) {
+          throw new Error('Invalid file url')
+        }
+        const inserted = await ctx.db
+          .insert(schema.studentDocuments)
+          .values({
+            studentId,
+            label: input.label,
+            category: input.category,
+            applicationId: input.applicationId ?? null,
+            fileUrl: input.fileUrl,
+            fileName: input.fileName ?? null,
+            fileSize: input.fileSize ?? null,
+            status: 'UPLOADED',
+            uploadedAt: new Date(),
+          })
+          .$returningId()
+        return { success: true, id: (inserted as any)?.[0]?.id }
       }),
     remove: protectedProcedure
       .input(z.object({ id: z.string() }))
