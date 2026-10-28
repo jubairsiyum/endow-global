@@ -10,8 +10,6 @@ import {
   or as _or,
   count as _count,
   sql as _sql,
-  gte as _gte,
-  lte as _lte,
   ne as _ne,
 } from 'drizzle-orm'
 
@@ -22,8 +20,6 @@ const like = _like as any
 const or = _or as any
 const count = _count as any
 const sql = _sql as any
-const gte = _gte as any
-const lte = _lte as any
 const ne = _ne as any
 
 function genId() {
@@ -134,6 +130,108 @@ export async function findDuplicatePhoneLead(
   }
 
   return null
+}
+
+/**
+ * Shared filter conditions builder for campaign leads list and export
+ */
+function buildLeadFilterConditions({
+  search,
+  status,
+  country,
+  startDate,
+  endDate,
+}: {
+  search?: string
+  status?: string
+  country?: string
+  startDate?: string
+  endDate?: string
+}) {
+  const conditions: any[] = []
+
+  if (status && status !== 'ALL') {
+    conditions.push(eq(schema.campaignLeads.status, status))
+  }
+
+  if (country && country !== 'ALL') {
+    const trimmedCountry = country.trim()
+    if (trimmedCountry === 'United States' || trimmedCountry === 'USA') {
+      conditions.push(
+        or(
+          eq(schema.campaignLeads.interestedCountry, 'United States'),
+          eq(schema.campaignLeads.interestedCountry, 'USA')
+        )
+      )
+    } else if (trimmedCountry === 'United Kingdom' || trimmedCountry === 'UK') {
+      conditions.push(
+        or(
+          eq(schema.campaignLeads.interestedCountry, 'United Kingdom'),
+          eq(schema.campaignLeads.interestedCountry, 'UK')
+        )
+      )
+    } else {
+      conditions.push(eq(schema.campaignLeads.interestedCountry, trimmedCountry))
+    }
+  }
+
+  // Consistent, reliable calendar-day date filtering in Bangladesh Time (UTC+6)
+  const leadDateSql = sql`COALESCE(DATE(CONVERT_TZ(${schema.campaignLeads.createdAt}, '+00:00', '+06:00')), DATE(${schema.campaignLeads.createdAt}))`
+
+  if (startDate) {
+    const cleanStart = startDate.split('T')[0].trim()
+    if (cleanStart) {
+      conditions.push(sql`${leadDateSql} >= ${cleanStart}`)
+    }
+  }
+
+  if (endDate) {
+    const cleanEnd = endDate.split('T')[0].trim()
+    if (cleanEnd) {
+      conditions.push(sql`${leadDateSql} <= ${cleanEnd}`)
+    }
+  }
+
+  if (search && search.trim() !== '') {
+    const rawTerm = search.trim()
+    const term = `%${rawTerm}%`
+    const searchConditions: any[] = [
+      like(schema.campaignLeads.name, term),
+      like(schema.campaignLeads.email, term),
+      like(schema.campaignLeads.phone, term),
+      like(schema.campaignLeads.normalizedPhone, term),
+      like(schema.campaignLeads.interestedProgram, term),
+      like(schema.campaignLeads.interestedCountry, term),
+      like(schema.campaignLeads.intakeYear, term),
+      like(schema.campaignLeads.reason, term),
+      like(schema.campaignLeads.id, term),
+      like(schema.campaignLeads.utmSource, term),
+      like(schema.campaignLeads.utmCampaign, term),
+    ]
+
+    // Phone digits and normalized matching for various input formats (+880, spaces, dashes)
+    const digitsOnly = rawTerm.replace(/\D/g, '')
+    if (digitsOnly.length >= 3) {
+      searchConditions.push(like(schema.campaignLeads.phone, `%${digitsOnly}%`))
+      searchConditions.push(like(schema.campaignLeads.normalizedPhone, `%${digitsOnly}%`))
+    }
+
+    const normPhone = normalizePhoneNumber(rawTerm)
+    if (normPhone && normPhone !== digitsOnly) {
+      searchConditions.push(like(schema.campaignLeads.phone, `%${normPhone}%`))
+      searchConditions.push(like(schema.campaignLeads.normalizedPhone, `%${normPhone}%`))
+    }
+
+    if (normPhone.startsWith('01') && normPhone.length === 11) {
+      const last10 = normPhone.slice(1)
+      searchConditions.push(like(schema.campaignLeads.phone, `%${last10}%`))
+      searchConditions.push(like(schema.campaignLeads.normalizedPhone, `%${last10}%`))
+    }
+
+    conditions.push(or(...searchConditions))
+  }
+
+  return conditions
 }
 
 export const campaignRouter = createTRPCRouter({
@@ -369,42 +467,13 @@ export const campaignRouter = createTRPCRouter({
       const { search, status, country, startDate, endDate, page, limit } = input
       const offset = (page - 1) * limit
 
-      const conditions: any[] = []
-
-      if (status && status !== 'ALL') {
-        conditions.push(eq(schema.campaignLeads.status, status))
-      }
-
-      if (country && country !== 'ALL') {
-        conditions.push(eq(schema.campaignLeads.interestedCountry, country))
-      }
-
-      if (startDate) {
-        const start = new Date(startDate)
-        start.setHours(0, 0, 0, 0)
-        conditions.push(gte(schema.campaignLeads.createdAt, start))
-      }
-
-      if (endDate) {
-        const end = new Date(endDate)
-        end.setHours(23, 59, 59, 999)
-        conditions.push(lte(schema.campaignLeads.createdAt, end))
-      }
-
-      if (search && search.trim() !== '') {
-        const term = `%${search.trim()}%`
-        conditions.push(
-          or(
-            like(schema.campaignLeads.name, term),
-            like(schema.campaignLeads.email, term),
-            like(schema.campaignLeads.phone, term),
-            like(schema.campaignLeads.normalizedPhone, term),
-            like(schema.campaignLeads.interestedProgram, term),
-            like(schema.campaignLeads.interestedCountry, term),
-            like(schema.campaignLeads.utmCampaign, term)
-          )
-        )
-      }
+      const conditions = buildLeadFilterConditions({
+        search,
+        status,
+        country,
+        startDate,
+        endDate,
+      })
 
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
@@ -437,28 +506,15 @@ export const campaignRouter = createTRPCRouter({
    */
   stats: adminWithPermission('campaign:view')
     .input(
-      z.object({
-        startDate: z.string().optional(),
-        endDate: z.string().optional(),
-      }).optional()
+      z
+        .object({
+          startDate: z.string().optional(),
+          endDate: z.string().optional(),
+        })
+        .optional()
     )
-    .query(async ({ input }) => {
-      const conditions: any[] = []
-
-      if (input?.startDate) {
-        const start = new Date(input.startDate)
-        start.setHours(0, 0, 0, 0)
-        conditions.push(gte(schema.campaignLeads.createdAt, start))
-      }
-
-      if (input?.endDate) {
-        const end = new Date(input.endDate)
-        end.setHours(23, 59, 59, 999)
-        conditions.push(lte(schema.campaignLeads.createdAt, end))
-      }
-
-      const whereClause = conditions.length > 0 ? and(...conditions) : undefined
-
+    .query(async () => {
+      // Calculate metrics across leads
       const allLeads = await db
         .select({
           id: schema.campaignLeads.id,
@@ -469,10 +525,11 @@ export const campaignRouter = createTRPCRouter({
           createdAt: schema.campaignLeads.createdAt,
         })
         .from(schema.campaignLeads)
-        .where(whereClause)
 
       const now = new Date()
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      // Current calendar date in Bangladesh (+06:00)
+      const bdNow = new Date(now.getTime() + 6 * 60 * 60 * 1000)
+      const todayBdStr = bdNow.toISOString().slice(0, 10)
 
       let completed = 0
       let partial = 0
@@ -493,8 +550,13 @@ export const campaignRouter = createTRPCRouter({
         if (lead.status === 'CONTACTED') contacted++
         if (lead.status === 'CONVERTED') converted++
 
-        if (lead.createdAt >= startOfToday) {
-          todayCount++
+        if (lead.createdAt) {
+          const leadBdStr = new Date(new Date(lead.createdAt).getTime() + 6 * 60 * 60 * 1000)
+            .toISOString()
+            .slice(0, 10)
+          if (leadBdStr === todayBdStr) {
+            todayCount++
+          }
         }
 
         if (lead.interestedCountry) {
@@ -541,44 +603,7 @@ export const campaignRouter = createTRPCRouter({
       })
     )
     .query(async ({ input }) => {
-      const { search, status, country, startDate, endDate } = input
-      const conditions: any[] = []
-
-      if (status && status !== 'ALL') {
-        conditions.push(eq(schema.campaignLeads.status, status))
-      }
-
-      if (country && country !== 'ALL') {
-        conditions.push(eq(schema.campaignLeads.interestedCountry, country))
-      }
-
-      if (startDate) {
-        const start = new Date(startDate)
-        start.setHours(0, 0, 0, 0)
-        conditions.push(gte(schema.campaignLeads.createdAt, start))
-      }
-
-      if (endDate) {
-        const end = new Date(endDate)
-        end.setHours(23, 59, 59, 999)
-        conditions.push(lte(schema.campaignLeads.createdAt, end))
-      }
-
-      if (search && search.trim() !== '') {
-        const term = `%${search.trim()}%`
-        conditions.push(
-          or(
-            like(schema.campaignLeads.name, term),
-            like(schema.campaignLeads.email, term),
-            like(schema.campaignLeads.phone, term),
-            like(schema.campaignLeads.normalizedPhone, term),
-            like(schema.campaignLeads.interestedProgram, term),
-            like(schema.campaignLeads.interestedCountry, term),
-            like(schema.campaignLeads.utmCampaign, term)
-          )
-        )
-      }
-
+      const conditions = buildLeadFilterConditions(input)
       const whereClause = conditions.length > 0 ? and(...conditions) : undefined
 
       return db

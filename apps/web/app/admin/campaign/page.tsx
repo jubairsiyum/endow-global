@@ -1,35 +1,32 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
 import AdminTable from '@/components/ui/AdminTable'
 import PageHeader from '@/components/ui/PageHeader'
 import { trpc } from '@/lib/trpc-client'
 import {
-  QrCode,
-  Search,
-  Filter,
-  Download,
-  Printer,
-  Calendar,
-  Eye,
-  Trash2,
-  CheckCircle,
-  Clock,
-  UserCheck,
   AlertTriangle,
-  X,
-  Plus,
-  RefreshCw,
-  ExternalLink,
-  Phone,
-  Mail,
-  Copy,
+  Calendar,
+  CheckCircle,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
+  Clock,
+  Copy,
+  Download,
+  ExternalLink,
+  Eye,
   FileSpreadsheet,
-  FileText,
+  Mail,
+  Phone,
+  Plus,
+  Printer,
+  QrCode,
+  RefreshCw,
+  RotateCcw,
+  Search,
+  Trash2,
+  X,
 } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 type StatusType = 'ALL' | 'PARTIAL' | 'COMPLETED' | 'CONTACTED' | 'CONVERTED' | 'ARCHIVED'
 
@@ -58,13 +55,24 @@ const emptyManualForm: ManualLeadForm = {
 export default function AdminCampaignPage() {
   // Filters State
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<StatusType>('ALL')
   const [countryFilter, setCountryFilter] = useState('ALL')
-  const [datePreset, setDatePreset] = useState<'ALL' | 'TODAY' | 'YESTERDAY' | '7DAYS' | '30DAYS' | 'THIS_MONTH' | 'CUSTOM'>('ALL')
+  const [datePreset, setDatePreset] = useState<
+    'ALL' | 'TODAY' | 'YESTERDAY' | '7DAYS' | '30DAYS' | 'THIS_MONTH' | 'CUSTOM'
+  >('ALL')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
   const limit = 25
+
+  // Debounce search input to avoid flood and out-of-order queries
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   // Modals
   const [selectedLead, setSelectedLead] = useState<any | null>(null)
@@ -73,41 +81,23 @@ export default function AdminCampaignPage() {
   const [manualForm, setManualForm] = useState<ManualLeadForm>(emptyManualForm)
   const [copiedField, setCopiedField] = useState<string | null>(null)
 
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const formatLocalDate = (d: Date): string => {
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
   // Compute active date boundaries based on preset
   const computedDates = useMemo(() => {
     if (datePreset === 'ALL') {
       return { start: undefined, end: undefined }
-    }
-    const now = new Date()
-    const fmt = (d: Date) => d.toISOString().split('T')[0]
-
-    if (datePreset === 'TODAY') {
-      const today = fmt(now)
-      return { start: today, end: today }
-    }
-
-    if (datePreset === 'YESTERDAY') {
-      const y = new Date(now)
-      y.setDate(y.getDate() - 1)
-      const yStr = fmt(y)
-      return { start: yStr, end: yStr }
-    }
-
-    if (datePreset === '7DAYS') {
-      const past = new Date(now)
-      past.setDate(past.getDate() - 7)
-      return { start: fmt(past), end: fmt(now) }
-    }
-
-    if (datePreset === '30DAYS') {
-      const past = new Date(now)
-      past.setDate(past.getDate() - 30)
-      return { start: fmt(past), end: fmt(now) }
-    }
-
-    if (datePreset === 'THIS_MONTH') {
-      const start = new Date(now.getFullYear(), now.getMonth(), 1)
-      return { start: fmt(start), end: fmt(now) }
     }
 
     if (datePreset === 'CUSTOM') {
@@ -117,14 +107,71 @@ export default function AdminCampaignPage() {
       }
     }
 
-    return { start: undefined, end: undefined }
+    const now = new Date()
+    const todayStr = formatLocalDate(now)
+
+    switch (datePreset) {
+      case 'TODAY':
+        return { start: todayStr, end: todayStr }
+
+      case 'YESTERDAY': {
+        const y = new Date(now)
+        y.setDate(y.getDate() - 1)
+        const yStr = formatLocalDate(y)
+        return { start: yStr, end: yStr }
+      }
+
+      case '7DAYS': {
+        const past = new Date(now)
+        past.setDate(past.getDate() - 7)
+        return { start: formatLocalDate(past), end: todayStr }
+      }
+
+      case '30DAYS': {
+        const past = new Date(now)
+        past.setDate(past.getDate() - 30)
+        return { start: formatLocalDate(past), end: todayStr }
+      }
+
+      case 'THIS_MONTH': {
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+        return { start: formatLocalDate(startOfMonth), end: todayStr }
+      }
+
+      default:
+        return { start: undefined, end: undefined }
+    }
   }, [datePreset, startDate, endDate])
+
+  const hasActiveFilters = Boolean(
+    search.trim() ||
+    statusFilter !== 'ALL' ||
+    countryFilter !== 'ALL' ||
+    datePreset !== 'ALL' ||
+    startDate ||
+    endDate
+  )
+
+  const handleResetFilters = () => {
+    setSearch('')
+    setDebouncedSearch('')
+    setStatusFilter('ALL')
+    setCountryFilter('ALL')
+    setDatePreset('ALL')
+    setStartDate('')
+    setEndDate('')
+    setPage(1)
+  }
 
   const utils = trpc.useUtils()
 
   // Queries
-  const { data: listData, isLoading, refetch } = trpc.campaign.list.useQuery({
-    search: search.trim() || undefined,
+  const {
+    data: listData,
+    isLoading,
+    refetch,
+  } = trpc.campaign.list.useQuery({
+    search: debouncedSearch.trim() || undefined,
     status: statusFilter,
     country: countryFilter !== 'ALL' ? countryFilter : undefined,
     startDate: computedDates.start,
@@ -133,10 +180,8 @@ export default function AdminCampaignPage() {
     limit,
   })
 
-  const { data: statsData } = trpc.campaign.stats.useQuery({
-    startDate: computedDates.start,
-    endDate: computedDates.end,
-  })
+  // Global summary statistics for top KPI metric cards
+  const { data: statsData } = trpc.campaign.stats.useQuery()
 
   // Mutations
   const updateStatusMutation = trpc.campaign.updateStatus.useMutation({
@@ -166,7 +211,7 @@ export default function AdminCampaignPage() {
   // Export Data Query (lazy triggered on click)
   const exportQuery = trpc.campaign.exportData.useQuery(
     {
-      search: search.trim() || undefined,
+      search: debouncedSearch.trim() || undefined,
       status: statusFilter,
       country: countryFilter !== 'ALL' ? countryFilter : undefined,
       startDate: computedDates.start,
@@ -346,118 +391,175 @@ export default function AdminCampaignPage() {
 
   return (
     <div className="space-y-6 print:m-0 print:p-0">
+      {/* Print View Stylesheet */}
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
+            @media print {
+              @page {
+                size: A4 landscape;
+                margin: 8mm 10mm 10mm 10mm;
+              }
+              html, body {
+                background: #ffffff !important;
+                color: #000000 !important;
+                font-size: 10pt !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+              }
+              th, td {
+                border: 1px solid #d1d5db !important;
+                padding: 5px 8px !important;
+                color: #111827 !important;
+                vertical-align: middle !important;
+              }
+              th {
+                background-color: #f3f4f6 !important;
+                font-weight: 700 !important;
+                text-transform: uppercase !important;
+                font-size: 8.5pt !important;
+              }
+              thead {
+                display: table-header-group !important;
+              }
+              tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+              }
+            }
+          `,
+        }}
+      />
+
       {/* Printable Report Header (visible only when printing) */}
-      <div className="hidden print:block mb-6 border-b pb-4">
-        <h1 className="text-2xl font-bold">Endow Global Education — Campaign Leads Audit</h1>
-        <p className="text-sm text-gray-600">
-          Generated on {new Date().toLocaleString()} • Date Filter: {datePreset} ({computedDates.start || 'Start'} to {computedDates.end || 'Now'})
-        </p>
+      <div className="mb-4 hidden border-b border-gray-400 pb-3 print:block">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold tracking-tight text-gray-900">
+              Endow Global Education — Campaign Leads Report
+            </h1>
+            <p className="mt-0.5 text-xs text-gray-600">
+              Candidate Inquiries &amp; Audit &bull; Filter: <strong>{datePreset}</strong>{' '}
+              ({computedDates.start || 'Start'} to {computedDates.end || 'Present'})
+            </p>
+          </div>
+          <div className="text-right text-xs text-gray-600">
+            <p>{mounted && `Printed: ${new Date().toLocaleString()}`}</p>
+            <p>
+              Total Records: <strong>{totalCount}</strong>
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Screen Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
+      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center print:hidden">
         <PageHeader
           title="Campaign Leads"
           description="Manage QR code campaign inquiries, progressive drop-offs, and export lead data."
         />
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
           <button
             type="button"
             onClick={() => setIsManualModalOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-primary text-white text-xs font-semibold hover:bg-primary/90 transition-all shadow-sm"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[#AD0819] px-3.5 py-2 text-xs font-semibold text-white shadow-sm shadow-[#AD0819]/25 transition-all hover:bg-[#8F0614] active:scale-[0.98]"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="h-3.5 w-3.5" />
             <span>Add Lead</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200 text-xs font-medium hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-800 transition-all hover:bg-gray-50 dark:border-white/10 dark:bg-[#18181b] dark:text-gray-200 dark:hover:bg-white/[0.04]"
             title="Download CSV file (compatible with Excel & Google Sheets)"
           >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" />
+            <FileSpreadsheet className="h-3.5 w-3.5 text-green-600" />
             <span>Export CSV</span>
           </button>
 
           <button
             type="button"
             onClick={handleExportExcel}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200 text-xs font-medium hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-800 transition-all hover:bg-gray-50 dark:border-white/10 dark:bg-[#18181b] dark:text-gray-200 dark:hover:bg-white/[0.04]"
             title="Download styled Excel file (.xls)"
           >
-            <Download className="w-3.5 h-3.5 text-blue-600" />
+            <Download className="h-3.5 w-3.5 text-blue-600" />
             <span>Export Excel</span>
           </button>
 
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 text-gray-800 dark:text-gray-200 text-xs font-medium hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-all"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-medium text-gray-800 transition-all hover:bg-gray-50 dark:border-white/10 dark:bg-[#18181b] dark:text-gray-200 dark:hover:bg-white/[0.04]"
             title="Print printable summary table"
           >
-            <Printer className="w-3.5 h-3.5 text-gray-500" />
+            <Printer className="h-3.5 w-3.5 text-gray-500" />
             <span>Print</span>
           </button>
         </div>
       </div>
 
       {/* Summary Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 print:hidden">
-        <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#18181b] p-4 shadow-sm">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Total Leads</p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 print:hidden">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Total Leads</p>
+          <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
             {statsData?.total ?? 0}
           </p>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">All QR & Campaign entries</span>
+          <span className="mt-0.5 block text-[11px] text-gray-400">All QR & Campaign entries</span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#18181b] p-4 shadow-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
           <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Completed</p>
-            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-green-50 dark:bg-green-950/60 text-green-600 dark:text-green-400">
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Completed</p>
+            <span className="rounded bg-green-50 px-1.5 py-0.5 text-[10px] font-bold text-green-600 dark:bg-green-950/60 dark:text-green-400">
               {statsData?.completionRate ?? 0}%
             </span>
           </div>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+          <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
             {statsData?.completed ?? 0}
           </p>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">All 6 steps finished</span>
+          <span className="mt-0.5 block text-[11px] text-gray-400">All 6 steps finished</span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#18181b] p-4 shadow-sm">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Partial Drop-offs</p>
-          <p className="text-2xl font-bold text-amber-600 dark:text-amber-400 mt-1">
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Partial Drop-offs</p>
+          <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">
             {statsData?.partial ?? 0}
           </p>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Saved before step 6</span>
+          <span className="mt-0.5 block text-[11px] text-gray-400">Saved before step 6</span>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#18181b] p-4 shadow-sm">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Today's Leads</p>
-          <p className="text-2xl font-bold text-primary mt-1">
-            {statsData?.todayCount ?? 0}
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">Today&apos;s Leads</p>
+          <p className="mt-1 text-2xl font-bold text-[#AD0819]">{statsData?.todayCount ?? 0}</p>
+          <span className="mt-0.5 block text-[11px] text-gray-400">Submissions today</span>
+        </div>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            Converted / Contacted
           </p>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Submissions today</span>
-        </div>
-
-        <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#18181b] p-4 shadow-sm">
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Converted / Contacted</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+          <p className="mt-1 text-2xl font-bold text-blue-600 dark:text-blue-400">
             {(statsData?.contacted ?? 0) + (statsData?.converted ?? 0)}
           </p>
-          <span className="text-[11px] text-gray-400 mt-0.5 block">Followed up by staff</span>
+          <span className="mt-0.5 block text-[11px] text-gray-400">Followed up by staff</span>
         </div>
       </div>
 
       {/* Filter and Date Bar */}
-      <div className="rounded-2xl border border-gray-200 dark:border-white/[0.08] bg-white dark:bg-[#18181b] p-4.5 shadow-sm space-y-3.5 print:hidden">
-        <div className="flex flex-col md:flex-row md:items-center gap-3">
-          {/* Search Field */}
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+      <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] sm:p-4.5 print:hidden">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          {/* Search Field with Clear Button */}
+          <div className="relative min-w-0 flex-1">
+            <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={search}
@@ -465,68 +567,102 @@ export default function AdminCampaignPage() {
                 setSearch(e.target.value)
                 setPage(1)
               }}
-              placeholder="Search by name, email, phone, program, country..."
-              className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl pl-9 pr-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder-gray-400 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              placeholder="Search by name, email, phone, program, country, intake, lead ID..."
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-9 pr-9 text-sm text-gray-900 placeholder-gray-400 outline-none focus:border-[#AD0819] focus:ring-2 focus:ring-[#AD0819]/20 dark:border-white/10 dark:bg-white/[0.04] dark:text-white"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch('')
+                  setDebouncedSearch('')
+                  setPage(1)
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                title="Clear search input"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
 
-          {/* Status Dropdown */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as StatusType)
-                setPage(1)
-              }}
-              className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm font-medium text-gray-900 dark:text-white outline-none focus:border-primary"
+          {/* Controls: Dropdowns & Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+            {/* Status Dropdown */}
+            <div className="flex items-center gap-1.5">
+              <span className="whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 sm:text-sm">
+                Status:
+              </span>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value as StatusType)
+                  setPage(1)
+                }}
+                className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-2 text-xs font-medium text-gray-900 outline-none focus:border-[#AD0819] dark:border-white/10 dark:bg-white/[0.04] dark:text-white sm:px-3 sm:text-sm"
+              >
+                <option value="ALL">All Statuses</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="PARTIAL">Partial (Drop-off)</option>
+                <option value="CONTACTED">Contacted</option>
+                <option value="CONVERTED">Converted</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            </div>
+
+            {/* Country Filter */}
+            <div className="flex items-center gap-1.5">
+              <span className="whitespace-nowrap text-xs font-semibold text-gray-500 dark:text-gray-400 sm:text-sm">
+                Country:
+              </span>
+              <select
+                value={countryFilter}
+                onChange={(e) => {
+                  setCountryFilter(e.target.value)
+                  setPage(1)
+                }}
+                className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-2 text-xs font-medium text-gray-900 outline-none focus:border-[#AD0819] dark:border-white/10 dark:bg-white/[0.04] dark:text-white sm:px-3 sm:text-sm"
+              >
+                <option value="ALL">All Countries</option>
+                <option value="South Korea">South Korea</option>
+                <option value="United States">United States</option>
+                <option value="United Kingdom">United Kingdom</option>
+                <option value="Canada">Canada</option>
+                <option value="Australia">Australia</option>
+                <option value="Germany">Germany</option>
+                <option value="Japan">Japan</option>
+                <option value="Malaysia">Malaysia</option>
+              </select>
+            </div>
+
+            {/* Reset Filters Action */}
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50/70 px-2.5 py-2 text-xs font-semibold text-[#AD0819] transition-colors hover:bg-red-100/80 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-400 sm:px-3"
+                title="Reset all search filters"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>Reset</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="rounded-xl border border-gray-200 p-2 text-gray-600 transition-colors hover:bg-gray-50 dark:border-white/10 dark:text-gray-300 dark:hover:bg-white/[0.04] sm:p-2.5"
+              title="Refresh leads"
             >
-              <option value="ALL">All Statuses</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="PARTIAL">Partial (Drop-off)</option>
-              <option value="CONTACTED">Contacted</option>
-              <option value="CONVERTED">Converted</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
+              <RefreshCw className="h-4 w-4" />
+            </button>
           </div>
-
-          {/* Country Filter */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-600 dark:text-gray-300 whitespace-nowrap">Country:</span>
-            <select
-              value={countryFilter}
-              onChange={(e) => {
-                setCountryFilter(e.target.value)
-                setPage(1)
-              }}
-              className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 text-sm font-medium text-gray-900 dark:text-white outline-none focus:border-primary"
-            >
-              <option value="ALL">All Countries</option>
-              <option value="South Korea">South Korea</option>
-              <option value="United States">United States</option>
-              <option value="United Kingdom">United Kingdom</option>
-              <option value="Canada">Canada</option>
-              <option value="Australia">Australia</option>
-              <option value="Germany">Germany</option>
-              <option value="Japan">Japan</option>
-              <option value="Malaysia">Malaysia</option>
-            </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="p-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.04] transition-colors"
-            title="Refresh leads"
-          >
-            <RefreshCw className="w-4 h-4" />
-          </button>
         </div>
 
         {/* Date Filter Presets */}
-        <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-gray-100 dark:border-white/[0.05]">
-          <span className="text-xs sm:text-sm font-medium text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-            <Calendar className="w-4 h-4" /> Date Filter:
+        <div className="flex flex-wrap items-center gap-1.5 border-t border-gray-100 pt-3 dark:border-white/[0.05] sm:gap-2">
+          <span className="flex items-center gap-1 text-xs font-semibold text-gray-500 dark:text-gray-400 sm:text-sm">
+            <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Date:
           </span>
 
           {[
@@ -545,10 +681,10 @@ export default function AdminCampaignPage() {
                 setDatePreset(preset.id as any)
                 setPage(1)
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${
+              className={`rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all sm:px-3 sm:text-sm ${
                 datePreset === preset.id
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10'
+                  ? 'bg-[#AD0819] font-semibold text-white shadow-sm ring-2 ring-[#AD0819]/25'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-300 dark:hover:bg-white/10'
               }`}
             >
               {preset.label}
@@ -557,7 +693,7 @@ export default function AdminCampaignPage() {
 
           {/* Custom Date Pickers */}
           {datePreset === 'CUSTOM' && (
-            <div className="flex items-center gap-2 ml-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <input
                 type="date"
                 value={startDate}
@@ -565,9 +701,9 @@ export default function AdminCampaignPage() {
                   setStartDate(e.target.value)
                   setPage(1)
                 }}
-                className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-1 text-xs sm:text-sm text-gray-800 dark:text-gray-200"
+                className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 sm:text-sm"
               />
-              <span className="text-xs sm:text-sm text-gray-400">to</span>
+              <span className="text-xs text-gray-400 sm:text-sm">to</span>
               <input
                 type="date"
                 value={endDate}
@@ -575,7 +711,7 @@ export default function AdminCampaignPage() {
                   setEndDate(e.target.value)
                   setPage(1)
                 }}
-                className="bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-1 text-xs sm:text-sm text-gray-800 dark:text-gray-200"
+                className="rounded-xl border border-gray-200 bg-gray-50 px-2.5 py-1 text-xs text-gray-800 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200 sm:text-sm"
               />
             </div>
           )}
@@ -583,53 +719,74 @@ export default function AdminCampaignPage() {
       </div>
 
       {/* Leads Table */}
-      <AdminTable>
-        <div className="px-6 py-4.5 border-b border-gray-100 dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white dark:bg-[#18181b]">
+      <AdminTable className="print:rounded-none print:border-none print:shadow-none">
+        <div className="py-4.5 flex flex-col justify-between gap-3 border-b border-gray-100 bg-white px-6 dark:border-white/[0.06] dark:bg-[#18181b] sm:flex-row sm:items-center print:hidden">
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white font-display">
+            <h2 className="font-display text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
               Campaign Leads Records
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+            <p className="mt-0.5 text-sm text-gray-500 dark:text-gray-400">
               Real-time student submissions from QR codes and online campaigns
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-white/[0.06] text-xs sm:text-sm font-semibold font-mono text-gray-700 dark:text-gray-200">
-              Total: {totalCount} leads
+            {hasActiveFilters && (
+              <span className="inline-flex items-center gap-1 rounded-xl bg-red-50 px-2.5 py-1 font-mono text-xs font-semibold text-[#AD0819] dark:bg-red-950/40 dark:text-red-300">
+                Filtered view
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1.5 rounded-xl bg-gray-100 px-3 py-1.5 font-mono text-xs font-semibold text-gray-700 dark:bg-white/[0.06] dark:text-gray-200 sm:text-sm">
+              Total: {totalCount} {totalCount === 1 ? 'lead' : 'leads'}
             </span>
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto print:overflow-visible">
           <table className="w-full text-left text-sm sm:text-base">
-            <thead className="bg-gray-50 dark:bg-white/[0.03] text-gray-700 dark:text-gray-200 uppercase font-mono text-xs sm:text-sm tracking-wider border-b border-gray-200 dark:border-white/[0.08]">
+            <thead className="border-b border-gray-200 bg-gray-50 font-mono text-xs uppercase tracking-wider text-gray-700 dark:border-white/[0.08] dark:bg-white/[0.03] dark:text-gray-200 sm:text-sm">
               <tr>
-                <th className="px-4 py-4 font-bold text-center w-14">#</th>
+                <th className="w-14 px-4 py-4 text-center font-bold">#</th>
                 <th className="px-5 py-4 font-bold">Candidate</th>
                 <th className="px-5 py-4 font-bold">Contact</th>
                 <th className="px-5 py-4 font-bold">Target / Program</th>
                 <th className="px-4 py-4 font-bold">Intake</th>
                 <th className="px-4 py-4 font-bold">Progress</th>
                 <th className="px-5 py-4 font-bold">Status</th>
-                <th className="px-5 py-4 font-bold text-right print:hidden">Actions</th>
+                <th className="px-5 py-4 text-right font-bold print:hidden">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-white/[0.06] text-sm">
+            <tbody className="divide-y divide-gray-100 text-sm dark:divide-white/[0.06]">
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-gray-400 text-sm">
+                  <td colSpan={8} className="px-4 py-12 text-center text-sm text-gray-400">
                     <div className="flex items-center justify-center gap-2.5">
-                      <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                      <span className="font-medium text-base">Loading campaign leads...</span>
+                      <span className="h-5 w-5 animate-spin rounded-full border-2 border-[#AD0819] border-t-transparent" />
+                      <span className="text-base font-medium">Loading campaign leads...</span>
                     </div>
                   </td>
                 </tr>
               ) : leads.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-14 text-center text-gray-400">
-                    <QrCode className="w-10 h-10 text-gray-300 dark:text-gray-600 mx-auto mb-2 opacity-60" />
-                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">No campaign leads found</p>
-                    <p className="text-sm text-gray-400 mt-1">Try clearing filters or date restrictions.</p>
+                    <QrCode className="mx-auto mb-2 h-10 w-10 text-gray-300 opacity-60 dark:text-gray-600" />
+                    <p className="text-base font-bold text-gray-700 dark:text-gray-300">
+                      No campaign leads found
+                    </p>
+                    <p className="mt-1 text-sm text-gray-400">
+                      {hasActiveFilters
+                        ? 'No leads matched your current filters and search criteria.'
+                        : 'No campaign leads have been captured yet.'}
+                    </p>
+                    {hasActiveFilters && (
+                      <button
+                        type="button"
+                        onClick={handleResetFilters}
+                        className="mt-3.5 inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-gray-200"
+                      >
+                        <RotateCcw className="h-3.5 w-3.5 text-[#AD0819]" />
+                        <span>Clear all filters</span>
+                      </button>
+                    )}
                   </td>
                 </tr>
               ) : (
@@ -639,24 +796,24 @@ export default function AdminCampaignPage() {
                   return (
                     <tr
                       key={lead.id}
-                      className="hover:bg-gray-50/80 dark:hover:bg-white/[0.02] transition-colors"
+                      className="transition-colors hover:bg-gray-50/80 dark:hover:bg-white/[0.02]"
                     >
                       {/* Serial Number */}
-                      <td className="px-4 py-4 text-center font-mono font-bold text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                      <td className="px-4 py-4 text-center font-mono text-sm font-bold text-gray-600 dark:text-gray-400 sm:text-base">
                         {serial}
                       </td>
 
                       {/* Candidate Column */}
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-red-500/20 to-primary/20 border border-red-500/30 flex items-center justify-center font-bold text-primary shrink-0 text-sm">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-red-500/30 bg-gradient-to-br from-red-500/20 to-red-500/10 text-sm font-bold text-[#AD0819] print:hidden">
                             {lead.name ? lead.name.charAt(0).toUpperCase() : '?'}
                           </div>
                           <div>
-                            <p className="font-bold text-sm sm:text-base text-gray-900 dark:text-white leading-snug">
+                            <p className="text-sm font-bold leading-snug text-gray-900 dark:text-white sm:text-base">
                               {lead.name || 'Unnamed Lead'}
                             </p>
-                            <span className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                            <span className="font-mono text-xs text-gray-500 dark:text-gray-400">
                               {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString() : ''}
                             </span>
                           </div>
@@ -667,30 +824,30 @@ export default function AdminCampaignPage() {
                       <td className="px-5 py-4">
                         <div className="space-y-1">
                           {lead.email ? (
-                            <div className="flex items-center gap-2 text-gray-800 dark:text-gray-200 text-xs sm:text-sm font-medium">
-                              <Mail className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                              <span className="truncate max-w-[200px]">{lead.email}</span>
+                            <div className="flex items-center gap-2 text-xs font-medium text-gray-800 dark:text-gray-200 sm:text-sm">
+                              <Mail className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+                              <span className="max-w-[200px] truncate">{lead.email}</span>
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-400 italic">No email</span>
+                            <span className="text-xs italic text-gray-400">No email</span>
                           )}
 
                           {lead.phone ? (
-                            <div className="flex items-center gap-2 font-mono text-gray-800 dark:text-gray-200 text-xs sm:text-sm font-semibold">
-                              <Phone className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                            <div className="flex items-center gap-2 font-mono text-xs font-semibold text-gray-800 dark:text-gray-200 sm:text-sm">
+                              <Phone className="h-3.5 w-3.5 shrink-0 text-gray-400" />
                               <span>{lead.phone}</span>
                               <a
                                 href={`https://wa.me/${lead.phone.replace(/[^0-9]/g, '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-emerald-500 hover:text-emerald-600 ml-1 print:hidden"
+                                className="ml-1 text-emerald-500 hover:text-emerald-600 print:hidden"
                                 title="Open WhatsApp chat"
                               >
-                                <ExternalLink className="w-3 h-3" />
+                                <ExternalLink className="h-3 w-3" />
                               </a>
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-400 italic">No phone</span>
+                            <span className="text-xs italic text-gray-400">No phone</span>
                           )}
                         </div>
                       </td>
@@ -698,10 +855,10 @@ export default function AdminCampaignPage() {
                       {/* Destination & Program */}
                       <td className="px-5 py-4">
                         <div>
-                          <p className="font-bold text-sm sm:text-base text-gray-900 dark:text-gray-100">
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100 sm:text-base">
                             {lead.interestedCountry || 'Not selected'}
                           </p>
-                          <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 block mt-0.5">
+                          <span className="mt-0.5 block text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                             {lead.interestedProgram || 'Program pending'}
                           </span>
                         </div>
@@ -709,7 +866,7 @@ export default function AdminCampaignPage() {
 
                       {/* Intake Year */}
                       <td className="px-4 py-4">
-                        <span className="font-mono font-semibold text-xs sm:text-sm text-gray-800 dark:text-gray-200">
+                        <span className="font-mono text-xs font-semibold text-gray-800 dark:text-gray-200 sm:text-sm">
                           {lead.intakeYear || '—'}
                         </span>
                       </td>
@@ -717,19 +874,19 @@ export default function AdminCampaignPage() {
                       {/* Progress Badge */}
                       <td className="px-4 py-4">
                         {isCompleted ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 dark:bg-green-950/60 text-green-700 dark:text-green-300 border border-green-200 dark:border-green-800">
-                            <CheckCircle className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-bold text-green-700 dark:border-green-800 dark:bg-green-950/60 dark:text-green-300">
+                            <CheckCircle className="h-3.5 w-3.5" />
                             <span>Step 6 (Done)</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                            <Clock className="w-3.5 h-3.5" />
+                          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300">
+                            <Clock className="h-3.5 w-3.5" />
                             <span>Step {lead.completedStep}/6 (Partial)</span>
                           </span>
                         )}
                       </td>
 
-                      {/* Status Dropdown */}
+                      {/* Status Dropdown (Screen) / Clean Text (Print) */}
                       <td className="px-5 py-4">
                         <select
                           value={lead.status}
@@ -739,16 +896,16 @@ export default function AdminCampaignPage() {
                               status: e.target.value as any,
                             })
                           }}
-                          className={`text-xs sm:text-sm font-bold rounded-xl px-2.5 py-1.5 border outline-none cursor-pointer transition-colors ${
+                          className={`cursor-pointer rounded-xl border px-2.5 py-1.5 text-xs font-bold outline-none transition-colors print:hidden sm:text-sm ${
                             lead.status === 'COMPLETED'
-                              ? 'bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800'
+                              ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300'
                               : lead.status === 'CONTACTED'
-                              ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'
-                              : lead.status === 'CONVERTED'
-                              ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800'
-                              : lead.status === 'ARCHIVED'
-                              ? 'bg-gray-100 dark:bg-white/[0.05] text-gray-500 border-gray-200 dark:border-white/10'
-                              : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                                ? 'border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300'
+                                : lead.status === 'CONVERTED'
+                                  ? 'border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/40 dark:text-purple-300'
+                                  : lead.status === 'ARCHIVED'
+                                    ? 'border-gray-200 bg-gray-100 text-gray-500 dark:border-white/10 dark:bg-white/[0.05]'
+                                    : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
                           }`}
                         >
                           <option value="PARTIAL">PARTIAL</option>
@@ -757,6 +914,9 @@ export default function AdminCampaignPage() {
                           <option value="CONVERTED">CONVERTED</option>
                           <option value="ARCHIVED">ARCHIVED</option>
                         </select>
+                        <span className="hidden font-mono text-xs font-bold uppercase tracking-wider text-black print:inline-block">
+                          {lead.status}
+                        </span>
                       </td>
 
                       {/* Actions */}
@@ -765,19 +925,19 @@ export default function AdminCampaignPage() {
                           <button
                             type="button"
                             onClick={() => setSelectedLead(lead)}
-                            className="p-2 rounded-xl text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.08] transition-colors"
+                            className="rounded-xl p-2 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-white/[0.08] dark:hover:text-white"
                             title="View lead details"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="h-4 w-4" />
                           </button>
 
                           <button
                             type="button"
                             onClick={() => setDeleteId(lead.id)}
-                            className="p-2 rounded-xl text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors"
+                            className="rounded-xl p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 dark:hover:bg-red-950/40"
                             title="Delete lead"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                       </td>
@@ -791,26 +951,28 @@ export default function AdminCampaignPage() {
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="p-4 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 print:hidden">
+          <div className="flex items-center justify-between border-t border-gray-100 p-4 text-sm text-gray-600 dark:border-white/[0.06] dark:text-gray-400 print:hidden">
             <span>
-              Showing page <strong className="text-gray-900 dark:text-white">{page}</strong> of <strong className="text-gray-900 dark:text-white">{totalPages}</strong> ({totalCount} total leads)
+              Showing page <strong className="text-gray-900 dark:text-white">{page}</strong> of{' '}
+              <strong className="text-gray-900 dark:text-white">{totalPages}</strong> ({totalCount}{' '}
+              total leads)
             </span>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page <= 1}
-                className="p-2 rounded-xl border border-gray-200 dark:border-white/10 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+                className="rounded-xl border border-gray-200 p-2 hover:bg-gray-50 disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/[0.04]"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page >= totalPages}
-                className="p-2 rounded-xl border border-gray-200 dark:border-white/10 disabled:opacity-40 hover:bg-gray-50 dark:hover:bg-white/[0.04]"
+                className="rounded-xl border border-gray-200 p-2 hover:bg-gray-50 disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/[0.04]"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -819,159 +981,173 @@ export default function AdminCampaignPage() {
 
       {/* LEAD DETAILS MODAL */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:hidden">
-          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm print:hidden">
+          <div className="relative w-full max-w-lg rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#18181b]">
             <button
               type="button"
               onClick={() => setSelectedLead(null)}
-              className="absolute top-5 right-5 p-1.5 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/[0.08]"
+              className="absolute right-5 top-5 rounded-xl p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/[0.08] dark:hover:text-white"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
 
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center font-bold text-lg">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="bg-primary/10 border-primary/20 text-primary flex h-10 w-10 items-center justify-center rounded-2xl border text-lg font-bold">
                 {selectedLead.name ? selectedLead.name.charAt(0).toUpperCase() : '?'}
               </div>
               <div>
-                <h3 className="text-base font-bold text-gray-900 dark:text-white leading-tight">
+                <h3 className="text-base font-bold leading-tight text-gray-900 dark:text-white">
                   {selectedLead.name || 'Unnamed Lead'}
                 </h3>
-                <span className="text-xs text-gray-400 font-mono">
-                  ID: {selectedLead.id}
-                </span>
+                <span className="font-mono text-xs text-gray-400">ID: {selectedLead.id}</span>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06]">
+              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
                 <div>
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono">Email</span>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="font-semibold text-gray-800 dark:text-gray-200 truncate">
+                  <span className="block font-mono text-[10px] uppercase text-gray-400">Email</span>
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <span className="truncate font-semibold text-gray-800 dark:text-gray-200">
                       {selectedLead.email || 'None'}
                     </span>
                     {selectedLead.email && (
                       <button
                         type="button"
                         onClick={() => handleCopy(selectedLead.email, 'email')}
-                        className="text-gray-400 hover:text-primary"
+                        className="hover:text-primary text-gray-400"
                         title="Copy email"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="h-3 w-3" />
                       </button>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono">Phone</span>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="font-semibold text-gray-800 dark:text-gray-200 font-mono">
+                  <span className="block font-mono text-[10px] uppercase text-gray-400">Phone</span>
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">
                       {selectedLead.phone || 'None'}
                     </span>
                     {selectedLead.phone && (
                       <button
                         type="button"
                         onClick={() => handleCopy(selectedLead.phone, 'phone')}
-                        className="text-gray-400 hover:text-primary"
+                        className="hover:text-primary text-gray-400"
                         title="Copy phone"
                       >
-                        <Copy className="w-3 h-3" />
+                        <Copy className="h-3 w-3" />
                       </button>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06]">
+              <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
                 <div>
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono">Target Country</span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5 block">
+                  <span className="block font-mono text-[10px] uppercase text-gray-400">
+                    Target Country
+                  </span>
+                  <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
                     {selectedLead.interestedCountry || 'Not Selected'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono">Degree Program</span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5 block">
+                  <span className="block font-mono text-[10px] uppercase text-gray-400">
+                    Degree Program
+                  </span>
+                  <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
                     {selectedLead.interestedProgram || 'Not Selected'}
                   </span>
                 </div>
                 <div className="mt-2">
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono">Intake Year</span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5 block font-mono">
+                  <span className="block font-mono text-[10px] uppercase text-gray-400">
+                    Intake Year
+                  </span>
+                  <span className="mt-0.5 block font-mono font-semibold text-gray-800 dark:text-gray-200">
                     {selectedLead.intakeYear || 'Not Selected'}
                   </span>
                 </div>
                 <div className="mt-2">
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono">Progress Level</span>
-                  <span className="font-semibold text-gray-800 dark:text-gray-200 mt-0.5 block">
+                  <span className="block font-mono text-[10px] uppercase text-gray-400">
+                    Progress Level
+                  </span>
+                  <span className="mt-0.5 block font-semibold text-gray-800 dark:text-gray-200">
                     Step {selectedLead.completedStep} of 6 ({selectedLead.status})
                   </span>
                 </div>
               </div>
 
               {selectedLead.reason && (
-                <div className="p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06]">
-                  <span className="text-gray-400 block text-[10px] uppercase font-mono mb-1">
+                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
+                  <span className="mb-1 block font-mono text-[10px] uppercase text-gray-400">
                     Why they want to go / Personal Note
                   </span>
-                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed italic">
+                  <p className="italic leading-relaxed text-gray-700 dark:text-gray-300">
                     "{selectedLead.reason}"
                   </p>
                 </div>
               )}
 
               {/* Technical / Campaign Metadata */}
-              <div className="p-3 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/[0.06] text-[11px] text-gray-500 font-mono space-y-1">
+              <div className="space-y-1 rounded-2xl border border-gray-100 bg-gray-50 p-3 font-mono text-[11px] text-gray-500 dark:border-white/[0.06] dark:bg-white/[0.02]">
                 <div className="flex justify-between">
                   <span>Source:</span>
-                  <span className="text-gray-700 dark:text-gray-300">{selectedLead.utmSource || 'qr-campaign'}</span>
+                  <span className="text-gray-700 dark:text-gray-300">
+                    {selectedLead.utmSource || 'qr-campaign'}
+                  </span>
                 </div>
                 {selectedLead.utmCampaign && (
                   <div className="flex justify-between">
                     <span>UTM Campaign:</span>
-                    <span className="text-gray-700 dark:text-gray-300">{selectedLead.utmCampaign}</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {selectedLead.utmCampaign}
+                    </span>
                   </div>
                 )}
                 {selectedLead.ipAddress && (
                   <div className="flex justify-between">
                     <span>IP Address:</span>
-                    <span className="text-gray-700 dark:text-gray-300">{selectedLead.ipAddress}</span>
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {selectedLead.ipAddress}
+                    </span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>Created:</span>
                   <span className="text-gray-700 dark:text-gray-300">
-                    {selectedLead.createdAt ? new Date(selectedLead.createdAt).toLocaleString() : ''}
+                    {selectedLead.createdAt
+                      ? new Date(selectedLead.createdAt).toLocaleString()
+                      : ''}
                   </span>
                 </div>
               </div>
             </div>
 
             {copiedField && (
-              <div className="mt-2 text-center text-xs text-green-600 font-medium">
+              <div className="mt-2 text-center text-xs font-medium text-green-600">
                 Copied {copiedField} to clipboard!
               </div>
             )}
 
             {/* Quick Action Footer */}
-            <div className="mt-5 pt-3 border-t border-gray-100 dark:border-white/[0.06] flex items-center justify-end gap-2">
+            <div className="mt-5 flex items-center justify-end gap-2 border-t border-gray-100 pt-3 dark:border-white/[0.06]">
               {selectedLead.phone && (
                 <a
                   href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-emerald-700"
                 >
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <ExternalLink className="h-3.5 w-3.5" />
                   <span>WhatsApp</span>
                 </a>
               )}
               <button
                 type="button"
                 onClick={() => setSelectedLead(null)}
-                className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-200 dark:hover:bg-white/10"
+                className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/[0.05] dark:text-gray-300 dark:hover:bg-white/10"
               >
                 Close
               </button>
@@ -982,17 +1158,17 @@ export default function AdminCampaignPage() {
 
       {/* MANUAL LEAD CREATION MODAL */}
       {isManualModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:hidden">
-          <div className="relative w-full max-w-md rounded-3xl bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm print:hidden">
+          <div className="relative w-full max-w-md rounded-3xl border border-gray-200 bg-white p-6 shadow-2xl dark:border-white/10 dark:bg-[#18181b]">
             <button
               type="button"
               onClick={() => setIsManualModalOpen(false)}
-              className="absolute top-5 right-5 p-1.5 rounded-xl text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="absolute right-5 top-5 rounded-xl p-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
 
-            <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="mb-4 text-base font-bold text-gray-900 dark:text-white">
               Add Campaign Lead Manually
             </h3>
 
@@ -1004,47 +1180,49 @@ export default function AdminCampaignPage() {
               className="space-y-3 text-xs"
             >
               <div>
-                <label className="block text-gray-500 mb-1 font-medium">Candidate Name *</label>
+                <label className="mb-1 block font-medium text-gray-500">Candidate Name *</label>
                 <input
                   type="text"
                   required
                   value={manualForm.name}
                   onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
                   placeholder="Full name"
-                  className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                  className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-gray-500 mb-1 font-medium">Email</label>
+                  <label className="mb-1 block font-medium text-gray-500">Email</label>
                   <input
                     type="email"
                     value={manualForm.email}
                     onChange={(e) => setManualForm({ ...manualForm, email: e.target.value })}
                     placeholder="email@example.com"
-                    className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                   />
                 </div>
                 <div>
-                  <label className="block text-gray-500 mb-1 font-medium">Phone</label>
+                  <label className="mb-1 block font-medium text-gray-500">Phone</label>
                   <input
                     type="tel"
                     value={manualForm.phone}
                     onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
                     placeholder="+880..."
-                    className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-gray-500 mb-1 font-medium">Interested Country</label>
+                  <label className="mb-1 block font-medium text-gray-500">Interested Country</label>
                   <select
                     value={manualForm.interestedCountry}
-                    onChange={(e) => setManualForm({ ...manualForm, interestedCountry: e.target.value })}
-                    className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                    onChange={(e) =>
+                      setManualForm({ ...manualForm, interestedCountry: e.target.value })
+                    }
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                   >
                     <option value="South Korea">South Korea</option>
                     <option value="United States">United States</option>
@@ -1058,11 +1236,13 @@ export default function AdminCampaignPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-500 mb-1 font-medium">Program Level</label>
+                  <label className="mb-1 block font-medium text-gray-500">Program Level</label>
                   <select
                     value={manualForm.interestedProgram}
-                    onChange={(e) => setManualForm({ ...manualForm, interestedProgram: e.target.value })}
-                    className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                    onChange={(e) =>
+                      setManualForm({ ...manualForm, interestedProgram: e.target.value })
+                    }
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                   >
                     <option value="Bachelor's Degree">Bachelor's Degree</option>
                     <option value="Master's Degree">Master's Degree</option>
@@ -1075,11 +1255,11 @@ export default function AdminCampaignPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-gray-500 mb-1 font-medium">Intake Year</label>
+                  <label className="mb-1 block font-medium text-gray-500">Intake Year</label>
                   <select
                     value={manualForm.intakeYear}
                     onChange={(e) => setManualForm({ ...manualForm, intakeYear: e.target.value })}
-                    className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                   >
                     <option value="2026">2026</option>
                     <option value="2027">2027</option>
@@ -1089,11 +1269,13 @@ export default function AdminCampaignPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-gray-500 mb-1 font-medium">Status</label>
+                  <label className="mb-1 block font-medium text-gray-500">Status</label>
                   <select
                     value={manualForm.status}
-                    onChange={(e) => setManualForm({ ...manualForm, status: e.target.value as any })}
-                    className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-2 outline-none focus:border-primary"
+                    onChange={(e) =>
+                      setManualForm({ ...manualForm, status: e.target.value as any })
+                    }
+                    className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                   >
                     <option value="COMPLETED">COMPLETED</option>
                     <option value="CONTACTED">CONTACTED</option>
@@ -1103,28 +1285,30 @@ export default function AdminCampaignPage() {
               </div>
 
               <div>
-                <label className="block text-gray-500 mb-1 font-medium">Counselor Notes / Reason</label>
+                <label className="mb-1 block font-medium text-gray-500">
+                  Counselor Notes / Reason
+                </label>
                 <textarea
                   rows={2}
                   value={manualForm.reason}
                   onChange={(e) => setManualForm({ ...manualForm, reason: e.target.value })}
                   placeholder="Notes from walk-in or telephone conversation..."
-                  className="w-full bg-gray-50 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-xl p-2.5 outline-none focus:border-primary"
+                  className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 outline-none dark:border-white/10 dark:bg-white/[0.04]"
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setIsManualModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-gray-300 font-medium"
+                  className="rounded-xl bg-gray-100 px-4 py-2 font-medium text-gray-700 dark:bg-white/[0.05] dark:text-gray-300"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-4 py-2 rounded-xl bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-50"
+                  className="rounded-xl bg-[#AD0819] px-4 py-2 font-semibold text-white shadow-sm transition-all hover:bg-[#8F0614] disabled:opacity-50"
                 >
                   {createMutation.isPending ? 'Saving...' : 'Add Lead'}
                 </button>
@@ -1136,20 +1320,22 @@ export default function AdminCampaignPage() {
 
       {/* DELETE CONFIRMATION MODAL */}
       {deleteId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm print:hidden">
-          <div className="w-full max-w-sm rounded-3xl bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/10 p-6 shadow-2xl text-center">
-            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-950/40 text-red-600 flex items-center justify-center mx-auto mb-3">
-              <AlertTriangle className="w-6 h-6" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm print:hidden">
+          <div className="w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-6 text-center shadow-2xl dark:border-white/10 dark:bg-[#18181b]">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-950/40">
+              <AlertTriangle className="h-6 w-6" />
             </div>
-            <h3 className="text-base font-bold text-gray-900 dark:text-white">Delete Lead Record?</h3>
-            <p className="text-xs text-gray-500 mt-1">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">
+              Delete Lead Record?
+            </h3>
+            <p className="mt-1 text-xs text-gray-500">
               Are you sure you want to delete this lead? This action cannot be reversed.
             </p>
             <div className="mt-5 flex justify-center gap-2">
               <button
                 type="button"
                 onClick={() => setDeleteId(null)}
-                className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-white/[0.05] text-gray-700 dark:text-gray-300 text-xs font-medium"
+                className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-medium text-gray-700 dark:bg-white/[0.05] dark:text-gray-300"
               >
                 Cancel
               </button>
@@ -1157,7 +1343,7 @@ export default function AdminCampaignPage() {
                 type="button"
                 onClick={() => deleteMutation.mutate({ id: deleteId })}
                 disabled={deleteMutation.isPending}
-                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-semibold hover:bg-red-700 disabled:opacity-50"
+                className="rounded-xl bg-red-600 px-4 py-2 text-xs font-semibold text-white hover:bg-red-700 disabled:opacity-50"
               >
                 {deleteMutation.isPending ? 'Deleting...' : 'Delete Permanently'}
               </button>
@@ -1168,4 +1354,3 @@ export default function AdminCampaignPage() {
     </div>
   )
 }
-

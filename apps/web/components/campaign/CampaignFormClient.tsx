@@ -30,17 +30,17 @@ const PROGRAM_OPTIONS = [
   { id: 'other', label: 'Other Program', sub: 'Custom or dual-degree path', icon: '✨' },
 ]
 
-// Available Country Destinations with flag on left & Short Name
+// Available Country Destinations with flag icon & country name
 const COUNTRY_OPTIONS = [
-  { name: 'South Korea', shortName: 'South Korea', flag: '🇰🇷' },
-  { name: 'United States', shortName: 'USA', flag: '🇺🇸' },
-  { name: 'United Kingdom', shortName: 'UK', flag: '🇬🇧' },
-  { name: 'Canada', shortName: 'Canada', flag: '🇨🇦' },
-  { name: 'Australia', shortName: 'Australia', flag: '🇦🇺' },
-  { name: 'Germany', shortName: 'Germany', flag: '🇩🇪' },
-  { name: 'Japan', shortName: 'Japan', flag: '🇯🇵' },
-  { name: 'Malaysia', shortName: 'Malaysia', flag: '🇲🇾' },
-  { name: 'Other', shortName: 'Other', flag: '🌍' },
+  { name: 'South Korea', code: 'kr' },
+  { name: 'United States', code: 'us' },
+  { name: 'United Kingdom', code: 'gb' },
+  { name: 'Canada', code: 'ca' },
+  { name: 'Australia', code: 'au' },
+  { name: 'Germany', code: 'de' },
+  { name: 'Japan', code: 'jp' },
+  { name: 'Malaysia', code: 'my' },
+  { name: 'Other', code: null },
 ]
 
 // Intake Years - current academic years starting from current (2026) and upcoming
@@ -610,7 +610,7 @@ export default function CampaignFormClient() {
               </motion.div>
             )}
 
-            {/* STEP 4: Interested Country - Flag Left of Short Name */}
+            {/* STEP 4: Interested Country - Flag Icon & Country Name */}
             {step === 4 && (
               <motion.div
                 key="step-4"
@@ -647,10 +647,21 @@ export default function CampaignFormClient() {
                             : 'bg-white border-gray-200/90 hover:border-gray-300 hover:bg-gray-50/70 text-gray-800 shadow-sm'
                         }`}
                       >
-                        {/* Country flag left of Country short name */}
-                        <span className="text-2xl shrink-0 leading-none">{item.flag}</span>
+                        {/* Real flag image icon for each country */}
+                        {item.code ? (
+                          <img
+                            src={`https://flagcdn.com/w40/${item.code}.png`}
+                            alt={`${item.name} flag`}
+                            className="h-5 w-7 shrink-0 rounded-[3px] object-cover shadow-sm border border-gray-200"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="flex h-5 w-7 shrink-0 items-center justify-center rounded-[3px] bg-gray-100 text-[#AD0819] border border-gray-200">
+                            <Globe className="h-3.5 w-3.5" />
+                          </div>
+                        )}
                         <span className="text-sm font-bold text-gray-900 leading-tight">
-                          {item.shortName}
+                          {item.name}
                         </span>
                       </button>
                     )

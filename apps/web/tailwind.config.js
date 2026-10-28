@@ -38,16 +38,6 @@ module.exports = {
           900: "#18181b",
           950: "#09090b",
         },
-      },
-
-      fontFamily: {
-        sans: ['"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'system-ui', 'sans-serif'],
-        body: ['"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'system-ui', 'sans-serif'],
-        display: ['"Space Grotesk"', '"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'system-ui', 'sans-serif'],
-        mono: ['"IBM Plex Mono"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
-        grotesk: ['"Space Grotesk"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-      },
-      colors: {
         "sa-ink": "#f8fafc",
         "sa-surface": "#ffffff",
         "sa-border": "#e5e7eb",
@@ -56,6 +46,14 @@ module.exports = {
         "sa-route": "#E8A33D",
         "sa-success": "#4FD1A5",
         "sa-alert": "#F0625B",
+      },
+
+      fontFamily: {
+        sans: ['"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'system-ui', 'sans-serif'],
+        body: ['"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'system-ui', 'sans-serif'],
+        display: ['"Space Grotesk"', '"IBM Plex Sans"', '-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', '"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        grotesk: ['"Space Grotesk"', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
 
       boxShadow: {
