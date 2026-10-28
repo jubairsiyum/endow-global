@@ -186,11 +186,13 @@ export default function CampaignFormClient() {
     } catch (e: any) {
       console.error('Save failed:', e)
       const rawMsg = String(e?.message || '')
-      if (
-        rawMsg.toLowerCase().includes('already submitted') ||
-        rawMsg.toLowerCase().includes('conflict') ||
-        rawMsg.toLowerCase().includes('phone')
-      ) {
+      const lower = rawMsg.toLowerCase()
+      // A phone has only been entered from step 2 onwards, so the duplicate-phone
+      // copy can never legitimately apply to the name-only step 1 save.
+      const isDuplicatePhone =
+        targetStep >= 2 &&
+        (lower.includes('already submitted') || lower.includes('conflict'))
+      if (isDuplicatePhone) {
         setErrorMsg('This phone is already submitted.')
       } else {
         setErrorMsg(rawMsg || 'Failed to save information. Please try again.')
