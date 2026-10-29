@@ -90,7 +90,7 @@ export default function AdminManagementPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] space-y-4">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">

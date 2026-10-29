@@ -92,14 +92,14 @@ export default function InquiryDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-6 py-4">
+      <div className="space-y-6 pb-12">
         <div className="flex items-center gap-3">
           <div className="h-9 w-24 animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800" />
           <div className="h-6 w-48 animate-pulse rounded-lg bg-gray-200 dark:bg-gray-800" />
         </div>
         <div className="h-32 w-full animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="col-span-2 space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 print:block print:w-full print:space-y-6">
+          <div className="col-span-2 space-y-6 print:w-full print:space-y-6">
             <div className="h-64 animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800" />
             <div className="h-48 animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800" />
           </div>
@@ -169,12 +169,12 @@ export default function InquiryDetailPage() {
   const hasAnyAcademicData = academicItems.some((i) => i.year || i.result)
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-12 pt-2">
+    <div className="space-y-6 pb-12">
       {/* Top Navigation & Actions Bar */}
       <motion.div
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-wrap items-center justify-between gap-3"
+        className="flex flex-wrap items-center justify-between gap-3 print:hidden"
       >
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <Link
@@ -211,13 +211,32 @@ export default function InquiryDetailPage() {
         </div>
       </motion.div>
 
+            {/* Printable Official Header */}
+      <div className="hidden print:block mb-6 border-b-2 border-gray-800 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold tracking-tight text-black">ENDOW GLOBAL</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">| Admissions & Inquiries</span>
+            </div>
+            <h1 className="mt-1 text-lg font-bold text-black">Official Application Inquiry Dossier</h1>
+            <p className="text-xs text-gray-600">Applicant: {fullName} • Target Country: {inquiry.targetCountry || '—'}</p>
+          </div>
+          <div className="text-right text-xs text-gray-600">
+            <p><span className="font-semibold text-black">Type:</span> Apply Now Inquiry</p>
+            <p><span className="font-semibold text-black">Submitted:</span> {formatDate(inquiry.submittedAt)}</p>
+            <p><span className="font-semibold text-black">Printed:</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Header Card */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]"
+        className="relative overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:border-gray-300 print:bg-white print:text-black print:shadow-none print:break-inside-avoid"
       >
-        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-48 w-48 rounded-full bg-gradient-to-br from-[#c41e3a]/10 to-[#e8a33d]/10 blur-2xl" />
+        <div className="absolute right-0 top-0 -mr-16 -mt-16 h-48 w-48 rounded-full bg-gradient-to-br from-[#c41e3a]/10 to-[#e8a33d]/10 blur-2xl print:hidden" />
 
         <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-start gap-4">
@@ -279,7 +298,7 @@ export default function InquiryDetailPage() {
           </div>
 
           {/* Quick Communication CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0">
+          <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 print:hidden">
             <a
               href={`mailto:${inquiry.email}?subject=Regarding your application inquiry with Endow Global`}
               className="inline-flex items-center gap-1.5 rounded-xl bg-[#c41e3a] px-3.5 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:bg-[#a3152e]"
@@ -312,28 +331,28 @@ export default function InquiryDetailPage() {
 
         {/* Highlight Stats Row */}
         <div className="mt-6 grid grid-cols-2 gap-3 border-t border-gray-100 pt-5 dark:border-white/[0.06] sm:grid-cols-4">
-          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03]">
+          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03] print:bg-gray-50 print:border print:border-gray-200 print:text-black">
             <p className="text-[11px] font-medium text-gray-400">Target Country</p>
             <p className="mt-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
               {inquiry.targetCountry || '—'}
             </p>
           </div>
 
-          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03]">
+          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03] print:bg-gray-50 print:border print:border-gray-200 print:text-black">
             <p className="text-[11px] font-medium text-gray-400">Target University</p>
             <p className="mt-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
               {inquiry.targetUniversity || 'General / Unspecified'}
             </p>
           </div>
 
-          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03]">
+          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03] print:bg-gray-50 print:border print:border-gray-200 print:text-black">
             <p className="text-[11px] font-medium text-gray-400">Applying Level</p>
             <p className="mt-0.5 truncate text-sm font-semibold text-purple-600 dark:text-purple-400">
               {inquiry.applyingTo || '—'}
             </p>
           </div>
 
-          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03]">
+          <div className="rounded-xl bg-gray-50/80 p-3 dark:bg-white/[0.03] print:bg-gray-50 print:border print:border-gray-200 print:text-black">
             <p className="text-[11px] font-medium text-gray-400">Language Test</p>
             <p className="mt-0.5 truncate text-sm font-semibold text-emerald-600 dark:text-emerald-400">
               {inquiry.englishTest && inquiry.englishTest !== 'None'
@@ -349,7 +368,7 @@ export default function InquiryDetailPage() {
         {/* LEFT COLUMN: Main Details */}
         <div className="col-span-2 space-y-6">
           {/* Target Preference & Course Selection */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-4 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/60 dark:text-blue-400">
                 <Compass size={16} />
@@ -421,7 +440,7 @@ export default function InquiryDetailPage() {
           </div>
 
           {/* Academic Background */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-4 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400">
                 <GraduationCap size={16} />
@@ -469,7 +488,7 @@ export default function InquiryDetailPage() {
           </div>
 
           {/* Standardized Tests & Language Proficiency */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-4 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600 dark:bg-amber-950/60 dark:text-amber-400">
                 <Languages size={16} />
@@ -523,7 +542,7 @@ export default function InquiryDetailPage() {
           </div>
 
           {/* Personal & Family Background */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-4 flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-400">
                 <Users size={16} />
@@ -597,9 +616,9 @@ export default function InquiryDetailPage() {
         </div>
 
         {/* RIGHT COLUMN: Contact, Address, Acquisition & Metadata */}
-        <div className="space-y-6">
+        <div className="space-y-6 print:w-full print:space-y-6">
           {/* Contact Details Card */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <h3
               className="text-sm font-bold text-gray-900 dark:text-white"
               style={{ fontFamily: "'Space Grotesk',sans-serif" }}
@@ -623,7 +642,7 @@ export default function InquiryDetailPage() {
                 </div>
                 <button
                   onClick={() => handleCopy(inquiry.email, 'email')}
-                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-gray-200"
+                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-gray-200 print:hidden"
                   title="Copy email"
                 >
                   {copiedKey === 'email' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -645,7 +664,7 @@ export default function InquiryDetailPage() {
                 </div>
                 <button
                   onClick={() => handleCopy(inquiry.phone, 'phone')}
-                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-gray-200"
+                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-gray-200 print:hidden"
                   title="Copy phone"
                 >
                   {copiedKey === 'phone' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -670,7 +689,7 @@ export default function InquiryDetailPage() {
                   </div>
                   <button
                     onClick={() => handleCopy(inquiry.whatsapp || '', 'wa')}
-                    className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-gray-200"
+                    className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-700 dark:hover:bg-white/[0.08] dark:hover:text-gray-200 print:hidden"
                     title="Copy WhatsApp"
                   >
                     {copiedKey === 'wa' ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -681,7 +700,7 @@ export default function InquiryDetailPage() {
           </div>
 
           {/* Address & Residence Card */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <h3
               className="text-sm font-bold text-gray-900 dark:text-white"
               style={{ fontFamily: "'Space Grotesk',sans-serif" }}
@@ -732,7 +751,7 @@ export default function InquiryDetailPage() {
           </div>
 
           {/* Acquisition & Source Information */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <h3
               className="text-sm font-bold text-gray-900 dark:text-white"
               style={{ fontFamily: "'Space Grotesk',sans-serif" }}
@@ -783,7 +802,7 @@ export default function InquiryDetailPage() {
                   </p>
                   <Link
                     href={`/admin/students`}
-                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 underline dark:text-emerald-300"
+                    className="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 underline dark:text-emerald-300 print:hidden"
                   >
                     View in Student Management <ExternalLink size={11} />
                   </Link>
@@ -793,6 +812,36 @@ export default function InquiryDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Print Specific CSS to completely eliminate buttons, overflow clips, and margins */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 12mm;
+            size: auto;
+          }
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            background: white !important;
+            color: black !important;
+          }
+          button,
+          select,
+          textarea,
+          a[href^="mailto:"],
+          a[href^="https://wa.me"],
+          a[href^="tel:"],
+          .no-print,
+          .print\\:hidden {
+            display: none !important;
+          }
+          .print\\:break-inside-avoid {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

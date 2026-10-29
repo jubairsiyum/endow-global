@@ -583,11 +583,29 @@ export const endowRouter = createTRPCRouter({
     }),
 
   listInquiries: adminWithPermission('dashboard:view').query(async () => {
-    return db
+    // Only return unregistered guest inquiries.
+    // If a student is registered (user exists with this email or userId is assigned),
+    // their inquiries are converted to Course Applications and omitted from guest inquiries.
+    const registeredUsers = await db
+      .select({ email: sql`LOWER(${schema.users.email})` })
+      .from(schema.users)
+
+    const registeredEmailSet = new Set(
+      registeredUsers.map((u: any) => u.email).filter(Boolean) as string[]
+    )
+
+    const inquiries = await db
       .select()
       .from(schema.studentInquiries)
+      .where(isNull(schema.studentInquiries.userId))
       .orderBy(desc(schema.studentInquiries.submittedAt))
       .limit(500)
+
+    return inquiries.filter((inq) => {
+      const email = inq.email?.trim().toLowerCase()
+      if (!email) return true
+      return !registeredEmailSet.has(email)
+    })
   }),
 
   getInquiryById: adminWithPermission('dashboard:view')

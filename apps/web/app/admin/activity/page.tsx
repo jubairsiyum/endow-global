@@ -30,7 +30,7 @@ export default function SAActivityPage() {
   const entries: ActivityEntry[] = (activity.data as ActivityEntry[]) ?? []
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="space-y-6">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}

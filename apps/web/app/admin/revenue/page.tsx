@@ -39,7 +39,7 @@ export default function RevenuePage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] space-y-6">
+    <div className="space-y-6">
       <PageHeader
         title="Revenue"
         description="Track platform revenue from paid consultations and applications."

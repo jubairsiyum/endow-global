@@ -610,7 +610,7 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1440px] space-y-4">
+    <div className="space-y-6">
       {/* Top Header */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}
@@ -697,7 +697,7 @@ export default function ApplicationsPage() {
           >
             {t.l}
             <span
-              className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
+              className={`ml-2 rounded-full px-2 py-0.5 text-xs font-semibold ${
                 tab === t.k
                   ? 'bg-red-50 text-[#c41e3a] dark:bg-red-950/40 dark:text-red-400'
                   : 'bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
@@ -731,7 +731,7 @@ export default function ApplicationsPage() {
           {tab === 'applications' ? (
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">University</span>
+                <span className="text-xs text-gray-400">University</span>
                 <select
                   value={uniFilter}
                   onChange={(e) => {
@@ -749,7 +749,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Submitted From</span>
+                <span className="text-xs text-gray-400">Submitted From</span>
                 <input
                   type="date"
                   value={dateFrom}
@@ -761,7 +761,7 @@ export default function ApplicationsPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Submitted To</span>
+                <span className="text-xs text-gray-400">Submitted To</span>
                 <input
                   type="date"
                   value={dateTo}
@@ -779,7 +779,7 @@ export default function ApplicationsPage() {
           ) : (
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Origin Country</span>
+                <span className="text-xs text-gray-400">Origin Country</span>
                 <select
                   value={inqOriginCountry}
                   onChange={(e) => {
@@ -797,7 +797,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Target Country</span>
+                <span className="text-xs text-gray-400">Target Country</span>
                 <select
                   value={inqTargetCountry}
                   onChange={(e) => {
@@ -817,7 +817,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">University</span>
+                <span className="text-xs text-gray-400">University</span>
                 <select
                   value={inqUni}
                   onChange={(e) => {
@@ -837,7 +837,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Degree Level</span>
+                <span className="text-xs text-gray-400">Degree Level</span>
                 <select
                   value={inqLevel}
                   onChange={(e) => {
@@ -855,7 +855,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">English Test</span>
+                <span className="text-xs text-gray-400">English Test</span>
                 <select
                   value={inqTest}
                   onChange={(e) => {
@@ -873,7 +873,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">Source</span>
+                <span className="text-xs text-gray-400">Source</span>
                 <select
                   value={inqSource}
                   onChange={(e) => {
@@ -891,7 +891,7 @@ export default function ApplicationsPage() {
                 </select>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">From</span>
+                <span className="text-xs text-gray-400">From</span>
                 <input
                   type="date"
                   value={inqDateFrom}
@@ -903,7 +903,7 @@ export default function ApplicationsPage() {
                 />
               </div>
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] text-gray-400">To</span>
+                <span className="text-xs text-gray-400">To</span>
                 <input
                   type="date"
                   value={inqDateTo}
@@ -930,7 +930,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <FileText size={15} className="text-[#c41e3a]" />
-                <span className="text-[11px] font-medium">Total Applications</span>
+                <span className="text-xs font-medium">Total Applications</span>
               </div>
               <p className="mt-1.5 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                 {appStats.total}
@@ -940,7 +940,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <Clock size={15} className="text-amber-500" />
-                <span className="text-[11px] font-medium">In Review / Processing</span>
+                <span className="text-xs font-medium">In Review / Processing</span>
               </div>
               <p className="mt-1.5 text-2xl font-bold tracking-tight text-amber-600 dark:text-amber-400">
                 {appStats.underReview}
@@ -950,7 +950,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <CheckCircle2 size={15} className="text-emerald-500" />
-                <span className="text-[11px] font-medium">Accepted</span>
+                <span className="text-xs font-medium">Accepted</span>
               </div>
               <p className="mt-1.5 text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
                 {appStats.accepted}
@@ -960,7 +960,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <Globe size={15} className="text-blue-500" />
-                <span className="text-[11px] font-medium">Top Destination</span>
+                <span className="text-xs font-medium">Top Destination</span>
               </div>
               <p className="mt-1.5 truncate text-lg font-bold tracking-tight text-gray-900 dark:text-white">
                 {appStats.topDestination}
@@ -1084,7 +1084,7 @@ export default function ApplicationsPage() {
                       ].map((h, idx) => (
                         <th
                           key={h}
-                          className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
+                          className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
                             idx === 6 ? 'text-right' : 'text-left'
                           }`}
                           style={{ fontFamily: "'JetBrains Mono',monospace" }}
@@ -1173,12 +1173,12 @@ export default function ApplicationsPage() {
                                 <div className="flex items-center gap-1.5">
                                   <Link
                                     href={`/admin/applications/${app.id}`}
-                                    className="truncate text-[13px] font-semibold text-gray-900 transition-colors hover:text-[#c41e3a] dark:text-white dark:hover:text-red-400"
+                                    className="truncate text-sm font-semibold text-gray-900 transition-colors hover:text-[#c41e3a] dark:text-white dark:hover:text-red-400"
                                   >
                                     {studentName}
                                   </Link>
                                 </div>
-                                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                   <span className="truncate max-w-[150px]">{studentEmail}</span>
                                   {studentPhone && (
                                     <>
@@ -1188,7 +1188,7 @@ export default function ApplicationsPage() {
                                   )}
                                 </div>
                                 {(studentCountry || studentCity) && (
-                                  <div className="mt-0.5 flex items-center gap-1 text-[10px] text-gray-400">
+                                  <div className="mt-0.5 flex items-center gap-1 text-xs text-gray-400">
                                     <MapPin size={10} />
                                     <span>
                                       {[studentCity, studentCountry].filter(Boolean).join(', ')}
@@ -1204,15 +1204,15 @@ export default function ApplicationsPage() {
                             <div className="min-w-0 max-w-[240px]">
                               <div className="flex items-center gap-1.5">
                                 {degreeLevel && (
-                                  <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                                  <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
                                     {degreeLevel}
                                   </span>
                                 )}
-                                <span className="truncate text-xs font-medium text-gray-900 dark:text-white">
+                                <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
                                   {app.course?.name || app.academicHistory?.courseName || 'Program'}
                                 </span>
                               </div>
-                              <div className="mt-1 flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400">
+                              <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                 <Globe size={11} className="text-[#c41e3a]" />
                                 <span className="truncate">
                                   {app.course?.university?.name ||
@@ -1235,12 +1235,12 @@ export default function ApplicationsPage() {
                           <td className="px-4 py-3.5">
                             <div className="flex flex-col gap-1">
                               {englishTest && englishTest !== 'None' ? (
-                                <span className="inline-flex items-center gap-1 w-fit rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                <span className="inline-flex items-center gap-1 w-fit rounded bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                                   {englishTest}
                                   {testScore ? `: ${String(testScore)}` : ''}
                                 </span>
                               ) : (
-                                <span className="text-[11px] text-gray-400">No English Test</span>
+                                <span className="text-xs text-gray-400">No English Test</span>
                               )}
 
                               {gpaResult && (
@@ -1263,7 +1263,7 @@ export default function ApplicationsPage() {
                                 {app.counselor.user.name}
                               </span>
                             ) : (
-                              <span className="rounded bg-gray-100 px-2 py-0.5 text-[11px] text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
+                              <span className="rounded bg-gray-100 px-2 py-0.5 text-xs text-gray-500 dark:bg-white/[0.06] dark:text-gray-400">
                                 Unassigned
                               </span>
                             )}
@@ -1274,7 +1274,7 @@ export default function ApplicationsPage() {
                             <div className="font-medium text-gray-800 dark:text-gray-200">
                               {fmtDate(app.submittedAt || app.updatedAt)}
                             </div>
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-xs text-gray-400">
                               {app.updatedAt
                                 ? formatDistanceToNow(new Date(app.updatedAt), { addSuffix: true })
                                 : '—'}
@@ -1398,7 +1398,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <Users size={15} className="text-[#c41e3a]" />
-                <span className="text-[11px] font-medium">Total Inquiries</span>
+                <span className="text-xs font-medium">Total Inquiries</span>
               </div>
               <p className="mt-1.5 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                 {inqStats.total}
@@ -1408,7 +1408,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <Globe size={15} className="text-blue-500" />
-                <span className="text-[11px] font-medium">Top Destination</span>
+                <span className="text-xs font-medium">Top Destination</span>
               </div>
               <p className="mt-1.5 truncate text-lg font-bold tracking-tight text-gray-900 dark:text-white">
                 {inqStats.topCountry}
@@ -1418,7 +1418,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <GraduationCap size={15} className="text-purple-500" />
-                <span className="text-[11px] font-medium">Top Degree</span>
+                <span className="text-xs font-medium">Top Degree</span>
               </div>
               <p className="mt-1.5 truncate text-lg font-bold tracking-tight text-purple-600 dark:text-purple-400">
                 {inqStats.topLevel}
@@ -1428,7 +1428,7 @@ export default function ApplicationsPage() {
             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
               <div className="flex items-center gap-2 text-gray-400">
                 <Languages size={15} className="text-emerald-500" />
-                <span className="text-[11px] font-medium">Test Takers</span>
+                <span className="text-xs font-medium">Test Takers</span>
               </div>
               <p className="mt-1.5 text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">
                 {inqStats.withTest}
@@ -1572,7 +1572,7 @@ export default function ApplicationsPage() {
                       ].map((h, idx) => (
                         <th
                           key={h}
-                          className={`px-4 py-3 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
+                          className={`px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 ${
                             idx === 5 ? 'text-right' : 'text-left'
                           }`}
                           style={{ fontFamily: "'JetBrains Mono',monospace" }}
@@ -1612,18 +1612,18 @@ export default function ApplicationsPage() {
                                 <div className="flex items-center gap-1.5">
                                   <Link
                                     href={`/admin/applications/inquiries/${inq.id}`}
-                                    className="truncate text-[13px] font-semibold text-gray-900 transition-colors hover:text-[#c41e3a] dark:text-white dark:hover:text-red-400"
+                                    className="truncate text-sm font-semibold text-gray-900 transition-colors hover:text-[#c41e3a] dark:text-white dark:hover:text-red-400"
                                   >
                                     {inq.givenName} {inq.surname}
                                   </Link>
                                   <span
-                                    className="rounded bg-gray-100 px-1.5 py-0.2 text-[9px] font-medium text-gray-600 dark:bg-white/[0.08] dark:text-gray-300"
+                                    className="rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-white/[0.08] dark:text-gray-300"
                                     title="Guest inquiry submission without login"
                                   >
                                     Guest Inquiry
                                   </span>
                                 </div>
-                                <div className="mt-0.5 flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400">
+                                <div className="mt-0.5 flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                                   <span className="truncate max-w-[150px]">{inq.email}</span>
                                   <span>•</span>
                                   <span>{inq.phone}</span>
@@ -1637,15 +1637,15 @@ export default function ApplicationsPage() {
                             <div className="min-w-0 max-w-[220px]">
                               <div className="flex items-center gap-1.5">
                                 {inq.applyingTo && (
-                                  <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
+                                  <span className="rounded-full bg-purple-50 px-2 py-0.5 text-xs font-semibold text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
                                     {inq.applyingTo}
                                   </span>
                                 )}
-                                <span className="truncate text-xs font-medium text-gray-900 dark:text-white">
+                                <span className="truncate text-sm font-medium text-gray-900 dark:text-white">
                                   {inq.targetUniversity || 'General Inquiry'}
                                 </span>
                               </div>
-                              <div className="mt-1 flex items-center gap-1 text-[11px] text-gray-500 dark:text-gray-400">
+                              <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                 <Globe size={11} className="text-[#c41e3a]" />
                                 <span className="truncate">{inq.targetCountry || '—'}</span>
                                 {inq.courseName && (
@@ -1667,7 +1667,7 @@ export default function ApplicationsPage() {
                               <span>{inq.country || '—'}</span>
                             </div>
                             {inq.city && (
-                              <p className="mt-0.5 text-[11px] text-gray-400 pl-4">
+                              <p className="mt-0.5 text-xs text-gray-400 pl-4">
                                 {inq.city}
                               </p>
                             )}
@@ -1677,7 +1677,7 @@ export default function ApplicationsPage() {
                           <td className="px-4 py-3.5">
                             <div className="flex flex-col gap-1">
                               {inq.englishTest && inq.englishTest !== 'None' ? (
-                                <span className="inline-flex items-center gap-1 w-fit rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                <span className="inline-flex items-center gap-1 w-fit rounded bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                                   {inq.englishTest}
                                   {(() => {
                                     const testKey = `${inq.englishTest.toLowerCase()}Score` as keyof InquiryItem
@@ -1686,11 +1686,11 @@ export default function ApplicationsPage() {
                                   })()}
                                 </span>
                               ) : (
-                                <span className="text-[11px] text-gray-400">No Test</span>
+                                <span className="text-xs text-gray-400">No Test</span>
                               )}
 
                               {(inq.hscResult || inq.bachelorsResult || inq.sscResult) && (
-                                <span className="text-[10px] text-gray-400">
+                                <span className="text-xs text-gray-400">
                                   Result: {inq.bachelorsResult || inq.hscResult || inq.sscResult}
                                 </span>
                               )}
@@ -1702,7 +1702,7 @@ export default function ApplicationsPage() {
                             <div className="flex items-center gap-1 font-medium text-gray-800 dark:text-gray-200">
                               {fmtDate(inq.submittedAt)}
                             </div>
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-xs text-gray-400">
                               {formatDistanceToNow(new Date(inq.submittedAt), {
                                 addSuffix: true,
                               })}

@@ -254,7 +254,7 @@ export default function AdminPage() {
   ]
 
   return (
-    <div className="mx-auto max-w-[1480px] space-y-5 pb-8">
+    <div className="space-y-6 pb-8">
       {/* ─── 1. HERO PLATFORM BANNER ─── */}
       <div className="relative overflow-hidden rounded-3xl border border-gray-200/80 bg-white p-6 shadow-xs transition-colors dark:border-white/[0.08] dark:bg-[#111319]">
         {/* Ambient subtle glow */}

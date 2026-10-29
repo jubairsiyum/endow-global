@@ -20,6 +20,7 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  Printer,
   ShieldCheck,
   User,
 } from 'lucide-react'
@@ -52,6 +53,17 @@ export default function ApplicationDetailPage() {
   const id = params.id as string
 
   const { data: rawApp, isLoading, refetch } = trpc.admin.applications.getById.useQuery({ id })
+  const { data: counselorsData } = trpc.admin.counselors.list.useQuery()
+  const counselors = (counselorsData as any[]) || []
+
+  const assignMutation = trpc.admin.applications.assignCounselor.useMutation({
+    onSuccess: () => {
+      toast.success('Counselor assignment updated')
+      refetch()
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (e: any) => toast.error(e?.message || 'Failed to update counselor'),
+  })
 
   const [notes, setNotes] = useState('')
   const [isEditingNotes, setIsEditingNotes] = useState(false)
@@ -77,7 +89,7 @@ export default function ApplicationDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-6xl space-y-6 py-4" aria-busy="true">
+      <div className="space-y-6 pb-12" aria-busy="true">
         <div className="flex items-center gap-4">
           <div className="h-10 w-24 animate-pulse rounded-xl bg-gray-200 dark:bg-gray-800" />
           <div className="flex-1 space-y-2">
@@ -138,9 +150,9 @@ export default function ApplicationDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 pb-12">
+    <div className="space-y-6 pb-12">
       {/* Navigation & Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
           <button
             onClick={() => router.push('/admin/applications')}
@@ -165,6 +177,13 @@ export default function ApplicationDetailPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
+          >
+            <Printer size={13} className="text-gray-500" />
+            <span>Print Application</span>
+          </button>
           {studentEmail !== '—' && (
             <a
               href={`mailto:${studentEmail}`}
@@ -188,8 +207,27 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
+      {/* Printable Official Header */}
+      <div className="hidden print:block mb-6 border-b-2 border-gray-800 pb-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold tracking-tight text-black">ENDOW GLOBAL</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-600">| Student Admissions</span>
+            </div>
+            <h1 className="mt-1 text-lg font-bold text-black">Official Course Application Dossier</h1>
+            <p className="text-xs text-gray-600">Application ID: #{app.id}</p>
+          </div>
+          <div className="text-right text-xs text-gray-600">
+            <p><span className="font-semibold text-black">Status:</span> {app.status || 'SUBMITTED'}</p>
+            <p><span className="font-semibold text-black">Submitted:</span> {formatDate(app.submittedAt || app.createdAt)}</p>
+            <p><span className="font-semibold text-black">Printed:</span> {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Overview Card */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:border-gray-300 print:bg-white print:text-black print:shadow-none print:break-inside-avoid">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             {studentImage ? (
@@ -241,11 +279,11 @@ export default function ApplicationDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 print:block print:w-full print:space-y-6">
         {/* LEFT COLUMN: APPLICATION & STUDENT DETAILS (2 cols) */}
-        <div className="col-span-2 space-y-6">
+        <div className="col-span-2 space-y-6 print:w-full print:space-y-6">
           {/* Personal & Contact Information */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-4 flex items-center gap-2 text-[#c41e3a]">
               <User size={16} />
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
@@ -330,7 +368,7 @@ export default function ApplicationDetailPage() {
           </div>
 
           {/* Academic Background & Qualifications */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-4 flex items-center gap-2 text-purple-600 dark:text-purple-400">
               <GraduationCap size={16} />
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
@@ -396,7 +434,7 @@ export default function ApplicationDetailPage() {
           </div>
 
           {/* Statement of Purpose / Reason to Choose */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-3 flex items-center gap-2 text-blue-500">
               <FileText size={16} />
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
@@ -409,7 +447,7 @@ export default function ApplicationDetailPage() {
           </div>
 
           {/* Uploaded Documents */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <div className="mb-3 flex items-center gap-2 text-emerald-600">
               <FileCheck2 size={16} />
               <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
@@ -429,7 +467,7 @@ export default function ApplicationDetailPage() {
                       className="flex items-center justify-between rounded-xl border border-gray-100 bg-gray-50/70 p-3 text-xs font-semibold text-gray-800 transition-colors hover:border-[#c41e3a] hover:bg-white dark:border-white/[0.06] dark:bg-[#09090b] dark:text-gray-200 dark:hover:border-red-400"
                     >
                       <span className="truncate pr-2">{fileName}</span>
-                      <ExternalLink size={13} className="shrink-0 text-gray-400" />
+                      <ExternalLink size={13} className="shrink-0 text-gray-400 print:hidden" />
                     </a>
                   )
                 })}
@@ -441,9 +479,9 @@ export default function ApplicationDetailPage() {
         </div>
 
         {/* RIGHT COLUMN: ACTIONS, STATUS & COUNSELOR (1 col) */}
-        <div className="space-y-6">
+        <div className="space-y-6 print:w-full print:space-y-6">
           {/* Status Management */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
               Application Status
             </h3>
@@ -451,12 +489,12 @@ export default function ApplicationDetailPage() {
               <StatusBadge status={app.status || 'SUBMITTED'} />
             </div>
 
-            <label className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400">
+            <label className="mb-1.5 block text-xs font-medium text-gray-500 dark:text-gray-400 print:hidden">
               Update Admission Status
             </label>
             <select
               aria-label="Change application status"
-              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
+              className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white print:hidden"
               value={app.status || 'SUBMITTED'}
               onChange={(e) => handleStatusChange(e.target.value)}
               disabled={statusMutation.isPending}
@@ -474,10 +512,18 @@ export default function ApplicationDetailPage() {
           </div>
 
           {/* Assigned Counselor */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
-            <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
-              Assigned Counselor
-            </h3>
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
+                Assigned Counselor
+              </h3>
+              {app.counselor?.user?.name && (
+                <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                  Assigned
+                </span>
+              )}
+            </div>
+
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-xs font-bold text-purple-600 dark:bg-purple-950/40 dark:text-purple-300">
                 {app.counselor?.user?.name ? app.counselor.user.name.slice(0, 2).toUpperCase() : 'CO'}
@@ -486,15 +532,58 @@ export default function ApplicationDetailPage() {
                 <p className="truncate text-xs font-bold text-gray-900 dark:text-white">
                   {app.counselor?.user?.name || 'Unassigned Counselor'}
                 </p>
-                <p className="truncate text-[11px] text-gray-400">
-                  {app.counselor?.user?.email || 'No counselor assigned'}
+                <p className="truncate text-xs text-gray-400">
+                  {app.counselor?.user?.email || 'No counselor assigned to this application'}
                 </p>
               </div>
             </div>
+
+            {/* Reassign Counselor Control */}
+            <div className="mt-4 border-t border-gray-100 pt-3 dark:border-white/[0.06] print:hidden">
+              <label className="mb-1.5 block text-xs font-medium text-gray-600 dark:text-gray-300">
+                Assign / Change Counselor
+              </label>
+              <select
+                aria-label="Assign counselor"
+                value={app.counselor?.id || ''}
+                onChange={(e) =>
+                  assignMutation.mutate({
+                    applicationId: id,
+                    counselorId: e.target.value || null,
+                  })
+                }
+                disabled={assignMutation.isPending}
+                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
+              >
+                <option value="">Unassigned</option>
+                {counselors
+                  .filter((c) => c.counselorProfile?.id)
+                  .map((c) => (
+                    <option key={c.counselorProfile!.id} value={c.counselorProfile!.id}>
+                      {c.name || c.email} ({c.role || 'Counselor'})
+                    </option>
+                  ))}
+              </select>
+              {assignMutation.isPending && (
+                <p className="mt-1 text-[11px] font-medium text-[#c41e3a]">Saving assignment...</p>
+              )}
+            </div>
+
+            {app.student?.user?.id && (
+              <div className="mt-3 pt-2 print:hidden">
+                <Link
+                  href={`/admin/students/${app.student.user.id}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c41e3a] hover:underline dark:text-red-400"
+                >
+                  <span>View Student Profile</span>
+                  <ExternalLink size={12} />
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Counselor Internal Notes */}
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b]">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
             <h3 className="mb-3 text-sm font-bold uppercase tracking-wider text-gray-900 dark:text-white">
               Counselor Internal Notes
             </h3>
@@ -509,13 +598,13 @@ export default function ApplicationDetailPage() {
                     setNotes(app.counselorNotes || '')
                     setIsEditingNotes(true)
                   }}
-                  className="rounded-xl border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-[#c41e3a] transition-colors hover:bg-red-50 dark:border-white/[0.08] dark:text-[#e05266] dark:hover:bg-white/[0.06]"
+                  className="rounded-xl border border-gray-200 px-3.5 py-1.5 text-xs font-semibold text-[#c41e3a] transition-colors hover:bg-red-50 dark:border-white/[0.08] dark:text-[#e05266] dark:hover:bg-white/[0.06] print:hidden"
                 >
                   Edit Notes
                 </button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 print:hidden">
                 <textarea
                   className="w-full rounded-xl border border-gray-200 bg-white p-3 text-xs text-gray-900 outline-none focus:border-[#c41e3a] dark:border-white/[0.08] dark:bg-[#09090b] dark:text-white"
                   rows={5}
@@ -544,6 +633,36 @@ export default function ApplicationDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Print Specific CSS to completely eliminate buttons, overflow clips, and margins */}
+      <style jsx global>{`
+        @media print {
+          @page {
+            margin: 12mm;
+            size: auto;
+          }
+          body {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            background: white !important;
+            color: black !important;
+          }
+          button,
+          select,
+          textarea,
+          a[href^="mailto:"],
+          a[href^="https://wa.me"],
+          a[href^="tel:"],
+          .no-print,
+          .print\\:hidden {
+            display: none !important;
+          }
+          .print\\:break-inside-avoid {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
     </div>
   )
 }

@@ -5,6 +5,7 @@ import { deleteLocalFile } from '@/lib/local-storage'
 import { notifyCounselorNewStudent } from '@/lib/notify'
 import { adminWithPermission, createTRPCRouter, superAdminProcedure } from '@/lib/trpc'
 import { isMissingColumnError } from '@/server/utils/db-errors'
+import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 import { db, schema } from '@endow/db'
 import { TRPCError } from '@trpc/server'
 import { hash as bcryptHash } from 'bcryptjs'
@@ -422,8 +423,7 @@ export const adminRouter = createTRPCRouter({
           conditions.push(sql`${schema.users.id} < ${cursor}` as any)
         }
 
-        // Explicit joins (no relational `with` — MariaDB rejects the lateral
-        // SQL the relation query builder generates, which returned no data).
+        // Explicit joins (no relational `with` — MariaDB rejects lateral joins)
         const counselorUser = alias(schema.users as any, 'counselor_user')
         const rows = await db
           .select({
@@ -431,10 +431,21 @@ export const adminRouter = createTRPCRouter({
             name: schema.users.name,
             email: schema.users.email,
             emailVerified: schema.users.emailVerified,
+            image: schema.users.image,
             createdAt: schema.users.createdAt,
+            studentProfileId: schema.studentProfiles.id,
+            phone: schema.studentProfiles.phone,
             nationality: schema.studentProfiles.nationality,
+            countryOfResidence: schema.studentProfiles.countryOfResidence,
+            highestEducation: schema.studentProfiles.highestEducation,
+            interestedProgram: schema.studentProfiles.interestedProgram,
+            gpa: schema.studentProfiles.gpa,
+            ieltsScore: schema.studentProfiles.ieltsScore,
+            targetCountries: schema.studentProfiles.targetCountries,
+            assignedCounselorId: schema.studentProfiles.assignedCounselorId,
             counselorId: schema.counselorProfiles.id,
             counselorName: counselorUser.name,
+            counselorEmail: counselorUser.email,
           })
           .from(schema.users)
           .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
@@ -454,16 +465,48 @@ export const adminRouter = createTRPCRouter({
           nextCursor = nextItem!.id
         }
 
+        const profileIds = items.map((r) => r.studentProfileId).filter(Boolean) as string[]
+        const appCounts =
+          profileIds.length > 0
+            ? await db
+                .select({
+                  studentId: schema.applications.studentId,
+                  total: count(schema.applications.id),
+                })
+                .from(schema.applications)
+                .where(inArray(schema.applications.studentId, profileIds))
+                .groupBy(schema.applications.studentId)
+            : []
+
+        const appCountMap = new Map(appCounts.map((c) => [c.studentId, Number(c.total || 0)]))
+
         const shaped = items.map((r: any) => ({
           id: r.id,
           name: r.name,
           email: r.email,
           emailVerified: r.emailVerified,
+          image: r.image,
           createdAt: r.createdAt,
+          applicationsCount: r.studentProfileId ? (appCountMap.get(r.studentProfileId) || 0) : 0,
           studentProfile: {
+            id: r.studentProfileId,
+            phone: r.phone,
             nationality: r.nationality,
+            countryOfResidence: r.countryOfResidence,
+            highestEducation: r.highestEducation,
+            interestedProgram: r.interestedProgram,
+            gpa: r.gpa,
+            ieltsScore: r.ieltsScore,
+            targetCountries: r.targetCountries,
+            assignedCounselorId: r.assignedCounselorId,
             assignedCounselor: r.counselorId
-              ? { id: r.counselorId, user: { name: r.counselorName } }
+              ? {
+                  id: r.counselorId,
+                  user: {
+                    name: r.counselorName || 'Counselor',
+                    email: r.counselorEmail || null,
+                  },
+                }
               : null,
           },
         }))
@@ -501,6 +544,8 @@ export const adminRouter = createTRPCRouter({
             preferredIntakeMonth: schema.studentProfiles.preferredIntakeMonth,
             assignedCounselorId: schema.studentProfiles.assignedCounselorId,
             counselorName: counselorUser.name,
+            counselorEmail: counselorUser.email,
+            counselorImage: counselorUser.image,
           })
           .from(schema.users)
           .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
@@ -515,12 +560,18 @@ export const adminRouter = createTRPCRouter({
         if (!row) return null
         const studentProfileId = row.studentProfileId
 
-        const [latestInq] = await db
+        const inquiries = await db
           .select()
           .from(schema.studentInquiries)
-          .where(eq(schema.studentInquiries.userId, input.id))
+          .where(
+            or(
+              eq(schema.studentInquiries.userId, input.id),
+              eq(schema.studentInquiries.email, row.email)
+            ) as any
+          )
           .orderBy(desc(schema.studentInquiries.submittedAt))
-          .limit(1)
+
+        const latestInq = inquiries[0] || null
 
         // Applications for this student (explicit joins — no relational `with`).
         const applications = await db
@@ -592,7 +643,14 @@ export const adminRouter = createTRPCRouter({
             preferredIntakeMonth: row.preferredIntakeMonth,
             assignedCounselorId: row.assignedCounselorId,
             assignedCounselor: row.assignedCounselorId
-              ? { id: row.assignedCounselorId, user: { name: row.counselorName || 'Counselor' } }
+              ? {
+                  id: row.assignedCounselorId,
+                  user: {
+                    name: row.counselorName || 'Counselor',
+                    email: row.counselorEmail || null,
+                    image: row.counselorImage || null,
+                  },
+                }
               : null,
           },
           applications: applications.map((a) => ({
@@ -602,6 +660,7 @@ export const adminRouter = createTRPCRouter({
               : null,
           })),
           bookingSessions: sessions,
+          inquiries,
         }
       }),
 
@@ -637,13 +696,19 @@ export const adminRouter = createTRPCRouter({
         const [student] = await db
           .select({
             userId: schema.studentProfiles.userId,
+            profileId: schema.studentProfiles.id,
             name: schema.users.name,
             email: schema.users.email,
             phone: schema.studentProfiles.phone,
           })
           .from(schema.studentProfiles)
           .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
-          .where(eq(schema.studentProfiles.userId, input.studentId))
+          .where(
+            or(
+              eq(schema.studentProfiles.userId, input.studentId),
+              eq(schema.studentProfiles.id, input.studentId)
+            ) as any
+          )
           .limit(1)
         if (!student) throw new Error('Student profile not found')
 
@@ -666,7 +731,13 @@ export const adminRouter = createTRPCRouter({
         await db
           .update(schema.studentProfiles)
           .set({ assignedCounselorId: input.counselorId })
-          .where(eq(schema.studentProfiles.userId, input.studentId))
+          .where(eq(schema.studentProfiles.id, student.profileId))
+
+        // Synchronize all applications for this student so counselor matches across pages
+        await db
+          .update(schema.applications)
+          .set({ counselorId: input.counselorId })
+          .where(eq(schema.applications.studentId, student.profileId))
 
         if (counselor) {
           try {
@@ -768,6 +839,16 @@ export const adminRouter = createTRPCRouter({
             }
           }
 
+          try {
+            await syncStudentInquiriesToApplications(db, {
+              id: userId,
+              email,
+              name: input.name,
+            })
+          } catch (syncErr) {
+            console.warn('[admin.students.create] auto-sync inquiries warning:', syncErr)
+          }
+
           return { success: true, userId }
         } catch (e: any) {
           if (e?.message?.includes('Duplicate') || e?.code === 'ER_DUP_ENTRY') {
@@ -803,6 +884,33 @@ export const adminRouter = createTRPCRouter({
       .query(async ({ input }) => {
         const { search, status, cursor, limit } = input
 
+        // Auto-sync any registered students who submitted inquiries so all course applications are updated
+        try {
+          const registeredInquiries = await db
+            .select({
+              id: schema.users.id,
+              email: schema.users.email,
+              name: schema.users.name,
+              image: schema.users.image,
+            })
+            .from(schema.studentInquiries)
+            .innerJoin(
+              schema.users,
+              or(
+                eq(schema.studentInquiries.userId, schema.users.id),
+                eq(sql`LOWER(${schema.studentInquiries.email})`, sql`LOWER(${schema.users.email})`)
+              ) as any
+            )
+            .where(eq(schema.users.role, 'STUDENT'))
+            .groupBy(schema.users.id, schema.users.email, schema.users.name, schema.users.image)
+
+          for (const u of registeredInquiries) {
+            await syncStudentInquiriesToApplications(db, u)
+          }
+        } catch (syncErr) {
+          console.warn('[admin.applications.list] auto-sync inquiries warning:', syncErr)
+        }
+
         const conditions = []
         if (status) conditions.push(eq(schema.applications.status, status))
         if (cursor) conditions.push(sql`${schema.applications.id} < ${cursor}` as any)
@@ -817,39 +925,45 @@ export const adminRouter = createTRPCRouter({
         // Fetch related student/course/counselor data
         const studentIds = Array.from(new Set(items.map((i) => i.studentId)))
         const courseIds = Array.from(new Set(items.map((i) => i.courseId)))
-        const counselorIds = Array.from(
-          new Set(items.map((i) => i.counselorId).filter(Boolean) as string[])
+
+        const students = studentIds.length > 0
+          ? await db
+              .select({
+                profileId: schema.studentProfiles.id,
+                userId: schema.users.id,
+                name: schema.users.name,
+                email: schema.users.email,
+                image: schema.users.image,
+                phone: schema.studentProfiles.phone,
+                countryOfResidence: schema.studentProfiles.countryOfResidence,
+                nationality: schema.studentProfiles.nationality,
+                gpa: schema.studentProfiles.gpa,
+                highestEducation: schema.studentProfiles.highestEducation,
+                ieltsScore: schema.studentProfiles.ieltsScore,
+                toeflScore: schema.studentProfiles.toeflScore,
+                satScore: schema.studentProfiles.satScore,
+                assignedCounselorId: schema.studentProfiles.assignedCounselorId,
+              })
+              .from(schema.studentProfiles)
+              .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
+              .where(inArray(schema.studentProfiles.id, studentIds))
+          : []
+
+        const allCounselorIds = Array.from(
+          new Set([
+            ...items.map((i) => i.counselorId),
+            ...students.map((s) => s.assignedCounselorId),
+          ].filter(Boolean) as string[])
         )
 
-        const [students, courses, counselors] = await Promise.all([
-          studentIds.length > 0
-            ? db
-                .select({
-                  profileId: schema.studentProfiles.id,
-                  userId: schema.users.id,
-                  name: schema.users.name,
-                  email: schema.users.email,
-                  image: schema.users.image,
-                  phone: schema.studentProfiles.phone,
-                  countryOfResidence: schema.studentProfiles.countryOfResidence,
-                  nationality: schema.studentProfiles.nationality,
-                  gpa: schema.studentProfiles.gpa,
-                  highestEducation: schema.studentProfiles.highestEducation,
-                  ieltsScore: schema.studentProfiles.ieltsScore,
-                  toeflScore: schema.studentProfiles.toeflScore,
-                  satScore: schema.studentProfiles.satScore,
-                })
-                .from(schema.studentProfiles)
-                .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
-                .where(inArray(schema.studentProfiles.id, studentIds))
-            : [],
+        const [courses, counselors] = await Promise.all([
           courseIds.length > 0
             ? db
                 .select()
                 .from(schema.courses)
                 .where(or(...courseIds.map((id) => eq(schema.courses.id, id))) as any)
             : [],
-          counselorIds.length > 0
+          allCounselorIds.length > 0
             ? db
                 .select({
                   profileId: schema.counselorProfiles.id,
@@ -859,7 +973,7 @@ export const adminRouter = createTRPCRouter({
                 })
                 .from(schema.counselorProfiles)
                 .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
-                .where(inArray(schema.counselorProfiles.id, counselorIds))
+                .where(inArray(schema.counselorProfiles.id, allCounselorIds))
             : [],
         ])
         const universityIds = Array.from(new Set(courses.map((c) => c.universityId)))
@@ -893,7 +1007,8 @@ export const adminRouter = createTRPCRouter({
           const st = item.studentId ? studentMap.get(item.studentId) : null
           const crs = item.courseId ? courseMap.get(item.courseId) : null
           const uni = crs?.universityId ? uniMap.get(crs.universityId) : null
-          const cns = item.counselorId ? counselorMap.get(item.counselorId) : null
+          const effectiveCounselorId = item.counselorId || st?.assignedCounselorId || null
+          const cns = effectiveCounselorId ? counselorMap.get(effectiveCounselorId) : null
 
           const studentName =
             st?.name ||
@@ -994,6 +1109,7 @@ export const adminRouter = createTRPCRouter({
             personalStatement: schema.applications.personalStatement,
             createdAt: schema.applications.createdAt,
             updatedAt: schema.applications.updatedAt,
+            studentUserId: schema.studentProfiles.userId,
             studentName: studentUser.name,
             studentEmail: studentUser.email,
             studentImage: studentUser.image,
@@ -1014,6 +1130,7 @@ export const adminRouter = createTRPCRouter({
             universityCountry: schema.universities.country,
             universityCity: schema.universities.city,
             universityLogo: schema.universities.logo,
+            studentAssignedCounselorId: schema.studentProfiles.assignedCounselorId,
             counselorName: counselorUser.name,
             counselorEmail: counselorUser.email,
           })
@@ -1027,7 +1144,10 @@ export const adminRouter = createTRPCRouter({
           .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
           .leftJoin(
             schema.counselorProfiles,
-            eq(schema.counselorProfiles.id, schema.applications.counselorId)
+            eq(
+              schema.counselorProfiles.id,
+              sql`COALESCE(${schema.applications.counselorId}, ${schema.studentProfiles.assignedCounselorId})` as any
+            )
           )
           .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
           .where(eq(schema.applications.id, input.id))
@@ -1076,6 +1196,7 @@ export const adminRouter = createTRPCRouter({
           updatedAt: row.updatedAt,
           student: {
             user: {
+              id: row.studentUserId || null,
               name: sName,
               email: sEmail,
               image: sImage,
@@ -1116,8 +1237,11 @@ export const adminRouter = createTRPCRouter({
                   : null,
               }
             : null,
-          counselor: row.counselorId
-            ? { user: { name: row.counselorName || 'Counselor', email: row.counselorEmail } }
+          counselor: (row.counselorId || row.studentAssignedCounselorId)
+            ? {
+                id: row.counselorId || row.studentAssignedCounselorId,
+                user: { name: row.counselorName || 'Counselor', email: row.counselorEmail },
+              }
             : null,
         }
       }),
@@ -1198,6 +1322,40 @@ export const adminRouter = createTRPCRouter({
           .where(eq(schema.applications.id, input.id))
         return { success: true }
       }),
+
+    assignCounselor: adminWithPermission('applications:manage')
+      .input(
+        z.object({
+          applicationId: z.string(),
+          counselorId: z.string().nullable(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const [app] = await db
+          .select({
+            id: schema.applications.id,
+            studentId: schema.applications.studentId,
+          })
+          .from(schema.applications)
+          .where(eq(schema.applications.id, input.applicationId))
+          .limit(1)
+
+        if (!app) throw new Error('Application not found')
+
+        await db
+          .update(schema.applications)
+          .set({ counselorId: input.counselorId, updatedAt: new Date() })
+          .where(eq(schema.applications.id, input.applicationId))
+
+        if (app.studentId) {
+          await db
+            .update(schema.studentProfiles)
+            .set({ assignedCounselorId: input.counselorId })
+            .where(eq(schema.studentProfiles.id, app.studentId))
+        }
+
+        return { success: true }
+      }),
   }),
 
   counselors: createTRPCRouter({
@@ -1217,6 +1375,28 @@ export const adminRouter = createTRPCRouter({
         .where(or(...profileConds) as any)
 
       const profileMap = new Map(profiles.map((p) => [p.userId, p]))
+
+      for (const u of users) {
+        if (!profileMap.has(u.id)) {
+          try {
+            await db.insert(schema.counselorProfiles).values({
+              userId: u.id,
+              bio: '',
+              languages: ['English'],
+              expertiseCountries: [],
+              expertiseSubjects: [],
+              isAvailable: true,
+            })
+            const created = await db.query.counselorProfiles.findFirst({
+              where: (cp: any, { eq: cpEq }: any) => cpEq(cp.userId, u.id),
+            })
+            if (created) profileMap.set(u.id, created)
+          } catch (autoErr) {
+            console.warn('[counselors.list] auto-heal profile failed for', u.id, autoErr)
+          }
+        }
+      }
+
       return users.map((u) => ({ ...u, counselorProfile: profileMap.get(u.id) || null }))
     }),
     getById: adminWithPermission('counselors:view')
@@ -3442,6 +3622,28 @@ export const adminRouter = createTRPCRouter({
         }
 
         await db.update(schema.users).set(updates).where(eq(schema.users.id, input.userId))
+
+        if (input.role === 'COUNSELOR') {
+          try {
+            const existingProfile = await db.query.counselorProfiles.findFirst({
+              where: (cp: any, { eq: cpEq }: any) => cpEq(cp.userId, input.userId),
+            })
+            if (!existingProfile) {
+              await db.insert(schema.counselorProfiles).values({
+                userId: input.userId,
+                bio: '',
+                languages: ['English'],
+                expertiseCountries: [],
+                expertiseSubjects: [],
+                isAvailable: true,
+              })
+              console.log('[admin.super.updateUserRole] auto-created counselorProfile for', input.userId)
+            }
+          } catch (profileErr) {
+            console.error('[admin.super.updateUserRole] failed to create counselorProfile:', profileErr)
+          }
+        }
+
         // Invalidate sessions of target user so permission/role takes effect immediately (skip if self to avoid instant logout)
         if (input.userId !== (ctx.session as any).user.id) {
           await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
