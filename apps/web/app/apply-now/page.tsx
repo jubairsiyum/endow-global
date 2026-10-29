@@ -493,6 +493,7 @@ function ApplyNowContent() {
   const existingApplication = useMemo(() => {
     if (!userApplications || !userApplications.length) return null
     return userApplications.find((app: any) => {
+      if (app.status === 'WITHDRAWN') return false
       if (courseBySlug?.id && app.courseId === courseBySlug.id) return true
       if (form.courseSlug && (app.course?.slug === form.courseSlug || app.courseSlug === form.courseSlug)) return true
       if (
@@ -508,19 +509,21 @@ function ApplyNowContent() {
   }, [userApplications, courseBySlug, form.courseSlug, form.courseName, form.targetUniversity])
 
   useEffect(() => {
-    if (existingApplication && !submitted) {
+    if (existingApplication && !submitted && (slugParam || courseNameParam)) {
       toast.info('You have already applied to this program. Redirecting to your applications...')
       router.replace('/dashboard/application')
     }
-  }, [existingApplication, submitted, router])
+  }, [existingApplication, submitted, router, slugParam, courseNameParam])
 
   const inquiryMutation = trpc.endow.submitInquiry.useMutation({
     onSuccess: async () => {
-      await utils.dashboard.overview.invalidate()
-      await utils.application.getAll.invalidate()
-      await utils.user.getProfile.invalidate()
       setSubmitted(true)
       toast.success('Application submitted!')
+      await Promise.all([
+        utils.dashboard.overview.invalidate(),
+        utils.application.getAll.invalidate(),
+        utils.user.getProfile.invalidate(),
+      ])
     },
     onError: (e: any) => toast.error(getErrorMessage(e, 'Submission failed')),
   })
@@ -781,7 +784,7 @@ function ApplyNowContent() {
         ? 'mastersResult'
         : 'hscResult'
 
-  if (existingApplication && !submitted) {
+  if (existingApplication && !submitted && (slugParam || courseNameParam)) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
         <div className="flex flex-col items-center gap-3 text-center">
@@ -1622,7 +1625,7 @@ function ApplyNowContent() {
 
                   <label
                     className="flex cursor-pointer items-start gap-3 pt-2"
-                    onClick={() => setAccepted(!accepted)}
+                    onClick={() => setAccepted((prev) => !prev)}
                   >
                     <div
                       className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border-2 transition-colors ${accepted ? 'border-[#C41E3A] bg-[#C41E3A]' : 'border-gray-300'}`}

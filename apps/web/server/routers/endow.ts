@@ -14,6 +14,8 @@ import {
   desc as _desc,
   eq as _eq,
   isNull as _isNull,
+  ne as _ne,
+  notInArray as _notInArray,
   or as _or,
   sql as _sql,
 } from 'drizzle-orm'
@@ -25,6 +27,8 @@ const and = _and as any
 const or = _or as any
 const count = _count as any
 const isNull = _isNull as any
+const ne = _ne as any
+const notInArray = _notInArray as any
 
 const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
 const RATE_LIMIT_MAX = 3 // max 3 per minute per IP
@@ -111,7 +115,7 @@ export const endowRouter = createTRPCRouter({
       .where(
         and(
           eq(schema.studentInquiries.ipAddress, ip),
-          sql`${schema.studentInquiries.submittedAt} > DATE_SUB(NOW(), INTERVAL 1 MINUTE)`
+          sql`${schema.studentInquiries.submittedAt} > DATE_SUB(UTC_TIMESTAMP(), INTERVAL 1 MINUTE)`
         )
       )
       .limit(1)
@@ -149,57 +153,72 @@ export const endowRouter = createTRPCRouter({
       }
     }
 
-    const userId = ctx.session?.user?.id || null
+    let userId = ctx.session?.user?.id || null
+    if (!userId && input.email) {
+      try {
+        const [u] = await db
+          .select({ id: schema.users.id })
+          .from(schema.users)
+          .where(eq(schema.users.email, input.email.trim().toLowerCase()))
+          .limit(1)
+        if (u) userId = u.id
+      } catch {
+        // non-blocking
+      }
+    }
+
+    const inqId = globalThis.crypto.randomUUID()
+    const submittedAt = new Date()
+
+    // ── ALWAYS PERSIST INQUIRY (for Admin Inquiries dashboard, Lead logs, and Student profile synchronization) ──
+    await db.insert(schema.studentInquiries).values({
+      id: inqId,
+      userId: userId || null,
+      ipAddress: ip,
+      submittedAt,
+      surname: input.surname,
+      givenName: input.givenName,
+      dob: input.dob,
+      gender: input.gender,
+      phone: input.phone,
+      whatsapp: input.whatsapp,
+      email: input.email.trim().toLowerCase(),
+      fatherName: input.fatherName,
+      motherName: input.motherName,
+      hometown: input.hometown,
+      nationality: input.nationality,
+      addressLine1: input.addressLine1,
+      addressLine2: input.addressLine2,
+      city: input.city,
+      state: input.state,
+      zipCode: input.zipCode,
+      country: input.country,
+      applyingTo: input.applyingTo,
+      sscYear: input.sscYear,
+      sscResult: input.sscResult,
+      hscYear: input.hscYear,
+      hscResult: input.hscResult,
+      bachelorsYear: input.bachelorsYear,
+      bachelorsResult: input.bachelorsResult,
+      mastersYear: input.mastersYear,
+      mastersResult: input.mastersResult,
+      targetCountry: input.targetCountry,
+      targetUniversity: input.targetUniversity,
+      courseName: input.courseName,
+      courseSlug: input.courseSlug,
+      reasonToChoose: input.reasonToChoose,
+      englishTest: input.englishTest,
+      ieltsScore: input.ieltsScore,
+      toeflScore: input.toeflScore,
+      satScore: input.satScore,
+      topikLevel: input.topikLevel,
+      heardFrom: input.heardFrom,
+      referralName: input.referralName,
+      photoUrl: input.photoUrl || null,
+    } as any)
 
     if (!userId) {
-      // ── GUEST SUBMISSION WITHOUT LOGIN ────────────────────────
-      // Saved strictly as an inquiry in student_inquiry. Does NOT create a course application.
-      await db.insert(schema.studentInquiries).values({
-        id: globalThis.crypto.randomUUID(),
-        userId: null,
-        ipAddress: ip,
-        submittedAt: new Date(),
-        surname: input.surname,
-        givenName: input.givenName,
-        dob: input.dob,
-        gender: input.gender,
-        phone: input.phone,
-        whatsapp: input.whatsapp,
-        email: input.email,
-        fatherName: input.fatherName,
-        motherName: input.motherName,
-        hometown: input.hometown,
-        nationality: input.nationality,
-        addressLine1: input.addressLine1,
-        addressLine2: input.addressLine2,
-        city: input.city,
-        state: input.state,
-        zipCode: input.zipCode,
-        country: input.country,
-        applyingTo: input.applyingTo,
-        sscYear: input.sscYear,
-        sscResult: input.sscResult,
-        hscYear: input.hscYear,
-        hscResult: input.hscResult,
-        bachelorsYear: input.bachelorsYear,
-        bachelorsResult: input.bachelorsResult,
-        mastersYear: input.mastersYear,
-        mastersResult: input.mastersResult,
-        targetCountry: input.targetCountry,
-        targetUniversity: input.targetUniversity,
-        courseName: input.courseName,
-        courseSlug: input.courseSlug,
-        reasonToChoose: input.reasonToChoose,
-        englishTest: input.englishTest,
-        ieltsScore: input.ieltsScore,
-        toeflScore: input.toeflScore,
-        satScore: input.satScore,
-        topikLevel: input.topikLevel,
-        heardFrom: input.heardFrom,
-        referralName: input.referralName,
-        photoUrl: input.photoUrl || null,
-      } as any)
-
+      // Guest inquiry submitted without login or registered user record
       await logAdminActivity({
         action: 'application.submit',
         actor: { id: 'guest', email: input.email, role: 'STUDENT' },
@@ -212,8 +231,7 @@ export const endowRouter = createTRPCRouter({
       }
     }
 
-    // ── LOGGED-IN SUBMISSION (COURSE APPLICATION) ─────────────
-    // If a user is logged in and applies through a course or form, all data goes directly into Course application (schema.applications).
+    // ── LOGGED-IN / REGISTERED SUBMISSION (COURSE APPLICATION) ─────────────
     // 1. Ensure student profile exists
     let [studentProf] = await db
       .select()
@@ -228,6 +246,7 @@ export const endowRouter = createTRPCRouter({
         userId,
         targetCountries: input.targetCountry ? [input.targetCountry] : ['South Korea'],
         highestEducation: 'HIGH_SCHOOL',
+        referralCode: globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 12),
       } as any)
       const [created] = await db
         .select()
@@ -239,6 +258,8 @@ export const endowRouter = createTRPCRouter({
 
     // 2. Resolve target course
     let targetCourseId: string | null = null
+    let matchedUniId: string | null = null
+
     if (input.courseSlug) {
       const [c] = await db
         .select({ id: schema.courses.id })
@@ -258,7 +279,7 @@ export const endowRouter = createTRPCRouter({
         .limit(1)
       if (c) targetCourseId = c.id
     }
-    if (!targetCourseId && input.targetUniversity) {
+    if (input.targetUniversity) {
       const [uni] = await db
         .select({ id: schema.universities.id })
         .from(schema.universities)
@@ -270,12 +291,15 @@ export const endowRouter = createTRPCRouter({
         )
         .limit(1)
       if (uni) {
-        const [c] = await db
-          .select({ id: schema.courses.id })
-          .from(schema.courses)
-          .where(eq(schema.courses.universityId, uni.id))
-          .limit(1)
-        if (c) targetCourseId = c.id
+        matchedUniId = uni.id
+        if (!targetCourseId) {
+          const [c] = await db
+            .select({ id: schema.courses.id })
+            .from(schema.courses)
+            .where(eq(schema.courses.universityId, uni.id))
+            .limit(1)
+          if (c) targetCourseId = c.id
+        }
       }
     }
     if (!targetCourseId) {
@@ -294,9 +318,9 @@ export const endowRouter = createTRPCRouter({
       })
     }
 
-    // 3. Prevent duplicate applications for the same course
-    const [existingApp] = await db
-      .select({ id: schema.applications.id })
+    // 3. Prevent duplicate active applications for the same course
+    const existingRows = await db
+      .select({ id: schema.applications.id, status: schema.applications.status })
       .from(schema.applications)
       .where(
         and(
@@ -305,20 +329,70 @@ export const endowRouter = createTRPCRouter({
         )
       )
       .limit(1)
+    let existingApp: { id: string; status: any } | undefined = existingRows[0]
 
-    if (existingApp) {
+    // If course was auto-resolved via university/fallback and student already applied to it,
+    // find another course slot at that university or active courses so they can submit a new application
+    if (existingApp && existingApp.status !== 'WITHDRAWN' && !input.courseSlug) {
+      const activeAppCourseIds = await db
+        .select({ courseId: schema.applications.courseId })
+        .from(schema.applications)
+        .where(
+          and(
+            eq(schema.applications.studentId, studentProf.id),
+            ne(schema.applications.status, 'WITHDRAWN')
+          )
+        )
+        .then((rows) => rows.map((r) => r.courseId))
+
+      let altCourse: { id: string } | undefined
+      if (matchedUniId) {
+        const [uniC] = await db
+          .select({ id: schema.courses.id })
+          .from(schema.courses)
+          .where(
+            and(
+              eq(schema.courses.universityId, matchedUniId),
+              eq(schema.courses.isActive, true),
+              notInArray(schema.courses.id, activeAppCourseIds.length ? activeAppCourseIds : ['__none__'])
+            )
+          )
+          .limit(1)
+        altCourse = uniC
+      }
+      if (!altCourse) {
+        const [anyOther] = await db
+          .select({ id: schema.courses.id })
+          .from(schema.courses)
+          .where(
+            and(
+              eq(schema.courses.isActive, true),
+              notInArray(schema.courses.id, activeAppCourseIds.length ? activeAppCourseIds : ['__none__'])
+            )
+          )
+          .limit(1)
+        altCourse = anyOther
+      }
+      if (altCourse) {
+        targetCourseId = altCourse.id
+        existingApp = undefined
+      }
+    }
+
+    if (existingApp && existingApp.status !== 'WITHDRAWN') {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message:
-          'You have already submitted an application for this course. You can track your application in your dashboard.',
+          'You have already submitted an active application for this course. You can track your application in your dashboard.',
       })
     }
 
     const appId = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 24)
     const personalInfoObj = {
+      inquiryId: inqId,
       surname: input.surname,
       givenName: input.givenName,
-      email: input.email,
+      email: input.email.trim().toLowerCase(),
       phone: input.phone,
       whatsapp: input.whatsapp || null,
       gender: input.gender || null,
@@ -372,20 +446,37 @@ export const endowRouter = createTRPCRouter({
       ? input.documents.map((d) => d.fileUrl).filter(Boolean)
       : []
 
-    await db.insert(schema.applications).values({
-      id: appId,
-      studentId: studentProf.id,
-      courseId: targetCourseId,
-      status: 'SUBMITTED',
-      currentStep: 5,
-      totalSteps: 5,
-      submittedAt: new Date(),
-      personalInfo: personalInfoObj,
-      academicHistory: academicHistoryObj,
-      personalStatement: input.reasonToChoose || null,
-      documentsUrls: docUrls,
-      counselorNotes: cNotes,
-    })
+    if (existingApp && existingApp.status === 'WITHDRAWN') {
+      await db
+        .update(schema.applications)
+        .set({
+          status: 'SUBMITTED',
+          currentStep: 5,
+          totalSteps: 5,
+          submittedAt,
+          personalInfo: personalInfoObj,
+          academicHistory: academicHistoryObj,
+          personalStatement: input.reasonToChoose || null,
+          documentsUrls: docUrls,
+          counselorNotes: cNotes,
+        })
+        .where(eq(schema.applications.id, existingApp.id))
+    } else {
+      await db.insert(schema.applications).values({
+        id: appId,
+        studentId: studentProf.id,
+        courseId: targetCourseId,
+        status: 'SUBMITTED',
+        currentStep: 5,
+        totalSteps: 5,
+        submittedAt,
+        personalInfo: personalInfoObj,
+        academicHistory: academicHistoryObj,
+        personalStatement: input.reasonToChoose || null,
+        documentsUrls: docUrls,
+        counselorNotes: cNotes,
+      })
+    }
 
     // 4. Persist any uploaded files into studentDocuments
     if (Array.isArray(input.documents) && input.documents.length > 0) {
@@ -395,7 +486,7 @@ export const endowRouter = createTRPCRouter({
             .insert(schema.studentDocuments)
             .values({
               studentId: studentProf.id,
-              applicationId: appId,
+              applicationId: existingApp ? existingApp.id : appId,
               category: doc.category || 'Academic Certificates',
               label: doc.label || 'Document',
               fileUrl: doc.fileUrl,
@@ -447,7 +538,7 @@ export const endowRouter = createTRPCRouter({
       data: {
         university: input.targetUniversity,
         courseName: input.courseName,
-        applicationId: appId,
+        applicationId: existingApp ? existingApp.id : appId,
       },
     }).catch(() => {})
 

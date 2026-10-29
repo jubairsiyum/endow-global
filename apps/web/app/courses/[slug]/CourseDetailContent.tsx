@@ -74,6 +74,7 @@ export default function CourseDetailContent({ course }: { course: any }) {
 
   const isApplied = Boolean(
     applications?.some((app: any) => {
+      if (app.status === 'WITHDRAWN') return false
       if (course?.id && (app.courseId === course.id || app.course?.id === course.id)) return true
       if (courseSlug && (app.course?.slug === courseSlug || app.courseSlug === courseSlug)) return true
       if (

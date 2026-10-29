@@ -65,18 +65,23 @@ export async function syncStudentInquiriesToApplications(
     profile = created
   }
 
-  // 2. Find any inquiries explicitly linked to user.id (do not capture guest inquiries submitted without login)
+  // 2. Find any inquiries matching user.id or user.email
+  const conditions = [eq(schema.studentInquiries.userId, user.id)]
+  if (user.email) {
+    conditions.push(eq(schema.studentInquiries.email, user.email.trim().toLowerCase()))
+  }
+
   const inquiries = await dbInstance
     .select()
     .from(schema.studentInquiries)
-    .where(eq(schema.studentInquiries.userId, user.id))
+    .where(or(...conditions))
     .orderBy(desc(schema.studentInquiries.submittedAt))
 
   if (inquiries.length === 0) {
     return { profile, syncedCount: 0 }
   }
 
-  // Ensure inquiries have userId set
+  // Ensure unlinked inquiries matching this user's email have userId set
   for (const inq of inquiries) {
     if (!inq.userId) {
       await dbInstance
@@ -84,6 +89,7 @@ export async function syncStudentInquiriesToApplications(
         .set({ userId: user.id })
         .where(eq(schema.studentInquiries.id, inq.id))
         .catch(() => {})
+      inq.userId = user.id
     }
   }
 
@@ -298,37 +304,27 @@ export async function syncStudentInquiriesToApplications(
     }
   }
 
-  // Clean up any historical duplicate applications if applications exceed inquiries
-  if (existingApps.length > inquiries.length && inquiries.length > 0) {
-    const validInqIds = new Set(inquiries.map((i) => i.id))
-    const keptAppIds = new Set<string>()
-
-    for (const inq of inquiries) {
-      const match = existingApps.find((a) => {
-        if (keptAppIds.has(a.id)) return false
-        const inqId = parseInquiryIdFromApp(a)
-        return inqId === inq.id
-      })
-      if (match) {
-        keptAppIds.add(match.id)
+  // Deduplicate only duplicate applications created for the EXACT same inquiry ID
+  const seenInquiryIds = new Set<string>()
+  const duplicateAppIds: string[] = []
+  for (const app of existingApps) {
+    const inqId = parseInquiryIdFromApp(app)
+    if (inqId) {
+      if (seenInquiryIds.has(inqId)) {
+        duplicateAppIds.push(app.id)
       } else {
-        const fallbackMatch = existingApps.find((a) => !keptAppIds.has(a.id))
-        if (fallbackMatch) keptAppIds.add(fallbackMatch.id)
+        seenInquiryIds.add(inqId)
       }
     }
-
-    const excessApps = existingApps.filter((a) => !keptAppIds.has(a.id))
-    if (excessApps.length > 0) {
-      await dbInstance
-        .delete(schema.applications)
-        .where(inArray(schema.applications.id, excessApps.map((a) => a.id)))
-        .catch(() => {})
-      
-      // Update local array
-      for (let i = existingApps.length - 1; i >= 0; i--) {
-        if (!keptAppIds.has(existingApps[i].id)) {
-          existingApps.splice(i, 1)
-        }
+  }
+  if (duplicateAppIds.length > 0) {
+    await dbInstance
+      .delete(schema.applications)
+      .where(inArray(schema.applications.id, duplicateAppIds))
+      .catch(() => {})
+    for (let i = existingApps.length - 1; i >= 0; i--) {
+      if (duplicateAppIds.includes(existingApps[i].id)) {
+        existingApps.splice(i, 1)
       }
     }
   }
@@ -348,10 +344,7 @@ export async function syncStudentInquiriesToApplications(
       continue;
     }
 
-    // Do not create more applications than inquiries
-    if (existingApps.length >= inquiries.length) {
-      break
-    }
+
 
     let course: { id: string; name?: string } | undefined
 
