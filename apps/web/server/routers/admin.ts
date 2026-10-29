@@ -1,16 +1,29 @@
-import { z } from 'zod'
-import { createTRPCRouter, superAdminProcedure, adminWithPermission } from '@/lib/trpc'
-import { TRPCError } from '@trpc/server'
-import { db, schema } from '@endow/db'
-import { eq as _eq, desc as _desc, and as _and, like as _like, or as _or, count as _count, sql as _sql, asc as _asc, isNull as _isNull, inArray as _inArray, ne as _ne, gte as _gte } from 'drizzle-orm'
-import { alias } from 'drizzle-orm/mysql-core'
-import { applicantLevelFromEducation } from '@/lib/documents'
-import { hash as bcryptHash } from 'bcryptjs'
 import { getAdminActivityLog, logAdminActivity } from '@/lib/audit'
-import { notifyCounselorNewStudent } from '@/lib/notify'
 import { autoAssignCounselor, notifyStudentCounselorAssigned } from '@/lib/counselor-assignment'
-import { isMissingColumnError } from '@/server/utils/db-errors'
+import { applicantLevelFromEducation } from '@/lib/documents'
 import { deleteLocalFile } from '@/lib/local-storage'
+import { notifyCounselorNewStudent } from '@/lib/notify'
+import { adminWithPermission, createTRPCRouter, superAdminProcedure } from '@/lib/trpc'
+import { isMissingColumnError } from '@/server/utils/db-errors'
+import { db, schema } from '@endow/db'
+import { TRPCError } from '@trpc/server'
+import { hash as bcryptHash } from 'bcryptjs'
+import {
+  and as _and,
+  asc as _asc,
+  count as _count,
+  desc as _desc,
+  eq as _eq,
+  gte as _gte,
+  inArray as _inArray,
+  isNull as _isNull,
+  like as _like,
+  ne as _ne,
+  or as _or,
+  sql as _sql,
+} from 'drizzle-orm'
+import { alias } from 'drizzle-orm/mysql-core'
+import { z } from 'zod'
 const eq = _eq as any
 const desc = _desc as any
 const and = _and as any
@@ -98,10 +111,29 @@ export const adminRouter = createTRPCRouter({
       // All metrics are independent — run them in parallel to cut total
       // latency. Relational `with` queries are replaced with explicit joins
       // because MariaDB rejects the lateral SQL the relation builder emits.
-      const [studentCountRes, counselorCountRes, appsByStatus, recentActivity, topCountries, upcomingConsultations, appTrendRows, inqTrendRows, totalStudentsWithNationality] = await Promise.all([
-        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
-        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
-        db.select({ status: schema.applications.status, count: count() as any }).from(schema.applications).groupBy(schema.applications.status),
+      const [
+        studentCountRes,
+        counselorCountRes,
+        appsByStatus,
+        recentActivity,
+        topCountries,
+        upcomingConsultations,
+        appTrendRows,
+        inqTrendRows,
+        totalStudentsWithNationality,
+      ] = await Promise.all([
+        db
+          .select({ value: count() as any })
+          .from(schema.users)
+          .where(eq(schema.users.role, 'STUDENT')),
+        db
+          .select({ value: count() as any })
+          .from(schema.users)
+          .where(eq(schema.users.role, 'COUNSELOR')),
+        db
+          .select({ status: schema.applications.status, count: count() as any })
+          .from(schema.applications)
+          .groupBy(schema.applications.status),
         db
           .select({
             id: schema.applications.id,
@@ -112,16 +144,20 @@ export const adminRouter = createTRPCRouter({
             universityName: schema.universities.name,
           })
           .from(schema.applications)
-          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
+          .leftJoin(
+            schema.studentProfiles,
+            eq(schema.studentProfiles.id, schema.applications.studentId)
+          )
           .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
           .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
           .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
           .orderBy(desc(schema.applications.updatedAt))
           .limit(10),
-        db.select({
-          country: schema.studentProfiles.nationality,
-          count: count() as any,
-        })
+        db
+          .select({
+            country: schema.studentProfiles.nationality,
+            count: count() as any,
+          })
           .from(schema.studentProfiles)
           .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any)
           .groupBy(schema.studentProfiles.nationality)
@@ -136,33 +172,52 @@ export const adminRouter = createTRPCRouter({
             counselorName: counselorUser.name,
           })
           .from(schema.bookingSessions)
-          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.bookingSessions.studentId))
+          .leftJoin(
+            schema.studentProfiles,
+            eq(schema.studentProfiles.id, schema.bookingSessions.studentId)
+          )
           .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
-          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
+          .leftJoin(
+            schema.counselorProfiles,
+            eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId)
+          )
           .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
-          .where(and(
-            eq(schema.bookingSessions.status, 'SCHEDULED'),
-            sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
-          ))
+          .where(
+            and(
+              eq(schema.bookingSessions.status, 'SCHEDULED'),
+              sql`${schema.bookingSessions.scheduledAt} >= NOW()` as any
+            )
+          )
           .orderBy(schema.bookingSessions.scheduledAt)
           .limit(5),
-        db.select({
-          date: (sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any).as('date'),
-          count: count() as any,
-        })
+        db
+          .select({
+            date: (sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any).as(
+              'date'
+            ),
+            count: count() as any,
+          })
           .from(schema.applications)
-          .where(sql`${schema.applications.createdAt} >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)` as any)
+          .where(
+            sql`${schema.applications.createdAt} >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)` as any
+          )
           .groupBy(sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any)
           .orderBy(sql`DATE_FORMAT(${schema.applications.createdAt}, '%Y-%m-%d')` as any),
-        db.select({
-          date: (sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any).as('date'),
-          count: count() as any,
-        })
+        db
+          .select({
+            date: (sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any).as(
+              'date'
+            ),
+            count: count() as any,
+          })
           .from(schema.studentInquiries)
-          .where(sql`${schema.studentInquiries.submittedAt} >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)` as any)
+          .where(
+            sql`${schema.studentInquiries.submittedAt} >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)` as any
+          )
           .groupBy(sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any)
           .orderBy(sql`DATE_FORMAT(${schema.studentInquiries.submittedAt}, '%Y-%m-%d')` as any),
-        db.select({ value: count() as any })
+        db
+          .select({ value: count() as any })
           .from(schema.studentProfiles)
           .where(sql`${schema.studentProfiles.nationality} IS NOT NULL` as any),
       ])
@@ -195,7 +250,11 @@ export const adminRouter = createTRPCRouter({
         const dateKey = `${yyyy}-${mm}-${dd}`
 
         const dayName = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' })
-        const monthDay = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' })
+        const monthDay = d.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          timeZone: 'UTC',
+        })
 
         const apps = appMap.get(dateKey) || 0
         const inqs = inqMap.get(dateKey) || 0
@@ -247,20 +306,20 @@ export const adminRouter = createTRPCRouter({
       })
 
       const countryCoords: Record<string, { x: number; y: number }> = {
-        'Bangladesh': { x: 0.68, y: 0.38 },
-        'Australia': { x: 0.83, y: 0.62 },
+        Bangladesh: { x: 0.68, y: 0.38 },
+        Australia: { x: 0.83, y: 0.62 },
         'South Korea': { x: 0.73, y: 0.28 },
-        'UAE': { x: 0.58, y: 0.42 },
+        UAE: { x: 0.58, y: 0.42 },
         'United Kingdom': { x: 0.45, y: 0.22 },
-        'Malaysia': { x: 0.72, y: 0.48 },
-        'United States': { x: 0.20, y: 0.30 },
-        'Canada': { x: 0.18, y: 0.22 },
-        'India': { x: 0.62, y: 0.42 },
-        'Germany': { x: 0.47, y: 0.25 },
-        'France': { x: 0.44, y: 0.28 },
-        'Japan': { x: 0.78, y: 0.30 },
-        'Singapore': { x: 0.71, y: 0.50 },
-        'China': { x: 0.75, y: 0.32 },
+        Malaysia: { x: 0.72, y: 0.48 },
+        'United States': { x: 0.2, y: 0.3 },
+        Canada: { x: 0.18, y: 0.22 },
+        India: { x: 0.62, y: 0.42 },
+        Germany: { x: 0.47, y: 0.25 },
+        France: { x: 0.44, y: 0.28 },
+        Japan: { x: 0.78, y: 0.3 },
+        Singapore: { x: 0.71, y: 0.5 },
+        China: { x: 0.75, y: 0.32 },
         'New Zealand': { x: 0.88, y: 0.68 },
       }
 
@@ -271,7 +330,17 @@ export const adminRouter = createTRPCRouter({
         CLOSED: 'inactive',
       }
 
-      const nodes: Array<{ id: string; label: string; code: string; type: 'branch' | 'university'; x: number; y: number; volume: number; activeRoutes: number; status: 'active' | 'inactive' | 'warning' }> = []
+      const nodes: Array<{
+        id: string
+        label: string
+        code: string
+        type: 'branch' | 'university'
+        x: number
+        y: number
+        volume: number
+        activeRoutes: number
+        status: 'active' | 'inactive' | 'warning'
+      }> = []
 
       for (const br of branchRows) {
         const coord = countryCoords[br.country] || { x: 0.5, y: 0.5 }
@@ -345,7 +414,9 @@ export const adminRouter = createTRPCRouter({
 
         const conditions = [eq(schema.users.role, 'STUDENT')]
         if (search) {
-          conditions.push(or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`)))
+          conditions.push(
+            or(like(schema.users.name, `%${search}%`), like(schema.users.email, `%${search}%`))
+          )
         }
         if (cursor) {
           conditions.push(sql`${schema.users.id} < ${cursor}` as any)
@@ -367,7 +438,10 @@ export const adminRouter = createTRPCRouter({
           })
           .from(schema.users)
           .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
-          .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
+          .leftJoin(
+            schema.counselorProfiles,
+            eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId)
+          )
           .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
           .where(and(...conditions))
           .orderBy(desc(schema.users.id))
@@ -397,131 +471,139 @@ export const adminRouter = createTRPCRouter({
         return { items: shaped, nextCursor }
       }),
 
-    getById: adminWithPermission('students:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const counselorUser = alias(schema.users as any, 'counselor_user')
-      const [row] = await db
-        .select({
-          id: schema.users.id,
-          name: schema.users.name,
-          email: schema.users.email,
-          emailVerified: schema.users.emailVerified,
-          image: schema.users.image,
-          createdAt: schema.users.createdAt,
-          studentProfileId: schema.studentProfiles.id,
-          nationality: schema.studentProfiles.nationality,
-          countryOfResidence: schema.studentProfiles.countryOfResidence,
-          phone: schema.studentProfiles.phone,
-          highestEducation: schema.studentProfiles.highestEducation,
-          interestedProgram: schema.studentProfiles.interestedProgram,
-          budgetMin: schema.studentProfiles.budgetMin,
-          budgetMax: schema.studentProfiles.budgetMax,
-          gpa: schema.studentProfiles.gpa,
-          ieltsScore: schema.studentProfiles.ieltsScore,
-          toeflScore: schema.studentProfiles.toeflScore,
-          completionPercent: schema.studentProfiles.completionPercent,
-          targetCountries: schema.studentProfiles.targetCountries,
-          targetSubjects: schema.studentProfiles.targetSubjects,
-          preferredIntakeYear: schema.studentProfiles.preferredIntakeYear,
-          preferredIntakeMonth: schema.studentProfiles.preferredIntakeMonth,
-          assignedCounselorId: schema.studentProfiles.assignedCounselorId,
-          counselorName: counselorUser.name,
-        })
-        .from(schema.users)
-        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
-        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId))
-        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
-        .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'STUDENT')))
-        .limit(1)
+    getById: adminWithPermission('students:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        const counselorUser = alias(schema.users as any, 'counselor_user')
+        const [row] = await db
+          .select({
+            id: schema.users.id,
+            name: schema.users.name,
+            email: schema.users.email,
+            emailVerified: schema.users.emailVerified,
+            image: schema.users.image,
+            createdAt: schema.users.createdAt,
+            studentProfileId: schema.studentProfiles.id,
+            nationality: schema.studentProfiles.nationality,
+            countryOfResidence: schema.studentProfiles.countryOfResidence,
+            phone: schema.studentProfiles.phone,
+            highestEducation: schema.studentProfiles.highestEducation,
+            interestedProgram: schema.studentProfiles.interestedProgram,
+            budgetMin: schema.studentProfiles.budgetMin,
+            budgetMax: schema.studentProfiles.budgetMax,
+            gpa: schema.studentProfiles.gpa,
+            ieltsScore: schema.studentProfiles.ieltsScore,
+            toeflScore: schema.studentProfiles.toeflScore,
+            completionPercent: schema.studentProfiles.completionPercent,
+            targetCountries: schema.studentProfiles.targetCountries,
+            targetSubjects: schema.studentProfiles.targetSubjects,
+            preferredIntakeYear: schema.studentProfiles.preferredIntakeYear,
+            preferredIntakeMonth: schema.studentProfiles.preferredIntakeMonth,
+            assignedCounselorId: schema.studentProfiles.assignedCounselorId,
+            counselorName: counselorUser.name,
+          })
+          .from(schema.users)
+          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.userId, schema.users.id))
+          .leftJoin(
+            schema.counselorProfiles,
+            eq(schema.counselorProfiles.id, schema.studentProfiles.assignedCounselorId)
+          )
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'STUDENT')))
+          .limit(1)
 
-      if (!row) return null
-      const studentProfileId = row.studentProfileId
+        if (!row) return null
+        const studentProfileId = row.studentProfileId
 
-      const [latestInq] = await db
-        .select()
-        .from(schema.studentInquiries)
-        .where(eq(schema.studentInquiries.userId, input.id))
-        .orderBy(desc(schema.studentInquiries.submittedAt))
-        .limit(1)
+        const [latestInq] = await db
+          .select()
+          .from(schema.studentInquiries)
+          .where(eq(schema.studentInquiries.userId, input.id))
+          .orderBy(desc(schema.studentInquiries.submittedAt))
+          .limit(1)
 
-      // Applications for this student (explicit joins — no relational `with`).
-      const applications = await db
-        .select({
-          id: schema.applications.id,
-          status: schema.applications.status,
-          currentStep: schema.applications.currentStep,
-          totalSteps: schema.applications.totalSteps,
-          submittedAt: schema.applications.submittedAt,
-          updatedAt: schema.applications.updatedAt,
-          courseName: schema.courses.name,
-          courseSlug: schema.courses.slug,
-          universityName: schema.universities.name,
-        })
-        .from(schema.applications)
-        .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
-        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
-        .where(eq(schema.applications.studentId, studentProfileId))
-        .orderBy(desc(schema.applications.updatedAt))
+        // Applications for this student (explicit joins — no relational `with`).
+        const applications = await db
+          .select({
+            id: schema.applications.id,
+            status: schema.applications.status,
+            currentStep: schema.applications.currentStep,
+            totalSteps: schema.applications.totalSteps,
+            submittedAt: schema.applications.submittedAt,
+            updatedAt: schema.applications.updatedAt,
+            courseName: schema.courses.name,
+            courseSlug: schema.courses.slug,
+            universityName: schema.universities.name,
+          })
+          .from(schema.applications)
+          .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+          .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+          .where(eq(schema.applications.studentId, studentProfileId))
+          .orderBy(desc(schema.applications.updatedAt))
 
-      const sessions = await db
-        .select({
-          id: schema.bookingSessions.id,
-          scheduledAt: schema.bookingSessions.scheduledAt,
-          duration: schema.bookingSessions.duration,
-          status: schema.bookingSessions.status,
-          counselorName: counselorUser.name,
-        })
-        .from(schema.bookingSessions)
-        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId))
-        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
-        .where(eq(schema.bookingSessions.studentId, studentProfileId))
-        .orderBy(desc(schema.bookingSessions.scheduledAt))
+        const sessions = await db
+          .select({
+            id: schema.bookingSessions.id,
+            scheduledAt: schema.bookingSessions.scheduledAt,
+            duration: schema.bookingSessions.duration,
+            status: schema.bookingSessions.status,
+            counselorName: counselorUser.name,
+          })
+          .from(schema.bookingSessions)
+          .leftJoin(
+            schema.counselorProfiles,
+            eq(schema.counselorProfiles.id, schema.bookingSessions.counselorId)
+          )
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(eq(schema.bookingSessions.studentId, studentProfileId))
+          .orderBy(desc(schema.bookingSessions.scheduledAt))
 
-      return {
-        id: row.id,
-        name: row.name,
-        email: row.email,
-        emailVerified: row.emailVerified,
-        image: row.image,
-        createdAt: row.createdAt,
-        studentProfile: {
-          id: studentProfileId,
-          nationality: row.nationality,
-          countryOfResidence: row.countryOfResidence,
-          phone: row.phone,
-          highestEducation: row.highestEducation,
-          interestedProgram: row.interestedProgram || latestInq?.applyingTo || null,
-          budgetMin: row.budgetMin,
-          budgetMax: row.budgetMax,
-          sscYear: latestInq?.sscYear,
-          sscResult: latestInq?.sscResult,
-          hscYear: latestInq?.hscYear,
-          hscResult: latestInq?.hscResult,
-          bachelorsYear: latestInq?.bachelorsYear,
-          bachelorsResult: latestInq?.bachelorsResult,
-          mastersYear: latestInq?.mastersYear,
-          mastersResult: latestInq?.mastersResult,
-          gpa: row.gpa,
-          ieltsScore: row.ieltsScore,
-          toeflScore: row.toeflScore,
-          completionPercent: row.completionPercent,
-          targetCountries: row.targetCountries,
-          targetSubjects: row.targetSubjects,
-          preferredIntakeYear: row.preferredIntakeYear,
-          preferredIntakeMonth: row.preferredIntakeMonth,
-          assignedCounselorId: row.assignedCounselorId,
-          assignedCounselor: row.assignedCounselorId
-            ? { id: row.assignedCounselorId, user: { name: row.counselorName || 'Counselor' } }
-            : null,
-        },
-        applications: applications.map((a) => ({
-          ...a,
-          course: a.courseName
-            ? { name: a.courseName, slug: a.courseSlug, university: { name: a.universityName } }
-            : null,
-        })),
-        bookingSessions: sessions,
-      }
-    }),
+        return {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          emailVerified: row.emailVerified,
+          image: row.image,
+          createdAt: row.createdAt,
+          studentProfile: {
+            id: studentProfileId,
+            nationality: row.nationality,
+            countryOfResidence: row.countryOfResidence,
+            phone: row.phone,
+            highestEducation: row.highestEducation,
+            interestedProgram: row.interestedProgram || latestInq?.applyingTo || null,
+            budgetMin: row.budgetMin,
+            budgetMax: row.budgetMax,
+            sscYear: latestInq?.sscYear,
+            sscResult: latestInq?.sscResult,
+            hscYear: latestInq?.hscYear,
+            hscResult: latestInq?.hscResult,
+            bachelorsYear: latestInq?.bachelorsYear,
+            bachelorsResult: latestInq?.bachelorsResult,
+            mastersYear: latestInq?.mastersYear,
+            mastersResult: latestInq?.mastersResult,
+            gpa: row.gpa,
+            ieltsScore: row.ieltsScore,
+            toeflScore: row.toeflScore,
+            completionPercent: row.completionPercent,
+            targetCountries: row.targetCountries,
+            targetSubjects: row.targetSubjects,
+            preferredIntakeYear: row.preferredIntakeYear,
+            preferredIntakeMonth: row.preferredIntakeMonth,
+            assignedCounselorId: row.assignedCounselorId,
+            assignedCounselor: row.assignedCounselorId
+              ? { id: row.assignedCounselorId, user: { name: row.counselorName || 'Counselor' } }
+              : null,
+          },
+          applications: applications.map((a) => ({
+            ...a,
+            course: a.courseName
+              ? { name: a.courseName, slug: a.courseSlug, university: { name: a.universityName } }
+              : null,
+          })),
+          bookingSessions: sessions,
+        }
+      }),
 
     updateProfile: adminWithPermission('students:manage')
       .input(
@@ -553,7 +635,12 @@ export const adminRouter = createTRPCRouter({
       )
       .mutation(async ({ input }) => {
         const [student] = await db
-          .select({ userId: schema.studentProfiles.userId, name: schema.users.name, email: schema.users.email, phone: schema.studentProfiles.phone })
+          .select({
+            userId: schema.studentProfiles.userId,
+            name: schema.users.name,
+            email: schema.users.email,
+            phone: schema.studentProfiles.phone,
+          })
           .from(schema.studentProfiles)
           .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
           .where(eq(schema.studentProfiles.userId, input.studentId))
@@ -563,7 +650,11 @@ export const adminRouter = createTRPCRouter({
         let counselor: { id: string; name: string | null; email: string | null } | undefined
         if (input.counselorId) {
           const rows = await db
-            .select({ id: schema.counselorProfiles.id, name: schema.users.name, email: schema.users.email })
+            .select({
+              id: schema.counselorProfiles.id,
+              name: schema.users.name,
+              email: schema.users.email,
+            })
             .from(schema.counselorProfiles)
             .leftJoin(schema.users, eq(schema.users.id, schema.counselorProfiles.userId))
             .where(eq(schema.counselorProfiles.id, input.counselorId))
@@ -604,10 +695,16 @@ export const adminRouter = createTRPCRouter({
           phone: z.string().trim().optional(),
           nationality: z.string().trim().optional(),
           countryOfResidence: z.string().trim().optional(),
-          highestEducation: z.enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD']).default('HIGH_SCHOOL'),
+          highestEducation: z
+            .enum(['HIGH_SCHOOL', 'BACHELORS', 'MASTERS', 'PHD'])
+            .default('HIGH_SCHOOL'),
           targetCountries: z.array(z.string()).default([]),
           targetSubjects: z.array(z.string()).default([]),
-          password: z.string().min(8, 'Password must be at least 8 characters').optional().or(z.literal('')),
+          password: z
+            .string()
+            .min(8, 'Password must be at least 8 characters')
+            .optional()
+            .or(z.literal('')),
           assignedCounselorId: z.string().optional().nullable(),
         })
       )
@@ -644,7 +741,8 @@ export const adminRouter = createTRPCRouter({
             } as any)
           }
 
-          const assignedCounselorId = input.assignedCounselorId ?? await autoAssignCounselor(db, schema, input)
+          const assignedCounselorId =
+            input.assignedCounselorId ?? (await autoAssignCounselor(db, schema, input))
           await db.insert(schema.studentProfiles).values({
             userId,
             phone: input.phone?.trim() || undefined,
@@ -699,14 +797,12 @@ export const adminRouter = createTRPCRouter({
             ])
             .optional(),
           cursor: z.string().nullish(),
-          limit: z.number().min(1).max(100).default(20),
+          limit: z.number().min(1).max(1000).default(500),
         })
       )
       .query(async ({ input }) => {
         const { search, status, cursor, limit } = input
 
-        // Note: For complex search across relations, you might need joins.
-        // Here we keep it simple or filter memory side for deep relation search.
         const conditions = []
         if (status) conditions.push(eq(schema.applications.status, status))
         if (cursor) conditions.push(sql`${schema.applications.id} < ${cursor}` as any)
@@ -714,19 +810,16 @@ export const adminRouter = createTRPCRouter({
         const items = await db
           .select()
           .from(schema.applications)
-          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
-          .orderBy(desc(schema.applications.id))
+          .where(conditions.length > 0 ? and(...conditions) : (undefined as any))
+          .orderBy(desc(schema.applications.updatedAt), desc(schema.applications.id))
           .limit(limit + 1)
 
-        // Resolve relations manually
-        const itemIds = items.map(i => i.id)
-        const appDetails = itemIds.length > 0 ? await db.select().from(schema.applications)
-          .where(sql`${schema.applications.id} IN ${itemIds}` as any) : []
-
         // Fetch related student/course/counselor data
-        const studentIds = Array.from(new Set(items.map(i => i.studentId)))
-        const courseIds = Array.from(new Set(items.map(i => i.courseId)))
-        const counselorIds = Array.from(new Set(items.map(i => i.counselorId).filter(Boolean) as string[]))
+        const studentIds = Array.from(new Set(items.map((i) => i.studentId)))
+        const courseIds = Array.from(new Set(items.map((i) => i.courseId)))
+        const counselorIds = Array.from(
+          new Set(items.map((i) => i.counselorId).filter(Boolean) as string[])
+        )
 
         const [students, courses, counselors] = await Promise.all([
           studentIds.length > 0
@@ -736,12 +829,26 @@ export const adminRouter = createTRPCRouter({
                   userId: schema.users.id,
                   name: schema.users.name,
                   email: schema.users.email,
+                  image: schema.users.image,
+                  phone: schema.studentProfiles.phone,
+                  countryOfResidence: schema.studentProfiles.countryOfResidence,
+                  nationality: schema.studentProfiles.nationality,
+                  gpa: schema.studentProfiles.gpa,
+                  highestEducation: schema.studentProfiles.highestEducation,
+                  ieltsScore: schema.studentProfiles.ieltsScore,
+                  toeflScore: schema.studentProfiles.toeflScore,
+                  satScore: schema.studentProfiles.satScore,
                 })
                 .from(schema.studentProfiles)
                 .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
                 .where(inArray(schema.studentProfiles.id, studentIds))
             : [],
-          courseIds.length > 0 ? db.select().from(schema.courses).where(or(...courseIds.map(id => eq(schema.courses.id, id))) as any) : [],
+          courseIds.length > 0
+            ? db
+                .select()
+                .from(schema.courses)
+                .where(or(...courseIds.map((id) => eq(schema.courses.id, id))) as any)
+            : [],
           counselorIds.length > 0
             ? db
                 .select({
@@ -755,28 +862,101 @@ export const adminRouter = createTRPCRouter({
                 .where(inArray(schema.counselorProfiles.id, counselorIds))
             : [],
         ])
-        const universityIds = Array.from(new Set(courses.map(c => c.universityId)))
-        const unis = universityIds.length > 0 ? await db.select().from(schema.universities).where(or(...universityIds.map(id => eq(schema.universities.id, id))) as any) : []
+        const universityIds = Array.from(new Set(courses.map((c) => c.universityId)))
+        const unis =
+          universityIds.length > 0
+            ? await db
+                .select()
+                .from(schema.universities)
+                .where(or(...universityIds.map((id) => eq(schema.universities.id, id))) as any)
+            : []
 
-        const studentMap = new Map(students.map(s => [s.profileId, s]))
-        const courseMap = new Map(courses.map(c => [c.id, c]))
-        const counselorMap = new Map(counselors.map(c => [c.profileId, c]))
-        const uniMap = new Map(unis.map(u => [u.id, u]))
+        const studentMap = new Map(students.map((s) => [s.profileId, s]))
+        const courseMap = new Map(courses.map((c) => [c.id, c]))
+        const counselorMap = new Map(counselors.map((c) => [c.profileId, c]))
+        const uniMap = new Map(unis.map((u) => [u.id, u]))
 
-        const enriched = items.map(item => ({
-          ...item,
-          student: item.studentId ? { user: studentMap.get(item.studentId) || null } : null,
-          course: item.courseId ? { ...courseMap.get(item.courseId), university: uniMap.get(courseMap.get(item.courseId)?.universityId || '') || null } : null,
-          counselor: item.counselorId ? { user: counselorMap.get(item.counselorId) || null } : null,
-        }))
+        const enriched = items.map((item) => {
+          let pInfo: any = item.personalInfo
+          if (typeof pInfo === 'string') {
+            try {
+              pInfo = JSON.parse(pInfo)
+            } catch {}
+          }
+          let aHistory: any = item.academicHistory
+          if (typeof aHistory === 'string') {
+            try {
+              aHistory = JSON.parse(aHistory)
+            } catch {}
+          }
+
+          const st = item.studentId ? studentMap.get(item.studentId) : null
+          const crs = item.courseId ? courseMap.get(item.courseId) : null
+          const uni = crs?.universityId ? uniMap.get(crs.universityId) : null
+          const cns = item.counselorId ? counselorMap.get(item.counselorId) : null
+
+          const studentName =
+            st?.name ||
+            (pInfo ? `${pInfo.givenName || ''} ${pInfo.surname || ''}`.trim() : null) ||
+            'Student'
+          const studentEmail = st?.email || pInfo?.email || null
+          const studentPhone = pInfo?.phone || st?.phone || null
+          const studentCountry = pInfo?.country || st?.countryOfResidence || null
+          const studentImage = st?.image || pInfo?.photoUrl || null
+
+          return {
+            ...item,
+            personalInfo: pInfo,
+            academicHistory: aHistory,
+            student: {
+              user: {
+                id: st?.userId || null,
+                name: studentName,
+                email: studentEmail,
+                image: studentImage,
+              },
+              profile: {
+                id: st?.profileId || item.studentId,
+                phone: studentPhone,
+                whatsapp: pInfo?.whatsapp || null,
+                countryOfResidence: studentCountry,
+                nationality: pInfo?.nationality || st?.nationality || null,
+                city: pInfo?.city || null,
+                gpa:
+                  st?.gpa ||
+                  aHistory?.bachelorsResult ||
+                  aHistory?.hscResult ||
+                  aHistory?.sscResult ||
+                  null,
+                highestEducation: st?.highestEducation || aHistory?.applyingTo || null,
+                ieltsScore: st?.ieltsScore || aHistory?.ieltsScore || null,
+                toeflScore: st?.toeflScore || aHistory?.toeflScore || null,
+                satScore: st?.satScore || aHistory?.satScore || null,
+                topikLevel: aHistory?.topikLevel || null,
+                englishTest: aHistory?.englishTest || null,
+              },
+            },
+            course: crs
+              ? {
+                  ...crs,
+                  university: uni || null,
+                }
+              : null,
+            counselor: cns
+              ? { user: { name: cns.name || 'Counselor', email: cns.email || null } }
+              : null,
+          }
+        })
 
         // Client-side search filtering
         let filteredItems = enriched
         if (search) {
           const lowerSearch = search.toLowerCase()
           filteredItems = enriched.filter(
-            (app) =>
+            (app: any) =>
               app.student?.user?.name?.toLowerCase().includes(lowerSearch) ||
+              app.student?.user?.email?.toLowerCase().includes(lowerSearch) ||
+              app.student?.profile?.phone?.toLowerCase().includes(lowerSearch) ||
               app.course?.university?.name?.toLowerCase().includes(lowerSearch) ||
               app.course?.name?.toLowerCase().includes(lowerSearch)
           )
@@ -791,67 +971,156 @@ export const adminRouter = createTRPCRouter({
         return { items: filteredItems.slice(0, limit), nextCursor }
       }),
 
-    getById: adminWithPermission('applications:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const studentUser = alias(schema.users as any, 'student_user')
-      const counselorUser = alias(schema.users as any, 'counselor_user')
+    getById: adminWithPermission('applications:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        const studentUser = alias(schema.users as any, 'student_user')
+        const counselorUser = alias(schema.users as any, 'counselor_user')
 
-      const row = await db
-        .select({
-          id: schema.applications.id,
-          studentId: schema.applications.studentId,
-          courseId: schema.applications.courseId,
-          counselorId: schema.applications.counselorId,
-          status: schema.applications.status,
-          currentStep: schema.applications.currentStep,
-          totalSteps: schema.applications.totalSteps,
-          submittedAt: schema.applications.submittedAt,
-          counselorNotes: schema.applications.counselorNotes,
-          documentsUrls: schema.applications.documentsUrls,
-          personalStatement: schema.applications.personalStatement,
-          createdAt: schema.applications.createdAt,
-          updatedAt: schema.applications.updatedAt,
-          studentName: studentUser.name,
-          studentEmail: studentUser.email,
-          courseName: schema.courses.name,
-          courseSlug: schema.courses.slug,
-          courseUniversityId: schema.courses.universityId,
-          universityName: schema.universities.name,
-          counselorName: counselorUser.name,
-        })
-        .from(schema.applications)
-        .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.applications.studentId))
-        .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
-        .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
-        .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
-        .leftJoin(schema.counselorProfiles, eq(schema.counselorProfiles.id, schema.applications.counselorId))
-        .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
-        .where(eq(schema.applications.id, input.id))
-        .limit(1)
-        .then((r) => r[0] || null)
+        const row = await db
+          .select({
+            id: schema.applications.id,
+            studentId: schema.applications.studentId,
+            courseId: schema.applications.courseId,
+            counselorId: schema.applications.counselorId,
+            status: schema.applications.status,
+            currentStep: schema.applications.currentStep,
+            totalSteps: schema.applications.totalSteps,
+            submittedAt: schema.applications.submittedAt,
+            counselorNotes: schema.applications.counselorNotes,
+            personalInfo: schema.applications.personalInfo,
+            academicHistory: schema.applications.academicHistory,
+            documentsUrls: schema.applications.documentsUrls,
+            personalStatement: schema.applications.personalStatement,
+            createdAt: schema.applications.createdAt,
+            updatedAt: schema.applications.updatedAt,
+            studentName: studentUser.name,
+            studentEmail: studentUser.email,
+            studentImage: studentUser.image,
+            studentPhone: schema.studentProfiles.phone,
+            studentCountry: schema.studentProfiles.countryOfResidence,
+            studentNationality: schema.studentProfiles.nationality,
+            studentGpa: schema.studentProfiles.gpa,
+            studentHighestEducation: schema.studentProfiles.highestEducation,
+            studentIelts: schema.studentProfiles.ieltsScore,
+            studentToefl: schema.studentProfiles.toeflScore,
+            studentSat: schema.studentProfiles.satScore,
+            courseName: schema.courses.name,
+            courseSlug: schema.courses.slug,
+            courseLevel: schema.courses.level,
+            courseSubject: schema.courses.subject,
+            courseUniversityId: schema.courses.universityId,
+            universityName: schema.universities.name,
+            universityCountry: schema.universities.country,
+            universityCity: schema.universities.city,
+            universityLogo: schema.universities.logo,
+            counselorName: counselorUser.name,
+            counselorEmail: counselorUser.email,
+          })
+          .from(schema.applications)
+          .leftJoin(
+            schema.studentProfiles,
+            eq(schema.studentProfiles.id, schema.applications.studentId)
+          )
+          .leftJoin(studentUser as any, eq(schema.studentProfiles.userId, studentUser.id))
+          .leftJoin(schema.courses, eq(schema.courses.id, schema.applications.courseId))
+          .leftJoin(schema.universities, eq(schema.universities.id, schema.courses.universityId))
+          .leftJoin(
+            schema.counselorProfiles,
+            eq(schema.counselorProfiles.id, schema.applications.counselorId)
+          )
+          .leftJoin(counselorUser as any, eq(schema.counselorProfiles.userId, counselorUser.id))
+          .where(eq(schema.applications.id, input.id))
+          .limit(1)
+          .then((r) => r[0] || null)
 
-      if (!row) return null
+        if (!row) return null
 
-      return {
-        id: row.id,
-        studentId: row.studentId,
-        courseId: row.courseId,
-        counselorId: row.counselorId,
-        status: row.status,
-        currentStep: row.currentStep,
-        totalSteps: row.totalSteps,
-        submittedAt: row.submittedAt,
-        counselorNotes: row.counselorNotes,
-        documentsUrls: row.documentsUrls,
-        personalStatement: row.personalStatement,
-        createdAt: row.createdAt,
-        updatedAt: row.updatedAt,
-        student: row.studentName ? { user: { name: row.studentName, email: row.studentEmail } } : null,
-        course: row.courseName
-          ? { name: row.courseName, slug: row.courseSlug, university: row.universityName ? { name: row.universityName } : null }
-          : null,
-        counselor: row.counselorId ? { user: { name: row.counselorName || 'Counselor' } } : null,
-      }
-    }),
+        let pInfo: any = row.personalInfo
+        if (typeof pInfo === 'string') {
+          try {
+            pInfo = JSON.parse(pInfo)
+          } catch {}
+        }
+        let aHistory: any = row.academicHistory
+        if (typeof aHistory === 'string') {
+          try {
+            aHistory = JSON.parse(aHistory)
+          } catch {}
+        }
+
+        const sName =
+          row.studentName ||
+          (pInfo ? `${pInfo.givenName || ''} ${pInfo.surname || ''}`.trim() : null) ||
+          'Student'
+        const sEmail = row.studentEmail || pInfo?.email || null
+        const sImage = row.studentImage || pInfo?.photoUrl || null
+        const sPhone = pInfo?.phone || row.studentPhone || null
+        const sCountry = pInfo?.country || row.studentCountry || null
+
+        return {
+          id: row.id,
+          studentId: row.studentId,
+          courseId: row.courseId,
+          counselorId: row.counselorId,
+          status: row.status,
+          currentStep: row.currentStep,
+          totalSteps: row.totalSteps,
+          submittedAt: row.submittedAt,
+          counselorNotes: row.counselorNotes,
+          personalInfo: pInfo,
+          academicHistory: aHistory,
+          documentsUrls: row.documentsUrls,
+          personalStatement: row.personalStatement,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          student: {
+            user: {
+              name: sName,
+              email: sEmail,
+              image: sImage,
+            },
+            profile: {
+              phone: sPhone,
+              whatsapp: pInfo?.whatsapp || null,
+              country: sCountry,
+              city: pInfo?.city || null,
+              nationality: pInfo?.nationality || row.studentNationality || null,
+              gpa:
+                row.studentGpa ||
+                aHistory?.bachelorsResult ||
+                aHistory?.hscResult ||
+                aHistory?.sscResult ||
+                null,
+              highestEducation: row.studentHighestEducation || aHistory?.applyingTo || null,
+              ieltsScore: row.studentIelts || aHistory?.ieltsScore || null,
+              toeflScore: row.studentToefl || aHistory?.toeflScore || null,
+              satScore: row.studentSat || aHistory?.satScore || null,
+              topikLevel: aHistory?.topikLevel || null,
+              englishTest: aHistory?.englishTest || null,
+            },
+          },
+          course: row.courseName
+            ? {
+                name: row.courseName,
+                slug: row.courseSlug,
+                level: row.courseLevel,
+                subject: row.courseSubject,
+                university: row.universityName
+                  ? {
+                      name: row.universityName,
+                      country: row.universityCountry,
+                      city: row.universityCity,
+                      logo: row.universityLogo,
+                    }
+                  : null,
+              }
+            : null,
+          counselor: row.counselorId
+            ? { user: { name: row.counselorName || 'Counselor', email: row.counselorEmail } }
+            : null,
+        }
+      }),
 
     updateStatus: adminWithPermission('applications:manage')
       .input(
@@ -933,28 +1202,41 @@ export const adminRouter = createTRPCRouter({
 
   counselors: createTRPCRouter({
     list: adminWithPermission('counselors:view').query(async () => {
-      const users = await db.select().from(schema.users)
+      const users = await db
+        .select()
+        .from(schema.users)
         .where(inArray(schema.users.role, ['COUNSELOR', 'ADMIN', 'SUPER_ADMIN'] as any))
 
       if (users.length === 0) return []
 
       const ids = users.map((u) => u.id)
       const profileConds = ids.map((id) => eq(schema.counselorProfiles.userId, id))
-      const profiles = await db.select().from(schema.counselorProfiles).where(or(...profileConds) as any)
+      const profiles = await db
+        .select()
+        .from(schema.counselorProfiles)
+        .where(or(...profileConds) as any)
 
       const profileMap = new Map(profiles.map((p) => [p.userId, p]))
       return users.map((u) => ({ ...u, counselorProfile: profileMap.get(u.id) || null }))
     }),
-    getById: adminWithPermission('counselors:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-      const user = await db.select().from(schema.users)
-        .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'COUNSELOR' as any)))
-        .limit(1).then((r) => r[0] || null)
-      if (!user) return null
-      const profile = await db.select().from(schema.counselorProfiles)
-        .where(eq(schema.counselorProfiles.userId, input.id))
-        .limit(1).then((r) => r[0] || null)
-      return { ...user, counselorProfile: profile }
-    }),
+    getById: adminWithPermission('counselors:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        const user = await db
+          .select()
+          .from(schema.users)
+          .where(and(eq(schema.users.id, input.id), eq(schema.users.role, 'COUNSELOR' as any)))
+          .limit(1)
+          .then((r) => r[0] || null)
+        if (!user) return null
+        const profile = await db
+          .select()
+          .from(schema.counselorProfiles)
+          .where(eq(schema.counselorProfiles.userId, input.id))
+          .limit(1)
+          .then((r) => r[0] || null)
+        return { ...user, counselorProfile: profile }
+      }),
     create: adminWithPermission('counselors:manage')
       .input(
         z.object({
@@ -1024,20 +1306,29 @@ export const adminRouter = createTRPCRouter({
         if (Object.keys(userUpdates).length > 0) {
           await db.update(schema.users).set(userUpdates).where(eq(schema.users.id, id))
         }
-        const profiles = await db.select().from(schema.counselorProfiles)
-          .where(eq(schema.counselorProfiles.userId, id)).limit(1)
+        const profiles = await db
+          .select()
+          .from(schema.counselorProfiles)
+          .where(eq(schema.counselorProfiles.userId, id))
+          .limit(1)
         const profile = profiles[0] || null
         if (profile) {
           const updates: any = {}
           if (profileData.bio !== undefined) updates.bio = profileData.bio
-          if (profileData.expertiseCountries !== undefined) updates.expertiseCountries = JSON.stringify(profileData.expertiseCountries)
-          if (profileData.expertiseSubjects !== undefined) updates.expertiseSubjects = JSON.stringify(profileData.expertiseSubjects)
-          if (profileData.languages !== undefined) updates.languages = JSON.stringify(profileData.languages)
+          if (profileData.expertiseCountries !== undefined)
+            updates.expertiseCountries = JSON.stringify(profileData.expertiseCountries)
+          if (profileData.expertiseSubjects !== undefined)
+            updates.expertiseSubjects = JSON.stringify(profileData.expertiseSubjects)
+          if (profileData.languages !== undefined)
+            updates.languages = JSON.stringify(profileData.languages)
           if (profileData.calUsername !== undefined) updates.calUsername = profileData.calUsername
           if (profileData.sessionRate !== undefined) updates.sessionRate = profileData.sessionRate
           if (profileData.isAvailable !== undefined) updates.isAvailable = profileData.isAvailable
           if (Object.keys(updates).length > 0) {
-            await db.update(schema.counselorProfiles).set(updates).where(eq(schema.counselorProfiles.id, profile.id))
+            await db
+              .update(schema.counselorProfiles)
+              .set(updates)
+              .where(eq(schema.counselorProfiles.id, profile.id))
           }
         }
         return { success: true }
@@ -1045,11 +1336,16 @@ export const adminRouter = createTRPCRouter({
     delete: adminWithPermission('counselors:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
-        const profiles = await db.select().from(schema.counselorProfiles)
-          .where(eq(schema.counselorProfiles.userId, input.id)).limit(1)
+        const profiles = await db
+          .select()
+          .from(schema.counselorProfiles)
+          .where(eq(schema.counselorProfiles.userId, input.id))
+          .limit(1)
         const profile = profiles[0] || null
         if (profile) {
-          await db.delete(schema.counselorProfiles).where(eq(schema.counselorProfiles.id, profile.id))
+          await db
+            .delete(schema.counselorProfiles)
+            .where(eq(schema.counselorProfiles.id, profile.id))
         }
         await db.delete(schema.users).where(eq(schema.users.id, input.id))
         return { success: true }
@@ -1149,9 +1445,10 @@ export const adminRouter = createTRPCRouter({
           )
         }
         if (input.country) conditions.push(eq(schema.universities.country, input.country))
-        if (input.isActive !== undefined) conditions.push(eq(schema.universities.isActive, input.isActive))
+        if (input.isActive !== undefined)
+          conditions.push(eq(schema.universities.isActive, input.isActive))
 
-        const where = conditions.length > 0 ? and(...conditions) : undefined as any
+        const where = conditions.length > 0 ? and(...conditions) : (undefined as any)
 
         const withCourseCounts = async (rows: any[]) => {
           if (rows.length === 0) return rows
@@ -1162,11 +1459,16 @@ export const adminRouter = createTRPCRouter({
               programCount: count(),
             })
             .from(schema.courses)
-            .where(inArray(schema.courses.universityId, rows.map((row) => row.id)))
+            .where(
+              inArray(
+                schema.courses.universityId,
+                rows.map((row) => row.id)
+              )
+            )
             .groupBy(schema.courses.universityId)
 
           const countByUniversity = new Map(
-            courseCounts.map((row) => [row.universityId, Number(row.programCount ?? 0)]),
+            courseCounts.map((row) => [row.universityId, Number(row.programCount ?? 0)])
           )
 
           return rows.map((row) => ({
@@ -1176,7 +1478,9 @@ export const adminRouter = createTRPCRouter({
         }
 
         try {
-          const rows = await db.select().from(schema.universities)
+          const rows = await db
+            .select()
+            .from(schema.universities)
             .where(where)
             .orderBy(desc(schema.universities.createdAt))
           return withCourseCounts(rows)
@@ -1186,26 +1490,27 @@ export const adminRouter = createTRPCRouter({
           // Keep the admin list usable while an older deployment is being
           // migrated. New ranking/student fields remain empty until db:push
           // has added their columns.
-          const rows = await db.select({
-            id: schema.universities.id,
-            name: schema.universities.name,
-            slug: schema.universities.slug,
-            country: schema.universities.country,
-            city: schema.universities.city,
-            logo: schema.universities.logo,
-            coverImage: schema.universities.coverImage,
-            description: schema.universities.description,
-            ranking: schema.universities.ranking,
-            website: schema.universities.website,
-            established: schema.universities.established,
-            totalStudents: schema.universities.totalStudents,
-            accreditation: schema.universities.accreditation,
-            rankings: schema.universities.rankings,
-            featured: schema.universities.featured,
-            isActive: schema.universities.isActive,
-            createdAt: schema.universities.createdAt,
-            updatedAt: schema.universities.updatedAt,
-          })
+          const rows = await db
+            .select({
+              id: schema.universities.id,
+              name: schema.universities.name,
+              slug: schema.universities.slug,
+              country: schema.universities.country,
+              city: schema.universities.city,
+              logo: schema.universities.logo,
+              coverImage: schema.universities.coverImage,
+              description: schema.universities.description,
+              ranking: schema.universities.ranking,
+              website: schema.universities.website,
+              established: schema.universities.established,
+              totalStudents: schema.universities.totalStudents,
+              accreditation: schema.universities.accreditation,
+              rankings: schema.universities.rankings,
+              featured: schema.universities.featured,
+              isActive: schema.universities.isActive,
+              createdAt: schema.universities.createdAt,
+              updatedAt: schema.universities.updatedAt,
+            })
             .from(schema.universities)
             .where(where)
             .orderBy(desc(schema.universities.createdAt))
@@ -1213,12 +1518,16 @@ export const adminRouter = createTRPCRouter({
         }
       }),
 
-    getById: adminWithPermission('universities:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-return db.select().from(schema.universities)
+    getById: adminWithPermission('universities:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return db
+          .select()
+          .from(schema.universities)
           .where(eq(schema.universities.id, input.id))
           .limit(1)
           .then((rows) => rows[0] || null)
-    }),
+      }),
 
     create: adminWithPermission('universities:manage')
       .input(
@@ -1250,7 +1559,8 @@ return db.select().from(schema.universities)
           if (isMissingColumnError(error)) {
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'The database schema is out of date. Run pnpm db:push:university on the production server, then reload the app.',
+              message:
+                'The database schema is out of date. Run pnpm db:push:university on the production server, then reload the app.',
             })
           }
           throw error
@@ -1289,7 +1599,8 @@ return db.select().from(schema.universities)
           if (isMissingColumnError(error)) {
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'The database schema is out of date. Run pnpm db:push:university on the production server, then reload the app.',
+              message:
+                'The database schema is out of date. Run pnpm db:push:university on the production server, then reload the app.',
             })
           }
           throw error
@@ -1313,7 +1624,9 @@ return db.select().from(schema.universities)
           search: z.string().optional(),
           universityId: z.string().optional(),
           subject: z.string().optional(),
-          level: z.enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']).optional(),
+          level: z
+            .enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION'])
+            .optional(),
           isActive: z.boolean().optional(),
         })
       )
@@ -1330,58 +1643,77 @@ return db.select().from(schema.universities)
         if (input.universityId) conditions.push(eq(schema.courses.universityId, input.universityId))
         if (input.subject) conditions.push(eq(schema.courses.subject, input.subject))
         if (input.level) conditions.push(eq(schema.courses.level, input.level))
-        if (input.isActive !== undefined) conditions.push(eq(schema.courses.isActive, input.isActive))
+        if (input.isActive !== undefined)
+          conditions.push(eq(schema.courses.isActive, input.isActive))
 
         let courseRows: any[]
         try {
-          courseRows = await db.select(adminCourseAllColumns).from(schema.courses)
-            .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+          courseRows = await db
+            .select(adminCourseAllColumns)
+            .from(schema.courses)
+            .where(conditions.length > 0 ? and(...conditions) : (undefined as any))
             .orderBy(desc(schema.courses.createdAt))
         } catch (error) {
           if (!isMissingColumnError(error)) throw error
-          courseRows = await db.select(adminCourseBaseColumns).from(schema.courses)
-            .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+          courseRows = await db
+            .select(adminCourseBaseColumns)
+            .from(schema.courses)
+            .where(conditions.length > 0 ? and(...conditions) : (undefined as any))
             .orderBy(desc(schema.courses.createdAt))
         }
         const courses = courseRows
 
         const uniIds = Array.from(new Set(courses.map((c) => c.universityId)))
-        const universities = uniIds.length > 0
-          ? await db.select().from(schema.universities).where(or(...uniIds.map((id) => eq(schema.universities.id, id))))
-          : []
+        const universities =
+          uniIds.length > 0
+            ? await db
+                .select()
+                .from(schema.universities)
+                .where(or(...uniIds.map((id) => eq(schema.universities.id, id))))
+            : []
         const uniMap = new Map(universities.map((u) => [u.id, u]))
 
         return courses.map((c) => ({
           ...c,
-          university: uniMap.get(c.universityId) ? {
-            id: uniMap.get(c.universityId)!.id,
-            name: uniMap.get(c.universityId)!.name,
-            country: uniMap.get(c.universityId)!.country,
-          } : null,
+          university: uniMap.get(c.universityId)
+            ? {
+                id: uniMap.get(c.universityId)!.id,
+                name: uniMap.get(c.universityId)!.name,
+                country: uniMap.get(c.universityId)!.country,
+              }
+            : null,
         }))
       }),
 
-    getById: adminWithPermission('courses:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-let course: any
+    getById: adminWithPermission('courses:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        let course: any
         try {
-          course = await db.select(adminCourseAllColumns).from(schema.courses)
+          course = await db
+            .select(adminCourseAllColumns)
+            .from(schema.courses)
             .where(eq(schema.courses.id, input.id))
             .limit(1)
             .then((rows) => rows[0] || null)
         } catch (error) {
           if (!isMissingColumnError(error)) throw error
-          course = await db.select(adminCourseBaseColumns).from(schema.courses)
+          course = await db
+            .select(adminCourseBaseColumns)
+            .from(schema.courses)
             .where(eq(schema.courses.id, input.id))
             .limit(1)
             .then((rows) => rows[0] || null)
         }
         if (!course) return null
-        const uni = await db.select().from(schema.universities)
+        const uni = await db
+          .select()
+          .from(schema.universities)
           .where(eq(schema.universities.id, course.universityId))
           .limit(1)
           .then((rows) => rows[0] || null)
         return { ...course, university: uni }
-    }),
+      }),
 
     create: adminWithPermission('courses:manage')
       .input(
@@ -1390,7 +1722,14 @@ let course: any
           name: z.string().min(1),
           slug: z.string().min(1),
           subject: z.string().min(1),
-          level: z.enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']),
+          level: z.enum([
+            'UNDERGRADUATE',
+            'POSTGRADUATE',
+            'PHD',
+            'DIPLOMA',
+            'CERTIFICATE',
+            'FOUNDATION',
+          ]),
           duration: z.number().min(1),
           durationUnit: z.string().default('YEARS'),
           tuitionFee: z.number().min(0),
@@ -1418,7 +1757,10 @@ let course: any
         })
       )
       .mutation(async ({ input }) => {
-        const inserted = await db.insert(schema.courses).values(input as any).$returningId()
+        const inserted = await db
+          .insert(schema.courses)
+          .values(input as any)
+          .$returningId()
         const id = (inserted as any)?.[0]?.id
         return { success: true, id }
       }),
@@ -1431,7 +1773,9 @@ let course: any
           name: z.string().min(1).optional(),
           slug: z.string().min(1).optional(),
           subject: z.string().min(1).optional(),
-          level: z.enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION']).optional(),
+          level: z
+            .enum(['UNDERGRADUATE', 'POSTGRADUATE', 'PHD', 'DIPLOMA', 'CERTIFICATE', 'FOUNDATION'])
+            .optional(),
           duration: z.number().min(1).optional(),
           durationUnit: z.string().optional(),
           tuitionFee: z.number().min(0).optional(),
@@ -1472,10 +1816,8 @@ let course: any
       }),
 
     getSubjects: adminWithPermission('courses:view').query(async () => {
-      const rows = await db
-        .selectDistinct({ subject: schema.courses.subject })
-        .from(schema.courses)
-      return rows.map(r => r.subject).filter(Boolean)
+      const rows = await db.selectDistinct({ subject: schema.courses.subject }).from(schema.courses)
+      return rows.map((r) => r.subject).filter(Boolean)
     }),
   }),
 
@@ -1486,36 +1828,54 @@ let course: any
       .input(z.object({ type: z.string().optional() }))
       .query(async ({ input }) => {
         const conds = input.type ? [eq(schema.requirements.type, input.type as any)] : []
-        return db.select().from(schema.requirements)
+        return db
+          .select()
+          .from(schema.requirements)
           .where(conds.length > 0 ? and(...conds) : undefined)
           .orderBy(schema.requirements.name)
       }),
 
     create: adminWithPermission('courses:manage')
-      .input(z.object({
-        type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']),
-        name: z.string().min(1),
-        minPercentage: z.number().optional(),
-        description: z.string().optional(),
-        isActive: z.boolean().default(true),
-      }))
+      .input(
+        z.object({
+          type: z.enum([
+            'ACADEMIC',
+            'ENGLISH_LANGUAGE',
+            'IDENTITY',
+            'MEDICAL',
+            'PROFESSIONAL',
+            'OTHER',
+          ]),
+          name: z.string().min(1),
+          minPercentage: z.number().optional(),
+          description: z.string().optional(),
+          isActive: z.boolean().default(true),
+        })
+      )
       .mutation(async ({ input }) => {
         await db.insert(schema.requirements).values(input as any)
         return { success: true }
       }),
 
     update: adminWithPermission('courses:manage')
-      .input(z.object({
-        id: z.string(),
-        type: z.enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER']).optional(),
-        name: z.string().min(1).optional(),
-        minPercentage: z.number().optional(),
-        description: z.string().optional(),
-        isActive: z.boolean().optional(),
-      }))
+      .input(
+        z.object({
+          id: z.string(),
+          type: z
+            .enum(['ACADEMIC', 'ENGLISH_LANGUAGE', 'IDENTITY', 'MEDICAL', 'PROFESSIONAL', 'OTHER'])
+            .optional(),
+          name: z.string().min(1).optional(),
+          minPercentage: z.number().optional(),
+          description: z.string().optional(),
+          isActive: z.boolean().optional(),
+        })
+      )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(schema.requirements).set(data as any).where(eq(schema.requirements.id, id))
+        await db
+          .update(schema.requirements)
+          .set(data as any)
+          .where(eq(schema.requirements.id, id))
         return { success: true }
       }),
 
@@ -1533,21 +1893,32 @@ let course: any
     list: adminWithPermission('courses:view')
       .input(z.object({ courseId: z.string() }))
       .query(async ({ input }) => {
-        return db.select().from(schema.platformCourseRequirements)
+        return db
+          .select()
+          .from(schema.platformCourseRequirements)
           .where(eq(schema.platformCourseRequirements.courseId, input.courseId))
       }),
 
     set: adminWithPermission('courses:manage')
-      .input(z.object({
-        courseId: z.string(),
-        requirementIds: z.array(z.string()),
-      }))
+      .input(
+        z.object({
+          courseId: z.string(),
+          requirementIds: z.array(z.string()),
+        })
+      )
       .mutation(async ({ input }) => {
-        await db.delete(schema.platformCourseRequirements)
+        await db
+          .delete(schema.platformCourseRequirements)
           .where(eq(schema.platformCourseRequirements.courseId, input.courseId))
         if (input.requirementIds.length > 0) {
-          await db.insert(schema.platformCourseRequirements)
-            .values(input.requirementIds.map((rid) => ({ courseId: input.courseId, requirementId: rid })) as any)
+          await db
+            .insert(schema.platformCourseRequirements)
+            .values(
+              input.requirementIds.map((rid) => ({
+                courseId: input.courseId,
+                requirementId: rid,
+              })) as any
+            )
         }
         return { success: true }
       }),
@@ -1559,26 +1930,32 @@ let course: any
     list: adminWithPermission('courses:view')
       .input(z.object({ courseId: z.string() }))
       .query(async ({ input }) => {
-        return db.select().from(schema.relatedCourses)
+        return db
+          .select()
+          .from(schema.relatedCourses)
           .where(eq(schema.relatedCourses.courseId, input.courseId))
           .orderBy(schema.relatedCourses.sortOrder)
       }),
 
     set: adminWithPermission('courses:manage')
-      .input(z.object({
-        courseId: z.string(),
-        relatedCourseIds: z.array(z.string()),
-      }))
+      .input(
+        z.object({
+          courseId: z.string(),
+          relatedCourseIds: z.array(z.string()),
+        })
+      )
       .mutation(async ({ input }) => {
-        await db.delete(schema.relatedCourses)
+        await db
+          .delete(schema.relatedCourses)
           .where(eq(schema.relatedCourses.courseId, input.courseId))
         if (input.relatedCourseIds.length > 0) {
-          await db.insert(schema.relatedCourses)
-            .values(input.relatedCourseIds.map((rid, i) => ({
+          await db.insert(schema.relatedCourses).values(
+            input.relatedCourseIds.map((rid, i) => ({
               courseId: input.courseId,
               relatedCourseId: rid,
               sortOrder: i,
-            })) as any)
+            })) as any
+          )
         }
         return { success: true }
       }),
@@ -1588,12 +1965,14 @@ let course: any
 
   courseModules: createTRPCRouter({
     create: adminWithPermission('courses:manage')
-      .input(z.object({
-        courseId: z.string(),
-        term: z.string(),
-        name: z.string().min(1),
-        type: z.enum(['CORE', 'OPTIONAL']),
-      }))
+      .input(
+        z.object({
+          courseId: z.string(),
+          term: z.string(),
+          name: z.string().min(1),
+          type: z.enum(['CORE', 'OPTIONAL']),
+        })
+      )
       .mutation(async ({ input }) => {
         await db.insert(schema.courseModules).values(input)
         return { success: true }
@@ -1602,7 +1981,8 @@ let course: any
     deleteByCourse: adminWithPermission('courses:manage')
       .input(z.object({ courseId: z.string() }))
       .mutation(async ({ input }) => {
-        await db.delete(schema.courseModules)
+        await db
+          .delete(schema.courseModules)
           .where(eq(schema.courseModules.courseId, input.courseId))
         return { success: true }
       }),
@@ -1612,11 +1992,13 @@ let course: any
 
   courseIntakes: createTRPCRouter({
     create: adminWithPermission('courses:manage')
-      .input(z.object({
-        courseId: z.string(),
-        intakeDate: z.date(),
-        applyByDate: z.date().optional(),
-      }))
+      .input(
+        z.object({
+          courseId: z.string(),
+          intakeDate: z.date(),
+          applyByDate: z.date().optional(),
+        })
+      )
       .mutation(async ({ input }) => {
         await db.insert(schema.platformCourseIntakes).values(input as any)
         return { success: true }
@@ -1625,7 +2007,8 @@ let course: any
     deleteByCourse: adminWithPermission('courses:manage')
       .input(z.object({ courseId: z.string() }))
       .mutation(async ({ input }) => {
-        await db.delete(schema.platformCourseIntakes)
+        await db
+          .delete(schema.platformCourseIntakes)
           .where(eq(schema.platformCourseIntakes.courseId, input.courseId))
         return { success: true }
       }),
@@ -1648,17 +2031,23 @@ let course: any
         }
         if (input.continent) conditions.push(eq(schema.countries.continent, input.continent))
 
-        return db.select().from(schema.countries)
-          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+        return db
+          .select()
+          .from(schema.countries)
+          .where(conditions.length > 0 ? and(...conditions) : (undefined as any))
           .orderBy(schema.countries.name)
       }),
 
-    getById: adminWithPermission('countries:view').input(z.object({ code: z.string() })).query(async ({ input }) => {
-return db.select().from(schema.countries)
+    getById: adminWithPermission('countries:view')
+      .input(z.object({ code: z.string() }))
+      .query(async ({ input }) => {
+        return db
+          .select()
+          .from(schema.countries)
           .where(eq(schema.countries.code, input.code))
           .limit(1)
           .then((rows) => rows[0] || null)
-    }),
+      }),
 
     create: adminWithPermission('countries:manage')
       .input(
@@ -1709,7 +2098,8 @@ return db.select().from(schema.countries)
       )
       .query(async ({ input }) => {
         const conditions = []
-        if (input.universityId) conditions.push(eq(schema.departments.universityId, input.universityId))
+        if (input.universityId)
+          conditions.push(eq(schema.departments.universityId, input.universityId))
         if (input.search) conditions.push(like(schema.departments.name, `%${input.search}%`))
 
         return db.query.departments.findMany({
@@ -1719,12 +2109,14 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminWithPermission('universities:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
-      return db.query.departments.findFirst({
-        where: eq(schema.departments.id, input.id),
-        with: { university: true },
-      })
-    }),
+    getById: adminWithPermission('universities:view')
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return db.query.departments.findFirst({
+          where: eq(schema.departments.id, input.id),
+          with: { university: true },
+        })
+      }),
 
     create: adminWithPermission('universities:manage')
       .input(
@@ -1793,22 +2185,32 @@ return db.select().from(schema.countries)
             else if (typeof raw === 'string') {
               // platform string id -> try to map to catalog via slug
               try {
-                const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, raw) })
+                const plat = await db.query.universities.findFirst({
+                  where: (u, { eq }) => eq(u.id, raw),
+                })
                 if (plat) {
-                  const cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                  const cat = await db.query.catalogUniversities.findFirst({
+                    where: (u, { eq }) => eq(u.slug, plat.slug),
+                  })
                   if (cat) resolvedUniversityId = cat.id
                 }
               } catch {}
             }
           }
           const conditions: unknown[] = []
-          if (resolvedUniversityId != null) conditions.push(eq(schema.scholarships.universityId, resolvedUniversityId))
-          else if (input.universityId != null && typeof input.universityId === 'string' && Number.isNaN(Number(input.universityId))) {
+          if (resolvedUniversityId != null)
+            conditions.push(eq(schema.scholarships.universityId, resolvedUniversityId))
+          else if (
+            input.universityId != null &&
+            typeof input.universityId === 'string' &&
+            Number.isNaN(Number(input.universityId))
+          ) {
             // platform id with no catalog mapping -> return empty to avoid showing unrelated data
             return []
           }
           if (input.search) conditions.push(like(schema.scholarships.name, `%${input.search}%`))
-          if (input.isActive !== undefined) conditions.push(eq(schema.scholarships.isActive, input.isActive))
+          if (input.isActive !== undefined)
+            conditions.push(eq(schema.scholarships.isActive, input.isActive))
 
           const rows = await db
             .select({
@@ -1828,8 +2230,14 @@ return db.select().from(schema.countries)
               courseTitle: schema.catalogCourses.title,
             })
             .from(schema.scholarships)
-            .leftJoin(schema.catalogUniversities, eq(schema.scholarships.universityId, schema.catalogUniversities.id))
-            .leftJoin(schema.catalogCourses, eq(schema.scholarships.courseId, schema.catalogCourses.id))
+            .leftJoin(
+              schema.catalogUniversities,
+              eq(schema.scholarships.universityId, schema.catalogUniversities.id)
+            )
+            .leftJoin(
+              schema.catalogCourses,
+              eq(schema.scholarships.courseId, schema.catalogCourses.id)
+            )
             .where(conditions.length > 0 ? (and as any)(...conditions) : undefined)
             .orderBy(schema.scholarships.name as any)
 
@@ -1855,54 +2263,64 @@ return db.select().from(schema.countries)
         }
       }),
 
-    getById: adminWithPermission('scholarships:view').input(z.object({ id: z.number() })).query(async ({ input }) => {
-      try {
-        const row = await db
-          .select({
-            id: schema.scholarships.id,
-            name: schema.scholarships.name,
-            description: schema.scholarships.description,
-            amount: schema.scholarships.amount,
-            currencyCode: schema.scholarships.currencyCode,
-            coverageType: schema.scholarships.coverageType,
-            eligibility: schema.scholarships.eligibility,
-            deadline: schema.scholarships.deadline,
-            linkUrl: schema.scholarships.linkUrl,
-            isActive: schema.scholarships.isActive,
-            universityId: schema.scholarships.universityId,
-            courseId: schema.scholarships.courseId,
-            universityName: schema.catalogUniversities.name,
-            courseTitle: schema.catalogCourses.title,
-          })
-          .from(schema.scholarships)
-          .leftJoin(schema.catalogUniversities, eq(schema.scholarships.universityId, schema.catalogUniversities.id))
-          .leftJoin(schema.catalogCourses, eq(schema.scholarships.courseId, schema.catalogCourses.id))
-          .where(eq(schema.scholarships.id, input.id))
-          .limit(1)
-          .then((rows) => rows[0] as unknown as typeof rows[number] | undefined)
+    getById: adminWithPermission('scholarships:view')
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        try {
+          const row = await db
+            .select({
+              id: schema.scholarships.id,
+              name: schema.scholarships.name,
+              description: schema.scholarships.description,
+              amount: schema.scholarships.amount,
+              currencyCode: schema.scholarships.currencyCode,
+              coverageType: schema.scholarships.coverageType,
+              eligibility: schema.scholarships.eligibility,
+              deadline: schema.scholarships.deadline,
+              linkUrl: schema.scholarships.linkUrl,
+              isActive: schema.scholarships.isActive,
+              universityId: schema.scholarships.universityId,
+              courseId: schema.scholarships.courseId,
+              universityName: schema.catalogUniversities.name,
+              courseTitle: schema.catalogCourses.title,
+            })
+            .from(schema.scholarships)
+            .leftJoin(
+              schema.catalogUniversities,
+              eq(schema.scholarships.universityId, schema.catalogUniversities.id)
+            )
+            .leftJoin(
+              schema.catalogCourses,
+              eq(schema.scholarships.courseId, schema.catalogCourses.id)
+            )
+            .where(eq(schema.scholarships.id, input.id))
+            .limit(1)
+            .then((rows) => rows[0] as unknown as (typeof rows)[number] | undefined)
 
-        if (!row) return null
-        return {
-          id: row.id,
-          name: row.name,
-          description: row.description,
-          amount: row.amount,
-          currencyCode: row.currencyCode,
-          coverageType: row.coverageType,
-          eligibility: row.eligibility,
-          deadline: row.deadline,
-          linkUrl: row.linkUrl,
-          isActive: row.isActive,
-          universityId: row.universityId,
-          courseId: row.courseId,
-          university: row.universityName ? { id: row.universityId, name: row.universityName } : null,
-          course: row.courseTitle ? { id: row.courseId, title: row.courseTitle } : null,
+          if (!row) return null
+          return {
+            id: row.id,
+            name: row.name,
+            description: row.description,
+            amount: row.amount,
+            currencyCode: row.currencyCode,
+            coverageType: row.coverageType,
+            eligibility: row.eligibility,
+            deadline: row.deadline,
+            linkUrl: row.linkUrl,
+            isActive: row.isActive,
+            universityId: row.universityId,
+            courseId: row.courseId,
+            university: row.universityName
+              ? { id: row.universityId, name: row.universityName }
+              : null,
+            course: row.courseTitle ? { id: row.courseId, title: row.courseTitle } : null,
+          }
+        } catch (e) {
+          console.error('[admin.scholarships.getById] query failed:', e)
+          return null
         }
-      } catch (e) {
-        console.error('[admin.scholarships.getById] query failed:', e)
-        return null
-      }
-    }),
+      }),
 
     create: adminWithPermission('scholarships:manage')
       .input(
@@ -1913,7 +2331,9 @@ return db.select().from(schema.countries)
           description: z.string().optional(),
           amount: z.number().optional(),
           currencyCode: z.string().default('USD'),
-          coverageType: z.enum(['full', 'partial', 'tuition_only', 'living_only']).default('partial'),
+          coverageType: z
+            .enum(['full', 'partial', 'tuition_only', 'living_only'])
+            .default('partial'),
           eligibility: z.string().optional(),
           deadline: z.date().optional(),
           linkUrl: z.string().optional(),
@@ -1924,21 +2344,35 @@ return db.select().from(schema.countries)
         // Defensive: ensure currency exists — best-effort, never block creation if currencies table is missing or query fails
         if (input.currencyCode) {
           try {
-            const cur = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, input.currencyCode) })
+            const cur = await db.query.currencies.findFirst({
+              where: (c, { eq }) => eq(c.code, input.currencyCode),
+            })
             if (!cur) {
               try {
-                const symbolMap: Record<string, string> = { USD: '$', KRW: '₩', GBP: '£', EUR: '€', JPY: '¥' }
+                const symbolMap: Record<string, string> = {
+                  USD: '$',
+                  KRW: '₩',
+                  GBP: '£',
+                  EUR: '€',
+                  JPY: '¥',
+                }
                 await db.insert(schema.currencies).values({
                   code: input.currencyCode,
                   symbol: symbolMap[input.currencyCode] ?? input.currencyCode,
                   usdRate: 1,
                 })
               } catch (insertErr) {
-                console.warn('[scholarships.create] Failed to ensure currency, proceeding anyway:', insertErr)
+                console.warn(
+                  '[scholarships.create] Failed to ensure currency, proceeding anyway:',
+                  insertErr
+                )
               }
             }
           } catch (checkErr) {
-            console.warn('[scholarships.create] Currency check failed, proceeding anyway:', checkErr)
+            console.warn(
+              '[scholarships.create] Currency check failed, proceeding anyway:',
+              checkErr
+            )
           }
         }
         // Resolve platform string ids (e.g. "univ_abc123") to catalog int ids
@@ -1948,15 +2382,23 @@ return db.select().from(schema.countries)
         const rawCourse = (input as unknown as { courseId?: string | number }).courseId
         if (rawUni != null && rawUni !== '') {
           const num = typeof rawUni === 'number' ? rawUni : Number(rawUni)
-          if (!Number.isNaN(num) && String(num) === String(rawUni).trim()) resolvedUniversityId = num
+          if (!Number.isNaN(num) && String(num) === String(rawUni).trim())
+            resolvedUniversityId = num
           else if (typeof rawUni === 'string') {
             try {
-              const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, rawUni) })
+              const plat = await db.query.universities.findFirst({
+                where: (u, { eq }) => eq(u.id, rawUni),
+              })
               if (plat) {
-                let cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                let cat = await db.query.catalogUniversities.findFirst({
+                  where: (u, { eq }) => eq(u.slug, plat.slug),
+                })
                 if (!cat) {
-                  const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.name, plat.country) })
-                  const countryCode = country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
+                  const country = await db.query.countries.findFirst({
+                    where: (c, { eq }) => eq(c.name, plat.country),
+                  })
+                  const countryCode =
+                    country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
                   await db.insert(schema.catalogUniversities).values({
                     name: plat.name,
                     slug: plat.slug,
@@ -1969,7 +2411,9 @@ return db.select().from(schema.countries)
                     isActive: true,
                     isFeatured: false,
                   } as never)
-                  cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                  cat = await db.query.catalogUniversities.findFirst({
+                    where: (u, { eq }) => eq(u.slug, plat.slug),
+                  })
                 }
                 if (cat) resolvedUniversityId = cat.id
               }
@@ -1981,11 +2425,17 @@ return db.select().from(schema.countries)
           if (!Number.isNaN(num) && String(num) === String(rawCourse).trim()) resolvedCourseId = num
           else if (typeof rawCourse === 'string') {
             try {
-              const plat = await db.query.courses.findFirst({ where: (c, { eq }) => eq(c.id, rawCourse) })
+              const plat = await db.query.courses.findFirst({
+                where: (c, { eq }) => eq(c.id, rawCourse),
+              })
               if (plat) {
-                let cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+                let cat = await db.query.catalogCourses.findFirst({
+                  where: (c, { eq }) => eq(c.slug, plat.slug),
+                })
                 if (!cat && resolvedUniversityId) {
-                  const dept = await db.query.departments.findFirst({ where: (d, { eq }) => eq(d.universityId, resolvedUniversityId!) })
+                  const dept = await db.query.departments.findFirst({
+                    where: (d, { eq }) => eq(d.universityId, resolvedUniversityId!),
+                  })
                   await db.insert(schema.catalogCourses).values({
                     universityId: resolvedUniversityId,
                     departmentId: dept?.id ?? null,
@@ -1999,7 +2449,9 @@ return db.select().from(schema.countries)
                     description: plat.description,
                     isActive: true,
                   } as never)
-                  cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+                  cat = await db.query.catalogCourses.findFirst({
+                    where: (c, { eq }) => eq(c.slug, plat.slug),
+                  })
                 }
                 if (cat) resolvedCourseId = cat.id
               }
@@ -2007,35 +2459,65 @@ return db.select().from(schema.countries)
           }
         }
         const toInsert: Record<string, unknown> = { ...input }
-        if (resolvedUniversityId !== undefined) (toInsert as Record<string, unknown>).universityId = resolvedUniversityId
-        else if (rawUni != null && typeof rawUni === 'string' && Number.isNaN(Number(rawUni))) delete (toInsert as Record<string, unknown>).universityId
-        if (resolvedCourseId !== undefined) (toInsert as Record<string, unknown>).courseId = resolvedCourseId
-        else if (rawCourse != null && typeof rawCourse === 'string' && Number.isNaN(Number(rawCourse))) delete (toInsert as Record<string, unknown>).courseId
+        if (resolvedUniversityId !== undefined)
+          (toInsert as Record<string, unknown>).universityId = resolvedUniversityId
+        else if (rawUni != null && typeof rawUni === 'string' && Number.isNaN(Number(rawUni)))
+          delete (toInsert as Record<string, unknown>).universityId
+        if (resolvedCourseId !== undefined)
+          (toInsert as Record<string, unknown>).courseId = resolvedCourseId
+        else if (
+          rawCourse != null &&
+          typeof rawCourse === 'string' &&
+          Number.isNaN(Number(rawCourse))
+        )
+          delete (toInsert as Record<string, unknown>).courseId
         try {
           await db.insert(schema.scholarships).values(toInsert as never)
         } catch (e: unknown) {
           const rawMsg = (e as { message?: string })?.message || String(e)
           console.error('[scholarships.create] insert failed:', rawMsg, 'params:', toInsert, e)
-          if (rawMsg.includes('ER_NO_SUCH_TABLE') || rawMsg.includes("doesn't exist") || rawMsg.includes('Unknown table') || rawMsg.includes('no such table')) {
+          if (
+            rawMsg.includes('ER_NO_SUCH_TABLE') ||
+            rawMsg.includes("doesn't exist") ||
+            rawMsg.includes('Unknown table') ||
+            rawMsg.includes('no such table')
+          ) {
             throw new (await import('@trpc/server')).TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' + rawMsg,
+              message:
+                'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' +
+                rawMsg,
               cause: e as never,
             })
           }
           // Retry with USD if the failure is a currency FK (e.g. JPY row missing and auto-create raced)
-          if (rawMsg.includes('currencies') || rawMsg.includes('currency_code') || (rawMsg as string).includes('ER_NO_REFERENCED_ROW') || rawMsg.includes('foreign key')) {
+          if (
+            rawMsg.includes('currencies') ||
+            rawMsg.includes('currency_code') ||
+            (rawMsg as string).includes('ER_NO_REFERENCED_ROW') ||
+            rawMsg.includes('foreign key')
+          ) {
             try {
               try {
-                const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
-                if (!usd) await db.insert(schema.currencies).values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
+                const usd = await db.query.currencies.findFirst({
+                  where: (c, { eq }) => eq(c.code, 'USD'),
+                })
+                if (!usd)
+                  await db
+                    .insert(schema.currencies)
+                    .values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
               } catch {}
               const fallback = { ...toInsert, currencyCode: 'USD' } as never
               await db.insert(schema.scholarships).values(fallback)
               return { success: true }
             } catch (retryErr) {
-              const rmsg = (retryErr as { message?: string })?.message || 'Failed to create scholarship'
-              throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rmsg, cause: retryErr as never })
+              const rmsg =
+                (retryErr as { message?: string })?.message || 'Failed to create scholarship'
+              throw new (await import('@trpc/server')).TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: rmsg,
+                cause: retryErr as never,
+              })
             }
           }
           throw new (await import('@trpc/server')).TRPCError({
@@ -2065,85 +2547,175 @@ return db.select().from(schema.countries)
         })
       )
       .mutation(async ({ input }) => {
-        const { id, ...raw } = input as unknown as { id: number; universityId?: string | number; courseId?: string | number; currencyCode?: string } & Record<string, unknown>
+        const { id, ...raw } = input as unknown as {
+          id: number
+          universityId?: string | number
+          courseId?: string | number
+          currencyCode?: string
+        } & Record<string, unknown>
         const data: Record<string, unknown> = { ...raw }
         if ((data as Record<string, unknown>).currencyCode) {
           const code = (data as Record<string, unknown>).currencyCode as string
           try {
-            const cur = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, code) })
+            const cur = await db.query.currencies.findFirst({
+              where: (c, { eq }) => eq(c.code, code),
+            })
             if (!cur) {
               try {
-                const symbolMap: Record<string, string> = { USD: '$', KRW: '₩', GBP: '£', EUR: '€', JPY: '¥' }
-                await db.insert(schema.currencies).values({ code, symbol: symbolMap[code] ?? code, usdRate: 1 } as never)
+                const symbolMap: Record<string, string> = {
+                  USD: '$',
+                  KRW: '₩',
+                  GBP: '£',
+                  EUR: '€',
+                  JPY: '¥',
+                }
+                await db
+                  .insert(schema.currencies)
+                  .values({ code, symbol: symbolMap[code] ?? code, usdRate: 1 } as never)
               } catch (insertErr) {
-                console.warn('[scholarships.update] Failed to ensure currency, proceeding anyway:', insertErr)
+                console.warn(
+                  '[scholarships.update] Failed to ensure currency, proceeding anyway:',
+                  insertErr
+                )
               }
             }
           } catch (checkErr) {
-            console.warn('[scholarships.update] Currency check failed, proceeding anyway:', checkErr)
+            console.warn(
+              '[scholarships.update] Currency check failed, proceeding anyway:',
+              checkErr
+            )
           }
         }
-        const resolveId = async (rawId: string | number | undefined, type: 'university' | 'course'): Promise<number | undefined> => {
+        const resolveId = async (
+          rawId: string | number | undefined,
+          type: 'university' | 'course'
+        ): Promise<number | undefined> => {
           if (rawId == null || rawId === '') return undefined
           if (typeof rawId === 'number') return rawId
           const num = Number(rawId)
           if (!Number.isNaN(num) && String(num) === String(rawId).trim()) return num
           try {
             if (type === 'university') {
-              const plat = await db.query.universities.findFirst({ where: (u, { eq }) => eq(u.id, rawId) })
+              const plat = await db.query.universities.findFirst({
+                where: (u, { eq }) => eq(u.id, rawId),
+              })
               if (!plat) return undefined
-              let cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+              let cat = await db.query.catalogUniversities.findFirst({
+                where: (u, { eq }) => eq(u.slug, plat.slug),
+              })
               if (!cat) {
-                const country = await db.query.countries.findFirst({ where: (c, { eq }) => eq(c.name, plat.country) })
-                const countryCode = country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
+                const country = await db.query.countries.findFirst({
+                  where: (c, { eq }) => eq(c.name, plat.country),
+                })
+                const countryCode =
+                  country?.code ?? (await db.query.countries.findFirst({}))?.code ?? 'US'
                 await db.insert(schema.catalogUniversities).values({
-                  name: plat.name, slug: plat.slug, countryCode, city: plat.city, description: plat.description,
-                  logoUrl: plat.logo, bannerUrl: plat.coverImage, websiteUrl: plat.website, isActive: true, isFeatured: false,
+                  name: plat.name,
+                  slug: plat.slug,
+                  countryCode,
+                  city: plat.city,
+                  description: plat.description,
+                  logoUrl: plat.logo,
+                  bannerUrl: plat.coverImage,
+                  websiteUrl: plat.website,
+                  isActive: true,
+                  isFeatured: false,
                 } as never)
-                cat = await db.query.catalogUniversities.findFirst({ where: (u, { eq }) => eq(u.slug, plat.slug) })
+                cat = await db.query.catalogUniversities.findFirst({
+                  where: (u, { eq }) => eq(u.slug, plat.slug),
+                })
               }
               return cat?.id
             } else {
-              const plat = await db.query.courses.findFirst({ where: (c, { eq }) => eq(c.id, rawId) })
+              const plat = await db.query.courses.findFirst({
+                where: (c, { eq }) => eq(c.id, rawId),
+              })
               if (!plat) return undefined
-              let cat = await db.query.catalogCourses.findFirst({ where: (c, { eq }) => eq(c.slug, plat.slug) })
+              let cat = await db.query.catalogCourses.findFirst({
+                where: (c, { eq }) => eq(c.slug, plat.slug),
+              })
               return cat?.id
             }
-          } catch { return undefined }
+          } catch {
+            return undefined
+          }
         }
         const resolvedUni = await resolveId(raw.universityId, 'university')
         const resolvedCourse = await resolveId(raw.courseId, 'course')
         if (resolvedUni !== undefined) (data as Record<string, unknown>).universityId = resolvedUni
-        else if (raw.universityId != null && typeof raw.universityId === 'string' && Number.isNaN(Number(raw.universityId))) delete (data as Record<string, unknown>).universityId
-        if (resolvedCourse !== undefined) (data as Record<string, unknown>).courseId = resolvedCourse
-        else if (raw.courseId != null && typeof raw.courseId === 'string' && Number.isNaN(Number(raw.courseId))) delete (data as Record<string, unknown>).courseId
+        else if (
+          raw.universityId != null &&
+          typeof raw.universityId === 'string' &&
+          Number.isNaN(Number(raw.universityId))
+        )
+          delete (data as Record<string, unknown>).universityId
+        if (resolvedCourse !== undefined)
+          (data as Record<string, unknown>).courseId = resolvedCourse
+        else if (
+          raw.courseId != null &&
+          typeof raw.courseId === 'string' &&
+          Number.isNaN(Number(raw.courseId))
+        )
+          delete (data as Record<string, unknown>).courseId
         try {
-          await db.update(schema.scholarships).set(data as never).where(eq(schema.scholarships.id, id))
+          await db
+            .update(schema.scholarships)
+            .set(data as never)
+            .where(eq(schema.scholarships.id, id))
         } catch (e: unknown) {
           const rawMsg = (e as { message?: string })?.message || String(e)
           console.error('[scholarships.update] update failed:', rawMsg, 'data:', data, e)
-          if (rawMsg.includes('ER_NO_SUCH_TABLE') || rawMsg.includes("doesn't exist") || rawMsg.includes('Unknown table') || rawMsg.includes('no such table')) {
+          if (
+            rawMsg.includes('ER_NO_SUCH_TABLE') ||
+            rawMsg.includes("doesn't exist") ||
+            rawMsg.includes('Unknown table') ||
+            rawMsg.includes('no such table')
+          ) {
             throw new (await import('@trpc/server')).TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' + rawMsg,
+              message:
+                'Database tables missing — run `pnpm db:push` (or `pnpm --filter @endow/db push`) to apply migrations, then restart the dev server. Original: ' +
+                rawMsg,
               cause: e as never,
             })
           }
-          if (rawMsg.includes('currencies') || rawMsg.includes('currency_code') || (rawMsg as string).includes('ER_NO_REFERENCED_ROW') || rawMsg.includes('foreign key')) {
+          if (
+            rawMsg.includes('currencies') ||
+            rawMsg.includes('currency_code') ||
+            (rawMsg as string).includes('ER_NO_REFERENCED_ROW') ||
+            rawMsg.includes('foreign key')
+          ) {
             try {
               try {
-                const usd = await db.query.currencies.findFirst({ where: (c, { eq }) => eq(c.code, 'USD') })
-                if (!usd) await db.insert(schema.currencies).values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
+                const usd = await db.query.currencies.findFirst({
+                  where: (c, { eq }) => eq(c.code, 'USD'),
+                })
+                if (!usd)
+                  await db
+                    .insert(schema.currencies)
+                    .values({ code: 'USD', symbol: '$', usdRate: 1 } as never)
               } catch {}
               const fallback = { ...data, currencyCode: 'USD' } as never
-              await db.update(schema.scholarships).set(fallback).where(eq(schema.scholarships.id, id))
+              await db
+                .update(schema.scholarships)
+                .set(fallback)
+                .where(eq(schema.scholarships.id, id))
               return { success: true }
             } catch (retryErr) {
-              const rmsg = (retryErr as { message?: string })?.message || 'Failed to update scholarship'
-              throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rmsg, cause: retryErr as never })
+              const rmsg =
+                (retryErr as { message?: string })?.message || 'Failed to update scholarship'
+              throw new (await import('@trpc/server')).TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: rmsg,
+                cause: retryErr as never,
+              })
             }
           }
-          throw new (await import('@trpc/server')).TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: rawMsg || 'Failed to update scholarship', cause: e as never })
+          throw new (await import('@trpc/server')).TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: rawMsg || 'Failed to update scholarship',
+            cause: e as never,
+          })
         }
         return { success: true }
       }),
@@ -2221,7 +2793,8 @@ return db.select().from(schema.countries)
             )
           )
         }
-        if (input.isActive !== undefined) conditions.push(eq(schema.newsletterSubscribers.isActive, input.isActive))
+        if (input.isActive !== undefined)
+          conditions.push(eq(schema.newsletterSubscribers.isActive, input.isActive))
 
         return db.query.newsletterSubscribers.findMany({
           where: conditions.length > 0 ? and(...conditions) : undefined,
@@ -2229,11 +2802,13 @@ return db.select().from(schema.countries)
         })
       }),
 
-    getById: adminWithPermission('newsletters:view').input(z.object({ id: z.string() })).query(async ({ input }) => {
-      return db.query.newsletterSubscribers.findFirst({
-        where: eq(schema.newsletterSubscribers.id, input.id),
-      })
-    }),
+    getById: adminWithPermission('newsletters:view')
+      .input(z.object({ id: z.string() }))
+      .query(async ({ input }) => {
+        return db.query.newsletterSubscribers.findFirst({
+          where: eq(schema.newsletterSubscribers.id, input.id),
+        })
+      }),
 
     create: adminWithPermission('newsletters:manage')
       .input(
@@ -2261,14 +2836,19 @@ return db.select().from(schema.countries)
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(schema.newsletterSubscribers).set(data).where(eq(schema.newsletterSubscribers.id, id))
+        await db
+          .update(schema.newsletterSubscribers)
+          .set(data)
+          .where(eq(schema.newsletterSubscribers.id, id))
         return { success: true }
       }),
 
     delete: adminWithPermission('newsletters:manage')
       .input(z.object({ id: z.string() }))
       .mutation(async ({ input }) => {
-        await db.delete(schema.newsletterSubscribers).where(eq(schema.newsletterSubscribers.id, input.id))
+        await db
+          .delete(schema.newsletterSubscribers)
+          .where(eq(schema.newsletterSubscribers.id, input.id))
         return { success: true }
       }),
   }),
@@ -2277,11 +2857,22 @@ return db.select().from(schema.countries)
 
   deadlines: createTRPCRouter({
     list: adminWithPermission('deadlines:view')
-      .input(z.object({ search: z.string().trim().max(255).optional(), category: z.string().max(50).optional() }))
+      .input(
+        z.object({
+          search: z.string().trim().max(255).optional(),
+          category: z.string().max(50).optional(),
+        })
+      )
       .query(async ({ input }) => {
         const conditions: any[] = []
         if (input.search) {
-          conditions.push(or(like(schema.deadlines.title, `%${input.search}%`), isNull(schema.deadlines.studentId), eq(schema.users.name, input.search)))
+          conditions.push(
+            or(
+              like(schema.deadlines.title, `%${input.search}%`),
+              isNull(schema.deadlines.studentId),
+              eq(schema.users.name, input.search)
+            )
+          )
         }
         if (input.category) {
           conditions.push(eq(schema.deadlines.category, input.category))
@@ -2302,7 +2893,10 @@ return db.select().from(schema.countries)
             studentName: schema.users.name,
           })
           .from(schema.deadlines)
-          .leftJoin(schema.studentProfiles, eq(schema.deadlines.studentId, schema.studentProfiles.id))
+          .leftJoin(
+            schema.studentProfiles,
+            eq(schema.deadlines.studentId, schema.studentProfiles.id)
+          )
           .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
           .where(conditions.length ? and(...conditions) : undefined)
           .orderBy(asc(schema.deadlines.dueAt))
@@ -2311,7 +2905,11 @@ return db.select().from(schema.countries)
 
     students: adminWithPermission('deadlines:view').query(async () => {
       const rows = await db
-        .select({ id: schema.studentProfiles.id, name: schema.users.name, email: schema.users.email })
+        .select({
+          id: schema.studentProfiles.id,
+          name: schema.users.name,
+          email: schema.users.email,
+        })
         .from(schema.studentProfiles)
         .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
         .orderBy(asc(schema.users.name))
@@ -2323,7 +2921,9 @@ return db.select().from(schema.countries)
         z.object({
           title: z.string().trim().min(1, 'Title is required').max(255),
           description: z.string().trim().max(5000).optional(),
-          category: z.enum(['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER']).default('OTHER'),
+          category: z
+            .enum(['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER'])
+            .default('OTHER'),
           dueAt: z.string().min(1),
           studentId: z.string().max(25).nullable().optional(),
           relatedUniversity: z.string().trim().max(255).optional(),
@@ -2356,7 +2956,9 @@ return db.select().from(schema.countries)
           id: z.string().min(1),
           title: z.string().trim().min(1).max(255).optional(),
           description: z.string().trim().max(5000).nullable().optional(),
-          category: z.enum(['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER']).optional(),
+          category: z
+            .enum(['APPLICATION', 'DOCUMENT', 'VISA', 'SCHOLARSHIP', 'EXAM', 'OTHER'])
+            .optional(),
           dueAt: z.string().min(1).optional(),
           studentId: z.string().max(25).nullable().optional(),
           relatedUniversity: z.string().trim().max(255).nullable().optional(),
@@ -2376,7 +2978,8 @@ return db.select().from(schema.countries)
           updates.dueAt = dueAt
         }
         if (input.studentId !== undefined) updates.studentId = input.studentId || null
-        if (input.relatedUniversity !== undefined) updates.relatedUniversity = input.relatedUniversity || null
+        if (input.relatedUniversity !== undefined)
+          updates.relatedUniversity = input.relatedUniversity || null
         if (input.relatedCourse !== undefined) updates.relatedCourse = input.relatedCourse || null
         if (input.isActive !== undefined) updates.isActive = input.isActive
         if (input.remindDaysBefore !== undefined) updates.remindDaysBefore = input.remindDaysBefore
@@ -2412,7 +3015,10 @@ return db.select().from(schema.countries)
             studentEmail: schema.users.email,
           })
           .from(schema.conversations)
-          .leftJoin(schema.studentProfiles, eq(schema.conversations.studentId, schema.studentProfiles.id))
+          .leftJoin(
+            schema.studentProfiles,
+            eq(schema.conversations.studentId, schema.studentProfiles.id)
+          )
           .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
           .orderBy(desc(schema.conversations.lastMessageAt))
           .limit(input.limit)
@@ -2487,9 +3093,12 @@ return db.select().from(schema.countries)
             highestEducation: schema.studentProfiles.highestEducation,
           })
           .from(schema.studentDocuments)
-          .leftJoin(schema.studentProfiles, eq(schema.studentProfiles.id, schema.studentDocuments.studentId))
+          .leftJoin(
+            schema.studentProfiles,
+            eq(schema.studentProfiles.id, schema.studentDocuments.studentId)
+          )
           .leftJoin(schema.users, eq(schema.users.id, schema.studentProfiles.userId))
-          .where(conditions.length ? and(...conditions) : undefined as any)
+          .where(conditions.length ? and(...conditions) : (undefined as any))
           .orderBy(desc(schema.studentDocuments.updatedAt))
           .limit(input.limit)
 
@@ -2512,7 +3121,8 @@ return db.select().from(schema.countries)
           .update(schema.studentDocuments)
           .set({
             status: input.status,
-            rejectionReason: input.status === 'REJECTED' ? input.rejectionReason?.trim() || null : null,
+            rejectionReason:
+              input.status === 'REJECTED' ? input.rejectionReason?.trim() || null : null,
           })
           .where(eq(schema.studentDocuments.id, input.id))
         return { success: true }
@@ -2540,19 +3150,21 @@ return db.select().from(schema.countries)
             )
           )
         }
-        return db.select().from(schema.branches)
-          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+        return db
+          .select()
+          .from(schema.branches)
+          .where(conditions.length > 0 ? and(...conditions) : (undefined as any))
           .orderBy(desc(schema.branches.createdAt))
       }),
 
-    getById: superAdminProcedure
-      .input(z.object({ id: z.string() }))
-      .query(async ({ input }) => {
-        return db.select().from(schema.branches)
-          .where(eq(schema.branches.id, input.id))
-          .limit(1)
-          .then((rows) => rows[0] || null)
-      }),
+    getById: superAdminProcedure.input(z.object({ id: z.string() })).query(async ({ input }) => {
+      return db
+        .select()
+        .from(schema.branches)
+        .where(eq(schema.branches.id, input.id))
+        .limit(1)
+        .then((rows) => rows[0] || null)
+    }),
 
     create: superAdminProcedure
       .input(
@@ -2594,16 +3206,17 @@ return db.select().from(schema.countries)
       )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(schema.branches).set(data as any).where(eq(schema.branches.id, id))
+        await db
+          .update(schema.branches)
+          .set(data as any)
+          .where(eq(schema.branches.id, id))
         return { success: true }
       }),
 
-    delete: superAdminProcedure
-      .input(z.object({ id: z.string() }))
-      .mutation(async ({ input }) => {
-        await db.delete(schema.branches).where(eq(schema.branches.id, input.id))
-        return { success: true }
-      }),
+    delete: superAdminProcedure.input(z.object({ id: z.string() })).mutation(async ({ input }) => {
+      await db.delete(schema.branches).where(eq(schema.branches.id, input.id))
+      return { success: true }
+    }),
   }),
 
   // ─── Revenue (super admin) ────────────────────────────────
@@ -2644,13 +3257,18 @@ return db.select().from(schema.countries)
           studentName: schema.users.name,
         })
         .from(schema.bookingSessions)
-        .leftJoin(schema.studentProfiles, eq(schema.bookingSessions.studentId, schema.studentProfiles.id))
+        .leftJoin(
+          schema.studentProfiles,
+          eq(schema.bookingSessions.studentId, schema.studentProfiles.id)
+        )
         .leftJoin(schema.users, eq(schema.studentProfiles.userId, schema.users.id))
         .where(sql`${schema.bookingSessions.amountPaid} > 0` as any)
         .orderBy(desc(schema.bookingSessions.createdAt))
         .limit(15)
 
-      const counselorIds = Array.from(new Set(recent.map((r: any) => r.counselorId).filter(Boolean)))
+      const counselorIds = Array.from(
+        new Set(recent.map((r: any) => r.counselorId).filter(Boolean))
+      )
       let counselorMap = new Map<string, string>()
       if (counselorIds.length) {
         const counselorRows = await db
@@ -2682,7 +3300,12 @@ return db.select().from(schema.countries)
   settings: createTRPCRouter({
     getProfile: adminWithPermission('settings:view').query(async ({ ctx }) => {
       const [user] = await db
-        .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email, image: schema.users.image })
+        .select({
+          id: schema.users.id,
+          name: schema.users.name,
+          email: schema.users.email,
+          image: schema.users.image,
+        })
         .from(schema.users)
         .where(eq(schema.users.id, ctx.session.user.id))
         .limit(1)
@@ -2770,7 +3393,7 @@ return db.select().from(schema.countries)
         const totalRes = await db
           .select({ value: count() as any })
           .from(schema.users)
-          .where(conditions.length > 0 ? and(...conditions) : undefined as any)
+          .where(conditions.length > 0 ? and(...conditions) : (undefined as any))
         return {
           users,
           total: totalRes[0]?.value || 0,
@@ -2786,7 +3409,11 @@ return db.select().from(schema.countries)
       )
       .mutation(async ({ input, ctx }) => {
         // eslint-disable-next-line no-console
-        console.log('[admin.super.updateUserRole] requested', { by: (ctx.session as any)?.user?.email, target: input.userId, role: input.role })
+        console.log('[admin.super.updateUserRole] requested', {
+          by: (ctx.session as any)?.user?.email,
+          target: input.userId,
+          role: input.role,
+        })
         const user = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
           columns: { id: true, role: true, email: true },
@@ -2814,10 +3441,7 @@ return db.select().from(schema.countries)
           updates.permissions = ['dashboard:view']
         }
 
-        await db
-          .update(schema.users)
-          .set(updates)
-          .where(eq(schema.users.id, input.userId))
+        await db.update(schema.users).set(updates).where(eq(schema.users.id, input.userId))
         // Invalidate sessions of target user so permission/role takes effect immediately (skip if self to avoid instant logout)
         if (input.userId !== (ctx.session as any).user.id) {
           await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId))
@@ -2847,14 +3471,18 @@ return db.select().from(schema.countries)
           columns: { id: true },
         })
         if (studentProfile) {
-          await db.delete(schema.studentProfiles).where(eq(schema.studentProfiles.id, studentProfile.id) as any)
+          await db
+            .delete(schema.studentProfiles)
+            .where(eq(schema.studentProfiles.id, studentProfile.id) as any)
         }
         const counselorProfile = await db.query.counselorProfiles.findFirst({
           where: (c: any, { eq: _eq }: any) => _eq(c.userId, input.userId),
           columns: { id: true },
         })
         if (counselorProfile) {
-          await db.delete(schema.counselorProfiles).where(eq(schema.counselorProfiles.id, counselorProfile.id) as any)
+          await db
+            .delete(schema.counselorProfiles)
+            .where(eq(schema.counselorProfiles.id, counselorProfile.id) as any)
         }
         await db.delete(schema.accounts).where(eq(schema.accounts.userId, input.userId) as any)
         await db.delete(schema.sessions).where(eq(schema.sessions.userId, input.userId) as any)
@@ -2889,7 +3517,8 @@ return db.select().from(schema.countries)
         } else if (typeof raw === 'string' && raw.trim()) {
           try {
             const parsed = JSON.parse(raw)
-            if (Array.isArray(parsed)) perms = parsed.map((p: any) => String(p).trim()).filter(Boolean)
+            if (Array.isArray(parsed))
+              perms = parsed.map((p: any) => String(p).trim()).filter(Boolean)
             else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).value)) {
               perms = (parsed as any).value.map((p: any) => String(p).trim()).filter(Boolean)
             }
@@ -2914,7 +3543,9 @@ return db.select().from(schema.countries)
         }
         // Validate permissions against known list
         const { ALL_PERMISSIONS } = await import('@/lib/rbac')
-        const invalid = input.permissions.filter((p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*'))
+        const invalid = input.permissions.filter(
+          (p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*')
+        )
         if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
         await db
           .update(schema.users)
@@ -2932,7 +3563,9 @@ return db.select().from(schema.countries)
       .input(z.object({ userId: z.string(), newPassword: z.string().min(8).max(100) }))
       .mutation(async ({ ctx, input }) => {
         if (input.userId === ctx.session.user.id) {
-          throw new Error('You cannot reset your own password here — use your profile settings instead')
+          throw new Error(
+            'You cannot reset your own password here — use your profile settings instead'
+          )
         }
         const target = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.id, input.userId),
@@ -2942,10 +3575,14 @@ return db.select().from(schema.countries)
         // Optional guard: prevent resetting another SUPER_ADMIN without explicit confirmation (handled in UI)
         const hashed = await bcryptHash(input.newPassword, 12)
         const existingAccount = await db.query.accounts.findFirst({
-          where: (a: any, { and, eq }: any) => and(eq(a.userId, input.userId), eq(a.providerId, 'credential')),
+          where: (a: any, { and, eq }: any) =>
+            and(eq(a.userId, input.userId), eq(a.providerId, 'credential')),
         })
         if (existingAccount) {
-          await db.update(schema.accounts).set({ password: hashed }).where(eq(schema.accounts.id, existingAccount.id))
+          await db
+            .update(schema.accounts)
+            .set({ password: hashed })
+            .where(eq(schema.accounts.id, existingAccount.id))
         } else {
           await db.insert(schema.accounts).values({
             id: globalThis.crypto.randomUUID(),
@@ -2971,7 +3608,9 @@ return db.select().from(schema.countries)
       )
       .mutation(async ({ input }) => {
         const { ALL_PERMISSIONS } = await import('@/lib/rbac')
-        const invalid = input.permissions.filter((p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*'))
+        const invalid = input.permissions.filter(
+          (p) => !ALL_PERMISSIONS.includes(p as any) && p !== '*' && !p.endsWith(':*')
+        )
         if (invalid.length) throw new Error(`Invalid permissions: ${invalid.join(', ')}`)
         const existing = await db.query.users.findFirst({
           where: (u: any, { eq: _eq }: any) => _eq(u.email, input.email),
@@ -3005,12 +3644,31 @@ return db.select().from(schema.countries)
       }),
 
     getPlatformStats: superAdminProcedure.query(async () => {
-      const [totalUsers, studentCount, counselorCount, adminCount, universitiesCount, upcomingSessionsCount] = await Promise.all([
+      const [
+        totalUsers,
+        studentCount,
+        counselorCount,
+        adminCount,
+        universitiesCount,
+        upcomingSessionsCount,
+      ] = await Promise.all([
         db.select({ value: count() as any }).from(schema.users),
-        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'STUDENT')),
-        db.select({ value: count() as any }).from(schema.users).where(eq(schema.users.role, 'COUNSELOR')),
-        db.select({ value: count() as any }).from(schema.users).where(or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))),
-        db.select({ value: count() as any }).from(schema.universities).where(eq(schema.universities.isActive, true)),
+        db
+          .select({ value: count() as any })
+          .from(schema.users)
+          .where(eq(schema.users.role, 'STUDENT')),
+        db
+          .select({ value: count() as any })
+          .from(schema.users)
+          .where(eq(schema.users.role, 'COUNSELOR')),
+        db
+          .select({ value: count() as any })
+          .from(schema.users)
+          .where(or(eq(schema.users.role, 'ADMIN'), eq(schema.users.role, 'SUPER_ADMIN'))),
+        db
+          .select({ value: count() as any })
+          .from(schema.universities)
+          .where(eq(schema.universities.isActive, true)),
         db.select({ value: count() as any }).from(schema.bookingSessions),
       ])
 
@@ -3031,32 +3689,42 @@ return db.select().from(schema.countries)
       return db
         .select()
         .from(schema.homepageHeroImages)
-        .orderBy(asc(schema.homepageHeroImages.sortOrder), desc(schema.homepageHeroImages.createdAt))
+        .orderBy(
+          asc(schema.homepageHeroImages.sortOrder),
+          desc(schema.homepageHeroImages.createdAt)
+        )
     }),
 
     create: adminWithPermission('hero:manage')
-      .input(z.object({
-        imageUrl: z.string().min(1).max(500),
-        altText: z.string().max(255).default('Homepage hero image'),
-        sortOrder: z.number().int().min(0).default(0),
-        isActive: z.boolean().default(true),
-      }))
+      .input(
+        z.object({
+          imageUrl: z.string().min(1).max(500),
+          altText: z.string().max(255).default('Homepage hero image'),
+          sortOrder: z.number().int().min(0).default(0),
+          isActive: z.boolean().default(true),
+        })
+      )
       .mutation(async ({ input }) => {
         const inserted = await db.insert(schema.homepageHeroImages).values(input).$returningId()
         return { success: true, id: (inserted as any)?.[0]?.id }
       }),
 
     update: adminWithPermission('hero:manage')
-      .input(z.object({
-        id: z.string(),
-        imageUrl: z.string().min(1).max(500),
-        altText: z.string().max(255),
-        sortOrder: z.number().int().min(0),
-        isActive: z.boolean(),
-      }))
+      .input(
+        z.object({
+          id: z.string(),
+          imageUrl: z.string().min(1).max(500),
+          altText: z.string().max(255),
+          sortOrder: z.number().int().min(0),
+          isActive: z.boolean(),
+        })
+      )
       .mutation(async ({ input }) => {
         const { id, ...data } = input
-        await db.update(schema.homepageHeroImages).set(data).where(eq(schema.homepageHeroImages.id, id))
+        await db
+          .update(schema.homepageHeroImages)
+          .set(data)
+          .where(eq(schema.homepageHeroImages.id, id))
         return { success: true }
       }),
 
@@ -3088,7 +3756,9 @@ return db.select().from(schema.countries)
       .input(
         z.object({
           search: z.string().optional(),
-          category: z.enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER']).optional(),
+          category: z
+            .enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER'])
+            .optional(),
           isPublished: z.boolean().optional(),
           isFeatured: z.boolean().optional(),
         })
@@ -3096,8 +3766,10 @@ return db.select().from(schema.countries)
       .query(async ({ input }) => {
         const conditions: any[] = []
         if (input.category) conditions.push(eq(schema.events.category, input.category))
-        if (input.isPublished !== undefined) conditions.push(eq(schema.events.isPublished, input.isPublished))
-        if (input.isFeatured !== undefined) conditions.push(eq(schema.events.isFeatured, input.isFeatured))
+        if (input.isPublished !== undefined)
+          conditions.push(eq(schema.events.isPublished, input.isPublished))
+        if (input.isFeatured !== undefined)
+          conditions.push(eq(schema.events.isFeatured, input.isFeatured))
         if (input.search) {
           const term = `%${input.search.trim()}%`
           conditions.push(
@@ -3134,7 +3806,9 @@ return db.select().from(schema.countries)
           excerpt: z.string().optional().nullable(),
           content: z.string().optional().nullable(),
           coverImage: z.string().optional().nullable(),
-          category: z.enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER']).default('OTHER'),
+          category: z
+            .enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER'])
+            .default('OTHER'),
           eventDate: z.date().optional().nullable(),
           eventEndDate: z.date().optional().nullable(),
           location: z.string().optional().nullable(),
@@ -3163,7 +3837,9 @@ return db.select().from(schema.countries)
           excerpt: z.string().optional().nullable(),
           content: z.string().optional().nullable(),
           coverImage: z.string().optional().nullable(),
-          category: z.enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER']).default('OTHER'),
+          category: z
+            .enum(['WEBINAR', 'WORKSHOP', 'FAIR', 'SEMINAR', 'DEADLINE', 'OTHER'])
+            .default('OTHER'),
           eventDate: z.date().optional().nullable(),
           eventEndDate: z.date().optional().nullable(),
           location: z.string().optional().nullable(),
@@ -3186,9 +3862,7 @@ return db.select().from(schema.countries)
           .limit(1)
           .then((r) => r[0] ?? null)
 
-        const publishedAt = rest.isPublished
-          ? (existing as any)?.publishedAt ?? new Date()
-          : null
+        const publishedAt = rest.isPublished ? ((existing as any)?.publishedAt ?? new Date()) : null
 
         await db
           .update(schema.events)
@@ -3205,5 +3879,3 @@ return db.select().from(schema.countries)
       }),
   }),
 })
-
-

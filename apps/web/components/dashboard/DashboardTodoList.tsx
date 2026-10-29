@@ -166,19 +166,23 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-[#12141c]">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-2.5">
+        <div className="min-w-0">
+          <h3 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg">
             Document Checklist To-Do
           </h3>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
             Pending document submissions for your admission file
           </p>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+        <Link
+          href="/dashboard/documents"
+          title="View all pending documents"
+          className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 transition-colors hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60"
+        >
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
           {activePendingCount} Pending
-        </span>
+        </Link>
       </div>
 
       {/* Document Verification & Upload Progress Bar */}
@@ -202,7 +206,7 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
             />
           </div>
 
-          <div className="mt-2 flex items-center justify-between text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
             <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               {verifiedDocs} Verified
@@ -233,17 +237,19 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
           </div>
         ) : (
           items.slice(0, 4).map((item) => (
-            <Link
+            <div
               key={item.id}
-              href={item.href}
               className="group flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-2.5 transition-all hover:border-slate-200 hover:bg-slate-50 hover:shadow-xs dark:border-slate-800/80 dark:bg-slate-900/40 dark:hover:border-slate-700 dark:hover:bg-slate-800/60"
             >
-              <div className="flex items-center gap-3 min-w-0">
+              <Link
+                href={item.href}
+                className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 pr-2"
+              >
                 <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-700 dark:bg-slate-800">
                   <TaskIcon type={item.iconType} />
                 </div>
 
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p
                     className={`truncate text-xs font-bold transition-colors ${
                       item.completed
@@ -257,10 +263,10 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
                     {item.subtitle}
                   </p>
                 </div>
-              </div>
+              </Link>
 
-              <div className="flex items-center gap-2.5 shrink-0 pl-2">
-                <div className="text-right">
+              <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                <div className="text-right hidden sm:block">
                   <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
                     {item.dueLabel}
                   </p>
@@ -276,7 +282,7 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
                   type="button"
                   onClick={(e) => toggleTask(item.id, e)}
                   aria-label="Toggle task completion"
-                  className={`flex h-5 w-5 items-center justify-center rounded-md border transition-all ${
+                  className={`flex h-6 w-6 sm:h-5 sm:w-5 items-center justify-center rounded-md border transition-all ${
                     item.completed
                       ? 'border-emerald-600 bg-emerald-600 text-white'
                       : 'border-slate-300 bg-white hover:border-slate-400 dark:border-slate-600 dark:bg-slate-800'
@@ -285,7 +291,7 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
                   {item.completed && <Check size={12} strokeWidth={3} />}
                 </button>
               </div>
-            </Link>
+            </div>
           ))
         )}
       </div>
@@ -294,10 +300,10 @@ export function DashboardTodoList({ documents = [], docProgress }: Props) {
       <div className="border-t border-slate-100 pt-2.5 dark:border-slate-800/80">
         <Link
           href="/dashboard/documents"
-          className="flex items-center justify-between text-[11px] font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+          className="flex items-center justify-between gap-2 text-[11px] font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
         >
-          <span>Upload & manage all admission documents</span>
-          <ChevronRight size={13} />
+          <span className="truncate">Upload &amp; manage all admission documents</span>
+          <ChevronRight size={13} className="shrink-0" />
         </Link>
       </div>
     </div>

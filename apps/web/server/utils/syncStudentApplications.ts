@@ -65,16 +65,11 @@ export async function syncStudentInquiriesToApplications(
     profile = created
   }
 
-  // 2. Find any inquiries matching user.id or user.email
-  const conditions = [eq(schema.studentInquiries.userId, user.id)]
-  if (user.email) {
-    conditions.push(eq(schema.studentInquiries.email, user.email.trim()))
-  }
-
+  // 2. Find any inquiries explicitly linked to user.id (do not capture guest inquiries submitted without login)
   const inquiries = await dbInstance
     .select()
     .from(schema.studentInquiries)
-    .where(or(...conditions))
+    .where(eq(schema.studentInquiries.userId, user.id))
     .orderBy(desc(schema.studentInquiries.submittedAt))
 
   if (inquiries.length === 0) {

@@ -28,4 +28,4 @@ export const progressFill = 'h-full rounded-full bg-gradient-to-r from-rose-600 
 
 // Reusable "View all" link shown in panel headers.
 export const viewAllLink =
-  'inline-flex items-center gap-1 text-xs font-semibold text-rose-600 transition-colors hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200'
+  'inline-flex shrink-0 whitespace-nowrap items-center gap-1 text-xs font-semibold text-rose-600 transition-colors hover:text-rose-700 dark:text-rose-300 dark:hover:text-rose-200'

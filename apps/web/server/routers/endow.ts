@@ -13,17 +13,18 @@ import {
   count as _count,
   desc as _desc,
   eq as _eq,
+  isNull as _isNull,
   or as _or,
   sql as _sql,
 } from 'drizzle-orm'
 import { z } from 'zod'
-import { syncStudentInquiriesToApplications } from '../utils/syncStudentApplications'
 const eq = _eq as any
 const sql = _sql as any
 const desc = _desc as any
 const and = _and as any
 const or = _or as any
 const count = _count as any
+const isNull = _isNull as any
 
 const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
 const RATE_LIMIT_MAX = 3 // max 3 per minute per IP
@@ -148,220 +149,319 @@ export const endowRouter = createTRPCRouter({
       }
     }
 
-    let userId = ctx.session?.user?.id || null
-    if (!userId && input.email) {
-      try {
-        const [u] = await db
-          .select({ id: schema.users.id })
-          .from(schema.users)
-          .where(eq(schema.users.email, input.email.trim()))
-          .limit(1)
-        if (u) userId = u.id
-      } catch {
-        // non-blocking
+    const userId = ctx.session?.user?.id || null
+
+    if (!userId) {
+      // ── GUEST SUBMISSION WITHOUT LOGIN ────────────────────────
+      // Saved strictly as an inquiry in student_inquiry. Does NOT create a course application.
+      await db.insert(schema.studentInquiries).values({
+        id: globalThis.crypto.randomUUID(),
+        userId: null,
+        ipAddress: ip,
+        submittedAt: new Date(),
+        surname: input.surname,
+        givenName: input.givenName,
+        dob: input.dob,
+        gender: input.gender,
+        phone: input.phone,
+        whatsapp: input.whatsapp,
+        email: input.email,
+        fatherName: input.fatherName,
+        motherName: input.motherName,
+        hometown: input.hometown,
+        nationality: input.nationality,
+        addressLine1: input.addressLine1,
+        addressLine2: input.addressLine2,
+        city: input.city,
+        state: input.state,
+        zipCode: input.zipCode,
+        country: input.country,
+        applyingTo: input.applyingTo,
+        sscYear: input.sscYear,
+        sscResult: input.sscResult,
+        hscYear: input.hscYear,
+        hscResult: input.hscResult,
+        bachelorsYear: input.bachelorsYear,
+        bachelorsResult: input.bachelorsResult,
+        mastersYear: input.mastersYear,
+        mastersResult: input.mastersResult,
+        targetCountry: input.targetCountry,
+        targetUniversity: input.targetUniversity,
+        courseName: input.courseName,
+        courseSlug: input.courseSlug,
+        reasonToChoose: input.reasonToChoose,
+        englishTest: input.englishTest,
+        ieltsScore: input.ieltsScore,
+        toeflScore: input.toeflScore,
+        satScore: input.satScore,
+        topikLevel: input.topikLevel,
+        heardFrom: input.heardFrom,
+        referralName: input.referralName,
+        photoUrl: input.photoUrl || null,
+      } as any)
+
+      await logAdminActivity({
+        action: 'application.submit',
+        actor: { id: 'guest', email: input.email, role: 'STUDENT' },
+        target: { id: input.targetUniversity || 'direct-apply', type: 'inquiry' },
+      }).catch(() => {})
+
+      return {
+        success: true,
+        message: 'Your inquiry has been submitted! Our counseling team will contact you shortly.',
       }
     }
 
-    if (userId) {
-      // Prevent duplicate application submission for the same course
-      let targetCourseId: string | null = null
-      if (input.courseSlug) {
+    // ── LOGGED-IN SUBMISSION (COURSE APPLICATION) ─────────────
+    // If a user is logged in and applies through a course or form, all data goes directly into Course application (schema.applications).
+    // 1. Ensure student profile exists
+    let [studentProf] = await db
+      .select()
+      .from(schema.studentProfiles)
+      .where(eq(schema.studentProfiles.userId, userId))
+      .limit(1)
+
+    if (!studentProf) {
+      const profileId = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 24)
+      await db.insert(schema.studentProfiles).values({
+        id: profileId,
+        userId,
+        targetCountries: input.targetCountry ? [input.targetCountry] : ['South Korea'],
+        highestEducation: 'HIGH_SCHOOL',
+      } as any)
+      const [created] = await db
+        .select()
+        .from(schema.studentProfiles)
+        .where(eq(schema.studentProfiles.id, profileId))
+        .limit(1)
+      studentProf = created
+    }
+
+    // 2. Resolve target course
+    let targetCourseId: string | null = null
+    if (input.courseSlug) {
+      const [c] = await db
+        .select({ id: schema.courses.id })
+        .from(schema.courses)
+        .where(eq(schema.courses.slug, input.courseSlug))
+        .limit(1)
+      if (c) targetCourseId = c.id
+    }
+    if (!targetCourseId && input.courseName) {
+      const cName = input.courseName.trim()
+      const [c] = await db
+        .select({ id: schema.courses.id })
+        .from(schema.courses)
+        .where(
+          or(eq(schema.courses.name, cName), sql`${schema.courses.name} LIKE ${'%' + cName + '%'}`)
+        )
+        .limit(1)
+      if (c) targetCourseId = c.id
+    }
+    if (!targetCourseId && input.targetUniversity) {
+      const [uni] = await db
+        .select({ id: schema.universities.id })
+        .from(schema.universities)
+        .where(
+          or(
+            eq(schema.universities.name, input.targetUniversity),
+            sql`${schema.universities.name} LIKE ${'%' + input.targetUniversity + '%'}`
+          )
+        )
+        .limit(1)
+      if (uni) {
         const [c] = await db
           .select({ id: schema.courses.id })
           .from(schema.courses)
-          .where(eq(schema.courses.slug, input.courseSlug))
-          .limit(1)
-        if (c) targetCourseId = c.id
-      } else if (input.courseName) {
-        const [c] = await db
-          .select({ id: schema.courses.id })
-          .from(schema.courses)
-          .where(eq(schema.courses.name, input.courseName.trim()))
+          .where(eq(schema.courses.universityId, uni.id))
           .limit(1)
         if (c) targetCourseId = c.id
       }
-
-      const [studentProf] = await db
-        .select({ id: schema.studentProfiles.id })
-        .from(schema.studentProfiles)
-        .where(eq(schema.studentProfiles.userId, userId))
+    }
+    if (!targetCourseId) {
+      const [anyActive] = await db
+        .select({ id: schema.courses.id })
+        .from(schema.courses)
+        .where(eq(schema.courses.isActive, true))
         .limit(1)
+      if (anyActive) targetCourseId = anyActive.id
+    }
 
-      if (studentProf && targetCourseId) {
-        const [existingApp] = await db
-          .select({ id: schema.applications.id })
-          .from(schema.applications)
-          .where(
-            and(
-              eq(schema.applications.studentId, studentProf.id),
-              eq(schema.applications.courseId, targetCourseId)
-            )
-          )
-          .limit(1)
+    if (!targetCourseId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Could not match course for application. Please select a valid course.',
+      })
+    }
 
-        if (existingApp) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message:
-              'You have already submitted an application for this course. You can track your application in your dashboard.',
-          })
+    // 3. Prevent duplicate applications for the same course
+    const [existingApp] = await db
+      .select({ id: schema.applications.id })
+      .from(schema.applications)
+      .where(
+        and(
+          eq(schema.applications.studentId, studentProf.id),
+          eq(schema.applications.courseId, targetCourseId)
+        )
+      )
+      .limit(1)
+
+    if (existingApp) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message:
+          'You have already submitted an application for this course. You can track your application in your dashboard.',
+      })
+    }
+
+    const appId = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 24)
+    const personalInfoObj = {
+      surname: input.surname,
+      givenName: input.givenName,
+      email: input.email,
+      phone: input.phone,
+      whatsapp: input.whatsapp || null,
+      gender: input.gender || null,
+      dob: input.dob || null,
+      fatherName: input.fatherName || null,
+      motherName: input.motherName || null,
+      hometown: input.hometown || null,
+      nationality: input.nationality || 'Bangladeshi',
+      addressLine1: input.addressLine1 || null,
+      addressLine2: input.addressLine2 || null,
+      city: input.city || null,
+      state: input.state || null,
+      zipCode: input.zipCode || null,
+      country: input.country || 'Bangladesh',
+      photoUrl: input.photoUrl || null,
+      heardFrom: input.heardFrom || null,
+      referralName: input.referralName || null,
+      reasonToChoose: input.reasonToChoose || null,
+    }
+
+    const academicHistoryObj = {
+      applyingTo: input.applyingTo || null,
+      sscYear: input.sscYear || null,
+      sscResult: input.sscResult || null,
+      hscYear: input.hscYear || null,
+      hscResult: input.hscResult || null,
+      bachelorsYear: input.bachelorsYear || null,
+      bachelorsResult: input.bachelorsResult || null,
+      mastersYear: input.mastersYear || null,
+      mastersResult: input.mastersResult || null,
+      englishTest: input.englishTest || 'None',
+      ieltsScore: input.ieltsScore || null,
+      toeflScore: input.toeflScore || null,
+      satScore: input.satScore || null,
+      topikLevel: input.topikLevel || null,
+      targetUniversity: input.targetUniversity || null,
+      targetCountry: input.targetCountry || null,
+      courseName: input.courseName || null,
+      courseSlug: input.courseSlug || null,
+    }
+
+    const cNotes =
+      [
+        input.reasonToChoose ? `Reason to choose: ${input.reasonToChoose}` : null,
+        input.targetUniversity ? `Target University: ${input.targetUniversity}` : null,
+      ]
+        .filter(Boolean)
+        .join(' | ') || null
+
+    const docUrls = Array.isArray(input.documents)
+      ? input.documents.map((d) => d.fileUrl).filter(Boolean)
+      : []
+
+    await db.insert(schema.applications).values({
+      id: appId,
+      studentId: studentProf.id,
+      courseId: targetCourseId,
+      status: 'SUBMITTED',
+      currentStep: 5,
+      totalSteps: 5,
+      submittedAt: new Date(),
+      personalInfo: personalInfoObj,
+      academicHistory: academicHistoryObj,
+      personalStatement: input.reasonToChoose || null,
+      documentsUrls: docUrls,
+      counselorNotes: cNotes,
+    })
+
+    // 4. Persist any uploaded files into studentDocuments
+    if (Array.isArray(input.documents) && input.documents.length > 0) {
+      for (const doc of input.documents) {
+        if (doc.fileUrl) {
+          await db
+            .insert(schema.studentDocuments)
+            .values({
+              studentId: studentProf.id,
+              applicationId: appId,
+              category: doc.category || 'Academic Certificates',
+              label: doc.label || 'Document',
+              fileUrl: doc.fileUrl,
+              fileName: doc.fileName || doc.label,
+              status: 'UPLOADED',
+            })
+            .catch(() => {})
         }
       }
     }
 
-    await db.insert(schema.studentInquiries).values({
-      id: globalThis.crypto.randomUUID(),
-      userId,
-      ipAddress: ip,
-      submittedAt: new Date(),
-      surname: input.surname,
-      givenName: input.givenName,
-      dob: input.dob,
-      gender: input.gender,
-      phone: input.phone,
-      whatsapp: input.whatsapp,
-      email: input.email,
-      fatherName: input.fatherName,
-      motherName: input.motherName,
-      hometown: input.hometown,
-      nationality: input.nationality,
-      addressLine1: input.addressLine1,
-      addressLine2: input.addressLine2,
-      city: input.city,
-      state: input.state,
-      zipCode: input.zipCode,
-      country: input.country,
-      applyingTo: input.applyingTo,
-      sscYear: input.sscYear,
-      sscResult: input.sscResult,
-      hscYear: input.hscYear,
-      hscResult: input.hscResult,
-      bachelorsYear: input.bachelorsYear,
-      bachelorsResult: input.bachelorsResult,
-      mastersYear: input.mastersYear,
-      mastersResult: input.mastersResult,
-      targetCountry: input.targetCountry,
-      targetUniversity: input.targetUniversity,
-      courseName: input.courseName,
-      courseSlug: input.courseSlug,
-      reasonToChoose: input.reasonToChoose,
-      englishTest: input.englishTest,
-      ieltsScore: input.ieltsScore,
-      toeflScore: input.toeflScore,
-      satScore: input.satScore,
-      topikLevel: input.topikLevel,
-      heardFrom: input.heardFrom,
-      referralName: input.referralName,
-      photoUrl: input.photoUrl || null,
-    } as any)
-
-    // If user is logged in, sync image and name so it reflects on their account
-    if (userId) {
-      const userUpdates: Record<string, any> = {}
-      if (input.photoUrl) userUpdates.image = input.photoUrl
-      const fullName = `${input.givenName || ''} ${input.surname || ''}`.trim()
-      if (fullName) {
-        try {
-          const [u] = await db
-            .select({ name: schema.users.name })
-            .from(schema.users)
-            .where(eq(schema.users.id, userId))
-            .limit(1)
-          if (!u?.name || u.name === 'User' || u.name === input.email?.split('@')[0]) {
-            userUpdates.name = fullName
-          }
-        } catch {}
-      }
-      if (Object.keys(userUpdates).length > 0) {
-        await db
-          .update(schema.users)
-          .set(userUpdates)
-          .where(eq(schema.users.id, userId))
-          .catch(() => {})
-      }
-
-      // Also ensure any existing inquiry records for this user share the newly submitted data
+    // 5. Update user profile details
+    const userUpdates: Record<string, any> = {}
+    if (input.photoUrl) userUpdates.image = input.photoUrl
+    const fullName = `${input.givenName || ''} ${input.surname || ''}`.trim()
+    if (fullName) userUpdates.name = fullName
+    if (Object.keys(userUpdates).length > 0) {
       await db
-        .update(schema.studentInquiries)
-        .set({
-          ...(input.dob && { dob: input.dob }),
-          ...(input.gender && { gender: input.gender }),
-          ...(input.phone && { phone: input.phone }),
-          ...(input.whatsapp && { whatsapp: input.whatsapp }),
-          ...(input.fatherName && { fatherName: input.fatherName }),
-          ...(input.motherName && { motherName: input.motherName }),
-          ...(input.hometown && { hometown: input.hometown }),
-          ...(input.nationality && { nationality: input.nationality }),
-          ...(input.addressLine1 && { addressLine1: input.addressLine1 }),
-          ...(input.addressLine2 && { addressLine2: input.addressLine2 }),
-          ...(input.city && { city: input.city }),
-          ...(input.state && { state: input.state }),
-          ...(input.zipCode && { zipCode: input.zipCode }),
-          ...(input.country && { country: input.country }),
-          ...(input.sscYear && { sscYear: input.sscYear }),
-          ...(input.sscResult && { sscResult: input.sscResult }),
-          ...(input.hscYear && { hscYear: input.hscYear }),
-          ...(input.hscResult && { hscResult: input.hscResult }),
-          ...(input.bachelorsYear && { bachelorsYear: input.bachelorsYear }),
-          ...(input.bachelorsResult && { bachelorsResult: input.bachelorsResult }),
-          ...(input.mastersYear && { mastersYear: input.mastersYear }),
-          ...(input.mastersResult && { mastersResult: input.mastersResult }),
-          ...(input.englishTest && { englishTest: input.englishTest }),
-          ...(input.ieltsScore && { ieltsScore: input.ieltsScore }),
-          ...(input.toeflScore && { toeflScore: input.toeflScore }),
-          ...(input.satScore && { satScore: input.satScore }),
-          ...(input.topikLevel && { topikLevel: input.topikLevel }),
-          ...(input.photoUrl && { photoUrl: input.photoUrl }),
-        })
-        .where(eq(schema.studentInquiries.userId, userId))
+        .update(schema.users)
+        .set(userUpdates)
+        .where(eq(schema.users.id, userId))
         .catch(() => {})
     }
 
-    // Automatically sync inquiries to applications and update profile match signals
-    if (userId) {
-      try {
-        const syncRes = await syncStudentInquiriesToApplications(db, {
-          id: userId,
-          email: input.email,
-          name: `${input.givenName} ${input.surname}`,
-        })
-
-        // Persist any uploaded files from the application form into studentDocuments
-        if (Array.isArray(input.documents) && input.documents.length > 0 && syncRes?.profile?.id) {
-          for (const doc of input.documents) {
-            if (doc.fileUrl) {
-              await db
-                .insert(schema.studentDocuments)
-                .values({
-                  studentId: syncRes.profile.id,
-                  category: doc.category || 'Academic Certificates',
-                  label: doc.label || 'Document',
-                  fileUrl: doc.fileUrl,
-                  fileName: doc.fileName || doc.label,
-                  status: 'UPLOADED',
-                } as any)
-                .catch(() => {})
-            }
-          }
-        }
-        await createInAppNotification(db, schema, {
-          userId,
-          type: 'APPLICATION_UPDATE',
-          title: 'Application submitted',
-          body: 'Your application was submitted successfully and is now live on your student dashboard.',
-          data: { university: input.targetUniversity, courseName: input.courseName },
-        })
-        await logAdminActivity({
-          action: 'application.submit',
-          actor: { id: userId, email: input.email, role: 'STUDENT' },
-          target: { id: input.targetUniversity || 'direct-apply', type: 'inquiry' },
-        })
-      } catch (err) {
-        console.error('[submitInquiry] Auto-create application error:', err)
-      }
+    // 6. Update student profile signals
+    const profileUpdates: Record<string, any> = {}
+    if (input.phone) profileUpdates.phone = input.phone
+    if (input.nationality) profileUpdates.nationality = input.nationality
+    if (input.country) profileUpdates.countryOfResidence = input.country
+    if (input.applyingTo) profileUpdates.interestedProgram = input.applyingTo
+    if (input.ieltsScore) profileUpdates.ieltsScore = parseFloat(input.ieltsScore) || undefined
+    if (input.toeflScore) profileUpdates.toeflScore = parseInt(input.toeflScore) || undefined
+    if (input.satScore) profileUpdates.satScore = parseInt(input.satScore) || undefined
+    const gpaVal = input.bachelorsResult || input.hscResult || input.sscResult
+    if (gpaVal) profileUpdates.gpa = parseFloat(gpaVal) || undefined
+    if (Object.keys(profileUpdates).length > 0) {
+      await db
+        .update(schema.studentProfiles)
+        .set(profileUpdates)
+        .where(eq(schema.studentProfiles.id, studentProf.id))
+        .catch(() => {})
     }
 
-    return { success: true, message: 'Application submitted! Our team will contact you shortly.' }
+    await createInAppNotification(db, schema, {
+      userId,
+      type: 'APPLICATION_UPDATE',
+      title: 'Course application submitted',
+      body: 'Your course application was submitted successfully and is now live on your student dashboard.',
+      data: {
+        university: input.targetUniversity,
+        courseName: input.courseName,
+        applicationId: appId,
+      },
+    }).catch(() => {})
+
+    await logAdminActivity({
+      action: 'application.submit',
+      actor: { id: userId, email: input.email, role: 'STUDENT' },
+      target: { id: targetCourseId, type: 'application' },
+    }).catch(() => {})
+
+    return {
+      success: true,
+      message:
+        'Course application submitted! You can track your admission status in your student dashboard.',
+    }
   }),
 
   getCoursesForUniversity: publicProcedure

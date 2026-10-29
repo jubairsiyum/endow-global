@@ -15,7 +15,6 @@ import {
   ShieldCheck,
   FileCheck2,
   Clock,
-  Sparkles,
   AlertTriangle,
   Trash2,
   Loader2,
@@ -189,7 +188,7 @@ export default function ApplicationPage() {
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center gap-2">
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-rose-600 dark:text-rose-400">
-                        <Sparkles size={13} />
+                        <GraduationCap size={13} />
                         {app.course?.level || 'Degree'} · {app.course?.subject || 'Academics'}
                       </span>
                     </div>

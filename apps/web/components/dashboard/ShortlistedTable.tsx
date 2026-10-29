@@ -15,7 +15,6 @@ import {
   MapPin,
   MoreVertical,
   Search,
-  Sparkles,
   Trash2,
   UserCheck,
 } from 'lucide-react'
@@ -141,7 +140,7 @@ export function ShortlistedTable({ shortlisted = [], applications = [], counselo
             <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
               Shortlisted Courses
             </h3>
-            <span className="rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+            <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
               {rows.length} {rows.length === 1 ? 'Program' : 'Programs'}
             </span>
           </div>
@@ -151,8 +150,8 @@ export function ShortlistedTable({ shortlisted = [], applications = [], counselo
         </div>
 
         {rows.length > 0 && (
-          <div className="flex items-center gap-2">
-            <div className="relative">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 sm:w-56">
               <Search
                 size={14}
                 className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"
@@ -162,15 +161,15 @@ export function ShortlistedTable({ shortlisted = [], applications = [], counselo
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search shortlist..."
-                className="h-8.5 w-44 rounded-xl border border-slate-200/80 bg-slate-50/70 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-rose-500 focus:bg-white focus:outline-hidden dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:focus:bg-slate-900 sm:w-56"
+                className="h-8.5 w-full rounded-xl border border-slate-200/80 bg-slate-50/70 pl-8 pr-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-rose-500 focus:bg-white focus:outline-hidden dark:border-slate-700 dark:bg-slate-800/80 dark:text-white dark:focus:bg-slate-900"
               />
             </div>
 
             <Link
               href="/dashboard/shortlisted"
-              className="flex h-8.5 items-center gap-1.5 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 text-xs font-semibold text-slate-700 hover:border-rose-200 hover:bg-rose-50/40 hover:text-rose-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="flex h-8.5 shrink-0 whitespace-nowrap items-center gap-1.5 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3 text-xs font-semibold text-slate-700 hover:border-rose-200 hover:bg-rose-50/40 hover:text-rose-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-800"
             >
-              <span>Manage</span>
+              <span>View all</span>
               <ArrowRight size={13} />
             </Link>
           </div>
@@ -288,7 +287,7 @@ export function ShortlistedTable({ shortlisted = [], applications = [], counselo
                           title="Apply to this program"
                           className="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 transition-colors"
                         >
-                          <Sparkles size={12} />
+                          <ArrowRight size={12} />
                           <span>Apply</span>
                         </Link>
                       )}
@@ -387,7 +386,7 @@ export function ShortlistedTable({ shortlisted = [], applications = [], counselo
                   onClick={() => setMenuAnchor(null)}
                   className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 transition-colors"
                 >
-                  <Sparkles size={13} />
+                  <ArrowRight size={13} />
                   <span>Apply Now</span>
                 </Link>
               )}

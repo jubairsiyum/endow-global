@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ChevronRight, Info, CheckCircle2, GraduationCap, Building2 } from 'lucide-react'
+import { ArrowRight, ChevronRight, Info, CheckCircle2, GraduationCap, Building2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface Props {
@@ -91,27 +91,36 @@ export function ApplicationProgressCard({ applications = [], stats }: Props) {
     <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-[#12141c]">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+        <div className="flex flex-wrap items-start sm:items-center justify-between gap-2.5">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg">
                 Application Progress
               </h3>
               {applications.length > 1 && (
-                <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[11px] font-extrabold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
+                <span className="shrink-0 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-extrabold text-rose-700 dark:bg-rose-950/60 dark:text-rose-300">
                   {applications.length} Applied Courses
                 </span>
               )}
             </div>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
               Real-time stage completion from your university admissions file
             </p>
           </div>
-          <div
-            title="Progress segments are computed dynamically from your application status in the database."
-            className="cursor-pointer text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
-          >
-            <Info size={16} />
+          <div className="flex shrink-0 items-center gap-2">
+            <div
+              title="Progress segments are computed dynamically from your application status in the database."
+              className="cursor-pointer text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+            >
+              <Info size={15} />
+            </div>
+            <Link
+              href="/dashboard/application"
+              className="inline-flex shrink-0 whitespace-nowrap items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+            >
+              <span>View all</span>
+              <ArrowRight size={13} />
+            </Link>
           </div>
         </div>
 
@@ -187,19 +196,19 @@ export function ApplicationProgressCard({ applications = [], stats }: Props) {
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[10px] sm:text-[11px] font-semibold text-slate-600 dark:text-slate-400">
             <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-xs bg-emerald-500" />
+              <span className="h-2 w-2 rounded-xs bg-emerald-500 shrink-0" />
               <span>Total Submitted ({submittedWidth}%)</span>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-xs bg-rose-600" />
+              <span className="h-2 w-2 rounded-xs bg-rose-600 shrink-0" />
               <span>In Review ({inReviewWidth}%)</span>
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-xs bg-slate-300 dark:bg-slate-600" />
+              <span className="h-2 w-2 rounded-xs bg-slate-300 dark:bg-slate-600 shrink-0" />
               <span>Remaining ({remainingWidth}%)</span>
             </div>
           </div>
@@ -300,10 +309,10 @@ export function ApplicationProgressCard({ applications = [], stats }: Props) {
       <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-800/80">
         <Link
           href="/dashboard/application"
-          className="flex items-center justify-between text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+          className="flex items-center justify-between gap-2 text-xs font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
         >
-          <span>View full application details & documents</span>
-          <ChevronRight size={13} />
+          <span className="truncate">View full application details &amp; documents</span>
+          <ChevronRight size={13} className="shrink-0" />
         </Link>
       </div>
     </div>

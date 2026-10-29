@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { ArrowRight, Camera, GraduationCap, MapPin, SlidersHorizontal, Sparkles, User } from 'lucide-react'
+import { ArrowRight, Camera, GraduationCap, MapPin, SlidersHorizontal, User } from 'lucide-react'
 
 const EASE = [0.16, 1, 0.3, 1] as const
 
@@ -31,11 +31,11 @@ export function OverviewHeader({
 }: Props) {
   const firstName = name?.split(' ')[0] || 'there'
   const initials = (name || 'Student')
-    .split(' ')
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  .split(' ')
+  .map((n) => n[0])
+  .slice(0, 2)
+  .join('')
+  .toUpperCase()
 
   const countriesList: string[] = Array.isArray(targetCountries)
     ? targetCountries
@@ -103,7 +103,7 @@ export function OverviewHeader({
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200/70 bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/50 dark:text-rose-300">
-                  <Sparkles size={12} />
+                  <GraduationCap size={13} className="text-rose-600 dark:text-rose-400" />
                   <span>Student Portal</span>
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/60 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300">
@@ -154,7 +154,7 @@ export function OverviewHeader({
           </div>
 
           {/* Right: Actions & Preferences Button Group */}
-          <div className="flex shrink-0 flex-wrap items-center gap-3 lg:justify-end">
+          <div className="flex shrink-0 flex-wrap items-center gap-2.5 sm:gap-3 lg:justify-end">
             <Link
               href={matchCount > 0 ? '/dashboard#matches' : '/dashboard/settings?tab=study'}
               className="group inline-flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-2.5 text-xs sm:text-sm font-bold text-white shadow-xs transition-all hover:bg-rose-700 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-600"

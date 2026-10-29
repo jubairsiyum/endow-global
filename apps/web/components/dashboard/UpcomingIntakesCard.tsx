@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowRight, CalendarClock, CheckCircle2, Clock, ExternalLink, Sparkles } from 'lucide-react'
+import { ArrowRight, CalendarClock, CheckCircle2, Clock, ExternalLink } from 'lucide-react'
 import { trpc } from '@/lib/trpc-client'
 import { format } from 'date-fns'
 
@@ -45,22 +45,22 @@ export function UpcomingIntakesCard({ deadlines = [] }: Props) {
   return (
     <div className="flex h-full flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] dark:border-slate-800 dark:bg-[#12141c]">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200/80 bg-rose-50 text-rose-700 dark:border-slate-700 dark:bg-rose-950/40 dark:text-rose-300">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-slate-200/80 bg-rose-50 text-rose-700 dark:border-slate-700 dark:bg-rose-950/40 dark:text-rose-300">
             <CalendarClock size={16} />
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
+          <div className="min-w-0">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white sm:text-lg">
               Upcoming Intakes
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              University admission deadlines & intake dates
+            <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+              University admission deadlines &amp; intake dates
             </p>
           </div>
         </div>
 
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+        <span className="inline-flex shrink-0 whitespace-nowrap items-center gap-1.5 rounded-full bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-pulse" />
           {displayItems.length} Open
         </span>
@@ -76,7 +76,7 @@ export function UpcomingIntakesCard({ deadlines = [] }: Props) {
           return (
             <div
               key={item.id}
-              className="flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/60 p-3 transition-colors hover:border-slate-200 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/40 dark:hover:border-slate-700"
+              className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 bg-slate-50/60 p-3 transition-colors hover:border-slate-200 hover:bg-slate-50 dark:border-slate-800/80 dark:bg-slate-900/40 dark:hover:border-slate-700"
             >
               <div className="flex items-center gap-3 min-w-0">
                 {/* Date Capsule */}
@@ -131,7 +131,7 @@ export function UpcomingIntakesCard({ deadlines = [] }: Props) {
                   href={item.slug ? `/apply-now?slug=${encodeURIComponent(item.slug)}` : '/courses'}
                   className="shrink-0 ml-2 inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:hover:bg-rose-900/60 transition-colors"
                 >
-                  <Sparkles size={11} />
+                  <ArrowRight size={11} />
                   <span>Apply</span>
                 </Link>
               )}
@@ -144,10 +144,10 @@ export function UpcomingIntakesCard({ deadlines = [] }: Props) {
       <div className="border-t border-slate-100 pt-2.5 dark:border-slate-800/80">
         <Link
           href="/courses"
-          className="flex items-center justify-between text-[11px] font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+          className="flex items-center justify-between gap-2 text-[11px] font-semibold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
         >
-          <span>Explore all university intake schedules & requirements</span>
-          <ArrowRight size={13} />
+          <span className="truncate">Explore all university intake schedules &amp; requirements</span>
+          <ArrowRight size={13} className="shrink-0" />
         </Link>
       </div>
     </div>

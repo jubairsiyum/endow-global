@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { ArrowUpRight, Sparkles } from 'lucide-react'
+import { ArrowUpRight, Compass } from 'lucide-react'
 
 import { formatCurrency } from '@/lib/utils'
 import { panel, viewAllLink } from './ui'
@@ -22,9 +22,9 @@ export function RecommendedPanel({ matches, index = 0 }: Props) {
       transition={{ duration: 0.45, delay: index * 0.08, ease: EASE }}
       className={`${panel} p-5`}
     >
-      <header className="mb-4 flex items-start justify-between">
-        <div>
-          <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl">
+      <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl truncate">
             Recommended for you
           </h2>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
@@ -32,13 +32,13 @@ export function RecommendedPanel({ matches, index = 0 }: Props) {
           </p>
         </div>
         <Link href="/universities" className={viewAllLink}>
-          Discover <ArrowUpRight size={13} />
+          <span>Discover</span> <ArrowUpRight size={13} className="shrink-0" />
         </Link>
       </header>
 
       {matches.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 py-10 text-center dark:border-gray-700">
-          <Sparkles size={28} className="mx-auto text-gray-300 dark:text-gray-600" />
+          <Compass size={28} className="mx-auto text-gray-300 dark:text-gray-600" />
           <p className="mt-3 text-sm font-semibold text-gray-700 dark:text-gray-200">No matches yet</p>
           <p className="mx-auto mt-1 max-w-xs text-xs text-gray-500 dark:text-gray-400">
             Complete your profile and we&apos;ll find your perfect-fit courses.
@@ -65,7 +65,7 @@ export function RecommendedPanel({ matches, index = 0 }: Props) {
                     <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
                       {score}% match
                     </span>
-                    <Sparkles size={14} className="text-rose-300 dark:text-rose-400" aria-hidden />
+                    <span className="h-1.5 w-1.5 rounded-full bg-rose-500" aria-hidden />
                   </div>
                   <p className="mt-3 line-clamp-2 text-sm font-semibold text-gray-900 group-hover:text-rose-600 dark:text-white dark:group-hover:text-rose-300">
                     {course?.name ?? 'Course'}
