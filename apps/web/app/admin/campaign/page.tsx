@@ -52,6 +52,19 @@ const emptyManualForm: ManualLeadForm = {
   status: 'COMPLETED',
 }
 
+function getPaginationPages(currentPage: number, totalPages: number): (number | '...')[] {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+  }
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, '...', totalPages]
+  }
+  if (currentPage >= totalPages - 3) {
+    return [1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages]
+  }
+  return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages]
+}
+
 export default function AdminCampaignPage() {
   // Filters State
   const [search, setSearch] = useState('')
@@ -64,7 +77,7 @@ export default function AdminCampaignPage() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
-  const limit = 25
+  const limit = 15
 
   // Debounce search input to avoid flood and out-of-order queries
   useEffect(() => {
@@ -389,6 +402,12 @@ export default function AdminCampaignPage() {
   const totalCount = listData?.totalCount || 0
   const totalPages = listData?.totalPages || 1
 
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) {
+      setPage(totalPages)
+    }
+  }, [page, totalPages])
+
   return (
     <div className="space-y-6 print:m-0 print:p-0">
       {/* Print View Stylesheet */}
@@ -443,8 +462,8 @@ export default function AdminCampaignPage() {
               Endow Global Education — Campaign Leads Report
             </h1>
             <p className="mt-0.5 text-xs text-gray-600">
-              Candidate Inquiries &amp; Audit &bull; Filter: <strong>{datePreset}</strong>{' '}
-              ({computedDates.start || 'Start'} to {computedDates.end || 'Present'})
+              Candidate Inquiries &amp; Audit &bull; Filter: <strong>{datePreset}</strong> (
+              {computedDates.start || 'Start'} to {computedDates.end || 'Present'})
             </p>
           </div>
           <div className="text-right text-xs text-gray-600">
@@ -555,7 +574,7 @@ export default function AdminCampaignPage() {
       </div>
 
       {/* Filter and Date Bar */}
-      <div className="space-y-3 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] sm:p-4.5 print:hidden">
+      <div className="sm:p-4.5 space-y-3 rounded-2xl border border-gray-200 bg-white p-3.5 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:hidden">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
           {/* Search Field with Clear Button */}
           <div className="relative min-w-0 flex-1">
@@ -720,7 +739,7 @@ export default function AdminCampaignPage() {
 
       {/* Leads Table */}
       <AdminTable className="print:rounded-none print:border-none print:shadow-none">
-        <div className="py-4.5 flex flex-col justify-between gap-3 border-b border-gray-100 bg-white px-6 dark:border-white/[0.06] dark:bg-[#18181b] sm:flex-row sm:items-center print:hidden">
+        <div className="flex flex-col justify-between gap-3 border-b border-gray-100 bg-white px-6 py-6 dark:border-white/[0.06] dark:bg-[#18181b] sm:flex-row sm:items-center print:hidden">
           <div>
             <h2 className="font-display text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
               Campaign Leads Records
@@ -896,7 +915,7 @@ export default function AdminCampaignPage() {
                               status: e.target.value as any,
                             })
                           }}
-                          className={`cursor-pointer rounded-xl border px-2.5 py-1.5 text-xs font-bold outline-none transition-colors print:hidden sm:text-sm ${
+                          className={`cursor-pointer rounded-xl border px-2.5 py-1.5 text-xs font-bold outline-none transition-colors sm:text-sm print:hidden ${
                             lead.status === 'COMPLETED'
                               ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950/40 dark:text-green-300'
                               : lead.status === 'CONTACTED'
@@ -950,31 +969,69 @@ export default function AdminCampaignPage() {
         </div>
 
         {/* Pagination Bar */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-gray-100 p-4 text-sm text-gray-600 dark:border-white/[0.06] dark:text-gray-400 print:hidden">
-            <span>
-              Showing page <strong className="text-gray-900 dark:text-white">{page}</strong> of{' '}
-              <strong className="text-gray-900 dark:text-white">{totalPages}</strong> ({totalCount}{' '}
-              total leads)
-            </span>
+        {totalCount > 0 && (
+          <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-100 p-4 text-xs text-gray-600 dark:border-white/[0.06] dark:text-gray-400 sm:flex-row sm:text-sm print:hidden">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="rounded-xl border border-gray-200 p-2 hover:bg-gray-50 disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/[0.04]"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="rounded-xl border border-gray-200 p-2 hover:bg-gray-50 disabled:opacity-40 dark:border-white/10 dark:hover:bg-white/[0.04]"
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
+              <span>
+                Showing{' '}
+                <strong className="text-gray-900 dark:text-white">{(page - 1) * limit + 1}</strong>{' '}
+                to{' '}
+                <strong className="text-gray-900 dark:text-white">
+                  {Math.min(page * limit, totalCount)}
+                </strong>{' '}
+                of <strong className="text-gray-900 dark:text-white">{totalCount}</strong> leads
+              </span>
+              <span className="rounded-full bg-gray-100 px-2.5 py-0.5 text-[11px] font-semibold text-gray-600 dark:bg-white/[0.06] dark:text-gray-300">
+                15 per page
+              </span>
             </div>
+
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1 sm:gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="inline-flex h-8 items-center gap-1 rounded-xl border border-gray-200 bg-white px-2.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.04]"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  <span>Prev</span>
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {getPaginationPages(page, totalPages).map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="px-1.5 text-xs text-gray-400">
+                        ...
+                      </span>
+                    ) : (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPage(Number(p))}
+                        className={`inline-flex h-8 min-w-[32px] items-center justify-center rounded-xl px-2 text-xs font-semibold transition-all ${
+                          page === p
+                            ? 'bg-[#AD0819] text-white shadow-sm shadow-[#AD0819]/25'
+                            : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 dark:border-white/10 dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.04]'
+                        }`}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                  className="inline-flex h-8 items-center gap-1 rounded-xl border border-gray-200 bg-white px-2.5 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/10 dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.04]"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
           </div>
         )}
       </AdminTable>
@@ -985,7 +1042,7 @@ export default function AdminCampaignPage() {
           <div className="flex min-h-full items-center justify-center p-3 py-6 sm:p-4 sm:py-8">
             <div className="relative flex max-h-[calc(100dvh-1.5rem)] w-full max-w-lg flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#18181b] sm:max-h-[calc(100dvh-4rem)]">
               <div className="flex shrink-0 items-start gap-3 border-b border-gray-100 p-5 pr-12 dark:border-white/[0.06] sm:p-6 sm:pr-14">
-                <div className="bg-primary/10 border-primary/20 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border text-lg font-bold">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-lg font-bold text-primary">
                   {selectedLead.name ? selectedLead.name.charAt(0).toUpperCase() : '?'}
                 </div>
                 <div className="min-w-0 pt-0.5">
@@ -1010,7 +1067,9 @@ export default function AdminCampaignPage() {
               <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-5 pt-4 text-xs sm:p-6 sm:pt-5">
                 <div className="grid grid-cols-2 gap-2 rounded-2xl border border-gray-100 bg-gray-50 p-3 dark:border-white/[0.06] dark:bg-white/[0.02]">
                   <div>
-                    <span className="block font-mono text-[10px] uppercase text-gray-400">Email</span>
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">
+                      Email
+                    </span>
                     <div className="mt-0.5 flex items-center gap-1.5">
                       <span className="truncate font-semibold text-gray-800 dark:text-gray-200">
                         {selectedLead.email || 'None'}
@@ -1019,7 +1078,7 @@ export default function AdminCampaignPage() {
                         <button
                           type="button"
                           onClick={() => handleCopy(selectedLead.email, 'email')}
-                          className="hover:text-primary text-gray-400"
+                          className="text-gray-400 hover:text-primary"
                           title="Copy email"
                         >
                           <Copy className="h-3 w-3" />
@@ -1029,7 +1088,9 @@ export default function AdminCampaignPage() {
                   </div>
 
                   <div>
-                    <span className="block font-mono text-[10px] uppercase text-gray-400">Phone</span>
+                    <span className="block font-mono text-[10px] uppercase text-gray-400">
+                      Phone
+                    </span>
                     <div className="mt-0.5 flex items-center gap-1.5">
                       <span className="font-mono font-semibold text-gray-800 dark:text-gray-200">
                         {selectedLead.phone || 'None'}
@@ -1038,7 +1099,7 @@ export default function AdminCampaignPage() {
                         <button
                           type="button"
                           onClick={() => handleCopy(selectedLead.phone, 'phone')}
-                          className="hover:text-primary text-gray-400"
+                          className="text-gray-400 hover:text-primary"
                           title="Copy phone"
                         >
                           <Copy className="h-3 w-3" />
@@ -1128,11 +1189,11 @@ export default function AdminCampaignPage() {
                   </div>
                 </div>
 
-              {copiedField && (
-                <div className="mt-2 text-center text-xs font-medium text-green-600">
-                  Copied {copiedField} to clipboard!
-                </div>
-              )}
+                {copiedField && (
+                  <div className="mt-2 text-center text-xs font-medium text-green-600">
+                    Copied {copiedField} to clipboard!
+                  </div>
+                )}
               </div>
 
               {/* Quick Action Footer */}
@@ -1197,7 +1258,7 @@ export default function AdminCampaignPage() {
                       value={manualForm.name}
                       onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
                       placeholder="Full name"
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                     />
                   </div>
 
@@ -1209,7 +1270,7 @@ export default function AdminCampaignPage() {
                         value={manualForm.email}
                         onChange={(e) => setManualForm({ ...manualForm, email: e.target.value })}
                         placeholder="email@example.com"
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                       />
                     </div>
                     <div>
@@ -1219,20 +1280,22 @@ export default function AdminCampaignPage() {
                         value={manualForm.phone}
                         onChange={(e) => setManualForm({ ...manualForm, phone: e.target.value })}
                         placeholder="+880..."
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="mb-1 block font-medium text-gray-500">Interested Country</label>
+                      <label className="mb-1 block font-medium text-gray-500">
+                        Interested Country
+                      </label>
                       <select
                         value={manualForm.interestedCountry}
                         onChange={(e) =>
                           setManualForm({ ...manualForm, interestedCountry: e.target.value })
                         }
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                       >
                         <option value="South Korea">South Korea</option>
                         <option value="United States">United States</option>
@@ -1252,7 +1315,7 @@ export default function AdminCampaignPage() {
                         onChange={(e) =>
                           setManualForm({ ...manualForm, interestedProgram: e.target.value })
                         }
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                       >
                         <option value="Bachelor's Degree">Bachelor's Degree</option>
                         <option value="Master's Degree">Master's Degree</option>
@@ -1268,8 +1331,10 @@ export default function AdminCampaignPage() {
                       <label className="mb-1 block font-medium text-gray-500">Intake Year</label>
                       <select
                         value={manualForm.intakeYear}
-                        onChange={(e) => setManualForm({ ...manualForm, intakeYear: e.target.value })}
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                        onChange={(e) =>
+                          setManualForm({ ...manualForm, intakeYear: e.target.value })
+                        }
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                       >
                         <option value="2026">2026</option>
                         <option value="2027">2027</option>
@@ -1285,7 +1350,7 @@ export default function AdminCampaignPage() {
                         onChange={(e) =>
                           setManualForm({ ...manualForm, status: e.target.value as any })
                         }
-                        className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                       >
                         <option value="COMPLETED">COMPLETED</option>
                         <option value="CONTACTED">CONTACTED</option>
@@ -1303,7 +1368,7 @@ export default function AdminCampaignPage() {
                       value={manualForm.reason}
                       onChange={(e) => setManualForm({ ...manualForm, reason: e.target.value })}
                       placeholder="Notes from walk-in or telephone conversation..."
-                      className="focus:border-primary w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 outline-none dark:border-white/10 dark:bg-white/[0.04]"
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 outline-none focus:border-primary dark:border-white/10 dark:bg-white/[0.04]"
                     />
                   </div>
                 </div>

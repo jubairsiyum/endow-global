@@ -460,7 +460,7 @@ export const campaignRouter = createTRPCRouter({
         startDate: z.string().optional(),
         endDate: z.string().optional(),
         page: z.number().int().min(1).default(1),
-        limit: z.number().int().min(1).max(200).default(50),
+        limit: z.number().int().min(1).max(200).default(15),
       })
     )
     .query(async ({ input }) => {
