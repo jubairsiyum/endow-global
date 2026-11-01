@@ -677,12 +677,16 @@ export default function CampaignFormClient() {
                             setInterestedCountry(item.name)
                           }
                         }}
-                        className={`relative flex items-center justify-between gap-2 rounded-2xl border p-3 text-left transition-all duration-200 ${
+                        className={`relative flex items-center justify-between gap-2 rounded-2xl border text-left transition-all duration-200 ${
+                          isAvailable
+                            ? 'col-span-full p-3.5 sm:p-4'
+                            : 'p-3'
+                        } ${
                           isSelected
                             ? 'border-[#AD0819] bg-red-50/90 font-bold text-gray-950 shadow-md ring-2 ring-[#AD0819]/25'
                             : isAvailable
                               ? 'border-gray-200/90 bg-white text-gray-800 shadow-sm hover:border-gray-300 hover:bg-gray-50/70'
-                              : 'cursor-not-allowed border-dashed border-gray-200 bg-gray-50/60 opacity-60 shadow-none'
+                              : 'cursor-not-allowed border-dashed border-gray-200 bg-gray-50/40 opacity-35 shadow-none'
                         }`}
                       >
                         <div className="flex min-w-0 items-center gap-2.5">
@@ -691,31 +695,38 @@ export default function CampaignFormClient() {
                             <img
                               src={`https://flagcdn.com/w40/${item.code}.png`}
                               alt={`${item.name} flag`}
-                              className={`h-5 w-7 shrink-0 rounded-[3px] border border-gray-200 object-cover shadow-sm ${
-                                !isAvailable ? 'opacity-50 grayscale-[35%]' : ''
+                              className={`shrink-0 rounded-[3px] border border-gray-200 object-cover shadow-sm ${
+                                isAvailable
+                                  ? 'h-6 w-8'
+                                  : 'h-5 w-7 opacity-40 grayscale-[60%]'
                               }`}
                               loading="lazy"
                             />
                           ) : (
-                            <div className="flex h-5 w-7 shrink-0 items-center justify-center rounded-[3px] border border-gray-200 bg-gray-100 text-[#AD0819]">
+                            <div className="flex h-5 w-7 shrink-0 items-center justify-center rounded-[3px] border border-gray-200 bg-gray-100 text-[#AD0819] opacity-40">
                               <Globe className="h-3.5 w-3.5" />
                             </div>
                           )}
 
                           <div className="min-w-0 flex-1">
-                            <span
-                              className={`block truncate text-sm leading-tight ${
-                                isSelected
-                                  ? 'font-bold text-gray-950'
-                                  : isAvailable
-                                    ? 'font-bold text-gray-900'
-                                    : 'font-medium text-gray-500'
-                              }`}
-                            >
-                              {item.name}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span
+                                className={`block leading-tight ${
+                                  isAvailable
+                                    ? 'text-sm font-bold text-gray-950 sm:text-base'
+                                    : 'truncate text-sm font-medium text-gray-500'
+                                }`}
+                              >
+                                {item.name}
+                              </span>
+                              {isAvailable && (
+                                <span className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                                  Now Accepting Applications
+                                </span>
+                              )}
+                            </div>
                             {!isAvailable && (
-                              <span className="mt-1 inline-flex items-center rounded-full border border-amber-200/90 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                              <span className="mt-1 inline-flex items-center rounded-full border border-amber-200/60 bg-amber-50/60 px-2 py-0.5 text-[10px] font-medium text-amber-800/70">
                                 Coming Soon
                               </span>
                             )}
@@ -723,7 +734,7 @@ export default function CampaignFormClient() {
                         </div>
 
                         {isSelected && (
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-[#AD0819]" />
+                          <CheckCircle2 className="h-5 w-5 shrink-0 text-[#AD0819]" />
                         )}
                       </button>
                     )

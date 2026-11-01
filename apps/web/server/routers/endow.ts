@@ -390,6 +390,7 @@ export const endowRouter = createTRPCRouter({
     const appId = globalThis.crypto.randomUUID().replace(/-/g, '').slice(0, 24)
     const personalInfoObj = {
       inquiryId: inqId,
+      ipAddress: ip,
       surname: input.surname,
       givenName: input.givenName,
       email: input.email.trim().toLowerCase(),

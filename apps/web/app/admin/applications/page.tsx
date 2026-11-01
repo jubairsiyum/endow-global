@@ -37,7 +37,8 @@ import {
   X,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useCallback, useMemo, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 const PAGE_SIZE = 15
@@ -85,7 +86,8 @@ interface CourseApplicationItem {
     heardFrom?: string | null
     referralName?: string | null
     reasonToChoose?: string | null
-  } | null
+    ipAddress?: string | null
+    } | null
   academicHistory?: {
     applyingTo?: string | null
     sscYear?: string | null
@@ -149,6 +151,7 @@ interface CourseApplicationItem {
       email?: string | null
     } | null
   } | null
+  ipAddress?: string | null
 }
 
 interface InquiryItem {
@@ -193,7 +196,6 @@ interface InquiryItem {
   heardFrom?: string | null
   referralName?: string | null
   photoUrl?: string | null
-  ipAddress?: string | null
   submittedAt: string | Date
 }
 
@@ -242,10 +244,27 @@ function getPaginationPages(currentPage: number, totalPages: number): (number | 
   return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages]
 }
 
-export default function ApplicationsPage() {
+function ApplicationsPageContent() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const tabParam = searchParams.get('tab') === 'inquiries' ? 'inquiries' : 'applications'
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [tab, setTab] = useState<'applications' | 'inquiries'>('applications')
+  const [tab, setTab] = useState<'applications' | 'inquiries'>(tabParam)
+
+  // Keep state in sync with URL searchParams (e.g. back/forward navigation)
+  useEffect(() => {
+    setTab(tabParam)
+  }, [tabParam])
+
+  const handleTabChange = useCallback(
+    (newTab: 'applications' | 'inquiries') => {
+      setTab(newTab)
+      setShowFilters(false)
+      router.replace(`/admin/applications?tab=${newTab}`, { scroll: false })
+    },
+    [router]
+  )
   const [exportOpen, setExportOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
@@ -685,10 +704,7 @@ export default function ApplicationsPage() {
         ].map((t) => (
           <button
             key={t.k}
-            onClick={() => {
-              setTab(t.k as 'applications' | 'inquiries')
-              setShowFilters(false)
-            }}
+            onClick={() => handleTabChange(t.k as 'applications' | 'inquiries')}
             className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
               tab === t.k
                 ? 'bg-white text-gray-900 shadow-sm dark:bg-[#09090b] dark:text-white'
@@ -1832,5 +1848,21 @@ export default function ApplicationsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function ApplicationsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="space-y-6">
+          <div className="h-10 w-64 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800" />
+          <div className="h-44 w-full animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
+          <div className="h-96 w-full animate-pulse rounded-2xl bg-gray-100 dark:bg-gray-800" />
+        </div>
+      }
+    >
+      <ApplicationsPageContent />
+    </Suspense>
   )
 }

@@ -1,20 +1,20 @@
-import { APIError, betterAuth } from 'better-auth'
-import { createAuthMiddleware } from 'better-auth/api'
 import { drizzleAdapter } from '@better-auth/drizzle-adapter'
-import { customSession, emailOTP } from 'better-auth/plugins'
-import { nextCookies } from 'better-auth/next-js'
-import { compare, hash as bcryptHash } from 'bcryptjs'
-import { scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto'
-import { promisify } from 'node:util'
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { db, schema } from '@endow/db'
 import { UserRole } from '@endow/types'
-import { sendEmail } from './email'
-import { absoluteUrl } from './utils'
-import { parsePermissionsJSON } from './rbac'
-import { logAdminActivity } from './audit'
+import { hash as bcryptHash, compare } from 'bcryptjs'
+import { APIError, betterAuth } from 'better-auth'
+import { createAuthMiddleware } from 'better-auth/api'
+import { nextCookies } from 'better-auth/next-js'
+import { customSession, emailOTP } from 'better-auth/plugins'
+import { scrypt as nodeScrypt, timingSafeEqual } from 'node:crypto'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { promisify } from 'node:util'
 import { syncStudentInquiriesToApplications } from '../server/utils/syncStudentApplications'
+import { logAdminActivity } from './audit'
+import { sendEmail } from './email'
+import { parsePermissionsJSON } from './rbac'
+import { absoluteUrl } from './utils'
 
 const BCRYPT_SALT_ROUNDS = 12
 const SCRYPT_KEY_LENGTH = 64
@@ -23,16 +23,17 @@ const scrypt = promisify(nodeScrypt)
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID?.trim()
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET?.trim()
-const socialProviders = googleClientId && googleClientSecret
-  ? {
-      google: {
-        clientId: googleClientId,
-        clientSecret: googleClientSecret,
-        // Explicitly allow implicit sign-up via Google; linking will handle existing emails
-        disableImplicitSignUp: false,
-      },
-    }
-  : undefined
+const socialProviders =
+  googleClientId && googleClientSecret
+    ? {
+        google: {
+          clientId: googleClientId,
+          clientSecret: googleClientSecret,
+          // Explicitly allow implicit sign-up via Google; linking will handle existing emails
+          disableImplicitSignUp: false,
+        },
+      }
+    : undefined
 
 const LOGIN_PORTAL_ROLES = {
   student: [UserRole.STUDENT],
@@ -83,7 +84,8 @@ async function verifyStoredPassword(password: string, storedHash: string): Promi
   }
 
   const derivedKey = (await scrypt(password, salt, SCRYPT_KEY_LENGTH)) as Buffer
-  const encoding: BufferEncoding = /^[0-9a-f]+$/i.test(key) && key.length % 2 === 0 ? 'hex' : 'base64'
+  const encoding: BufferEncoding =
+    /^[0-9a-f]+$/i.test(key) && key.length % 2 === 0 ? 'hex' : 'base64'
   const storedKey = Buffer.from(key, encoding)
 
   if (storedKey.length !== derivedKey.length) {
@@ -206,6 +208,25 @@ export const auth = betterAuth({
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      // 1. Prevent existing accounts from using the registration OTP endpoints
+      if (
+        (ctx.path === '/email-otp/send-verification-otp' && ctx.body?.type === 'sign-in') ||
+        ctx.path === '/sign-in/email-otp'
+      ) {
+        const email = typeof ctx.body?.email === 'string' ? ctx.body.email.trim().toLowerCase() : ''
+        if (email) {
+          const existingUser = await db.query.users.findFirst({
+            where: (table, { eq }) => eq(table.email, email),
+            columns: { id: true },
+          })
+          if (existingUser) {
+            throw new APIError('BAD_REQUEST', {
+              message: 'An account with this email already exists. Please sign in instead.',
+            })
+          }
+        }
+      }
+      // 2. Existing check for portal login
       if (ctx.path !== '/sign-in/email') return
 
       const portal = ctx.request?.headers.get('x-endow-login-portal')
@@ -223,13 +244,16 @@ export const auth = betterAuth({
       })
 
       if (!user || !isAllowedLoginPortal(portal, user.role)) {
-        throw new APIError('FORBIDDEN', { message: 'This account is not authorized for this portal' })
+        throw new APIError('FORBIDDEN', {
+          message: 'This account is not authorized for this portal',
+        })
       }
     }),
     after: createAuthMiddleware(async (ctx) => {
       const newSession = ctx.context.newSession
       const role = newSession?.user?.role as string | undefined
-      if (ctx.path !== '/sign-in/email' || !newSession?.user || !role || role === UserRole.STUDENT) return
+      if (ctx.path !== '/sign-in/email' || !newSession?.user || !role || role === UserRole.STUDENT)
+        return
 
       await logAdminActivity({
         action: 'login.success',

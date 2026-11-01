@@ -66,7 +66,7 @@ export default function InquiryDetailPage() {
     onSuccess: () => {
       toast.success('Inquiry deleted successfully')
       utils.endow.listInquiries.invalidate()
-      router.push('/admin/applications')
+      router.push('/admin/applications?tab=inquiries')
     },
     onError: (err) => {
       toast.error(err.message || 'Failed to delete inquiry')
@@ -125,7 +125,7 @@ export default function InquiryDetailPage() {
           The requested application inquiry could not be found or may have been removed.
         </p>
         <Link
-          href="/admin/applications"
+          href="/admin/applications?tab=inquiries"
           className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#c41e3a] px-4 py-2 text-sm font-semibold text-white shadow transition-all hover:bg-[#a01830]"
         >
           <ArrowLeft size={16} />
@@ -178,7 +178,7 @@ export default function InquiryDetailPage() {
       >
         <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
           <Link
-            href="/admin/applications"
+            href="/admin/applications?tab=inquiries"
             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.04]"
           >
             <ArrowLeft size={14} />

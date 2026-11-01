@@ -112,7 +112,13 @@ export default function ApplicationDetailPage() {
         <h2 className="mt-4 text-base font-bold text-gray-900 dark:text-white">Application Not Found</h2>
         <p className="mt-1 text-xs text-gray-400">This application may have been removed or does not exist.</p>
         <button
-          onClick={() => router.push('/admin/applications')}
+          onClick={() => {
+            if (typeof window !== 'undefined' && window.history.length > 1) {
+              router.back()
+            } else {
+              router.push('/admin/applications?tab=applications')
+            }
+          }}
           className="mt-5 inline-flex items-center gap-1.5 rounded-xl bg-[#c41e3a] px-4 py-2 text-xs font-semibold text-white shadow-sm hover:opacity-90"
         >
           <ArrowLeft size={13} />
@@ -124,6 +130,7 @@ export default function ApplicationDetailPage() {
 
   const pInfo = app.personalInfo || {}
   const aHistory = app.academicHistory || {}
+  const ipAddress = app.ipAddress || pInfo.ipAddress || null
 
   const studentName =
     app.student?.user?.name ||
@@ -155,7 +162,13 @@ export default function ApplicationDetailPage() {
       <div className="flex flex-wrap items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/admin/applications')}
+            onClick={() => {
+              if (typeof window !== 'undefined' && window.history.length > 1) {
+                router.back()
+              } else {
+                router.push('/admin/applications?tab=applications')
+              }
+            }}
             className="inline-flex items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2 text-xs font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 dark:border-white/[0.08] dark:bg-[#18181b] dark:text-gray-300 dark:hover:bg-white/[0.06]"
           >
             <ArrowLeft size={14} />
@@ -364,6 +377,14 @@ export default function ApplicationDetailPage() {
                     .join(', ') || '—'}
                 </p>
               </div>
+              {ipAddress && (
+                <div className="sm:col-span-2">
+                  <span className="text-xs text-gray-400">Submitter IP Address</span>
+                  <p className="text-sm font-mono font-medium text-gray-900 dark:text-white">
+                    {ipAddress}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -630,6 +651,50 @@ export default function ApplicationDetailPage() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Acquisition & Source Information */}
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-white/[0.08] dark:bg-[#18181b] print:break-inside-avoid print:border-gray-300 print:bg-white print:text-black print:shadow-none">
+            <h3
+              className="text-sm font-bold text-gray-900 dark:text-white"
+              style={{ fontFamily: "'Space Grotesk',sans-serif" }}
+            >
+              Source & Acquisition
+            </h3>
+
+            <div className="mt-4 space-y-3 text-xs">
+              <div>
+                <p className="text-[10px] text-gray-400">How did you hear about us?</p>
+                <p className="mt-0.5 font-semibold text-gray-900 dark:text-white">
+                  {pInfo.heardFrom || 'Not specified'}
+                </p>
+              </div>
+
+              {pInfo.referralName && (
+                <div>
+                  <p className="text-[10px] text-gray-400">Referral Name / Counselor</p>
+                  <p className="mt-0.5 font-semibold text-[#c41e3a]">
+                    {pInfo.referralName}
+                  </p>
+                </div>
+              )}
+
+              <div className="border-t border-gray-100 pt-3 dark:border-white/[0.06]">
+                <p className="text-[10px] text-gray-400">Submitted Timestamp</p>
+                <p className="mt-0.5 text-gray-700 dark:text-gray-300">
+                  {formatDate(app.submittedAt || app.createdAt)}
+                </p>
+              </div>
+
+              {ipAddress && (
+                <div>
+                  <p className="text-[10px] text-gray-400">Submitter IP Address</p>
+                  <p className="mt-0.5 font-mono text-[11px] text-gray-500">
+                    {ipAddress}
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

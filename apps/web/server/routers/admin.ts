@@ -1022,6 +1022,7 @@ export const adminRouter = createTRPCRouter({
           return {
             ...item,
             personalInfo: pInfo,
+            ipAddress: pInfo?.ipAddress || null,
             academicHistory: aHistory,
             student: {
               user: {
@@ -1178,6 +1179,89 @@ export const adminRouter = createTRPCRouter({
         const sPhone = pInfo?.phone || row.studentPhone || null
         const sCountry = pInfo?.country || row.studentCountry || null
 
+        let ipAddress: string | null = pInfo?.ipAddress || null
+
+        // Try to locate linked inquiry
+        let linkedInq: any = null
+        if (pInfo?.inquiryId) {
+          const [inq] = await db
+            .select()
+            .from(schema.studentInquiries)
+            .where(eq(schema.studentInquiries.id, pInfo.inquiryId))
+            .limit(1)
+          if (inq) linkedInq = inq
+        }
+
+        if (!linkedInq && row.counselorNotes && row.counselorNotes.includes('__inq_')) {
+          const match = row.counselorNotes.match(/__inq_([a-zA-Z0-9-]+)/)
+          if (match?.[1]) {
+            const [inq] = await db
+              .select()
+              .from(schema.studentInquiries)
+              .where(eq(schema.studentInquiries.id, match[1]))
+              .limit(1)
+            if (inq) linkedInq = inq
+          }
+        }
+
+        if (!linkedInq && (row.studentUserId || sEmail)) {
+          const inqConditions = []
+          if (row.studentUserId) {
+            inqConditions.push(eq(schema.studentInquiries.userId, row.studentUserId))
+          }
+          if (sEmail) {
+            inqConditions.push(
+              eq(sql`LOWER(${schema.studentInquiries.email})`, sEmail.trim().toLowerCase())
+            )
+          }
+          const [inq] = await db
+            .select()
+            .from(schema.studentInquiries)
+            .where(or(...inqConditions) as any)
+            .orderBy(desc(schema.studentInquiries.submittedAt))
+            .limit(1)
+          if (inq) linkedInq = inq
+        }
+
+        if (linkedInq) {
+          if (!ipAddress && linkedInq.ipAddress) {
+            ipAddress = linkedInq.ipAddress
+          }
+          if (pInfo) {
+            pInfo.ipAddress = ipAddress || pInfo.ipAddress || null
+            pInfo.heardFrom = pInfo.heardFrom || linkedInq.heardFrom || null
+            pInfo.referralName = pInfo.referralName || linkedInq.referralName || null
+            if (!pInfo.inquiryId) pInfo.inquiryId = linkedInq.id
+          }
+        }
+
+        // If still no IP, check user's session
+        if (!ipAddress && row.studentUserId) {
+          const [sess] = await db
+            .select({ ipAddress: schema.sessions.ipAddress })
+            .from(schema.sessions)
+            .where(
+              and(
+                eq(schema.sessions.userId, row.studentUserId),
+                sql`${schema.sessions.ipAddress} IS NOT NULL` as any
+              )
+            )
+            .orderBy(desc(schema.sessions.updatedAt))
+            .limit(1)
+          if (sess?.ipAddress) {
+            ipAddress = sess.ipAddress
+            if (pInfo) pInfo.ipAddress = ipAddress
+          }
+        }
+
+        // Cache resolved ipAddress and inquiry metadata to personalInfo if not already present
+        if (ipAddress && (!row.personalInfo || !(row.personalInfo as any)?.ipAddress)) {
+          db.update(schema.applications)
+            .set({ personalInfo: pInfo })
+            .where(eq(schema.applications.id, row.id))
+            .catch(() => {})
+        }
+
         return {
           id: row.id,
           studentId: row.studentId,
@@ -1189,6 +1273,7 @@ export const adminRouter = createTRPCRouter({
           submittedAt: row.submittedAt,
           counselorNotes: row.counselorNotes,
           personalInfo: pInfo,
+          ipAddress: ipAddress || pInfo?.ipAddress || null,
           academicHistory: aHistory,
           documentsUrls: row.documentsUrls,
           personalStatement: row.personalStatement,

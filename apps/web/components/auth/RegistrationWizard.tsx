@@ -1,11 +1,25 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  Check,
+  Eye,
+  EyeOff,
+  Globe,
+  LockKeyhole,
+  Mail,
+  Phone,
+  Shield,
+  User,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { Mail, LockKeyhole, Eye, EyeOff, ArrowRight, ArrowLeft, Check, User, Phone, Globe, BookOpen, CalendarDays, Shield } from 'lucide-react'
 
 import Spinner from '@/components/ui/Spinner'
 import { authClient } from '@/lib/auth-client'
@@ -16,14 +30,73 @@ const STEPS = ['email', 'otp', 'profile', 'study'] as const
 type Step = (typeof STEPS)[number]
 
 const COUNTRIES = [
-  'Afghanistan','Albania','Algeria','Argentina','Australia','Austria','Bangladesh','Belgium',
-  'Brazil','Cambodia','Canada','China','Colombia','Denmark','Egypt','Ethiopia','Finland',
-  'France','Germany','Ghana','Greece','Hungary','India','Indonesia','Iran','Iraq','Ireland',
-  'Italy','Japan','Jordan','Kenya','Kuwait','Lebanon','Malaysia','Mexico','Morocco','Nepal',
-  'Netherlands','New Zealand','Nigeria','Norway','Pakistan','Peru','Philippines','Poland',
-  'Portugal','Qatar','Romania','Russia','Saudi Arabia','Singapore','South Africa','South Korea',
-  'Spain','Sri Lanka','Sweden','Switzerland','Taiwan','Thailand','Turkey','UAE','Uganda',
-  'Ukraine','United Kingdom','United States','Vietnam','Zimbabwe',
+  'Afghanistan',
+  'Albania',
+  'Algeria',
+  'Argentina',
+  'Australia',
+  'Austria',
+  'Bangladesh',
+  'Belgium',
+  'Brazil',
+  'Cambodia',
+  'Canada',
+  'China',
+  'Colombia',
+  'Denmark',
+  'Egypt',
+  'Ethiopia',
+  'Finland',
+  'France',
+  'Germany',
+  'Ghana',
+  'Greece',
+  'Hungary',
+  'India',
+  'Indonesia',
+  'Iran',
+  'Iraq',
+  'Ireland',
+  'Italy',
+  'Japan',
+  'Jordan',
+  'Kenya',
+  'Kuwait',
+  'Lebanon',
+  'Malaysia',
+  'Mexico',
+  'Morocco',
+  'Nepal',
+  'Netherlands',
+  'New Zealand',
+  'Nigeria',
+  'Norway',
+  'Pakistan',
+  'Peru',
+  'Philippines',
+  'Poland',
+  'Portugal',
+  'Qatar',
+  'Romania',
+  'Russia',
+  'Saudi Arabia',
+  'Singapore',
+  'South Africa',
+  'South Korea',
+  'Spain',
+  'Sri Lanka',
+  'Sweden',
+  'Switzerland',
+  'Taiwan',
+  'Thailand',
+  'Turkey',
+  'UAE',
+  'Uganda',
+  'Ukraine',
+  'United Kingdom',
+  'United States',
+  'Vietnam',
+  'Zimbabwe',
 ]
 
 const STUDY_LEVELS = [
@@ -56,7 +129,9 @@ function InputField({
 }) {
   return (
     <div>
-      <label className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">{label}</label>
+      <label className="text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500">
+        {label}
+      </label>
       <div className="mt-1.5 flex min-h-[48px] items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 shadow-[0_1px_3px_rgba(15,23,42,0.04)] transition-all focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-100">
         <Icon className="shrink-0 text-slate-400" size={16} />
         {children}
@@ -95,21 +170,33 @@ export default function RegistrationWizard() {
     return () => clearInterval(timer)
   }, [resendTimer])
 
-  const goTo = useCallback((next: Step) => {
-    setSlideDir(STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1)
-    setStep(next)
-  }, [step])
+  const goTo = useCallback(
+    (next: Step) => {
+      setSlideDir(STEPS.indexOf(next) > STEPS.indexOf(step) ? 1 : -1)
+      setStep(next)
+    },
+    [step]
+  )
 
   const sendOtp = useCallback(async () => {
-    if (!email) { toast.error('Please enter your email'); return }
-    if (password.length < 8) { toast.error('Password must be at least 8 characters'); return }
+    if (!email) {
+      toast.error('Please enter your email')
+      return
+    }
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
     setIsLoading(true)
     try {
       const { error } = await authClient.emailOtp.sendVerificationOtp({
-        email,
+        email: email.trim().toLowerCase(),
         type: 'sign-in',
       })
-      if (error) { toast.error(error.message || 'Failed to send OTP'); return }
+      if (error) {
+        toast.error(error.message || 'Failed to send OTP')
+        return
+      }
       setOtp(['', '', '', '', '', ''])
       toast.success('Verification code sent to your email')
       goTo('otp')
@@ -123,7 +210,10 @@ export default function RegistrationWizard() {
 
   const verifyOtp = useCallback(async () => {
     const code = otp.join('')
-    if (code.length !== 6) { toast.error('Please enter the 6-digit code'); return }
+    if (code.length !== 6) {
+      toast.error('Please enter the 6-digit code')
+      return
+    }
     setIsLoading(true)
     try {
       const result = await authClient.signIn.emailOtp({
@@ -145,9 +235,18 @@ export default function RegistrationWizard() {
   }, [otp, email, password, goTo, setPasswordMutation])
 
   const completeRegistration = useCallback(async () => {
-    if (!name.trim()) { toast.error('Please enter your full name'); return }
-    if (!nationality) { toast.error('Please select your nationality'); return }
-    if (!studyLevel) { toast.error('Please select your study level'); return }
+    if (!name.trim()) {
+      toast.error('Please enter your full name')
+      return
+    }
+    if (!nationality) {
+      toast.error('Please select your nationality')
+      return
+    }
+    if (!studyLevel) {
+      toast.error('Please select your study level')
+      return
+    }
 
     setIsLoading(true)
     try {
@@ -159,12 +258,19 @@ export default function RegistrationWizard() {
           phone,
           targetCountries: studyDestination ? [studyDestination] : [],
           highestEducation: studyLevel as any,
-          preferredIntakeYear: startDate && startDate !== 'help-me-decide' ? parseInt(startDate) : undefined,
+          preferredIntakeYear:
+            startDate && startDate !== 'help-me-decide' ? parseInt(startDate) : undefined,
           preferredIntakeMonth: startDate === 'help-me-decide' ? 'Help me decide' : undefined,
         },
         {
-          onSuccess: () => { toast.success('Account created successfully!'); router.push('/dashboard') },
-          onError: () => { toast.success('Account created successfully!'); router.push('/dashboard') },
+          onSuccess: () => {
+            toast.success('Account created successfully!')
+            router.push('/dashboard')
+          },
+          onError: () => {
+            toast.success('Account created successfully!')
+            router.push('/dashboard')
+          },
         }
       )
     } catch {
@@ -172,7 +278,17 @@ export default function RegistrationWizard() {
     } finally {
       setIsLoading(false)
     }
-  }, [name, nationality, studyLevel, startDate, phone, countryOfResidence, studyDestination, router, updateProfile])
+  }, [
+    name,
+    nationality,
+    studyLevel,
+    startDate,
+    phone,
+    countryOfResidence,
+    studyDestination,
+    router,
+    updateProfile,
+  ])
 
   const stepIndex = STEPS.indexOf(step)
 
@@ -316,7 +432,11 @@ export default function RegistrationWizard() {
                   disabled={isLoading || !email || password.length < 8}
                   className="mt-6 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50"
                 >
-                  {isLoading ? <Spinner size={16} className="text-white" /> : <ArrowRight size={16} />}
+                  {isLoading ? (
+                    <Spinner size={16} className="text-white" />
+                  ) : (
+                    <ArrowRight size={16} />
+                  )}
                   {isLoading ? 'Sending...' : 'Continue'}
                 </button>
 
@@ -358,7 +478,11 @@ export default function RegistrationWizard() {
                   disabled={isLoading || otp.join('').length !== 6}
                   className="mt-7 flex h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30 disabled:pointer-events-none disabled:opacity-50"
                 >
-                  {isLoading ? <Spinner size={16} className="text-white" /> : <ArrowRight size={16} />}
+                  {isLoading ? (
+                    <Spinner size={16} className="text-white" />
+                  ) : (
+                    <ArrowRight size={16} />
+                  )}
                   {isLoading ? 'Signing in...' : 'Verify'}
                 </button>
 
@@ -422,7 +546,9 @@ export default function RegistrationWizard() {
                       >
                         <option value="">Select country</option>
                         {COUNTRIES.map((c) => (
-                          <option key={c} value={c}>{c}</option>
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
                         ))}
                       </select>
                     </InputField>
@@ -436,7 +562,9 @@ export default function RegistrationWizard() {
                       >
                         <option value="">Select nationality</option>
                         {COUNTRIES.map((c) => (
-                          <option key={c} value={c}>{c}</option>
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
                         ))}
                       </select>
                     </InputField>
@@ -461,7 +589,9 @@ export default function RegistrationWizard() {
                     >
                       <option value="">Select country</option>
                       {COUNTRIES.map((c) => (
-                        <option key={c} value={c}>{c}</option>
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
                       ))}
                     </select>
                   </InputField>
@@ -479,8 +609,14 @@ export default function RegistrationWizard() {
                   <button
                     type="button"
                     onClick={() => {
-                      if (!name.trim()) { toast.error('Please enter your name'); return }
-                      if (!nationality) { toast.error('Please select your nationality'); return }
+                      if (!name.trim()) {
+                        toast.error('Please enter your name')
+                        return
+                      }
+                      if (!nationality) {
+                        toast.error('Please select your nationality')
+                        return
+                      }
                       goTo('study')
                     }}
                     className="flex h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-slate-950 via-red-950 to-red-800 text-sm font-bold tracking-wide text-white shadow-lg shadow-red-900/20 transition-all hover:shadow-xl hover:shadow-red-900/30"
@@ -529,10 +665,14 @@ export default function RegistrationWizard() {
                         >
                           <BookOpen
                             size={16}
-                            className={studyLevel === level.value ? 'text-red-600' : 'text-slate-400'}
+                            className={
+                              studyLevel === level.value ? 'text-red-600' : 'text-slate-400'
+                            }
                           />
                           <div>
-                            <div className={`text-sm font-semibold ${studyLevel === level.value ? 'text-red-700' : 'text-slate-800'}`}>
+                            <div
+                              className={`text-sm font-semibold ${studyLevel === level.value ? 'text-red-700' : 'text-slate-800'}`}
+                            >
                               {level.label}
                             </div>
                             <div className="text-[11px] text-slate-400">{level.desc}</div>
@@ -551,7 +691,9 @@ export default function RegistrationWizard() {
                     >
                       <option value="">Select year</option>
                       {START_YEARS.map((y) => (
-                        <option key={y.value} value={y.value}>{y.label}</option>
+                        <option key={y.value} value={y.value}>
+                          {y.label}
+                        </option>
                       ))}
                       <option value="help-me-decide">Help me decide</option>
                     </select>

@@ -281,7 +281,26 @@ export async function syncStudentInquiriesToApplications(
     }
 
     if (inqId) {
-      const linkedInq = inquiries.find((i) => i.id === inqId)
+      const linkedInq = inquiries.find((i) => i.id === inqId) || inquiries[0]
+      if (linkedInq) {
+        let pInfoChanged = false
+        if (linkedInq.ipAddress && !pInfo.ipAddress) {
+          pInfo.ipAddress = linkedInq.ipAddress
+          pInfoChanged = true
+        }
+        if (linkedInq.heardFrom && !pInfo.heardFrom) {
+          pInfo.heardFrom = linkedInq.heardFrom
+          pInfoChanged = true
+        }
+        if (linkedInq.referralName && !pInfo.referralName) {
+          pInfo.referralName = linkedInq.referralName
+          pInfoChanged = true
+        }
+        if (pInfoChanged) {
+          appUpdates.personalInfo = pInfo
+          app.personalInfo = pInfo
+        }
+      }
       if (linkedInq?.courseSlug) {
         const [cBySlug] = await dbInstance
           .select({ id: schema.courses.id })
@@ -476,6 +495,9 @@ export async function syncStudentInquiriesToApplications(
         state: inq.state,
         zipCode: inq.zipCode,
         photoUrl: inq.photoUrl,
+        heardFrom: inq.heardFrom,
+        referralName: inq.referralName,
+        ipAddress: inq.ipAddress,
       }
 
       const cNotes = [
