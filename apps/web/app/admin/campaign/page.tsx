@@ -426,6 +426,10 @@ export default function AdminCampaignPage() {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
               }
+              a[href="#main-content"],
+              .print\\:hidden {
+                display: none !important;
+              }
               table {
                 width: 100% !important;
                 border-collapse: collapse !important;

@@ -975,3 +975,14 @@ textarea:focus-visible:not([class*='focus-visible']),
   word-break: normal;
   hyphens: none;
 }
+
+/* =========================
+   PRINT STYLES
+======================== */
+@media print {
+  a[href="#main-content"],
+  .skip-to-content,
+  [data-skip-link] {
+    display: none !important;
+  }
+}
